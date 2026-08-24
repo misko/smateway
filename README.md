@@ -54,3 +54,27 @@ make test
 The first target build is `pluto_safe_hold`. Flashing is deliberately not part
 of `make`; hardware writes require an explicit, recorded bench command after
 the read-only gates pass.
+
+```sh
+make safe-hold
+make bench
+```
+
+`pluto_bench` is a separate, leased static-selector image. Its generated JSON
+manifest carries the reviewed RAM-mailbox address, ABI offsets and exact ELF
+hash, so host commands do not embed an unreviewed address. It accepts only the
+generated eight antenna codes plus `ALL_OFF`, inserts the generated 5 ms
+break-before-make guard, and returns to `ALL_OFF` when a lease expires.
+
+After that image has independently passed its flash and electrical gates, use:
+
+```sh
+smateway bench --board-id <recorded-uid> status
+smateway bench --board-id <recorded-uid> all-off
+smateway bench --board-id <recorded-uid> select ANT4 --lease-ms 1000
+```
+
+Each invocation appends a UTC JSON event to that article's private state
+directory. Connecting the debugger briefly halts the lease timer; commands
+write code and lease first and the sequence word last, while the target is
+halted, then immediately resume it.

@@ -1,0 +1,38 @@
+#ifndef SMATEWAY_BENCH_PROTOCOL_H
+#define SMATEWAY_BENCH_PROTOCOL_H
+
+#include <stdint.h>
+
+#define BENCH_MAILBOX_MAGIC UINT32_C(0x534D4757)
+#define BENCH_MAILBOX_VERSION UINT32_C(1)
+#define BENCH_MAX_LEASE_MS UINT32_C(5000)
+
+#define BENCH_OFFSET_MAGIC UINT32_C(0)
+#define BENCH_OFFSET_VERSION UINT32_C(4)
+#define BENCH_OFFSET_COMMAND_SEQUENCE UINT32_C(8)
+#define BENCH_OFFSET_COMMAND_CODE UINT32_C(12)
+#define BENCH_OFFSET_COMMAND_LEASE_MS UINT32_C(16)
+#define BENCH_OFFSET_ACKNOWLEDGED_SEQUENCE UINT32_C(20)
+#define BENCH_OFFSET_APPLIED_CODE UINT32_C(24)
+#define BENCH_OFFSET_REMAINING_LEASE_MS UINT32_C(28)
+#define BENCH_OFFSET_STATUS_FLAGS UINT32_C(32)
+#define BENCH_MAILBOX_SIZE UINT32_C(36)
+
+#define BENCH_STATUS_COMMAND_VALID UINT32_C(0x00000001)
+#define BENCH_STATUS_LEASE_ACTIVE UINT32_C(0x00000002)
+#define BENCH_STATUS_GUARD_ACTIVE UINT32_C(0x00000004)
+#define BENCH_STATUS_INVALID_COMMAND UINT32_C(0x80000000)
+
+typedef struct {
+    uint32_t magic;
+    uint32_t version;
+    uint32_t command_sequence;
+    uint32_t command_code;
+    uint32_t command_lease_ms;
+    uint32_t acknowledged_sequence;
+    uint32_t applied_code;
+    uint32_t remaining_lease_ms;
+    uint32_t status_flags;
+} bench_mailbox_t;
+
+#endif

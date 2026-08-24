@@ -73,6 +73,13 @@ SECTIONS
         _edata = .;
     } > RAM AT > FLASH
 
+    .bench_mailbox (NOLOAD) :
+    {
+        . = ALIGN(4);
+        KEEP(*(.bench_mailbox))
+        . = ALIGN(4);
+    } > RAM
+
     .bss (NOLOAD) :
     {
         . = ALIGN(4);

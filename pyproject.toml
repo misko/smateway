@@ -12,6 +12,9 @@ dependencies = [
   "pluto-plus-utils[hardware]",
 ]
 
+[project.scripts]
+smateway = "smateway.cli:main"
+
 [project.optional-dependencies]
 dev = [
   "mypy>=1.13",
