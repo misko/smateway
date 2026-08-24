@@ -76,9 +76,11 @@ smateway bench --board-id <recorded-uid> select ANT4 --lease-ms 1000
 ```
 
 Each invocation appends a UTC JSON event to that article's private state
-directory. Connecting the debugger briefly halts the lease timer; commands
-write code and lease first and the sequence word last, while the target is
-halted, then immediately resume it.
+directory and uses a per-board process lock. SWD reads and writes use the
+memory access port without halting the core, so debugger loss cannot freeze a
+selected state with its lease timer stopped. Commands write code and lease
+first and the sequence word last; firmware publishes status before
+acknowledging that sequence.
 
 `pluto_fast20` consumes the same generated schedule and is independently
 host-tested for its 80 ms marker body, every 5 ms guard, all eight unique

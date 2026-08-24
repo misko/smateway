@@ -3,16 +3,40 @@
 from __future__ import annotations
 
 import argparse
+import fcntl
 import json
+import re
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 
 from .bench import BenchManifest, OpenOcdBench
 from .profile import load_profile
 
+BOARD_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
+
+
+def _board_root(board_id: str) -> Path:
+    if BOARD_ID.fullmatch(board_id) is None or board_id in {".", ".."}:
+        raise ValueError("board ID must contain only letters, digits, dot, underscore or dash")
+    return Path.home() / ".local" / "state" / "smateway" / "boards" / board_id
+
+
+@contextmanager
+def _board_lock(board_id: str) -> Iterator[None]:
+    root = _board_root(board_id)
+    root.mkdir(parents=True, exist_ok=True)
+    with (root / ".bench.lock").open("a+", encoding="utf-8") as stream:
+        fcntl.flock(stream, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(stream, fcntl.LOCK_UN)
+
 
 def _audit(board_id: str, action: str, status: dict[str, int | bool]) -> None:
-    root = Path.home() / ".local" / "state" / "smateway" / "boards" / board_id
+    root = _board_root(board_id)
     root.mkdir(parents=True, exist_ok=True)
     event = {
         "timestamp": datetime.now(UTC).isoformat(),
@@ -51,25 +75,26 @@ def main() -> int:
     if args.command != "bench":
         raise AssertionError("unreachable command")
 
-    manifest = BenchManifest.load(args.manifest)
-    controller = OpenOcdBench(manifest, args.openocd_config)
-    if args.action == "status":
-        action = "status"
-        status = controller.status()
-    elif args.action == "all-off":
-        profile = load_profile(args.profile)
-        action = "all-off"
-        status = controller.request(profile.all_off_code, 0)
-    elif args.action == "select":
-        profile = load_profile(args.profile)
-        selected = next(state for state in profile.states if state.name == args.antenna)
-        action = f"select {args.antenna} lease_ms={args.lease_ms}"
-        status = controller.request(selected.gpio_code, args.lease_ms)
-    else:
-        raise AssertionError("unreachable action")
+    with _board_lock(args.board_id):
+        manifest = BenchManifest.load(args.manifest)
+        controller = OpenOcdBench(manifest, args.openocd_config)
+        if args.action == "status":
+            action = "status"
+            status = controller.status()
+        elif args.action == "all-off":
+            profile = load_profile(args.profile)
+            action = "all-off"
+            status = controller.request(profile.all_off_code, 0)
+        elif args.action == "select":
+            profile = load_profile(args.profile)
+            selected = next(state for state in profile.states if state.name == args.antenna)
+            action = f"select {args.antenna} lease_ms={args.lease_ms}"
+            status = controller.request(selected.gpio_code, args.lease_ms)
+        else:
+            raise AssertionError("unreachable action")
 
-    document = status.as_dict()
-    _audit(args.board_id, action, document)
+        document = status.as_dict()
+        _audit(args.board_id, action, document)
     print(json.dumps(document, indent=2, sort_keys=True))
     return 0
 

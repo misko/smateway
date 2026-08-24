@@ -1,4 +1,5 @@
 import json
+import re
 import struct
 from pathlib import Path
 
@@ -9,6 +10,7 @@ from smateway.bench import (
     STATUS_GUARD_ACTIVE,
     STATUS_LEASE_ACTIVE,
     BenchManifest,
+    OpenOcdBench,
     decode_mailbox,
     next_sequence,
 )
@@ -76,3 +78,27 @@ def test_decode_rejects_wrong_image(tmp_path: Path) -> None:
 def test_sequence_wrap_skips_reserved_zero() -> None:
     assert next_sequence(41) == 42
     assert next_sequence(0xFFFFFFFF) == 1
+
+
+def test_status_reads_running_target_without_halting(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    manifest = write_manifest(tmp_path / "manifest.json")
+    config = tmp_path / "openocd.cfg"
+    config.write_text("# test\n", encoding="utf-8")
+    controller = OpenOcdBench(manifest, config)
+    commands_seen: list[str] = []
+
+    def fake_run(commands: str) -> str:
+        commands_seen.append(commands)
+        match = re.search(r"dump_image \{([^}]+)\}", commands)
+        assert match is not None
+        Path(match.group(1)).write_bytes(
+            struct.pack("<9I", manifest.magic, manifest.version, 0, 8, 0, 0, 8, 0, 0)
+        )
+        return ""
+
+    monkeypatch.setattr(controller, "_run", fake_run)
+
+    assert controller.status().applied_code == 8
+    assert all("halt" not in command and "resume" not in command for command in commands_seen)

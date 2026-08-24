@@ -78,7 +78,11 @@ static void mailbox_publish(const control_selector_t *selector, uint32_t command
     smateway_bench_mailbox.status_flags = flags;
 }
 
-static uint32_t process_command(control_selector_t *selector)
+static bool process_command(
+    control_selector_t *selector,
+    uint32_t *command_status,
+    uint32_t *acknowledged_sequence
+)
 {
     const uint32_t sequence = smateway_bench_mailbox.command_sequence;
     const uint32_t raw_code = smateway_bench_mailbox.command_code;
@@ -86,8 +90,7 @@ static uint32_t process_command(control_selector_t *selector)
     bool accepted;
 
     if (sequence == smateway_bench_mailbox.acknowledged_sequence) {
-        return smateway_bench_mailbox.status_flags
-            & (BENCH_STATUS_COMMAND_VALID | BENCH_STATUS_INVALID_COMMAND);
+        return false;
     }
 
     if (raw_code > UINT8_MAX || lease_ms > BENCH_MAX_LEASE_MS) {
@@ -97,8 +100,9 @@ static uint32_t process_command(control_selector_t *selector)
         accepted = control_selector_request(selector, (uint8_t)raw_code, lease_ms);
     }
     gpio_apply(selector->applied_code);
-    smateway_bench_mailbox.acknowledged_sequence = sequence;
-    return accepted ? BENCH_STATUS_COMMAND_VALID : BENCH_STATUS_INVALID_COMMAND;
+    *command_status = accepted ? BENCH_STATUS_COMMAND_VALID : BENCH_STATUS_INVALID_COMMAND;
+    *acknowledged_sequence = sequence;
+    return true;
 }
 
 int main(void)
@@ -128,7 +132,12 @@ int main(void)
     SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_ENABLE_Msk;
 
     for (;;) {
-        command_status = process_command(&selector);
+        uint32_t acknowledged_sequence;
+
+        if (process_command(&selector, &command_status, &acknowledged_sequence)) {
+            mailbox_publish(&selector, command_status);
+            smateway_bench_mailbox.acknowledged_sequence = acknowledged_sequence;
+        }
         if ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) != 0u) {
             const uint8_t previous_code = selector.applied_code;
 

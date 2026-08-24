@@ -160,9 +160,9 @@ class OpenOcdBench:
         with tempfile.TemporaryDirectory(prefix="smateway-mailbox-") as temporary:
             dump_path = Path(temporary) / "mailbox.bin"
             self._run(
-                "init; halt; "
+                "init; "
                 f"dump_image {{{dump_path}}} 0x{self.manifest.address:08x} "
-                f"0x{self.manifest.size:x}; resume; shutdown"
+                f"0x{self.manifest.size:x}; shutdown"
             )
             return decode_mailbox(dump_path.read_bytes(), self.manifest)
 
@@ -177,10 +177,10 @@ class OpenOcdBench:
         lease_address = self.manifest.field_address("command_lease_ms")
         sequence_address = self.manifest.field_address("command_sequence")
         self._run(
-            "init; halt; "
+            "init; "
             f"mww 0x{command_address:08x} 0x{code:08x}; "
             f"mww 0x{lease_address:08x} 0x{lease_ms:08x}; "
-            f"mww 0x{sequence_address:08x} 0x{sequence:08x}; resume; shutdown"
+            f"mww 0x{sequence_address:08x} 0x{sequence:08x}; shutdown"
         )
         deadline = time.monotonic() + 2.0
         while True:
