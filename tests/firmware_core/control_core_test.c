@@ -1,4 +1,5 @@
 #include "control_core.h"
+#include "autonomous_core.h"
 
 #include <assert.h>
 #include <stdint.h>
@@ -117,6 +118,54 @@ static void test_all_off_and_zero_lease(void)
     assert(selector.applied_code == CONTROL_ALL_OFF_CODE);
 }
 
+static void test_autonomous_frame_exact_timing(void)
+{
+    autonomous_frame_t frame;
+    size_t state_index;
+    uint32_t derived_cycle_ms = CONTROL_MARKER_BODY_MS;
+
+    autonomous_frame_init(&frame);
+    assert(frame.applied_code == CONTROL_ALL_OFF_CODE);
+    autonomous_frame_tick_ms(&frame, CONTROL_MARKER_BODY_MS);
+    assert(frame.phase == AUTONOMOUS_GUARD);
+    assert(frame.applied_code == CONTROL_ALL_OFF_CODE);
+    autonomous_frame_tick_ms(&frame, CONTROL_GUARD_MS - 1u);
+    assert(frame.applied_code == CONTROL_ALL_OFF_CODE);
+    autonomous_frame_tick_ms(&frame, 1u);
+
+    for (state_index = 0u; state_index < CONTROL_STATE_COUNT; ++state_index) {
+        const control_step_t state = CONTROL_SCHEDULE[state_index];
+
+        assert(frame.phase == AUTONOMOUS_DWELL);
+        assert(frame.state_index == state_index);
+        assert(frame.applied_code == state.gpio_code_pa3_pa0);
+        autonomous_frame_tick_ms(&frame, state.dwell_ms - 1u);
+        assert(frame.applied_code == state.gpio_code_pa3_pa0);
+        autonomous_frame_tick_ms(&frame, 1u);
+        assert(frame.applied_code == CONTROL_ALL_OFF_CODE);
+        derived_cycle_ms += CONTROL_GUARD_MS + state.dwell_ms;
+        if (state_index + 1u < CONTROL_STATE_COUNT) {
+            assert(frame.phase == AUTONOMOUS_GUARD);
+            autonomous_frame_tick_ms(&frame, CONTROL_GUARD_MS);
+        }
+    }
+    assert(derived_cycle_ms == CONTROL_NOMINAL_CYCLE_MS);
+    assert(frame.phase == AUTONOMOUS_MARKER);
+    assert(frame.phase_ms_remaining == CONTROL_MARKER_BODY_MS);
+}
+
+static void test_autonomous_chunked_full_cycle(void)
+{
+    autonomous_frame_t frame;
+
+    autonomous_frame_init(&frame);
+    autonomous_frame_tick_ms(&frame, CONTROL_NOMINAL_CYCLE_MS);
+    assert(frame.phase == AUTONOMOUS_MARKER);
+    assert(frame.state_index == 0u);
+    assert(frame.applied_code == CONTROL_ALL_OFF_CODE);
+    assert(frame.phase_ms_remaining == CONTROL_MARKER_BODY_MS);
+}
+
 int main(void)
 {
     test_truth_table();
@@ -125,6 +174,8 @@ int main(void)
     test_same_state_refresh_does_not_break();
     test_every_selected_transition_breaks_before_make();
     test_all_off_and_zero_lease();
+    test_autonomous_frame_exact_timing();
+    test_autonomous_chunked_full_cycle();
     puts("control_core_test: PASS");
     return 0;
 }

@@ -5,8 +5,13 @@ PYTHON ?= python3
 UV ?= uv
 BUILD_DIR ?= build
 HOST_TEST := $(BUILD_DIR)/host/control_core_test
-CORE_SOURCES := firmware/stm32c011/core/control_core.c
-CORE_HEADERS := firmware/stm32c011/core/control_core.h profiles/fast20-v1/control_profile.h
+CORE_SOURCES := \
+	firmware/stm32c011/core/control_core.c \
+	firmware/stm32c011/core/autonomous_core.c
+CORE_HEADERS := \
+	firmware/stm32c011/core/control_core.h \
+	firmware/stm32c011/core/autonomous_core.h \
+	profiles/fast20-v1/control_profile.h
 
 MCU ?= STM32C011F4P6
 CROSS ?= arm-none-eabi-
@@ -26,6 +31,11 @@ BENCH_MAP := $(BENCH_DIR)/pluto_bench.map
 BENCH_LST := $(BENCH_DIR)/pluto_bench.lst
 BENCH_MANIFEST := $(BENCH_DIR)/pluto_bench.manifest.json
 BENCH_PROTOCOL := firmware/stm32c011/apps/bench/bench_protocol.h
+FAST_DIR := $(BUILD_DIR)/$(MCU)/fast20
+FAST_ELF := $(FAST_DIR)/pluto_fast20.elf
+FAST_BIN := $(FAST_DIR)/pluto_fast20.bin
+FAST_MAP := $(FAST_DIR)/pluto_fast20.map
+FAST_LST := $(FAST_DIR)/pluto_fast20.lst
 DEVICE_ROOT := firmware/stm32c011/vendor/cmsis-device-c0
 CMSIS_ROOT := firmware/stm32c011/vendor/CMSIS_5/CMSIS/Core
 TARGET_SOURCES := \
@@ -54,7 +64,7 @@ TARGET_LDFLAGS_COMMON := \
 	-Wl,--print-memory-usage -nostdlib
 TARGET_LDFLAGS := $(TARGET_LDFLAGS_COMMON) -Wl,-Map,$(TARGET_MAP)
 
-.PHONY: all test test-c test-python profile-check safe-hold bench clean
+.PHONY: all test test-c test-python profile-check safe-hold bench fast20 clean
 
 all: test
 
@@ -159,6 +169,50 @@ $(BENCH_MANIFEST): $(BENCH_ELF) $(BENCH_PROTOCOL)
 
 bench: profile-check test-c $(BENCH_BIN) $(BENCH_LST) $(BENCH_MANIFEST)
 	$(PYTHON) scripts/verify_bench_elf.py $(BENCH_ELF)
+
+$(FAST_DIR)/main.o: firmware/stm32c011/apps/fast20/main.c $(CORE_HEADERS)
+	mkdir -p $(dir $@)
+	$(TARGET_CC) $(TARGET_CPPFLAGS) -Ifirmware/stm32c011/core \
+		$(TARGET_CFLAGS) -c $< -o $@
+
+$(FAST_DIR)/autonomous_core.o: firmware/stm32c011/core/autonomous_core.c $(CORE_HEADERS)
+	mkdir -p $(dir $@)
+	$(TARGET_CC) $(TARGET_CPPFLAGS) -Ifirmware/stm32c011/core \
+		$(TARGET_CFLAGS) -c $< -o $@
+
+$(FAST_DIR)/safe_runtime.o: firmware/stm32c011/apps/safe_hold/safe_runtime.c
+	mkdir -p $(dir $@)
+	$(TARGET_CC) $(TARGET_CPPFLAGS) $(TARGET_CFLAGS) -c $< -o $@
+
+$(FAST_DIR)/system_stm32c0xx.o: $(DEVICE_ROOT)/Source/Templates/system_stm32c0xx.c
+	mkdir -p $(dir $@)
+	$(TARGET_CC) $(TARGET_CPPFLAGS) $(TARGET_CFLAGS) -c $< -o $@
+
+$(FAST_DIR)/startup_stm32c011xx.o: $(DEVICE_ROOT)/Source/Templates/gcc/startup_stm32c011xx.s
+	mkdir -p $(dir $@)
+	$(TARGET_CC) $(TARGET_CPPFLAGS) -mcpu=cortex-m0plus -mthumb -g3 -c $< -o $@
+
+$(FAST_ELF): \
+		$(FAST_DIR)/main.o \
+		$(FAST_DIR)/autonomous_core.o \
+		$(FAST_DIR)/safe_runtime.o \
+		$(FAST_DIR)/system_stm32c0xx.o \
+		$(FAST_DIR)/startup_stm32c011xx.o \
+		firmware/stm32c011/linker/stm32c011f4p6.ld
+	$(TARGET_CC) $(filter %.o,$^) $(TARGET_LDFLAGS_COMMON) \
+		-Wl,-Map,$(FAST_MAP) -o $@
+	$(TARGET_SIZE) $@ | tee $(FAST_DIR)/pluto_fast20.size.txt
+	sha256sum $@ > $@.sha256
+
+$(FAST_BIN): $(FAST_ELF)
+	$(TARGET_OBJCOPY) -O binary $< $@
+	sha256sum $@ > $@.sha256
+
+$(FAST_LST): $(FAST_ELF)
+	$(TARGET_OBJDUMP) -d -S -h $< > $@
+
+fast20: profile-check test-c $(FAST_BIN) $(FAST_LST)
+	$(PYTHON) scripts/verify_fast20_elf.py $(FAST_ELF)
 
 clean:
 	test "$(BUILD_DIR)" = "build"

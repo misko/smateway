@@ -58,6 +58,7 @@ the read-only gates pass.
 ```sh
 make safe-hold
 make bench
+make fast20
 ```
 
 `pluto_bench` is a separate, leased static-selector image. Its generated JSON
@@ -78,3 +79,11 @@ Each invocation appends a UTC JSON event to that article's private state
 directory. Connecting the debugger briefly halts the lease timer; commands
 write code and lease first and the sequence word last, while the target is
 halted, then immediately resume it.
+
+`pluto_fast20` consumes the same generated schedule and is independently
+host-tested for its 80 ms marker body, every 5 ms guard, all eight unique
+dwells, and the 386 ms cycle. It starts and refreshes the independent watchdog
+without enabling interrupts or accessing flash/option registers. The separate
+BOR-level-4 option-byte gate is intentionally not hidden in this image or its
+build; it must be reviewed, recorded and recovered independently before the
+autonomous image can be qualified.
