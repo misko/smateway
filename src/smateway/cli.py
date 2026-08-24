@@ -66,7 +66,7 @@ def _parser() -> argparse.ArgumentParser:
     actions.add_parser("all-off")
     select = actions.add_parser("select")
     select.add_argument("antenna", choices=[f"ANT{index}" for index in range(1, 9)])
-    select.add_argument("--lease-ms", type=int, default=1000)
+    select.add_argument("--lease-ms", type=int)
     return parser
 
 
@@ -88,8 +88,11 @@ def main() -> int:
         elif args.action == "select":
             profile = load_profile(args.profile)
             selected = next(state for state in profile.states if state.name == args.antenna)
-            action = f"select {args.antenna} lease_ms={args.lease_ms}"
-            status = controller.request(selected.gpio_code, args.lease_ms)
+            lease_ms = manifest.max_lease_ms if args.lease_ms is None else args.lease_ms
+            action = f"select {args.antenna} lease_ms={lease_ms}"
+            status = controller.request(
+                selected.gpio_code, lease_ms, wait_until_applied=True
+            )
         else:
             raise AssertionError("unreachable action")
 

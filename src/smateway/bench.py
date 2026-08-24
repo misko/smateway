@@ -166,7 +166,9 @@ class OpenOcdBench:
             )
             return decode_mailbox(dump_path.read_bytes(), self.manifest)
 
-    def request(self, code: int, lease_ms: int) -> BenchStatus:
+    def request(
+        self, code: int, lease_ms: int, *, wait_until_applied: bool = False
+    ) -> BenchStatus:
         if code < 0 or code > 0xFF:
             raise ValueError("code must fit in one byte")
         if lease_ms < 0 or lease_ms > self.manifest.max_lease_ms:
@@ -186,7 +188,14 @@ class OpenOcdBench:
         while True:
             observed = self.status()
             if observed.acknowledged_sequence == sequence:
-                return observed
+                if not wait_until_applied:
+                    return observed
+                if observed.invalid_command:
+                    return observed
+                if observed.applied_code == code and not observed.guard_active:
+                    return observed
             if time.monotonic() >= deadline:
-                raise TimeoutError("bench firmware did not acknowledge the command")
+                if observed.acknowledged_sequence != sequence:
+                    raise TimeoutError("bench firmware did not acknowledge the command")
+                raise TimeoutError("bench firmware did not apply the requested code")
             time.sleep(0.01)

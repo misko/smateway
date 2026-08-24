@@ -72,7 +72,7 @@ After that image has independently passed its flash and electrical gates, use:
 ```sh
 smateway bench --board-id <recorded-uid> status
 smateway bench --board-id <recorded-uid> all-off
-smateway bench --board-id <recorded-uid> select ANT4 --lease-ms 1000
+smateway bench --board-id <recorded-uid> select ANT4 --lease-ms 5000
 ```
 
 Each invocation appends a UTC JSON event to that article's private state
@@ -80,7 +80,9 @@ directory and uses a per-board process lock. SWD reads and writes use the
 memory access port without halting the core, so debugger loss cannot freeze a
 selected state with its lease timer stopped. Commands write code and lease
 first and the sequence word last; firmware publishes status before
-acknowledging that sequence.
+acknowledging that sequence. A select command waits until the generated guard
+has ended and the requested code is observed; when `--lease-ms` is omitted it
+uses the maximum lease from the reviewed firmware manifest.
 
 `pluto_fast20` consumes the same generated schedule and is independently
 host-tested for its 80 ms marker body, every 5 ms guard, all eight unique

@@ -10,6 +10,7 @@ from smateway.bench import (
     STATUS_GUARD_ACTIVE,
     STATUS_LEASE_ACTIVE,
     BenchManifest,
+    BenchStatus,
     OpenOcdBench,
     decode_mailbox,
     next_sequence,
@@ -102,3 +103,39 @@ def test_status_reads_running_target_without_halting(
 
     assert controller.status().applied_code == 8
     assert all("halt" not in command and "resume" not in command for command in commands_seen)
+
+
+def test_request_can_wait_for_guard_to_finish(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    manifest = write_manifest(tmp_path / "manifest.json")
+    config = tmp_path / "openocd.cfg"
+    config.write_text("# test\n", encoding="utf-8")
+    controller = OpenOcdBench(manifest, config)
+
+    def status(sequence: int, applied: int, flags: int) -> BenchStatus:
+        return BenchStatus(
+            command_sequence=sequence,
+            command_code=6,
+            command_lease_ms=5000,
+            acknowledged_sequence=sequence,
+            applied_code=applied,
+            remaining_lease_ms=4990,
+            status_flags=flags,
+        )
+
+    observations = iter(
+        (
+            status(4, 8, 0),
+            status(5, 8, STATUS_COMMAND_VALID | STATUS_LEASE_ACTIVE | STATUS_GUARD_ACTIVE),
+            status(5, 6, STATUS_COMMAND_VALID | STATUS_LEASE_ACTIVE),
+        )
+    )
+    monkeypatch.setattr(controller, "status", lambda: next(observations))
+    monkeypatch.setattr(controller, "_run", lambda commands: "")
+    monkeypatch.setattr("smateway.bench.time.sleep", lambda delay: None)
+
+    observed = controller.request(6, 5000, wait_until_applied=True)
+
+    assert observed.applied_code == 6
+    assert not observed.guard_active
