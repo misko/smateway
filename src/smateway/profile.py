@@ -28,8 +28,11 @@ class ControlProfile:
     all_off_code: int
     guard_ms: int
     marker_body_ms: int
+    marker_decoder_min_ms: int
     nominal_cycle_ms: int
     recommended_capture_ms: int
+    minimum_complete_frame_capture_ms: int
+    decoder_window_pct: float
     states: tuple[ControlState, ...]
 
 
@@ -94,8 +97,15 @@ def load_profile(path: Path) -> ControlProfile:
         all_off_code=all_off_code,
         guard_ms=guard_ms,
         marker_body_ms=marker_body_ms,
+        marker_decoder_min_ms=int(marker["decoder_min_ms"]),
         nominal_cycle_ms=nominal_cycle_ms,
         recommended_capture_ms=int(frame["recommended_capture_ms"]),
+        minimum_complete_frame_capture_ms=int(
+            frame["minimum_capture_for_guaranteed_complete_frame_ms"]
+        ),
+        decoder_window_pct=float(
+            _mapping(document.get("clock"), "profile.clock")["decoder_window_pct"]
+        ),
         states=states,
     )
 

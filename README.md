@@ -87,3 +87,18 @@ without enabling interrupts or accessing flash/option registers. The separate
 BOR-level-4 option-byte gate is intentionally not hidden in this image or its
 build; it must be reviewed, recorded and recovered independently before the
 autonomous image can be qualified.
+
+The host decoder consumes the generated duration windows and fails closed to
+`unknown` for no signal, truncation, ambiguous duration, missed/extra
+transitions, bad ordering or a missing marker. BOR planning is likewise pure
+and non-mutating:
+
+```sh
+uv run python scripts/plan_bor4.py --observed-optr 0xfffffeaa
+```
+
+For the first article this proves that BOR4 requires only `BOR_EN` bit 8 to
+change: the factory rising and falling threshold fields already encode level
+4. The planner refuses any option word whose RDP byte is not exactly `0xAA` and
+prints `executed: false`; applying and re-reading that mask remains a separate
+hardware gate.

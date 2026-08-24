@@ -1,0 +1,94 @@
+from pathlib import Path
+
+import pytest
+
+from smateway.decoder import ObservedInterval, decode_intervals
+from smateway.profile import ControlProfile, load_profile
+
+PROFILE_ROOT = Path("profiles/fast20-v1")
+
+
+@pytest.fixture
+def profile() -> ControlProfile:
+    return load_profile(PROFILE_ROOT / "control_profile.json")
+
+
+def valid_frame(profile: ControlProfile) -> tuple[ObservedInterval, ...]:
+    intervals = [
+        ObservedInterval(
+            signal_present=False,
+            duration_ms=profile.marker_body_ms + profile.guard_ms,
+        )
+    ]
+    for index, state in enumerate(profile.states):
+        intervals.append(ObservedInterval(signal_present=True, duration_ms=state.dwell_ms))
+        if index + 1 < len(profile.states):
+            intervals.append(
+                ObservedInterval(signal_present=False, duration_ms=profile.guard_ms)
+            )
+    return tuple(intervals)
+
+
+def test_valid_complete_frame_decodes(profile: ControlProfile) -> None:
+    result = decode_intervals(valid_frame(profile), profile)
+
+    assert result.status == "decoded"
+    assert result.states == tuple(state.name for state in profile.states)
+    assert result.marker_index == 0
+
+
+@pytest.mark.parametrize(
+    ("intervals", "reason"),
+    [
+        ((ObservedInterval(False, 850),), "no_observable_signal"),
+        (
+            (
+                ObservedInterval(False, 85),
+                ObservedInterval(True, 20),
+                ObservedInterval(False, 5),
+            ),
+            "truncated_capture",
+        ),
+        (
+            (
+                ObservedInterval(False, 85),
+                ObservedInterval(True, 10),
+            ),
+            "ambiguous_duration",
+        ),
+        (
+            (
+                ObservedInterval(False, 85),
+                ObservedInterval(True, 23),
+            ),
+            "invalid_order",
+        ),
+        (
+            (
+                ObservedInterval(False, 85),
+                ObservedInterval(True, 20),
+                ObservedInterval(False, 7),
+                ObservedInterval(True, 23),
+            ),
+            "missed_or_extra_transition",
+        ),
+    ],
+)
+def test_fail_closed_rejection_reasons(
+    profile: ControlProfile,
+    intervals: tuple[ObservedInterval, ...],
+    reason: str,
+) -> None:
+    result = decode_intervals(intervals, profile)
+
+    assert result.status == "unknown"
+    assert result.reason == reason
+
+
+def test_capture_without_marker_is_unknown(profile: ControlProfile) -> None:
+    intervals = valid_frame(profile)[1:]
+
+    result = decode_intervals(intervals, profile)
+
+    assert result.status == "unknown"
+    assert result.reason == "no_valid_marker"
