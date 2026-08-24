@@ -1,0 +1,11 @@
+{
+  "artifacts": {
+    "control_profile.h": "839a1eced9eaf168bb8128301a8509709bb42a09c89ce5d6fbf26b216e79bfd3",
+    "control_profile.json": "c8f3de200573d90d1b87b623770cd9253649c634a22cea1a9ca980042ae40f11"
+  },
+  "contract_sha256": "25b2bd0769687cc255d5e6926312e7e827672dc4567d64aecd85e8078acb4258",
+  "schema": 1,
+  "source_commit": "d36f032cd5a658d528909a1255b2b2a70c84c803",
+  "source_contract": "projects/pluto-rx2-8way-v5/03_src/rules/control_protocol.yaml",
+  "source_repository": "https://github.com/misko/circuits.git"
+}

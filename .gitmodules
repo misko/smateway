@@ -1,0 +1,6 @@
+[submodule "firmware/stm32c011/vendor/cmsis-device-c0"]
+	path = firmware/stm32c011/vendor/cmsis-device-c0
+	url = https://github.com/STMicroelectronics/cmsis-device-c0.git
+[submodule "firmware/stm32c011/vendor/CMSIS_5"]
+	path = firmware/stm32c011/vendor/CMSIS_5
+	url = https://github.com/ARM-software/CMSIS_5.git

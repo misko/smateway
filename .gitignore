@@ -1,0 +1,15 @@
+/build/
+/.venv/
+/.pytest_cache/
+/.mypy_cache/
+/.ruff_cache/
+__pycache__/
+*.py[cod]
+*.elf
+*.bin
+*.hex
+*.map
+*.log
+*.sigmf-data
+*.sigmf-meta
+.coverage

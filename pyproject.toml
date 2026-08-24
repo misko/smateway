@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "smateway"
+version = "0.1.0"
+description = "Firmware and qualification tooling for the Pluto RX2 eight-way selector"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "pluto-plus-utils[hardware]",
+]
+
+[project.optional-dependencies]
+dev = [
+  "mypy>=1.13",
+  "pytest>=8",
+  "ruff>=0.8",
+]
+
+[tool.uv.sources]
+pluto-plus-utils = { git = "https://github.com/misko/pluto-plus-utils.git", rev = "1055fbefbc9fc8349fcf7862a773c70b863f87c5" }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/smateway"]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-markers"
+testpaths = ["tests"]
+markers = [
+  "hardware: requires an explicitly selected live board or radio",
+  "flash: writes an explicitly selected STM32 target",
+  "rf: may enable an explicitly bounded RF stimulus",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["firmware/stm32c011/vendor"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+packages = ["smateway"]
