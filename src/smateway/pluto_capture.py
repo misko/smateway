@@ -2,16 +2,28 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 from pluto_plus.analysis import SignalQualityAnalyzer, SpectrumAnalyzer
-from pluto_plus.artifacts import CaptureWriter, verify_artifact
+from pluto_plus.artifacts import CaptureWriter, data_path, verify_artifact
 from pluto_plus.hardware import RadioDevice
 from pluto_plus.models import ArtifactSummary, RadioSettings
 
+from .decoder import ObservedInterval, intervals_from_presence
+
 MAX_CAPTURE_SAMPLES = 16_777_216
 DEFAULT_BLOCK_SAMPLES = 65_536
+
+
+@dataclass(frozen=True, slots=True)
+class EnvelopeDetection:
+    intervals: tuple[ObservedInterval, ...]
+    baseline_db: float
+    threshold_db: float
+    bin_duration_ms: float
 
 
 def capture_receive_only(
@@ -66,3 +78,46 @@ def analyze_receive_capture(
         "spectrum": SpectrumAnalyzer().run(artifact, {"fft_size": fft_size}),
         "quality": SignalQualityAnalyzer().run(artifact, {}),
     }
+
+
+def detect_envelope_intervals(
+    artifact: ArtifactSummary,
+    *,
+    receiver: int = 1,
+    bin_ms: float = 1.0,
+    threshold_db_above_baseline: float = 6.0,
+) -> EnvelopeDetection:
+    """Convert one receiver's immutable CI16 envelope into timed present/absent runs."""
+
+    if receiver < 0 or receiver >= artifact.receiver_count:
+        raise ValueError("receiver is outside the capture")
+    if bin_ms <= 0:
+        raise ValueError("bin_ms must be positive")
+    if threshold_db_above_baseline <= 0:
+        raise ValueError("threshold margin must be positive")
+    samples_per_bin = round(artifact.sample_rate_hz * bin_ms / 1000.0)
+    if samples_per_bin < 1:
+        raise ValueError("bin duration is shorter than one sample")
+    complete_bins = artifact.sample_count // samples_per_bin
+    if complete_bins < 1:
+        raise ValueError("capture is shorter than one envelope bin")
+
+    raw = np.memmap(data_path(artifact), dtype="<i2", mode="r")
+    expected_components = artifact.sample_count * artifact.receiver_count * 2
+    if raw.size != expected_components:
+        raise ValueError("IQ component count does not match artifact metadata")
+    components = raw.reshape(artifact.sample_count, artifact.receiver_count, 2)
+    selected = components[: complete_bins * samples_per_bin, receiver]
+    shaped = selected.reshape(complete_bins, samples_per_bin, 2).astype(np.float64)
+    power = np.mean(shaped[:, :, 0] ** 2 + shaped[:, :, 1] ** 2, axis=1)
+    power_db = 10.0 * np.log10(power + np.finfo(np.float64).tiny)
+    baseline_db = float(np.percentile(power_db, 20.0))
+    threshold_db = baseline_db + threshold_db_above_baseline
+    presence = tuple(bool(value >= threshold_db) for value in power_db)
+    actual_bin_ms = samples_per_bin * 1000.0 / artifact.sample_rate_hz
+    return EnvelopeDetection(
+        intervals=intervals_from_presence(presence, bin_duration_ms=actual_bin_ms),
+        baseline_db=baseline_db,
+        threshold_db=threshold_db,
+        bin_duration_ms=actual_bin_ms,
+    )

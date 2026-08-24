@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Literal
 
@@ -33,6 +34,32 @@ class DecodeResult:
     states: tuple[str, ...] = ()
     reason: UnknownReason | None = None
     marker_index: int | None = None
+
+
+def intervals_from_presence(
+    presence: Sequence[bool], *, bin_duration_ms: float
+) -> tuple[ObservedInterval, ...]:
+    if bin_duration_ms <= 0:
+        raise ValueError("bin duration must be positive")
+    if not presence:
+        return ()
+    intervals: list[ObservedInterval] = []
+    current = bool(presence[0])
+    bins = 1
+    for raw_value in presence[1:]:
+        value = bool(raw_value)
+        if value == current:
+            bins += 1
+            continue
+        intervals.append(
+            ObservedInterval(signal_present=current, duration_ms=bins * bin_duration_ms)
+        )
+        current = value
+        bins = 1
+    intervals.append(
+        ObservedInterval(signal_present=current, duration_ms=bins * bin_duration_ms)
+    )
+    return tuple(intervals)
 
 
 def _normalized(intervals: tuple[ObservedInterval, ...]) -> tuple[ObservedInterval, ...]:
