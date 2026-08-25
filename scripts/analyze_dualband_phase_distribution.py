@@ -43,11 +43,13 @@ from smateway.phase_distribution import (
 
 REPOSITORY = Path(__file__).resolve().parents[1]
 DEFAULT_GEOMETRY = REPOSITORY / "profiles/phase20-v1/array_geometry.json"
-EXPECTED_CONDITIONS = (
-    (2_400_000_000, 0),
-    (2_400_000_000, 1),
-    (5_800_000_000, 0),
-    (5_800_000_000, 1),
+ISM_2G4_MIN_HZ = 2_400_000_000
+ISM_2G4_MAX_HZ = 2_483_500_000
+EXACT_5G8_HZ = 5_800_000_000
+ROUND_ORDER_POLICY = (
+    "supplied_frequency_order_tx1_then_tx2",
+    "reverse_frequency_order_tx2_then_tx1",
+    "rotate_frequency_order_alternate_tx_order",
 )
 ARTIFACT_ID = re.compile(r"[0-9a-f]{32}")
 MINIMUM_LOCALIZATION_ANTENNAS = 4
@@ -150,20 +152,152 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _expected_plan(rounds: int) -> list[dict[str, int | str]]:
-    plan: list[dict[str, int | str]] = []
-    for round_index in range(1, rounds + 1):
-        for condition_index, (frequency_hz, tx_channel) in enumerate(EXPECTED_CONDITIONS, start=1):
-            plan.append(
-                {
-                    "plan_index": len(plan),
-                    "round": round_index,
-                    "condition_index": condition_index,
-                    "center_frequency_hz": frequency_hz,
-                    "tx_channel": tx_channel,
-                    "tx_name": f"TX{tx_channel + 1}",
-                }
+def _systematic_floor(
+    center_frequency_hz: int,
+    floor_2g4: float,
+    floor_5g8: float,
+) -> float:
+    if ISM_2G4_MIN_HZ <= center_frequency_hz <= ISM_2G4_MAX_HZ:
+        return floor_2g4
+    if center_frequency_hz == EXACT_5G8_HZ:
+        return floor_5g8
+    raise AnalysisError(
+        f"localization profile uses unsupported center frequency {center_frequency_hz} Hz; "
+        f"supported frequencies are {ISM_2G4_MIN_HZ}..{ISM_2G4_MAX_HZ} Hz and "
+        f"exactly {EXACT_5G8_HZ} Hz"
+    )
+
+
+def _validated_condition_order(
+    configuration: Mapping[str, Any],
+) -> tuple[tuple[int, int], ...]:
+    raw_order = _sequence(configuration.get("condition_order"), "condition_order")
+    if not raw_order:
+        raise AnalysisError("manifest condition order must contain at least one TX pair")
+    conditions: list[tuple[int, int]] = []
+    for index, raw_item in enumerate(raw_order):
+        item = _mapping(raw_item, f"condition_order[{index}]")
+        if set(item) != {"center_frequency_hz", "tx_channel"}:
+            raise AnalysisError(
+                "each manifest condition-order item must contain only "
+                "center_frequency_hz and tx_channel"
             )
+        frequency_hz = _integer(
+            item.get("center_frequency_hz"),
+            f"condition_order[{index}].center_frequency_hz",
+        )
+        tx_channel = _integer(item.get("tx_channel"), f"condition_order[{index}].tx_channel")
+        if frequency_hz <= 0:
+            raise AnalysisError("manifest condition frequencies must be positive")
+        if tx_channel not in (0, 1):
+            raise AnalysisError("manifest condition TX channel must be 0 or 1")
+        conditions.append((frequency_hz, tx_channel))
+
+    if len(conditions) % 2:
+        raise AnalysisError("manifest condition order must contain complete TX1/TX2 pairs")
+    frequencies: list[int] = []
+    for index in range(0, len(conditions), 2):
+        tx1, tx2 = conditions[index : index + 2]
+        if tx1[1] != 0 or tx2[1] != 1 or tx1[0] != tx2[0]:
+            raise AnalysisError(
+                "manifest condition order must contain adjacent same-frequency TX1/TX2 pairs"
+            )
+        if tx1[0] in frequencies:
+            raise AnalysisError("manifest condition order contains a duplicate frequency pair")
+        _systematic_floor(tx1[0], 1.0, 1.0)
+        frequencies.append(tx1[0])
+    return tuple(conditions)
+
+
+def _round_condition_order(
+    center_frequencies_hz: Sequence[int], round_index: int
+) -> tuple[tuple[int, int], ...]:
+    """Reconstruct the runner's deterministic drift-detection order."""
+
+    pattern_index = (round_index - 1) % len(ROUND_ORDER_POLICY)
+    frequencies = tuple(center_frequencies_hz)
+    if pattern_index == 0:
+        ordered_frequencies = frequencies
+        tx_orders = ((0, 1),) * len(frequencies)
+    elif pattern_index == 1:
+        ordered_frequencies = tuple(reversed(frequencies))
+        tx_orders = ((1, 0),) * len(frequencies)
+    else:
+        ordered_frequencies = frequencies[1:] + frequencies[:1]
+        tx_orders = tuple((0, 1) if index % 2 == 0 else (1, 0) for index in range(len(frequencies)))
+    return tuple(
+        (frequency_hz, tx_channel)
+        for frequency_hz, tx_order in zip(ordered_frequencies, tx_orders, strict=True)
+        for tx_channel in tx_order
+    )
+
+
+def _validated_multifrequency_configuration(
+    configuration: Mapping[str, Any],
+) -> tuple[int, ...] | None:
+    """Return new-run frequencies, or None for a legacy fixed-order manifest."""
+
+    raw_frequencies = configuration.get("center_frequencies_hz")
+    if raw_frequencies is None:
+        return None
+    frequencies = tuple(
+        _integer(value, f"configuration.center_frequencies_hz[{index}]")
+        for index, value in enumerate(
+            _sequence(raw_frequencies, "configuration.center_frequencies_hz")
+        )
+    )
+    if not frequencies:
+        raise AnalysisError("configuration must contain at least one center frequency")
+    if len(set(frequencies)) != len(frequencies):
+        raise AnalysisError("configuration center frequencies must be unique")
+    for frequency_hz in frequencies:
+        _systematic_floor(frequency_hz, 1.0, 1.0)
+
+    condition_order = _validated_condition_order(configuration)
+    if condition_order != _round_condition_order(frequencies, 1):
+        raise AnalysisError("configuration condition order differs from its center-frequency list")
+    expected_policy = [
+        {
+            "pattern": pattern_index,
+            "name": pattern_name,
+            "conditions": [
+                {"center_frequency_hz": frequency_hz, "tx_channel": tx_channel}
+                for frequency_hz, tx_channel in _round_condition_order(frequencies, pattern_index)
+            ],
+        }
+        for pattern_index, pattern_name in enumerate(ROUND_ORDER_POLICY, start=1)
+    ]
+    if configuration.get("round_order_policy") != expected_policy:
+        raise AnalysisError("configuration round-order policy is not the reviewed policy")
+    return frequencies
+
+
+def _expected_plan(
+    rounds: int,
+    condition_order: Sequence[tuple[int, int]],
+    *,
+    alternating_round_order: bool = False,
+) -> list[dict[str, int | str]]:
+    plan: list[dict[str, int | str]] = []
+    frequencies = tuple(condition_order[index][0] for index in range(0, len(condition_order), 2))
+    for round_index in range(1, rounds + 1):
+        round_order = (
+            _round_condition_order(frequencies, round_index)
+            if alternating_round_order
+            else tuple(condition_order)
+        )
+        for condition_index, (frequency_hz, tx_channel) in enumerate(round_order, start=1):
+            condition: dict[str, int | str] = {
+                "plan_index": len(plan),
+                "round": round_index,
+                "condition_index": condition_index,
+                "center_frequency_hz": frequency_hz,
+                "tx_channel": tx_channel,
+                "tx_name": f"TX{tx_channel + 1}",
+            }
+            if alternating_round_order:
+                condition["round_order_pattern"] = ((round_index - 1) % len(ROUND_ORDER_POLICY)) + 1
+            plan.append(condition)
     return plan
 
 
@@ -282,20 +416,13 @@ def _load_completed_experiment(
     rounds = _integer(configuration.get("rounds"), "configuration.rounds")
     if not 1 <= rounds <= 20:
         raise AnalysisError("configuration rounds must lie within 1..20")
-    expected_order = [
-        {"center_frequency_hz": frequency_hz, "tx_channel": tx_channel}
-        for frequency_hz, tx_channel in EXPECTED_CONDITIONS
-    ]
-    order = [
-        dict(_mapping(item, "configuration.condition_order item"))
-        for item in _sequence(configuration.get("condition_order"), "condition_order")
-    ]
-    if order != expected_order:
-        raise AnalysisError(
-            "manifest condition order is not exact 2.4/TX1, 2.4/TX2, 5.8/TX1, 5.8/TX2"
-        )
-
-    expected_plan = _expected_plan(rounds)
+    condition_order = _validated_condition_order(configuration)
+    multifrequency_frequencies = _validated_multifrequency_configuration(configuration)
+    expected_plan = _expected_plan(
+        rounds,
+        condition_order,
+        alternating_round_order=multifrequency_frequencies is not None,
+    )
     actual_plan = [
         dict(_mapping(item, "plan item")) for item in _sequence(manifest.get("plan"), "plan")
     ]
@@ -337,6 +464,8 @@ def _load_completed_experiment(
 
 
 def _pair_captures(captures: Sequence[CompletedCapture]) -> tuple[CapturePair, ...]:
+    if not captures:
+        raise AnalysisError("no completed captures exist to pair")
     indexed = {
         (capture.round_index, capture.center_frequency_hz, capture.tx_channel): capture
         for capture in captures
@@ -344,9 +473,12 @@ def _pair_captures(captures: Sequence[CompletedCapture]) -> tuple[CapturePair, .
     if len(indexed) != len(captures):
         raise AnalysisError("capture condition keys are not unique")
     rounds = sorted({capture.round_index for capture in captures})
+    center_frequencies_hz = tuple(
+        dict.fromkeys(capture.center_frequency_hz for capture in captures)
+    )
     pairs = []
     for round_index in rounds:
-        for center_frequency_hz in (2_400_000_000, 5_800_000_000):
+        for center_frequency_hz in center_frequencies_hz:
             try:
                 tx1 = indexed[(round_index, center_frequency_hz, 0)]
                 tx2 = indexed[(round_index, center_frequency_hz, 1)]
@@ -362,6 +494,8 @@ def _pair_captures(captures: Sequence[CompletedCapture]) -> tuple[CapturePair, .
                     tx2=tx2,
                 )
             )
+    if len(pairs) * 2 != len(captures):
+        raise AnalysisError("capture set contains a condition outside the paired round plan")
     summarize_paired_tx_phase_differences((pair.tx1.artifact, pair.tx2.artifact) for pair in pairs)
     return tuple(pairs)
 
@@ -389,14 +523,6 @@ def _board_geometry(path: Path) -> tuple[np.ndarray, np.ndarray, Mapping[str, An
         ((coordinates[0] + coordinates[1]) / 2.0, (coordinates[2] + coordinates[3]) / 2.0)
     )
     return antenna_positions - board_center, board_center, document, _sha256(path)
-
-
-def _systematic_floor(center_frequency_hz: int, floor_2g4: float, floor_5g8: float) -> float:
-    if center_frequency_hz == 2_400_000_000:
-        return floor_2g4
-    if center_frequency_hz == 5_800_000_000:
-        return floor_5g8
-    raise AnalysisError("localization pair uses an unsupported center frequency")
 
 
 def _localization_inputs(
@@ -489,7 +615,8 @@ def _localization_inputs(
 
     frequency_rows: list[dict[str, Any]] = []
     accepted_counts: dict[str, dict[str, int]] = {}
-    for center_frequency_hz in (2_400_000_000, 5_800_000_000):
+    center_frequencies_hz = tuple(dict.fromkeys(pair.center_frequency_hz for pair in pairs))
+    for center_frequency_hz in center_frequencies_hz:
         frequency_pairs = [
             pair for pair in pairs if pair.center_frequency_hz == center_frequency_hz
         ]
@@ -759,6 +886,39 @@ def _posterior_document(
     }
 
 
+def _frequency_rows_with_map_residuals(
+    frequency_rows: Sequence[Mapping[str, Any]],
+    posterior: DualTxPosterior,
+) -> list[dict[str, Any]]:
+    diagnostics = posterior.map_residuals
+    row_count = len(frequency_rows)
+    if (
+        diagnostics.residual_phase_deg.shape[0] != row_count
+        or diagnostics.capture_pair_rms_deg.shape != (row_count,)
+        or diagnostics.nuisance_offset_deg.shape != (row_count,)
+    ):
+        raise AnalysisError("posterior residual rows do not match the frequency profiles")
+    result = []
+    for index, row in enumerate(frequency_rows):
+        valid = np.asarray(row["valid_mask"], dtype=np.bool_)
+        residual = diagnostics.residual_phase_deg[index]
+        if valid.shape != residual.shape:
+            raise AnalysisError("posterior residual columns do not match a frequency profile")
+        valid_residual = residual[valid]
+        result.append(
+            {
+                **row,
+                "map_residual_diagnostics": {
+                    "nuisance_offset_deg": float(diagnostics.nuisance_offset_deg[index]),
+                    "weighted_rms_deg": float(diagnostics.capture_pair_rms_deg[index]),
+                    "maximum_absolute_residual_deg": float(np.max(np.abs(valid_residual))),
+                    "valid_state_count": int(np.count_nonzero(valid)),
+                },
+            }
+        )
+    return result
+
+
 def _artifact_provenance(capture: CompletedCapture) -> dict[str, Any]:
     return {
         "plan_index": capture.plan_index,
@@ -855,6 +1015,10 @@ def main() -> int:
         prior=prior,
         likelihood=likelihood,
     )
+    frequency_profile_rows = _frequency_rows_with_map_residuals(
+        frequency_profile_rows,
+        posterior,
+    )
     tx_distributions = summarize_phase_replicates(capture.artifact for capture in captures)
     paired_distributions = summarize_paired_tx_phase_differences(
         (pair.tx1.artifact, pair.tx2.artifact) for pair in pairs
@@ -879,9 +1043,13 @@ def main() -> int:
             "sample_count": args.sample_count,
             "seed": args.seed,
             "visualization_particle_limit": args.visualization_particles,
+            "center_frequencies_hz": [row["center_frequency_hz"] for row in frequency_profile_rows],
+            "carrier_frequencies_hz": [
+                row["carrier_frequency_hz"] for row in frequency_profile_rows
+            ],
             "systematic_phase_floor_deg": {
-                "2400000000": args.systematic_floor_2g4_deg,
-                "5800000000": args.systematic_floor_5g8_deg,
+                str(row["center_frequency_hz"]): row["systematic_floor_deg"]
+                for row in frequency_profile_rows
             },
             "radial_prior": asdict(prior),
             "plane_z_mm": 0.0,
@@ -916,14 +1084,17 @@ def main() -> int:
         },
         "localization": {
             "model": (
-                "calibration-free planar direct-path TX2-minus-TX1 phase from two "
-                "circularly aggregated frequency profiles, with one marginalized "
+                "calibration-free planar direct-path TX2-minus-TX1 phase from "
+                f"{len(frequency_profile_rows)} circularly aggregated frequency profiles, "
+                "with one marginalized "
                 "circular offset per frequency profile"
             ),
             "repeat_handling": (
-                "Five raw TX pairs estimate each frequency/state circular distribution. "
+                f"{configuration.get('rounds')} raw TX pairs estimate each "
+                "frequency/state circular distribution. "
                 "The shared frequency-specific systematic floor enters once in each of "
-                "the two aggregated profile rows; repeats are not independent posterior "
+                f"the {len(frequency_profile_rows)} aggregated profile rows; repeats are "
+                "not independent posterior "
                 "rows and therefore do not pseudoreplicate the systematic uncertainty."
             ),
             "assumptions": [

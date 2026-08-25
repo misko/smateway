@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run a resumable, fail-muted Fast20 dual-band phase distribution sweep."""
+"""Run a resumable, fail-muted Fast20 multi-frequency phase distribution sweep."""
 
 from __future__ import annotations
 
@@ -21,21 +21,31 @@ from typing import Any
 
 from pluto_plus.bootstrap_firmware import mute_returned_radio
 
+from smateway.rf_policy import (
+    EXPERIMENTAL_5G8_CENTER_HZ,
+    classify_fast20_center_frequency,
+)
+
 DEFAULT_BOARD_ID = "stm32c011-4c0055000950313950363920"
 DEFAULT_SERIAL = "104000b29905000e17000800065934759d"
 DEFAULT_URI = "usb:1.3.5"
 DEFAULT_PYTHON = Path("/home/pi/pluto-plus-utils/.venv/bin/python")
 DEFAULT_ROUNDS = 5
 DEFAULT_TIMEOUT_S = 180
+DEFAULT_CENTER_FREQUENCIES_HZ = (2_400_000_000, EXPERIMENTAL_5G8_CENTER_HZ)
 CAPTURE_ACCEPTED_RETURN_CODES = {0, 2, 3}
 REANALYSIS_ACCEPTED_RETURN_CODES = {0, 2}
 IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
 ARTIFACT_ID = re.compile(r"[0-9a-f]{32}")
-CONDITION_ORDER = (
-    (2_400_000_000, 0),
-    (2_400_000_000, 1),
-    (5_800_000_000, 0),
-    (5_800_000_000, 1),
+CONDITION_ORDER = tuple(
+    (frequency_hz, tx_channel)
+    for frequency_hz in DEFAULT_CENTER_FREQUENCIES_HZ
+    for tx_channel in (0, 1)
+)
+ROUND_ORDER_POLICY = (
+    "supplied_frequency_order_tx1_then_tx2",
+    "reverse_frequency_order_tx2_then_tx1",
+    "rotate_frequency_order_alternate_tx_order",
 )
 
 
@@ -52,6 +62,17 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--uri", default=DEFAULT_URI)
     parser.add_argument("--python", type=Path, default=DEFAULT_PYTHON)
     parser.add_argument("--timeout-s", type=int, default=DEFAULT_TIMEOUT_S)
+    parser.add_argument(
+        "--center-frequency-hz",
+        action="append",
+        type=int,
+        dest="center_frequencies_hz",
+        metavar="HZ",
+        help=(
+            "center frequency to sweep; repeat for multiple centers "
+            "(default: 2400000000 and 5800000000)"
+        ),
+    )
     return parser
 
 
@@ -80,6 +101,23 @@ def _new_run_id() -> str:
 
 def _board_root(board_id: str) -> Path:
     return Path.home() / ".local/state/smateway/boards" / board_id
+
+
+def _validate_center_frequencies(values: Sequence[int] | None) -> tuple[int, ...]:
+    frequencies = DEFAULT_CENTER_FREQUENCIES_HZ if values is None else tuple(values)
+    if not frequencies:
+        raise ValueError("at least one center frequency is required")
+
+    validated: list[int] = []
+    for frequency_hz in frequencies:
+        classify_fast20_center_frequency(
+            frequency_hz,
+            allow_experimental_5g8=frequency_hz == EXPERIMENTAL_5G8_CENTER_HZ,
+        )
+        if frequency_hz in validated:
+            raise ValueError(f"center frequencies must be unique: {frequency_hz}")
+        validated.append(frequency_hz)
+    return tuple(validated)
 
 
 @contextmanager
@@ -123,14 +161,42 @@ def _write_manifest(path: Path, document: Mapping[str, Any]) -> None:
         temporary.unlink(missing_ok=True)
 
 
-def _plan(rounds: int) -> list[dict[str, int | str]]:
+def _round_condition_order(
+    center_frequencies_hz: Sequence[int], round_index: int
+) -> tuple[tuple[int, int], ...]:
+    """Return one of three deterministic drift-detection orders."""
+
+    pattern_index = (round_index - 1) % len(ROUND_ORDER_POLICY)
+    frequencies = tuple(center_frequencies_hz)
+    if pattern_index == 0:
+        ordered_frequencies = frequencies
+        tx_orders = ((0, 1),) * len(frequencies)
+    elif pattern_index == 1:
+        ordered_frequencies = tuple(reversed(frequencies))
+        tx_orders = ((1, 0),) * len(frequencies)
+    else:
+        ordered_frequencies = frequencies[1:] + frequencies[:1]
+        tx_orders = tuple((0, 1) if index % 2 == 0 else (1, 0) for index in range(len(frequencies)))
+    return tuple(
+        (frequency_hz, tx_channel)
+        for frequency_hz, tx_order in zip(ordered_frequencies, tx_orders, strict=True)
+        for tx_channel in tx_order
+    )
+
+
+def _plan(
+    rounds: int,
+    center_frequencies_hz: Sequence[int] = DEFAULT_CENTER_FREQUENCIES_HZ,
+) -> list[dict[str, int | str]]:
     plan: list[dict[str, int | str]] = []
     for round_index in range(1, rounds + 1):
-        for condition_index, (frequency_hz, tx_channel) in enumerate(CONDITION_ORDER, start=1):
+        order = _round_condition_order(center_frequencies_hz, round_index)
+        for condition_index, (frequency_hz, tx_channel) in enumerate(order, start=1):
             plan.append(
                 {
                     "plan_index": len(plan),
                     "round": round_index,
+                    "round_order_pattern": ((round_index - 1) % len(ROUND_ORDER_POLICY)) + 1,
                     "condition_index": condition_index,
                     "center_frequency_hz": frequency_hz,
                     "tx_channel": tx_channel,
@@ -141,13 +207,33 @@ def _plan(rounds: int) -> list[dict[str, int | str]]:
 
 
 def _configuration(
-    *, rounds: int, board_id: str, serial: str, uri: str, python: Path, timeout_s: int
+    *,
+    rounds: int,
+    board_id: str,
+    serial: str,
+    uri: str,
+    python: Path,
+    timeout_s: int,
+    center_frequencies_hz: Sequence[int] = DEFAULT_CENTER_FREQUENCIES_HZ,
 ) -> dict[str, Any]:
+    frequencies = tuple(center_frequencies_hz)
     return {
         "rounds": rounds,
+        "center_frequencies_hz": list(frequencies),
         "condition_order": [
             {"center_frequency_hz": frequency, "tx_channel": tx}
-            for frequency, tx in CONDITION_ORDER
+            for frequency, tx in _round_condition_order(frequencies, 1)
+        ],
+        "round_order_policy": [
+            {
+                "pattern": pattern_index,
+                "name": pattern_name,
+                "conditions": [
+                    {"center_frequency_hz": frequency, "tx_channel": tx}
+                    for frequency, tx in _round_condition_order(frequencies, pattern_index)
+                ],
+            }
+            for pattern_index, pattern_name in enumerate(ROUND_ORDER_POLICY, start=1)
         ],
         "board_id": board_id,
         "serial": serial,
@@ -160,6 +246,7 @@ def _configuration(
 def _new_manifest(run_id: str, configuration: Mapping[str, Any]) -> dict[str, Any]:
     created_at = _now()
     rounds = int(configuration["rounds"])
+    center_frequencies_hz = tuple(int(value) for value in configuration["center_frequencies_hz"])
     return {
         "schema": 1,
         "experiment_kind": "fast20_phase_distribution",
@@ -168,7 +255,7 @@ def _new_manifest(run_id: str, configuration: Mapping[str, Any]) -> dict[str, An
         "updated_at": created_at,
         "status": "running",
         "configuration": dict(configuration),
-        "plan": _plan(rounds),
+        "plan": _plan(rounds, center_frequencies_hz),
         "attempts": [],
         "resume_count": 0,
         "summary": {},
@@ -186,7 +273,8 @@ def _load_manifest(path: Path, configuration: Mapping[str, Any]) -> dict[str, An
         raise ExperimentError("resume manifest is for another experiment")
     if document.get("configuration") != dict(configuration):
         raise ExperimentError("resume arguments do not match the persisted configuration")
-    if document.get("plan") != _plan(int(configuration["rounds"])):
+    center_frequencies_hz = tuple(int(value) for value in configuration["center_frequencies_hz"])
+    if document.get("plan") != _plan(int(configuration["rounds"]), center_frequencies_hz):
         raise ExperimentError("resume manifest condition order changed")
     attempts = document.get("attempts")
     if not isinstance(attempts, list) or not all(isinstance(item, dict) for item in attempts):
@@ -329,7 +417,7 @@ def _capture_command(
         "--uri",
         uri,
     ]
-    if frequency_hz == 5_800_000_000:
+    if frequency_hz == EXPERIMENTAL_5G8_CENTER_HZ:
         command.append("--allow-experimental-5g8")
     return command
 
@@ -571,6 +659,10 @@ def main() -> int:
         raise SystemExit("rounds must be within 1..20")
     if not 30 <= args.timeout_s <= 600:
         raise SystemExit("timeout must be within 30..600 seconds")
+    try:
+        center_frequencies_hz = _validate_center_frequencies(args.center_frequencies_hz)
+    except ValueError as error:
+        raise SystemExit(str(error)) from error
     board_id = _validate_identifier(args.board_id, "board ID")
     run_id = _validate_identifier(args.run_id or _new_run_id(), "run ID")
     # Preserve the virtual-environment launcher path. Resolving its symlink to
@@ -588,6 +680,7 @@ def main() -> int:
         uri=args.uri,
         python=python,
         timeout_s=args.timeout_s,
+        center_frequencies_hz=center_frequencies_hz,
     )
 
     with _board_lock(board_root):

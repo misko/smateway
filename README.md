@@ -253,9 +253,45 @@ TX2 at `(+161.2, -262.7) mm`, in board-centered coordinates where +x is right
 and +y is down. The corresponding radii were 316.8 mm and 308.2 mm. This is a
 conditional likely mode, not a calibrated position fix: direct-path residuals
 were 39.2 degrees RMS at 2.4 GHz and 68.5 degrees RMS at 5.8 GHz despite repeat
-scatter below 4.3 degrees. The mismatch is therefore dominated by fixed
-selector/antenna/multipath effects; range remains prior-dominated and the 5.8
-GHz posterior is multimodal.
+scatter below 4.3 degrees. The mismatch is therefore dominated by
+direction-dependent antenna response, mutual coupling and multipath; range
+remains prior-dominated and the 5.8 GHz posterior is multimodal.
+
+To diagnose that mismatch without treating capture repeats as new geometry,
+the same runner accepts a reviewed multi-frequency 2.4 GHz plan. Each supplied
+frequency remains an adjacent TX1/TX2 pair, while the runner reverses and
+rotates pair order across rounds to expose drift:
+
+```bash
+PYTHONPATH=src /home/pi/pluto-plus-utils/.venv/bin/python \
+  scripts/run_fast20_phase_distribution.py --rounds 3 \
+  --run-id multifrequency-phase-RUN_ID \
+  --center-frequency-hz 2400000000 \
+  --center-frequency-hz 2409000000 \
+  --center-frequency-hz 2423000000 \
+  --center-frequency-hz 2440000000 \
+  --center-frequency-hz 2458000000 \
+  --center-frequency-hz 2473000000 \
+  --center-frequency-hz 2483000000
+```
+
+Analyze the completed manifest with the same aggregate analyzer. If TX1 has a
+trusted measured position, the anchored slope analyzer can then absorb one
+fixed circular intercept per receive antenna and localize TX2 from only the
+phase change across frequency:
+
+```bash
+PYTHONPATH=src /home/pi/pluto-plus-utils/.venv/bin/python \
+  scripts/analyze_anchored_frequency_slope.py \
+  --analysis AGGREGATE.json --output ANCHORED.json \
+  --tx1-anchor-x-mm X --tx1-anchor-y-mm Y
+```
+
+Changing only the DDS starting phase does not create independent position
+information: it rotates all antenna observations by the same amount and is
+removed by ANT1 referencing or the marginalized common phase. Phase stepping
+is useful as an estimator-invariance check, but must not be counted as extra
+localization evidence.
 
 The powered first-article audit from 2026-08-25 is retained outside Git under
 `~/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/fast20-5238fbd/`.
