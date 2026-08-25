@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "profile_id": "phase20-v1",
+  "revision": 1,
+  "source_profile": "profiles/fast20-v1/control_profile.json",
+  "marker_body_ms": 20,
+  "all_off_guard_ms": 5,
+  "antenna_dwell_ms": 20,
+  "state_order": [
+    "ANT1",
+    "ANT2",
+    "ANT3",
+    "ANT4",
+    "ANT5",
+    "ANT6",
+    "ANT7",
+    "ANT8"
+  ]
+}

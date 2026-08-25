@@ -128,6 +128,52 @@ class CoherentPilotEstimate:
 
 
 @dataclass(frozen=True, slots=True)
+class FftPhaseStateEstimate:
+    """FFT-bin transfer estimate relative to the selected reference state."""
+
+    name: str
+    complex_delta: complex
+    amplitude: float
+    relative_db: float
+    phase_deg: float
+    cycle_phase_std_deg: float
+    cycle_coherence: float
+    cycle_count: int
+
+
+@dataclass(frozen=True, slots=True)
+class GuardedFftPhaseAnalysis:
+    """Per-state FFT comparison aligned to one guarded selector schedule."""
+
+    cycle_ms: float
+    marker_phase_ms: float
+    complete_cycle_count: int
+    fft_size: int
+    fft_bin_index: int
+    fft_bin_frequency_hz: float
+    requested_tone_offset_hz: float
+    reference_state: str
+    alignment_confidence: float
+    continuity_verified: bool
+    continuity_block_count: int
+    states: tuple[FftPhaseStateEstimate, ...]
+
+    def estimate(self, name: str) -> FftPhaseStateEstimate:
+        """Return one named antenna estimate."""
+
+        for estimate in self.states:
+            if estimate.name == name:
+                return estimate
+        raise KeyError(name)
+
+    def phase_difference_deg(self, first: str, second: str) -> float:
+        """Return wrapped phase(first) minus phase(second), in degrees."""
+
+        difference = self.estimate(first).phase_deg - self.estimate(second).phase_deg
+        return float((difference + 180.0) % 360.0 - 180.0)
+
+
+@dataclass(frozen=True, slots=True)
 class _Alignment:
     cycle_ms: float
     marker_phase_ms: float
@@ -1283,4 +1329,179 @@ def analyze_fast20_phase_sensitive(
         continuity_verified=continuity_verified,
         continuity_block_count=continuity_block_count,
         states=tuple(state_estimates),
+    )
+
+
+def _fft_transfer_at_center(
+    reference: np.ndarray,
+    measurement: np.ndarray,
+    *,
+    center_sample: int,
+    fft_size: int,
+    fft_bin_index: int,
+    window: npt.NDArray[np.float64],
+) -> complex:
+    start = center_sample - fft_size // 2
+    stop = start + fft_size
+    if start < 0 or stop > reference.size:
+        raise ValueError("FFT window falls outside the complete capture")
+    reference_fft = np.fft.fft(
+        reference[start:stop].astype(np.complex128, copy=False) * window
+    )[fft_bin_index]
+    measurement_fft = np.fft.fft(
+        measurement[start:stop].astype(np.complex128, copy=False) * window
+    )[fft_bin_index]
+    if abs(reference_fft) <= np.finfo(np.float64).tiny:
+        raise ValueError("RX1 reference has no usable energy in the selected FFT bin")
+    return complex(measurement_fft / reference_fft)
+
+
+def analyze_guarded_fft_phase(
+    rx1_samples: npt.ArrayLike,
+    rx2_samples: npt.ArrayLike,
+    *,
+    sample_rate_hz: float,
+    tone_offset_hz: float,
+    profile: ControlProfile,
+    continuity_ledger: Sequence[ContinuityBlock] | None = None,
+    fft_size: int = 65_536,
+    edge_exclusion_ms: float = 2.0,
+    reference_state: str = "ANT1",
+) -> GuardedFftPhaseAnalysis:
+    """Compare selector-state phases from a common complex FFT bin.
+
+    The generated schedule is first aligned using the leakage-cancelled
+    phase-sensitive analysis. A Hann-windowed FFT is then evaluated at the same
+    tone bin for the central portion of every complete marker and antenna dwell.
+    RX2/RX1 transfer during the local ALL_OFF marker is subtracted cycle by
+    cycle. Reported phases are relative to ``reference_state``.
+
+    This is a coherent within-capture comparison, not geometric calibration.
+    Selector, PCB, antenna, coupling and receiver-path phase remain in the
+    result. Buffer/sample-counter continuity must be verified by the capture
+    backend before its ledger is supplied here.
+    """
+
+    if fft_size < 16 or fft_size & (fft_size - 1):
+        raise ValueError("FFT size must be a power of two and at least 16")
+    if not np.isfinite(edge_exclusion_ms) or edge_exclusion_ms < 0:
+        raise ValueError("FFT edge exclusion must be finite and non-negative")
+    if reference_state not in {state.name for state in profile.states}:
+        raise ValueError("FFT reference state is not present in the profile")
+    reference, measurement = _validate_complex_pair(rx1_samples, rx2_samples)
+    minimum_interior_ms = min(
+        profile.marker_body_ms - 2.0 * edge_exclusion_ms,
+        *(state.dwell_ms - 2.0 * edge_exclusion_ms for state in profile.states),
+    )
+    if minimum_interior_ms <= 0:
+        raise ValueError("FFT edge exclusion leaves no state interior")
+    available_samples = int(np.floor(minimum_interior_ms * sample_rate_hz / 1000.0))
+    if fft_size > available_samples:
+        raise ValueError("FFT size does not fit inside every edge-excluded dwell")
+
+    aligned = analyze_fast20_phase_sensitive(
+        reference,
+        measurement,
+        sample_rate_hz=sample_rate_hz,
+        tone_offset_hz=tone_offset_hz,
+        profile=profile,
+        continuity_ledger=continuity_ledger,
+    )
+    duration_ms = reference.size * 1000.0 / sample_rate_hz
+    first_cycle = int(np.ceil(-aligned.marker_phase_ms / aligned.cycle_ms))
+    final_cycle = int(
+        np.floor(
+            (duration_ms - aligned.marker_phase_ms - aligned.cycle_ms)
+            / aligned.cycle_ms
+        )
+    )
+    if final_cycle < first_cycle:
+        raise ValueError("capture contains no complete FFT-analysis cycle")
+    fft_bin_index = int(round(tone_offset_hz * fft_size / sample_rate_hz)) % fft_size
+    bin_frequency_hz = float(np.fft.fftfreq(fft_size, d=1.0 / sample_rate_hz)[fft_bin_index])
+    window = np.hanning(fft_size).astype(np.float64)
+    cycle_deltas: list[list[complex]] = []
+
+    for cycle_id in range(first_cycle, final_cycle + 1):
+        cycle_start_ms = aligned.marker_phase_ms + cycle_id * aligned.cycle_ms
+        marker_center_ms = cycle_start_ms + profile.marker_body_ms / 2.0
+        marker_center_sample = round(marker_center_ms * sample_rate_hz / 1000.0)
+        all_off_transfer = _fft_transfer_at_center(
+            reference,
+            measurement,
+            center_sample=marker_center_sample,
+            fft_size=fft_size,
+            fft_bin_index=fft_bin_index,
+            window=window,
+        )
+        cursor_ms = cycle_start_ms + profile.marker_body_ms + profile.guard_ms
+        deltas = []
+        for state in profile.states:
+            center_ms = cursor_ms + state.dwell_ms / 2.0
+            center_sample = round(center_ms * sample_rate_hz / 1000.0)
+            transfer = _fft_transfer_at_center(
+                reference,
+                measurement,
+                center_sample=center_sample,
+                fft_size=fft_size,
+                fft_bin_index=fft_bin_index,
+                window=window,
+            )
+            deltas.append(transfer - all_off_transfer)
+            cursor_ms += state.dwell_ms + profile.guard_ms
+        cycle_deltas.append(deltas)
+
+    values = np.asarray(cycle_deltas, dtype=np.complex128)
+    robust = np.median(values.real, axis=0) + 1j * np.median(values.imag, axis=0)
+    amplitudes = np.abs(robust)
+    strongest = max(float(np.max(amplitudes)), np.finfo(np.float64).tiny)
+    reference_index = next(
+        index for index, state in enumerate(profile.states) if state.name == reference_state
+    )
+    reference_delta = complex(robust[reference_index])
+    if abs(reference_delta) <= strongest * 1e-9:
+        raise ValueError("FFT reference state is too weak for relative phase")
+
+    estimates = []
+    for index, state in enumerate(profile.states):
+        state_values = values[:, index]
+        state_center = complex(robust[index])
+        if abs(state_center) <= strongest * 1e-12:
+            coherence = 0.0
+            phase_std_deg = 180.0
+        else:
+            unit = state_values / np.maximum(
+                np.abs(state_values), np.finfo(np.float64).tiny
+            )
+            coherence = float(np.clip(abs(np.mean(unit)), 0.0, 1.0))
+            residual = np.angle(state_values * np.conj(state_center))
+            phase_std_deg = float(np.sqrt(np.mean(residual**2)) * 180.0 / pi)
+        relative = state_center * np.conj(reference_delta)
+        estimates.append(
+            FftPhaseStateEstimate(
+                name=state.name,
+                complex_delta=state_center,
+                amplitude=float(amplitudes[index]),
+                relative_db=20.0
+                * log10(max(float(amplitudes[index]), strongest * 1e-12) / strongest),
+                phase_deg=float(atan2(relative.imag, relative.real) * 180.0 / pi),
+                cycle_phase_std_deg=phase_std_deg,
+                cycle_coherence=coherence,
+                cycle_count=values.shape[0],
+            )
+        )
+
+    return GuardedFftPhaseAnalysis(
+        cycle_ms=aligned.cycle_ms,
+        marker_phase_ms=aligned.marker_phase_ms,
+        complete_cycle_count=values.shape[0],
+        fft_size=fft_size,
+        fft_bin_index=fft_bin_index,
+        fft_bin_frequency_hz=bin_frequency_hz,
+        requested_tone_offset_hz=float(tone_offset_hz),
+        reference_state=reference_state,
+        alignment_confidence=aligned.confidence,
+        continuity_verified=aligned.continuity_verified,
+        continuity_block_count=aligned.continuity_block_count,
+        states=tuple(estimates),
     )

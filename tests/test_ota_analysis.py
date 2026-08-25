@@ -9,11 +9,13 @@ from smateway.ota_analysis import (
     _labels_and_interior,
     analyze_fast20_phase_sensitive,
     analyze_fast20_tone,
+    analyze_guarded_fft_phase,
     estimate_coherent_pilot_offset,
 )
 from smateway.profile import ControlProfile, load_profile
 
 PROFILE_ROOT = Path("profiles/fast20-v1")
+PHASE_PROFILE_ROOT = Path("profiles/phase20-v1")
 SAMPLE_RATE_HZ = 20_000
 TONE_OFFSET_HZ = 2_000
 PHASE_SAMPLE_RATE_HZ = 10_000
@@ -23,6 +25,11 @@ PHASE_TONE_OFFSET_HZ = 1_000
 @pytest.fixture
 def profile() -> ControlProfile:
     return load_profile(PROFILE_ROOT / "control_profile.json")
+
+
+@pytest.fixture
+def phase_profile() -> ControlProfile:
+    return load_profile(PHASE_PROFILE_ROOT / "control_profile.json")
 
 
 def _state_at(
@@ -326,6 +333,57 @@ def test_phase_sensitive_continuity_ledger_fails_closed(profile: ControlProfile)
             profile=profile,
             continuity_ledger=ledger,
         )
+
+
+def test_equal_dwell_fft_recovers_relative_state_phase(
+    phase_profile: ControlProfile,
+) -> None:
+    amplitudes = np.asarray([0.12, 0.16, 0.22, 0.31, 0.42, 0.36, 0.25, 0.18])
+    phases_deg = np.asarray([-120.0, -75.0, -30.0, 5.0, 50.0, 95.0, 140.0, 175.0])
+    expected = {ALL_OFF: 0j}
+    expected.update(
+        {
+            state.name: complex(amplitude * np.exp(1j * np.deg2rad(phase)))
+            for state, amplitude, phase in zip(
+                phase_profile.states, amplitudes, phases_deg, strict=True
+            )
+        }
+    )
+    rx1, rx2 = _paired_phase_capture(
+        phase_profile,
+        cycle_ms=220.0,
+        marker_phase_ms=71.3,
+        state_deltas=expected,
+        duration_ms=2_600.0,
+        seed=314159,
+    )
+
+    result = analyze_guarded_fft_phase(
+        rx1,
+        rx2,
+        sample_rate_hz=PHASE_SAMPLE_RATE_HZ,
+        tone_offset_hz=PHASE_TONE_OFFSET_HZ,
+        profile=phase_profile,
+        continuity_ledger=_continuity_ledger(rx1.size),
+        fft_size=128,
+        edge_exclusion_ms=2.0,
+    )
+
+    assert result.cycle_ms == pytest.approx(220.0, abs=0.7)
+    assert result.complete_cycle_count >= 10
+    assert result.continuity_verified
+    assert result.alignment_confidence > 0.75
+    assert result.estimate("ANT1").phase_deg == pytest.approx(0.0, abs=1e-9)
+    for state, expected_phase in zip(phase_profile.states, phases_deg, strict=True):
+        expected_relative = float(
+            (expected_phase - phases_deg[0] + 180.0) % 360.0 - 180.0
+        )
+        estimate = result.estimate(state.name)
+        phase_error = abs(
+            (estimate.phase_deg - expected_relative + 180.0) % 360.0 - 180.0
+        )
+        assert phase_error < 12.0
+        assert estimate.cycle_coherence > 0.8
 
 
 @pytest.mark.parametrize("residual_hz", [0.375, -0.425])

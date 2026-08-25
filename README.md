@@ -59,6 +59,7 @@ the read-only gates pass.
 make safe-hold
 make bench
 make fast20
+make phase20
 ```
 
 `pluto_bench` is a separate, leased static-selector image. Its generated JSON
@@ -91,6 +92,27 @@ without enabling interrupts or accessing flash/option registers. The separate
 BOR-level-4 option-byte gate is intentionally not hidden in this image or its
 build; it must be reviewed, recorded and recovered independently before the
 autonomous image can be qualified.
+
+`pluto_phase20` is a separate, temporary phase-comparison image. Its generated
+profile preserves the qualified truth table and 5 ms `ALL_OFF` guard while
+using a 20 ms marker followed by ANT1 through ANT8 with equal 20 ms dwells. The
+cycle is 220 ms. Regenerate or check it with
+`scripts/generate_phase20_profile.py --write|--check`; the generator imports
+all GPIO codes from `fast20-v1` rather than duplicating the switch table.
+
+After the image is flashed and its GPIO sequence is verified, one bounded
+3-second, 5 MS/s transmission can be captured and analyzed with:
+
+```sh
+uv run python scripts/capture_phase20.py --tx-channel 0
+uv run python scripts/capture_phase20.py --tx-channel 1
+```
+
+Each command persists 60 contiguous 250,000-sample dual-RX frames, refines the
+pilot frequency, performs a 65,536-point FFT inside every complete dwell, and
+writes both ANT1-relative and pairwise phase differences. The capture helper
+restores both transmitters to its fail-muted state on normal return or a
+cooperative exception.
 
 ## Continuous phase-sensitive OTA qualification
 

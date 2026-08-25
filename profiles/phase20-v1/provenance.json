@@ -1,0 +1,12 @@
+{
+  "artifacts": {
+    "control_profile.h": "5c09cc0f1eec387502a6a5c5e7c6d35743fbe9ab5d9ee4a51f2bd16cf5fc1046",
+    "control_profile.json": "5832fcc0a20114ef393488f788e45b560e5ead9bb543ca5b7598a42515778eb7"
+  },
+  "schema": 1,
+  "sources": {
+    "profiles/fast20-v1/control_profile.h": "839a1eced9eaf168bb8128301a8509709bb42a09c89ce5d6fbf26b216e79bfd3",
+    "profiles/fast20-v1/control_profile.json": "c8f3de200573d90d1b87b623770cd9253649c634a22cea1a9ca980042ae40f11",
+    "profiles/phase20-v1/profile_spec.json": "988dc5012b8ec4e931f528d054fa7b45248ce38d9d65c9b1ebba12b1de61c6e0"
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "clock": {
+    "decoder_window_pct": 5,
+    "manufacturer_error_full_temperature_pct": [
+      -2.5,
+      2.0
+    ],
+    "rationale": "5% windows cover characterized full-temperature controller error and reserve at least 2.5% for timer/capture estimation",
+    "source": "STM32C011_HSI48"
+  },
+  "contract_sha256": "988dc5012b8ec4e931f528d054fa7b45248ce38d9d65c9b1ebba12b1de61c6e0",
+  "decoder": {
+    "accept": "ordered equal dwells aligned by complex state fingerprints",
+    "fundamental_limit": "equal RF states cannot be aligned when their complex fingerprints are statistically indistinguishable",
+    "sync": "25ms nominal ALL_OFF marker followed by ordered ANT1 through ANT8"
+  },
+  "frame": {
+    "all_off_guard_ms": 5,
+    "guards_per_cycle": 8,
+    "marker": {
+      "body_nominal_ms": 20,
+      "contiguous_pre_ANT1_guard_ms": 5,
+      "decoder_min_ms": 22.5,
+      "observable_nominal_ms": 25,
+      "state": "ALL_OFF"
+    },
+    "minimum_capture_for_guaranteed_complete_frame_ms": 440,
+    "nominal_cycle_ms": 220,
+    "order": [
+      "ANT1",
+      "ANT2",
+      "ANT3",
+      "ANT4",
+      "ANT5",
+      "ANT6",
+      "ANT7",
+      "ANT8"
+    ],
+    "recommended_capture_ms": 660
+  },
+  "generated_from": "profiles/phase20-v1/profile_spec.json",
+  "profile": {
+    "id": "phase20-v1",
+    "revision": 1
+  },
+  "protocol": "framed_guarded_equal_dwell_phase_v1",
+  "schema": 1,
+  "states": [
+    {
+      "dwell_ms": 20,
+      "gpio_code_pa3_pa0": "0000",
+      "name": "ANT1",
+      "window_ms": [
+        19.0,
+        21.0
+      ]
+    },
+    {
+      "dwell_ms": 20,
+      "gpio_code_pa3_pa0": "0100",
+      "name": "ANT2",
+      "window_ms": [
+        19.0,
+        21.0
+      ]
+    },
+    {
+      "dwell_ms": 20,
+      "gpio_code_pa3_pa0": "0010",
+      "name": "ANT3",
+      "window_ms": [
+        19.0,
+        21.0
+      ]
+    },
+    {
+      "dwell_ms": 20,
+      "gpio_code_pa3_pa0": "0110",
+      "name": "ANT4",
+      "window_ms": [
+        19.0,
+        21.0
+      ]
+    },
+    {
+      "dwell_ms": 20,
+      "gpio_code_pa3_pa0": "0001",
+      "name": "ANT5",
+      "window_ms": [
+        19.0,
+        21.0
+      ]
+    },
+    {
+      "dwell_ms": 20,
+      "gpio_code_pa3_pa0": "0101",
+      "name": "ANT6",
+      "window_ms": [
+        19.0,
+        21.0
+      ]
+    },
+    {
+      "dwell_ms": 20,
+      "gpio_code_pa3_pa0": "0011",
+      "name": "ANT7",
+      "window_ms": [
+        19.0,
+        21.0
+      ]
+    },
+    {
+      "dwell_ms": 20,
+      "gpio_code_pa3_pa0": "0111",
+      "name": "ANT8",
+      "window_ms": [
+        19.0,
+        21.0
+      ]
+    }
+  ]
+}

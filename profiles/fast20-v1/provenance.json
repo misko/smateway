@@ -5,7 +5,7 @@
   },
   "contract_sha256": "25b2bd0769687cc255d5e6926312e7e827672dc4567d64aecd85e8078acb4258",
   "schema": 1,
-  "source_commit": "d36f032cd5a658d528909a1255b2b2a70c84c803",
+  "source_commit": "b12d8a81972a03bfee431d1b1914eb28dd44a4d4",
   "source_contract": "projects/pluto-rx2-8way-v5/03_src/rules/control_protocol.yaml",
   "source_repository": "https://github.com/misko/circuits.git"
 }
