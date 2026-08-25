@@ -15,12 +15,14 @@ import numpy as np
 from pluto_plus.artifacts import CaptureWriter, data_path, load_metadata, verify_artifact
 from pluto_plus.hardware import (
     SafeDdsTonePlan,
+    SampleBlockV2,
     capture_continuous_safe_dds_tone,
 )
 from pluto_plus.hardware.iio import find_usb_sysfs_path
 from pluto_plus.hardware.preflight import V7_FIRMWARE_VERSION
 from pluto_plus.models import GainMode, RadioIdentity, RadioSettings, Transport
 
+from smateway.capture_admission import AdcHeadroomMonitor
 from smateway.ota_analysis import (
     ContinuityBlock,
     analyze_fast20_dwell_isolation,
@@ -78,6 +80,13 @@ def _parser() -> argparse.ArgumentParser:
         choices=("qualification", "phase"),
         default="qualification",
         help="phase raises the bounded pilot by 14 dB to resolve deep antenna fades",
+    )
+    parser.add_argument(
+        "--receiver-gain-db",
+        type=int,
+        choices=range(63),
+        default=60,
+        help="common tandem-HOLD gain for RX1 and RX2, as an integer in 0..62 dB",
     )
     parser.add_argument(
         "--profile",
@@ -165,18 +174,13 @@ def main() -> int:
         tx_hardware_gain_db = -20.0
         dds_scale = 0.25
 
-    root = (
-        Path.home()
-        / ".local/state/smateway/boards"
-        / args.board_id
-        / "pluto-usb-captures"
-    )
+    root = Path.home() / ".local/state/smateway/boards" / args.board_id / "pluto-usb-captures"
     settings = RadioSettings(
         center_frequency_hz=args.center_frequency_hz,
         sample_rate_hz=sample_rate_hz,
         bandwidth_hz=bandwidth_hz,
         gain_mode=GainMode.MANUAL,
-        gain_db=60,
+        gain_db=args.receiver_gain_db,
         channels=(0, 1),
     )
     plan = SafeDdsTonePlan(
@@ -189,7 +193,7 @@ def main() -> int:
         tx_channel=args.tx_channel,
         tx_hardware_gain_db=tx_hardware_gain_db,
         dds_scale=dds_scale,
-        receiver_gain_db=60.0,
+        receiver_gain_db=float(args.receiver_gain_db),
         source_peak_output_bound_dbm=7.0,
         load_input_limit_dbm=0.0,
         path_attenuation_before_load_db=0.0,
@@ -202,16 +206,36 @@ def main() -> int:
         f"{args.center_frequency_hz}Hz"
     )
     writer = CaptureWriter(root, radio=identity, settings=settings, label=label)
+    headroom_monitor = AdcHeadroomMonitor(receiver_count=2)
+
+    def persist_block(block: SampleBlockV2) -> None:
+        headroom_monitor.observe(block.samples)
+        writer.append(block, settings, revision=1)
+
     try:
         capture = capture_continuous_safe_dds_tone(
             plan,
             samples_per_frame=samples_per_frame,
             frame_count=frame_count,
             kernel_buffers=KERNEL_BUFFERS,
-            block_consumer=lambda block: writer.append(block, settings, revision=1),
+            block_consumer=persist_block,
         )
         if capture.identity != identity or capture.settings != settings:
             raise RuntimeError("capture identity or setting readback differs from preflight")
+        headroom_admission = headroom_monitor.result()
+        if not headroom_admission.passed:
+            rejected = [
+                (
+                    f"RX{receiver.receiver + 1}: peak="
+                    f"{receiver.peak_abs_component_counts:g}, clipped_samples="
+                    f"{receiver.clipped_sample_count}, near_full_scale_fraction="
+                    f"{receiver.near_full_scale_fraction:.6g}, reasons="
+                    f"{','.join(receiver.rejection_reasons)}"
+                )
+                for receiver in headroom_admission.receivers
+                if not receiver.passed
+            ]
+            raise RuntimeError("ADC headroom admission failed: " + "; ".join(rejected))
         artifact = writer.finalize()
     except Exception as error:
         writer.fail(error)
@@ -236,6 +260,7 @@ def main() -> int:
             "center_frequency_hz": args.center_frequency_hz,
             "center_frequency_policy": frequency_policy,
             "sample_rate_hz": sample_rate_hz,
+            "receiver_gain_db": args.receiver_gain_db,
             "samples_per_frame": samples_per_frame,
             "frame_count": frame_count,
             "sample_count": capture.sample_count,
@@ -244,15 +269,14 @@ def main() -> int:
             "first_buffer_sequence": capture.frames[0].buffer_sequence,
             "last_buffer_sequence": capture.frames[-1].buffer_sequence,
             "first_sample_sequence": capture.frames[0].first_sample_sequence,
-            "last_sample_sequence_exclusive": (
-                capture.frames[-1].last_sample_sequence_exclusive
-            ),
+            "last_sample_sequence_exclusive": (capture.frames[-1].last_sample_sequence_exclusive),
             "stream_id": capture.frames[0].stream_id,
             "metadata_abi": capture.frames[0].metadata_abi,
             "tx_gain_readback_db": capture.tx_gain_readback_db,
             "dds_scale_readback": capture.dds_scale_readback,
             "dds_frequency_readback_hz": capture.dds_frequency_readback_hz,
             "worst_case_load_input_dbm": plan.worst_case_load_input_dbm,
+            "adc_headroom_admission": asdict(headroom_admission),
         },
         "analysis_status": "artifact_verified",
     }
