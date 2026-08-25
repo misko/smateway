@@ -21,13 +21,16 @@ in the lower-right sector of the board-centred plane.
 
 ## Reading order
 
-1. [Method](method.md) defines the setup, safety boundary, observables, and inference models.
-2. [Retained run](run-20260825-b.md) records the exact capture inventory, quality results,
+1. [Combined experiment report](phase-localization-experiment-report-20260825.md) presents the
+   complete transmitter analysis and RX1 follow-up, with accepted results clearly separated
+   from rejected diagnostics.
+2. [Method](method.md) defines the setup, safety boundary, observables, and inference models.
+3. [Retained run](run-20260825-b.md) records the exact capture inventory, quality results,
    diagnostics, position estimate, and limitations.
-3. [Reproduction](reproduction.md) gives acquisition, immutable reanalysis, inference, and
+4. [Reproduction](reproduction.md) gives acquisition, immutable reanalysis, inference, and
    deterministic PNG commands.
-4. [Data dictionary](data-dictionary.md) identifies the authoritative JSON fields and units.
-5. [RX1 reference experiment](rx1-reference-20260825-a.md) records the coherent dual-RX
+5. [Data dictionary](data-dictionary.md) identifies the authoritative JSON fields and units.
+6. [RX1 reference experiment](rx1-reference-20260825-a.md) records the coherent dual-RX
    follow-up and why its strict geometry model correctly produced no position fix.
 
 The compact report snapshot and generated figure manifest live under `data/`. Raw CI16
