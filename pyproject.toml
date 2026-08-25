@@ -23,7 +23,7 @@ dev = [
 ]
 
 [tool.uv.sources]
-pluto-plus-utils = { git = "https://github.com/misko/pluto-plus-utils.git", rev = "062227200ddad3aa3b2f753216b8344c81433ae6" }
+pluto-plus-utils = { git = "https://github.com/misko/pluto-plus-utils.git", rev = "f495a1c1191f4b6e323c5dc1e3d0c4e6c8eaa920" }
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/smateway"]

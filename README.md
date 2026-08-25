@@ -92,6 +92,37 @@ BOR-level-4 option-byte gate is intentionally not hidden in this image or its
 build; it must be reviewed, recorded and recovered independently before the
 autonomous image can be qualified.
 
+## Continuous phase-sensitive OTA qualification
+
+The development dependency pins `pluto-plus-utils` at commit
+`f495a1c1191f4b6e323c5dc1e3d0c4e6c8eaa920`. That revision adds a bounded
+dual-RX DDS capture using the exact tandem-V7 metadata runtime, more than two
+kernel buffers, a fresh buffer generation, and a persisted continuity ledger.
+At 1 MS/s, 100 refills of 100,000 samples form one 10-second capture.
+
+Use `estimate_coherent_pilot_offset()` followed by
+`analyze_fast20_phase_sensitive()` to refine the coherent pilot, align the
+generated Fast20 schedule, subtract the local `ALL_OFF` leakage reference and
+measure one complex phasor per antenna state. Supply a continuity ledger derived
+from the persisted metadata. Buffer sequence and FPGA first-sample sequence are
+the authoritative continuity proof; host realtime and monotonic values are
+uncertain affine estimates and must not be used to splice phase records.
+
+The reported phase is an uncalibrated fingerprint within one capture. It
+contains selector, unequal PCB-path, antenna, mutual-coupling and receiver-path
+phase, so it is not an emitter coordinate and is not directly comparable
+between independently started captures. Geometric localization requires a
+complex calibration at every RF path and an in-situ antenna calibration,
+preferably at several frequencies. Analysis confidence measures schedule
+alignment and cycle-to-cycle repeatability, not position probability.
+
+The powered first-article audit from 2026-08-25 is retained outside Git under
+`~/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/fast20-5238fbd/`.
+Its 10-second TX1 and TX2 captures each contain 100 contiguous frames and exactly
+10,000,000 FPGA-counted samples with no gaps or failure flags. TX1 was strongest
+through ANT4 and TX2 through ANT5. These are strong coupling fingerprints, not
+calibrated position fixes.
+
 The host decoder consumes the generated duration windows and fails closed to
 `unknown` for no signal, truncation, ambiguous duration, missed/extra
 transitions, bad ordering or a missing marker. BOR planning is likewise pure
