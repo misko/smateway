@@ -1356,6 +1356,92 @@ def _fft_transfer_at_center(
     return complex(measurement_fft / reference_fft)
 
 
+def _complex_group_loss(
+    values: npt.NDArray[np.complex128],
+    valid: npt.NDArray[np.bool_],
+    times_ms: npt.NDArray[np.float64],
+    *,
+    cycle_ms: float,
+    marker_phase_ms: float,
+    edge_exclusion_ms: float,
+    clip_amplitude: float,
+    profile: ControlProfile,
+) -> float:
+    labels, interior = _labels_and_interior(
+        times_ms,
+        cycle_ms=cycle_ms,
+        marker_phase_ms=marker_phase_ms,
+        edge_exclusion_ms=edge_exclusion_ms,
+        profile=profile,
+    )
+    usable = valid & interior
+    group_losses = []
+    for index in range(len(profile.states) + 1):
+        selected = values[usable & (labels == index)]
+        if selected.size < 3:
+            return float("inf")
+        center = complex(float(np.median(selected.real)), float(np.median(selected.imag)))
+        group_losses.append(float(np.mean(np.minimum(np.abs(selected - center), clip_amplitude))))
+    return float(np.mean(group_losses))
+
+
+def _search_complex_alignment(
+    values: npt.NDArray[np.complex128],
+    valid: npt.NDArray[np.bool_],
+    times_ms: npt.NDArray[np.float64],
+    *,
+    cycle_range_ms: tuple[float, float],
+    bin_duration_ms: float,
+    edge_exclusion_ms: float,
+    clip_amplitude: float,
+    profile: ControlProfile,
+) -> _Alignment:
+    """Align a short equal-dwell schedule from the complex RX2/RX1 transfer."""
+
+    low, high = cycle_range_ms
+    coarse_cycle_step = max(0.25, bin_duration_ms / 2.0)
+    coarse_phase_step = bin_duration_ms
+    best = _Alignment(cycle_ms=low, marker_phase_ms=0.0, loss=float("inf"))
+    for cycle_ms in _grid(low, high, coarse_cycle_step):
+        for marker_phase_ms in np.arange(0.0, cycle_ms, coarse_phase_step):
+            loss = _complex_group_loss(
+                values,
+                valid,
+                times_ms,
+                cycle_ms=float(cycle_ms),
+                marker_phase_ms=float(marker_phase_ms),
+                edge_exclusion_ms=edge_exclusion_ms,
+                clip_amplitude=clip_amplitude,
+                profile=profile,
+            )
+            if loss < best.loss:
+                best = _Alignment(float(cycle_ms), float(marker_phase_ms), loss)
+
+    fine_step = max(0.05, bin_duration_ms / 10.0)
+    for cycle_ms in _grid(
+        max(low, best.cycle_ms - coarse_cycle_step),
+        min(high, best.cycle_ms + coarse_cycle_step),
+        fine_step,
+    ):
+        for phase_offset_ms in _grid(-bin_duration_ms, bin_duration_ms, fine_step):
+            marker_phase_ms = float((best.marker_phase_ms + phase_offset_ms) % cycle_ms)
+            loss = _complex_group_loss(
+                values,
+                valid,
+                times_ms,
+                cycle_ms=float(cycle_ms),
+                marker_phase_ms=marker_phase_ms,
+                edge_exclusion_ms=edge_exclusion_ms,
+                clip_amplitude=clip_amplitude,
+                profile=profile,
+            )
+            if loss < best.loss:
+                best = _Alignment(float(cycle_ms), marker_phase_ms, loss)
+    if not np.isfinite(best.loss):
+        raise ValueError("capture cannot be aligned to the guarded selector profile")
+    return best
+
+
 def analyze_guarded_fft_phase(
     rx1_samples: npt.ArrayLike,
     rx2_samples: npt.ArrayLike,
@@ -1370,11 +1456,12 @@ def analyze_guarded_fft_phase(
 ) -> GuardedFftPhaseAnalysis:
     """Compare selector-state phases from a common complex FFT bin.
 
-    The generated schedule is first aligned using the leakage-cancelled
-    phase-sensitive analysis. A Hann-windowed FFT is then evaluated at the same
+    The generated schedule is first aligned from the complex RX2/RX1 tone
+    transfer. A Hann-windowed FFT is then evaluated at the same
     tone bin for the central portion of every complete marker and antenna dwell.
-    RX2/RX1 transfer during the local ALL_OFF marker is subtracted cycle by
-    cycle. Reported phases are relative to ``reference_state``.
+    RX2/RX1 transfer during the marker and inter-state ALL_OFF guards is used
+    to interpolate and subtract the local leakage baseline. Reported phases are
+    relative to ``reference_state``.
 
     This is a coherent within-capture comparison, not geometric calibration.
     Selector, PCB, antenna, coupling and receiver-path phase remain in the
@@ -1399,13 +1486,75 @@ def analyze_guarded_fft_phase(
     if fft_size > available_samples:
         raise ValueError("FFT size does not fit inside every edge-excluded dwell")
 
-    aligned = analyze_fast20_phase_sensitive(
+    continuity_verified, continuity_block_count = _validate_continuity_ledger(
+        continuity_ledger,
+        sample_count=reference.size,
+    )
+    samples_per_bin = round(sample_rate_hz / 1000.0)
+    reference_bins, measurement_bins = _coherent_pair_bins(
         reference,
         measurement,
         sample_rate_hz=sample_rate_hz,
         tone_offset_hz=tone_offset_hz,
+        samples_per_bin=samples_per_bin,
+    )
+    reference_amplitudes = np.abs(reference_bins)
+    reference_floor = 0.2 * float(np.median(reference_amplitudes))
+    reference_valid = reference_amplitudes >= reference_floor
+    if np.count_nonzero(reference_valid) < 128:
+        raise ValueError("RX1 reference has fewer than 128 usable coherent bins")
+    transfer = np.zeros(reference_bins.size, dtype=np.complex128)
+    transfer[reference_valid] = (
+        measurement_bins[reference_valid] / reference_bins[reference_valid]
+    )
+    transfer_center = complex(
+        float(np.median(transfer[reference_valid].real)),
+        float(np.median(transfer[reference_valid].imag)),
+    )
+    transfer_residual = np.abs(transfer[reference_valid] - transfer_center)
+    clip_amplitude = max(
+        float(np.percentile(transfer_residual, 90.0)),
+        np.finfo(np.float64).eps,
+    )
+    bin_duration_ms = samples_per_bin * 1000.0 / sample_rate_hz
+    times_ms = (np.arange(transfer.size, dtype=np.float64) + 0.5) * bin_duration_ms
+    cycle_range_ms = (
+        profile.nominal_cycle_ms - 4.0,
+        profile.nominal_cycle_ms + 4.0,
+    )
+    if transfer.size * bin_duration_ms < 2.0 * cycle_range_ms[1]:
+        raise ValueError("capture must span at least two maximum-length candidate cycles")
+    aligned = _search_complex_alignment(
+        transfer,
+        reference_valid,
+        times_ms,
+        cycle_range_ms=cycle_range_ms,
+        bin_duration_ms=bin_duration_ms,
+        edge_exclusion_ms=max(edge_exclusion_ms, bin_duration_ms),
+        clip_amplitude=clip_amplitude,
         profile=profile,
-        continuity_ledger=continuity_ledger,
+    )
+    baseline_loss = float(np.mean(np.minimum(transfer_residual, clip_amplitude)))
+    alignment_confidence = float(
+        np.clip(
+            1.0 - aligned.loss / max(baseline_loss, np.finfo(np.float64).eps),
+            0.0,
+            1.0,
+        )
+    )
+    aligned_labels, aligned_interior = _labels_and_interior(
+        times_ms,
+        cycle_ms=aligned.cycle_ms,
+        marker_phase_ms=aligned.marker_phase_ms,
+        edge_exclusion_ms=max(edge_exclusion_ms, bin_duration_ms),
+        profile=profile,
+    )
+    leakage_baseline, _ = _local_all_off_baseline(
+        transfer,
+        times_ms,
+        aligned_labels,
+        reference_valid & aligned_interior,
+        all_off_index=len(profile.states),
     )
     duration_ms = reference.size * 1000.0 / sample_rate_hz
     first_cycle = int(np.ceil(-aligned.marker_phase_ms / aligned.cycle_ms))
@@ -1421,25 +1570,18 @@ def analyze_guarded_fft_phase(
     bin_frequency_hz = float(np.fft.fftfreq(fft_size, d=1.0 / sample_rate_hz)[fft_bin_index])
     window = np.hanning(fft_size).astype(np.float64)
     cycle_deltas: list[list[complex]] = []
+    schedule_scale = aligned.cycle_ms / profile.nominal_cycle_ms
 
     for cycle_id in range(first_cycle, final_cycle + 1):
         cycle_start_ms = aligned.marker_phase_ms + cycle_id * aligned.cycle_ms
-        marker_center_ms = cycle_start_ms + profile.marker_body_ms / 2.0
-        marker_center_sample = round(marker_center_ms * sample_rate_hz / 1000.0)
-        all_off_transfer = _fft_transfer_at_center(
-            reference,
-            measurement,
-            center_sample=marker_center_sample,
-            fft_size=fft_size,
-            fft_bin_index=fft_bin_index,
-            window=window,
-        )
-        cursor_ms = cycle_start_ms + profile.marker_body_ms + profile.guard_ms
+        cursor_ms = cycle_start_ms + (
+            profile.marker_body_ms + profile.guard_ms
+        ) * schedule_scale
         deltas = []
         for state in profile.states:
-            center_ms = cursor_ms + state.dwell_ms / 2.0
+            center_ms = cursor_ms + state.dwell_ms * schedule_scale / 2.0
             center_sample = round(center_ms * sample_rate_hz / 1000.0)
-            transfer = _fft_transfer_at_center(
+            fft_transfer = _fft_transfer_at_center(
                 reference,
                 measurement,
                 center_sample=center_sample,
@@ -1447,8 +1589,12 @@ def analyze_guarded_fft_phase(
                 fft_bin_index=fft_bin_index,
                 window=window,
             )
-            deltas.append(transfer - all_off_transfer)
-            cursor_ms += state.dwell_ms + profile.guard_ms
+            local_baseline = complex(
+                float(np.interp(center_ms, times_ms, leakage_baseline.real)),
+                float(np.interp(center_ms, times_ms, leakage_baseline.imag)),
+            )
+            deltas.append(fft_transfer - local_baseline)
+            cursor_ms += (state.dwell_ms + profile.guard_ms) * schedule_scale
         cycle_deltas.append(deltas)
 
     values = np.asarray(cycle_deltas, dtype=np.complex128)
@@ -1500,8 +1646,8 @@ def analyze_guarded_fft_phase(
         fft_bin_frequency_hz=bin_frequency_hz,
         requested_tone_offset_hz=float(tone_offset_hz),
         reference_state=reference_state,
-        alignment_confidence=aligned.confidence,
-        continuity_verified=aligned.continuity_verified,
-        continuity_block_count=aligned.continuity_block_count,
+        alignment_confidence=alignment_confidence,
+        continuity_verified=continuity_verified,
+        continuity_block_count=continuity_block_count,
         states=tuple(estimates),
     )

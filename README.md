@@ -101,18 +101,23 @@ cycle is 220 ms. Regenerate or check it with
 all GPIO codes from `fast20-v1` rather than duplicating the switch table.
 
 After the image is flashed and its GPIO sequence is verified, one bounded
-3-second, 5 MS/s transmission can be captured and analyzed with:
+450 ms, 5 MS/s transmission can be captured and analyzed with:
 
 ```sh
 uv run python scripts/capture_phase20.py --tx-channel 0
 uv run python scripts/capture_phase20.py --tx-channel 1
 ```
 
-Each command persists 60 contiguous 250,000-sample dual-RX frames, refines the
-pilot frequency, performs a 65,536-point FFT inside every complete dwell, and
-writes both ANT1-relative and pairwise phase differences. The capture helper
-restores both transmitters to its fail-muted state on normal return or a
-cooperative exception.
+Each command first retains nine contiguous 250,000-sample dual-RX frames in RAM,
+allowing the real-time refill loop to avoid CI16 conversion and disk latency.
+After TX is muted it persists the 2.25-million-sample capture, refines the pilot
+frequency, performs a 65,536-point FFT inside every complete dwell, and writes
+both ANT1-relative and pairwise phase differences. The capture helper restores
+both transmitters to its fail-muted state on normal return or a cooperative
+exception. This bounded duration stays within the verified continuous prefix of
+the present USB path while spanning more than two 220 ms selector cycles. Run
+several independent captures to measure phase repeatability; a run with any
+metadata counter discontinuity is rejected rather than analyzed.
 
 ## Continuous phase-sensitive OTA qualification
 

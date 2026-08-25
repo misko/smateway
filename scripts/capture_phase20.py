@@ -6,14 +6,18 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 from pluto_plus.artifacts import CaptureWriter, data_path, load_metadata, verify_artifact
-from pluto_plus.hardware import SafeDdsTonePlan, capture_continuous_safe_dds_tone
-from pluto_plus.models import GainMode, RadioIdentity, RadioSettings, Transport
+from pluto_plus.hardware import (
+    SafeDdsTonePlan,
+    SampleBlockV2,
+    capture_continuous_safe_dds_tone,
+)
+from pluto_plus.models import GainMode, RadioSettings
 
 from smateway.ota_analysis import (
     ContinuityBlock,
@@ -26,13 +30,12 @@ from smateway.profile import load_profile
 DEFAULT_BOARD_ID = "stm32c011-4c0055000950313950363920"
 DEFAULT_SERIAL = "104000b29905000e17000800065934759d"
 DEFAULT_URI = "usb:1.3.5"
-FIRMWARE_VERSION = "v0.40-plutoplus-spf-tandem-agc-v7"
 CENTER_FREQUENCY_HZ = 2_400_000_000
 SAMPLE_RATE_HZ = 5_000_000
 BANDWIDTH_HZ = 4_000_000
 TONE_OFFSET_HZ = 100_000
 SAMPLES_PER_FRAME = 250_000
-FRAME_COUNT = 60
+FRAME_COUNT = 9
 KERNEL_BUFFERS = 8
 FFT_SIZE = 65_536
 
@@ -130,30 +133,34 @@ def main() -> int:
         required_margin_db=10.0,
         settle_ms=100,
     )
-    identity = RadioIdentity(
-        radio_id=args.serial,
-        serial=args.serial,
-        uri=args.uri,
-        transport=Transport.IIO_USB,
-        model="Analog Devices PlutoSDR Rev.C (Z7010-AD9361)",
-        firmware_version=FIRMWARE_VERSION,
+    label = f"phase20 5MS/s TX{args.tx_channel + 1} 450ms FFT qualification"
+    retained: list[SampleBlockV2] = []
+
+    def retain_block(block: SampleBlockV2) -> None:
+        retained.append(replace(block, samples=block.samples.copy()))
+
+    capture = capture_continuous_safe_dds_tone(
+        plan,
+        samples_per_frame=SAMPLES_PER_FRAME,
+        frame_count=FRAME_COUNT,
+        kernel_buffers=KERNEL_BUFFERS,
+        block_consumer=retain_block,
     )
-    label = f"phase20 5MS/s TX{args.tx_channel + 1} 3s FFT qualification"
-    writer = CaptureWriter(root, radio=identity, settings=settings, label=label)
+    if capture.identity.serial != args.serial or capture.settings != settings:
+        raise RuntimeError("capture identity or setting readback differs from the plan")
+    if len(retained) != FRAME_COUNT:
+        raise RuntimeError("in-memory capture did not retain every validated frame")
+
+    writer = CaptureWriter(root, radio=capture.identity, settings=settings, label=label)
     try:
-        capture = capture_continuous_safe_dds_tone(
-            plan,
-            samples_per_frame=SAMPLES_PER_FRAME,
-            frame_count=FRAME_COUNT,
-            kernel_buffers=KERNEL_BUFFERS,
-            block_consumer=lambda block: writer.append(block, settings, revision=1),
-        )
+        for block in retained:
+            writer.append(block, settings, revision=1)
         artifact = writer.finalize()
     except Exception as error:
         writer.fail(error)
         raise
-    if capture.identity.serial != args.serial or capture.settings != settings:
-        raise RuntimeError("capture identity or setting readback differs from the plan")
+    finally:
+        retained.clear()
     if not verify_artifact(artifact):
         raise RuntimeError("persisted phase20 artifact failed its SHA-256 check")
 
