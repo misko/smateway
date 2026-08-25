@@ -13,7 +13,7 @@ import tempfile
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
-from math import isfinite, sqrt
+from math import atan2, cos, isfinite, log, pi, sin, sqrt
 from pathlib import Path
 from typing import Any
 
@@ -51,6 +51,7 @@ EXPECTED_CONDITIONS = (
 )
 ARTIFACT_ID = re.compile(r"[0-9a-f]{32}")
 MINIMUM_LOCALIZATION_ANTENNAS = 4
+MINIMUM_ACCEPTED_REPLICATES = 2
 DEFAULT_SAMPLE_COUNT = 100_000
 DEFAULT_SEED = 20260825
 DEFAULT_VISUALIZATION_PARTICLES = 2_000
@@ -406,99 +407,253 @@ def _localization_inputs(
     floor_5g8: float,
 ) -> tuple[
     tuple[str, ...],
-    dict[str, int],
+    dict[str, dict[str, int]],
     PairedPhaseMeasurements,
     PlanarArrayGeometry,
     list[dict[str, Any]],
+    list[dict[str, Any]],
 ]:
-    full_valid_mask = tuple(
-        tuple(
+    def pair_state_valid(pair: CapturePair, name: str) -> bool:
+        return bool(
             pair.tx1.artifact.capture_quality_passed
             and pair.tx2.artifact.capture_quality_passed
             and pair.tx1.artifact.state(name).quality_passed
             and pair.tx2.artifact.state(name).quality_passed
-            for name in STATE_NAMES
         )
-        for pair in pairs
-    )
-    accepted_pair_counts = {
-        name: sum(row[index] for row in full_valid_mask) for index, name in enumerate(STATE_NAMES)
-    }
-    selected_names = tuple(name for name in STATE_NAMES if accepted_pair_counts[name] > 0)
-    if len(selected_names) < MINIMUM_LOCALIZATION_ANTENNAS:
-        raise AnalysisError(
-            f"only {len(selected_names)} antennas pass at least one pair; at least "
-            f"{MINIMUM_LOCALIZATION_ANTENNAS} are required"
+
+    def analyzer_error(capture: CompletedCapture, name: str) -> float:
+        value = capture.analyzer_standard_error_deg[STATE_NAMES.index(name)]
+        return 0.0 if value is None else value
+
+    def circular_summary(values_deg: Sequence[float]) -> tuple[float, float, float]:
+        radians = [value * pi / 180.0 for value in values_deg]
+        mean_cos = sum(cos(value) for value in radians) / len(radians)
+        mean_sin = sum(sin(value) for value in radians) / len(radians)
+        resultant = min(1.0, max(0.0, sqrt(mean_cos**2 + mean_sin**2)))
+        mean_deg = wrap_phase_deg(atan2(mean_sin, mean_cos) * 180.0 / pi)
+        repeat_std_deg = sqrt(max(0.0, -2.0 * log(max(resultant, 1e-15)))) * 180.0 / pi
+        return mean_deg, repeat_std_deg, resultant
+
+    raw_pair_rows = []
+    for pair in pairs:
+        raw_phase = []
+        raw_pair_error = []
+        double_relative_phase = []
+        double_relative_pair_error = []
+        raw_valid = [pair_state_valid(pair, name) for name in STATE_NAMES]
+        ant1_valid = raw_valid[0]
+        ant1_raw = wrap_phase_deg(
+            pair.tx2.artifact.state("ANT1").raw_phase_deg
+            - pair.tx1.artifact.state("ANT1").raw_phase_deg
         )
-    indices = tuple(STATE_NAMES.index(name) for name in selected_names)
-    phases = []
-    uncertainties = []
-    valid_masks = []
-    carriers = []
-    row_documents = []
-    for pair, full_row_mask in zip(pairs, full_valid_mask, strict=True):
-        floor = _systematic_floor(pair.center_frequency_hz, floor_2g4, floor_5g8)
-        row_phase = []
-        row_uncertainty = []
-        tx1_errors = []
-        tx2_errors = []
-        row_valid = [full_row_mask[index] for index in indices]
-        valid_count = sum(row_valid)
-        if valid_count < MINIMUM_LOCALIZATION_ANTENNAS:
-            raise AnalysisError(
-                f"round {pair.round_index} at {pair.center_frequency_hz} Hz has "
-                f"only {valid_count} valid antennas; at least "
-                f"{MINIMUM_LOCALIZATION_ANTENNAS} are required per pair"
+        ant1_tx1_error = analyzer_error(pair.tx1, "ANT1")
+        ant1_tx2_error = analyzer_error(pair.tx2, "ANT1")
+        for name in STATE_NAMES:
+            value = wrap_phase_deg(
+                pair.tx2.artifact.state(name).raw_phase_deg
+                - pair.tx1.artifact.state(name).raw_phase_deg
             )
-        for index, name in zip(indices, selected_names, strict=True):
-            tx1_state = pair.tx1.artifact.state(name)
-            tx2_state = pair.tx2.artifact.state(name)
-            row_phase.append(wrap_phase_deg(tx2_state.raw_phase_deg - tx1_state.raw_phase_deg))
-            tx1_error = pair.tx1.analyzer_standard_error_deg[index]
-            tx2_error = pair.tx2.analyzer_standard_error_deg[index]
-            tx1_errors.append(tx1_error)
-            tx2_errors.append(tx2_error)
-            row_uncertainty.append(
-                sqrt(floor**2 + (tx1_error or 0.0) ** 2 + (tx2_error or 0.0) ** 2)
+            raw_phase.append(value)
+            tx1_error = analyzer_error(pair.tx1, name)
+            tx2_error = analyzer_error(pair.tx2, name)
+            raw_pair_error.append(sqrt(tx1_error**2 + tx2_error**2))
+            double_relative_phase.append(wrap_phase_deg(value - ant1_raw))
+            double_relative_pair_error.append(
+                0.0
+                if name == "ANT1"
+                else sqrt(tx1_error**2 + tx2_error**2 + ant1_tx1_error**2 + ant1_tx2_error**2)
             )
-        carrier = pair.carrier_frequency_hz
-        phases.append(row_phase)
-        uncertainties.append(row_uncertainty)
-        valid_masks.append(row_valid)
-        carriers.append(carrier)
-        row_documents.append(
+        double_valid = [ant1_valid and valid for valid in raw_valid]
+        raw_pair_rows.append(
             {
                 "round": pair.round_index,
                 "center_frequency_hz": pair.center_frequency_hz,
-                "carrier_frequency_hz": carrier,
+                "carrier_frequency_hz": pair.carrier_frequency_hz,
                 "tx1_rf_frequency_hz": pair.tx1.artifact.rf_frequency_hz,
                 "tx2_rf_frequency_hz": pair.tx2.artifact.rf_frequency_hz,
                 "tx1_artifact_id": pair.tx1.artifact.artifact_id,
                 "tx2_artifact_id": pair.tx2.artifact.artifact_id,
-                "state_names": list(selected_names),
-                "valid_mask": row_valid,
-                "valid_state_names": [
-                    name for name, valid in zip(selected_names, row_valid, strict=True) if valid
-                ],
-                "valid_state_count": valid_count,
-                "raw_tx2_minus_tx1_phase_deg": row_phase,
-                "tx1_analyzer_standard_error_deg": tx1_errors,
-                "tx2_analyzer_standard_error_deg": tx2_errors,
-                "systematic_floor_deg": floor,
-                "combined_phase_standard_deviation_deg": row_uncertainty,
+                "state_names": list(STATE_NAMES),
+                "raw_valid_mask": raw_valid,
+                "double_relative_valid_mask": double_valid,
+                "raw_tx2_minus_tx1_phase_deg": raw_phase,
+                "raw_pair_analyzer_standard_error_deg": raw_pair_error,
+                "double_relative_to_ant1_phase_deg": double_relative_phase,
+                "double_relative_pair_analyzer_standard_error_deg": (double_relative_pair_error),
+                "systematic_floor_deg": _systematic_floor(
+                    pair.center_frequency_hz, floor_2g4, floor_5g8
+                ),
+                "used_as_independent_posterior_row": False,
             }
         )
+
+    frequency_rows: list[dict[str, Any]] = []
+    accepted_counts: dict[str, dict[str, int]] = {}
+    for center_frequency_hz in (2_400_000_000, 5_800_000_000):
+        frequency_pairs = [
+            pair for pair in pairs if pair.center_frequency_hz == center_frequency_hz
+        ]
+        if not frequency_pairs:
+            raise AnalysisError(f"no capture pairs exist at {center_frequency_hz} Hz")
+        floor = _systematic_floor(center_frequency_hz, floor_2g4, floor_5g8)
+        cell_mean: list[float] = []
+        cell_repeat_std: list[float] = []
+        cell_resultant: list[float] = []
+        cell_aggregate_se: list[float] = []
+        cell_sigma: list[float] = []
+        cell_valid: list[bool] = []
+        cell_counts: dict[str, int] = {}
+        accepted_rounds: dict[str, list[int]] = {}
+        for name in STATE_NAMES:
+            values = []
+            pair_errors = []
+            rounds = []
+            for pair in frequency_pairs:
+                if not pair_state_valid(pair, "ANT1") or not pair_state_valid(pair, name):
+                    continue
+                raw_state = wrap_phase_deg(
+                    pair.tx2.artifact.state(name).raw_phase_deg
+                    - pair.tx1.artifact.state(name).raw_phase_deg
+                )
+                raw_ant1 = wrap_phase_deg(
+                    pair.tx2.artifact.state("ANT1").raw_phase_deg
+                    - pair.tx1.artifact.state("ANT1").raw_phase_deg
+                )
+                values.append(wrap_phase_deg(raw_state - raw_ant1))
+                if name == "ANT1":
+                    pair_errors.append(0.0)
+                else:
+                    pair_errors.append(
+                        sqrt(
+                            analyzer_error(pair.tx1, name) ** 2
+                            + analyzer_error(pair.tx2, name) ** 2
+                            + analyzer_error(pair.tx1, "ANT1") ** 2
+                            + analyzer_error(pair.tx2, "ANT1") ** 2
+                        )
+                    )
+                rounds.append(pair.round_index)
+            count = len(values)
+            valid = count >= MINIMUM_ACCEPTED_REPLICATES
+            cell_counts[name] = count
+            accepted_rounds[name] = rounds
+            cell_valid.append(valid)
+            if valid:
+                mean, repeat_std, resultant = circular_summary(values)
+                aggregate_se = sqrt(sum(value**2 for value in pair_errors)) / count
+                sigma = sqrt(floor**2 + repeat_std**2 + aggregate_se**2)
+            else:
+                mean = 0.0
+                repeat_std = 0.0
+                resultant = 0.0
+                aggregate_se = 0.0
+                sigma = floor
+            cell_mean.append(mean)
+            cell_repeat_std.append(repeat_std)
+            cell_resultant.append(resultant)
+            cell_aggregate_se.append(aggregate_se)
+            cell_sigma.append(sigma)
+        valid_count = sum(cell_valid)
+        if valid_count < MINIMUM_LOCALIZATION_ANTENNAS:
+            raise AnalysisError(
+                f"frequency profile {center_frequency_hz} Hz has only {valid_count} "
+                f"states with at least {MINIMUM_ACCEPTED_REPLICATES} accepted replicates; "
+                f"at least {MINIMUM_LOCALIZATION_ANTENNAS} are required"
+            )
+        accepted_counts[str(center_frequency_hz)] = cell_counts
+        carrier_values = [pair.carrier_frequency_hz for pair in frequency_pairs]
+        frequency_rows.append(
+            {
+                "center_frequency_hz": center_frequency_hz,
+                "carrier_frequency_hz": sum(carrier_values) / len(carrier_values),
+                "carrier_frequency_min_hz": min(carrier_values),
+                "carrier_frequency_max_hz": max(carrier_values),
+                "replicate_pair_count": len(frequency_pairs),
+                "state_names": list(STATE_NAMES),
+                "valid_mask": cell_valid,
+                "valid_state_count": valid_count,
+                "accepted_replicate_count": cell_counts,
+                "accepted_rounds": accepted_rounds,
+                "circular_mean_double_relative_phase_deg": cell_mean,
+                "circular_repeat_standard_deviation_deg": cell_repeat_std,
+                "circular_resultant_length": cell_resultant,
+                "aggregate_analyzer_standard_error_deg": cell_aggregate_se,
+                "systematic_floor_deg": floor,
+                "combined_phase_standard_deviation_deg": cell_sigma,
+            }
+        )
+
+    selected_indices = tuple(
+        index
+        for index, _name in enumerate(STATE_NAMES)
+        if any(row["valid_mask"][index] for row in frequency_rows)
+    )
+    selected_names = tuple(STATE_NAMES[index] for index in selected_indices)
+    phases = np.asarray(
+        [
+            [row["circular_mean_double_relative_phase_deg"][index] for index in selected_indices]
+            for row in frequency_rows
+        ]
+    )
+    uncertainties = np.asarray(
+        [
+            [row["combined_phase_standard_deviation_deg"][index] for index in selected_indices]
+            for row in frequency_rows
+        ]
+    )
+    valid_mask = np.asarray(
+        [[row["valid_mask"][index] for index in selected_indices] for row in frequency_rows]
+    )
+    carrier_array = np.asarray([row["carrier_frequency_hz"] for row in frequency_rows])
     geometry = PlanarArrayGeometry(
-        antenna_positions_mm=centered_positions[np.asarray(indices)],
+        antenna_positions_mm=centered_positions[np.asarray(selected_indices)],
         center_mm=np.asarray((0.0, 0.0)),
     )
     measurements = PairedPhaseMeasurements(
-        carrier_frequency_hz=np.asarray(carriers),
-        tx2_minus_tx1_phase_deg=np.asarray(phases),
-        phase_standard_deviation_deg=np.asarray(uncertainties),
-        valid_mask=np.asarray(valid_masks),
+        carrier_frequency_hz=carrier_array,
+        tx2_minus_tx1_phase_deg=phases,
+        phase_standard_deviation_deg=uncertainties,
+        valid_mask=valid_mask,
     )
-    return selected_names, accepted_pair_counts, measurements, geometry, row_documents
+    selected_frequency_rows = []
+    for row in frequency_rows:
+        selected_frequency_rows.append(
+            {
+                **row,
+                "state_names": list(selected_names),
+                "valid_mask": [row["valid_mask"][index] for index in selected_indices],
+                "accepted_replicate_count": {
+                    name: row["accepted_replicate_count"][name] for name in selected_names
+                },
+                "accepted_rounds": {name: row["accepted_rounds"][name] for name in selected_names},
+                "circular_mean_double_relative_phase_deg": [
+                    row["circular_mean_double_relative_phase_deg"][index]
+                    for index in selected_indices
+                ],
+                "circular_repeat_standard_deviation_deg": [
+                    row["circular_repeat_standard_deviation_deg"][index]
+                    for index in selected_indices
+                ],
+                "circular_resultant_length": [
+                    row["circular_resultant_length"][index] for index in selected_indices
+                ],
+                "aggregate_analyzer_standard_error_deg": [
+                    row["aggregate_analyzer_standard_error_deg"][index]
+                    for index in selected_indices
+                ],
+                "combined_phase_standard_deviation_deg": [
+                    row["combined_phase_standard_deviation_deg"][index]
+                    for index in selected_indices
+                ],
+            }
+        )
+    return (
+        selected_names,
+        accepted_counts,
+        measurements,
+        geometry,
+        raw_pair_rows,
+        selected_frequency_rows,
+    )
 
 
 def _source_commit() -> str | None:
@@ -677,7 +832,14 @@ def main() -> int:
     centered_positions, board_center, geometry_document, geometry_sha256 = _board_geometry(
         geometry_path
     )
-    selected_names, accepted_pair_counts, measurements, geometry, rows = _localization_inputs(
+    (
+        selected_names,
+        accepted_replicate_counts,
+        measurements,
+        geometry,
+        raw_pair_rows,
+        frequency_profile_rows,
+    ) = _localization_inputs(
         pairs,
         centered_positions,
         floor_2g4=args.systematic_floor_2g4_deg,
@@ -723,7 +885,8 @@ def main() -> int:
             },
             "radial_prior": asdict(prior),
             "plane_z_mm": 0.0,
-            "minimum_valid_antennas_per_pair": MINIMUM_LOCALIZATION_ANTENNAS,
+            "minimum_valid_antennas_per_frequency_profile": (MINIMUM_LOCALIZATION_ANTENNAS),
+            "minimum_accepted_replicates_per_frequency_state": (MINIMUM_ACCEPTED_REPLICATES),
         },
         "experiment": {
             "status": manifest.get("status"),
@@ -753,8 +916,15 @@ def main() -> int:
         },
         "localization": {
             "model": (
-                "calibration-free planar direct-path TX2-minus-TX1 phase with "
-                "one marginalized circular offset per capture pair"
+                "calibration-free planar direct-path TX2-minus-TX1 phase from two "
+                "circularly aggregated frequency profiles, with one marginalized "
+                "circular offset per frequency profile"
+            ),
+            "repeat_handling": (
+                "Five raw TX pairs estimate each frequency/state circular distribution. "
+                "The shared frequency-specific systematic floor enters once in each of "
+                "the two aggregated profile rows; repeats are not independent posterior "
+                "rows and therefore do not pseudoreplicate the systematic uncertainty."
             ),
             "assumptions": [
                 (
@@ -765,10 +935,14 @@ def main() -> int:
                     "Each TX radius has an independent truncated Gaussian prior "
                     "centered at 304.8 mm with 50 mm standard deviation."
                 ),
-                "Receive-path phase cancels between explicitly paired TX1/TX2 captures.",
                 (
-                    "An arbitrary common phase for each independently started TX pair "
-                    "is marginalized by the likelihood."
+                    "Receive-path phase cancels between explicitly paired TX1/TX2 "
+                    "captures; each replicate profile is additionally referenced to "
+                    "its ANT1 TX2-minus-TX1 phase before circular aggregation."
+                ),
+                (
+                    "One remaining common phase nuisance in each aggregated frequency "
+                    "profile is marginalized by the likelihood."
                 ),
                 (
                     "Frequency-specific phase floors cover antenna, multipath and "
@@ -776,14 +950,16 @@ def main() -> int:
                     "in quadrature when present."
                 ),
                 (
-                    "A failed state contributes zero likelihood only in its capture "
-                    "pair; other valid observations from that antenna remain in use."
+                    "Failed replicate states are excluded from their frequency/state "
+                    "circular aggregate; cells with fewer than two accepted replicates "
+                    "contribute zero likelihood."
                 ),
             ],
             "selected_state_names": list(selected_names),
             "selected_state_count": len(selected_names),
-            "state_accepted_pair_counts": accepted_pair_counts,
+            "frequency_state_accepted_replicate_counts": accepted_replicate_counts,
             "capture_pair_count": len(pairs),
+            "localization_profile_count": len(frequency_profile_rows),
             "geometry": {
                 "original_board_center_mm": board_center.tolist(),
                 "inference_center_mm": [0.0, 0.0],
@@ -794,7 +970,8 @@ def main() -> int:
                 },
                 "source_coordinate_system": geometry_document.get("coordinate_system"),
             },
-            "measurement_rows": rows,
+            "raw_pair_rows": raw_pair_rows,
+            "frequency_profile_rows": frequency_profile_rows,
             "posterior": _posterior_document(posterior, args.visualization_particles, args.seed),
         },
     }
@@ -805,8 +982,9 @@ def main() -> int:
                 "output": str(output_path),
                 "run_id": manifest.get("run_id"),
                 "capture_pairs": len(pairs),
+                "localization_profiles": len(frequency_profile_rows),
                 "selected_antennas": list(selected_names),
-                "accepted_pair_counts": accepted_pair_counts,
+                "accepted_replicate_counts": accepted_replicate_counts,
                 "effective_sample_size": posterior.effective_sample_size,
             },
             sort_keys=True,
