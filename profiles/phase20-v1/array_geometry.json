@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "coordinate_system": {
+    "origin": "KiCad board coordinate origin",
+    "x_direction": "east/right in top view",
+    "y_direction": "south/down in top view",
+    "units": "mm"
+  },
+  "board_outline_mm": {
+    "x0": 20.0,
+    "y0": 20.0,
+    "x1": 110.0,
+    "y1": 85.0
+  },
+  "antenna_model": {
+    "nominal_sma_face_to_vertical_axis_mm": 30.0,
+    "basis": "user-supplied antenna image marked 3 cm",
+    "assumption": "all eight identical hinged whips are vertical with a common phase-center height"
+  },
+  "antennas": [
+    {"name": "ANT1", "connector": "J3", "sma_face_mm": [50.0, 20.0], "vertical_axis_mm": [50.0, -10.0]},
+    {"name": "ANT2", "connector": "J4", "sma_face_mm": [35.0, 20.0], "vertical_axis_mm": [35.0, -10.0]},
+    {"name": "ANT3", "connector": "J5", "sma_face_mm": [20.0, 48.0], "vertical_axis_mm": [-10.0, 48.0]},
+    {"name": "ANT4", "connector": "J6", "sma_face_mm": [20.0, 66.0], "vertical_axis_mm": [-10.0, 66.0]},
+    {"name": "ANT5", "connector": "J7", "sma_face_mm": [110.0, 66.0], "vertical_axis_mm": [140.0, 66.0]},
+    {"name": "ANT6", "connector": "J8", "sma_face_mm": [110.0, 48.0], "vertical_axis_mm": [140.0, 48.0]},
+    {"name": "ANT7", "connector": "J9", "sma_face_mm": [95.0, 20.0], "vertical_axis_mm": [95.0, -10.0]},
+    {"name": "ANT8", "connector": "J10", "sma_face_mm": [80.0, 20.0], "vertical_axis_mm": [80.0, -10.0]}
+  ]
+}

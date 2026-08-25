@@ -1754,10 +1754,10 @@ def analyze_guarded_single_fft_phase(
     valid = np.isfinite(phasors.real) & np.isfinite(phasors.imag)
     bin_duration_ms = samples_per_bin * 1000.0 / sample_rate_hz
     times_ms = (np.arange(phasors.size, dtype=np.float64) + 0.5) * bin_duration_ms
-    cycle_range_ms = (
-        profile.nominal_cycle_ms - 4.0,
-        profile.nominal_cycle_ms + 4.0,
-    )
+    # The generated autonomous image owns this period. A 450 ms record can
+    # solve capture phase, but jointly searching period and phase creates
+    # cyclic state-label aliases, so do not re-estimate the known period here.
+    cycle_range_ms = (profile.nominal_cycle_ms, profile.nominal_cycle_ms)
     if phasors.size * bin_duration_ms < 2.0 * cycle_range_ms[1]:
         raise ValueError("capture must span at least two maximum-length candidate cycles")
     phasor_center = complex(

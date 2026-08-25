@@ -113,6 +113,18 @@ frequency from 2.30 through 2.50 GHz; the emitted pilot remains 100 kHz above
 that center. Alternate TX1 and TX2 at every frequency without moving any
 antenna.
 
+Position solving uses `profiles/phase20-v1/array_geometry.json`. Coordinates
+come from the released PCB SMA mating planes plus the antenna image's nominal
+30 mm mating-face-to-whip-axis dimension. Before localization, retain the
+unknown-position IQ captures, then make one known-position OTA calibration:
+keep the receive array fixed, stand TX1 vertically on the same plane, align its
+whip axis with the board centerline (`x = 65 mm`), and place that axis exactly
+300 mm beyond the south PCB edge (`y = 385 mm` in the geometry file). Three
+2.400 GHz captures at that unchanged point provide per-channel phase offsets
+and a repeatability estimate. `smateway.localization` then reports distinct
+wrapped-phase position candidates and their residual errors rather than hiding
+spatial ambiguity.
+
 Each command first retains nine contiguous 250,000-sample dual-RX frames in RAM,
 allowing the real-time refill loop to avoid CI16 conversion and disk latency.
 After TX is muted it persists the 2.25-million-sample capture, refines the pilot
