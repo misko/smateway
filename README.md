@@ -210,6 +210,20 @@ The center frequency is constrained to 2.4000–2.4835 GHz. The analysis exclude
 2 ms at each transition and reports an approximate phase standard error derived
 from the complex jackknife detection ratio.
 
+The separate user-requested 5.8 GHz experiment is deliberately not part of that
+normal range.  It accepts only an exact 5.8000 GHz center and requires the
+visible `--allow-experimental-5g8` opt-in:
+
+```bash
+PYTHONPATH=src /home/pi/pluto-plus-utils/.venv/bin/python \
+  scripts/capture_fast20_dwell.py --tx-channel 0 --stimulus phase \
+  --center-frequency-hz 5800000000 --allow-experimental-5g8
+```
+
+The resulting capture records `experimental_5g8_user_requested` as its
+frequency policy.  This opt-in does not claim an exact antenna RF model,
+calibrated selector/PCB/antenna phase, or official AD9363-band performance.
+
 The powered first-article audit from 2026-08-25 is retained outside Git under
 `~/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/fast20-5238fbd/`.
 Its 10-second TX1 and TX2 captures each contain 100 contiguous frames and exactly

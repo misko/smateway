@@ -27,18 +27,23 @@ from smateway.ota_analysis import (
     estimate_coherent_pilot_offset,
 )
 from smateway.profile import load_profile
+from smateway.rf_policy import classify_fast20_center_frequency
 
 DEFAULT_BOARD_ID = "stm32c011-4c0055000950313950363920"
 DEFAULT_SERIAL = "104000b29905000e17000800065934759d"
 DEFAULT_URI = "usb:1.3.5"
 CENTER_FREQUENCY_HZ = 2_400_000_000
-MINIMUM_CENTER_FREQUENCY_HZ = 2_400_000_000
-MAXIMUM_CENTER_FREQUENCY_HZ = 2_483_500_000
 DEFAULT_SAMPLE_RATE_HZ = 1_000_000
 TONE_OFFSET_HZ = 100_000
 DDS_PHASE_ACCUMULATOR_STEPS = 1 << 16
 KERNEL_BUFFERS = 8
 MINIMUM_COMPLETE_FRAMES = 20
+
+
+def _write_json_atomic(path: Path, document: dict[str, Any]) -> None:
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n")
+    temporary.replace(path)
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -51,7 +56,15 @@ def _parser() -> argparse.ArgumentParser:
         "--center-frequency-hz",
         type=int,
         default=CENTER_FREQUENCY_HZ,
-        help="bounded to the 2.4000–2.4835 GHz ISM band",
+        help="2.4000–2.4835 GHz normally; exact 5.8000 GHz needs explicit opt-in",
+    )
+    parser.add_argument(
+        "--allow-experimental-5g8",
+        action="store_true",
+        help=(
+            "allow only the exact 5.8000 GHz user-requested experiment; this is "
+            "not an antenna, path-calibration, or official-band claim"
+        ),
     )
     parser.add_argument(
         "--sample-rate-hz",
@@ -124,8 +137,13 @@ def main() -> int:
     profile = load_profile(args.profile)
     if profile.profile_id != "fast20-v1" or profile.nominal_cycle_ms != 386:
         raise SystemExit("capture requires the exact generated fast20-v1 profile")
-    if not MINIMUM_CENTER_FREQUENCY_HZ <= args.center_frequency_hz <= MAXIMUM_CENTER_FREQUENCY_HZ:
-        raise SystemExit("center frequency must remain within 2.4000–2.4835 GHz")
+    try:
+        frequency_policy = classify_fast20_center_frequency(
+            args.center_frequency_hz,
+            allow_experimental_5g8=args.allow_experimental_5g8,
+        )
+    except ValueError as error:
+        raise SystemExit(str(error)) from error
     sample_rate_hz = args.sample_rate_hz
     if sample_rate_hz == 1_000_000:
         bandwidth_hz = 800_000
@@ -201,28 +219,6 @@ def main() -> int:
     if not verify_artifact(artifact):
         raise RuntimeError("persisted fast20 artifact failed its SHA-256 check")
 
-    metadata = load_metadata(artifact)
-    ledger = _continuity_ledger(metadata)
-    rx1 = _load_channel(artifact, 0)
-    pilot = estimate_coherent_pilot_offset(
-        rx1,
-        sample_rate_hz=sample_rate_hz,
-        nominal_tone_offset_hz=coherent_tone_offset_hz,
-    )
-    del rx1
-    gc.collect()
-    rx2 = _load_channel(artifact, 1)
-    dwell = analyze_fast20_dwell_isolation(
-        rx2,
-        sample_rate_hz=sample_rate_hz,
-        tone_offset_hz=pilot.estimated_offset_hz,
-        profile=profile,
-        continuity_ledger=ledger,
-        minimum_complete_frames=MINIMUM_COMPLETE_FRAMES,
-    )
-    del rx2
-    gc.collect()
-
     source_commit = subprocess.run(
         ("git", "rev-parse", "HEAD"),
         check=True,
@@ -238,6 +234,7 @@ def main() -> int:
             "tx_channel": args.tx_channel,
             "stimulus": args.stimulus,
             "center_frequency_hz": args.center_frequency_hz,
+            "center_frequency_policy": frequency_policy,
             "sample_rate_hz": sample_rate_hz,
             "samples_per_frame": samples_per_frame,
             "frame_count": frame_count,
@@ -257,11 +254,59 @@ def main() -> int:
             "dds_frequency_readback_hz": capture.dds_frequency_readback_hz,
             "worst_case_load_input_dbm": plan.worst_case_load_input_dbm,
         },
-        "pilot": asdict(pilot),
-        "dwell_isolation": asdict(dwell),
+        "analysis_status": "artifact_verified",
     }
     analysis_path = Path(artifact.path) / "fast20-dwell-isolation.json"
-    analysis_path.write_text(json.dumps(document, indent=2, sort_keys=True) + "\n")
+    _write_json_atomic(analysis_path, document)
+
+    metadata = load_metadata(artifact)
+    ledger = _continuity_ledger(metadata)
+    try:
+        rx1 = _load_channel(artifact, 0)
+        try:
+            pilot = estimate_coherent_pilot_offset(
+                rx1,
+                sample_rate_hz=sample_rate_hz,
+                nominal_tone_offset_hz=coherent_tone_offset_hz,
+            )
+        finally:
+            del rx1
+            gc.collect()
+        document["pilot"] = asdict(pilot)
+        document["analysis_status"] = "pilot_estimated"
+        _write_json_atomic(analysis_path, document)
+
+        rx2 = _load_channel(artifact, 1)
+        try:
+            dwell = analyze_fast20_dwell_isolation(
+                rx2,
+                sample_rate_hz=sample_rate_hz,
+                tone_offset_hz=pilot.estimated_offset_hz,
+                profile=profile,
+                continuity_ledger=ledger,
+                minimum_complete_frames=MINIMUM_COMPLETE_FRAMES,
+            )
+        finally:
+            del rx2
+            gc.collect()
+    except Exception as error:
+        document["analysis_status"] = "failed"
+        document["analysis_error"] = f"{type(error).__name__}: {error}"
+        _write_json_atomic(analysis_path, document)
+        print(
+            json.dumps(
+                {
+                    "artifact_id": artifact.artifact_id,
+                    "analysis": str(analysis_path),
+                    "analysis_error": document["analysis_error"],
+                }
+            )
+        )
+        return 3
+
+    document["analysis_status"] = "complete"
+    document["dwell_isolation"] = asdict(dwell)
+    _write_json_atomic(analysis_path, document)
     print(
         json.dumps(
             {
