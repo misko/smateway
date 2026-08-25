@@ -305,6 +305,11 @@ The complete retained workflow, source-hashed data dictionary, reproduction
 commands, limitations, and deterministic PNG report are collected in
 [`docs/localization/`](docs/localization/README.md).
 
+The follow-up run `rx1-reference-multifrequency-20260825-a` added an OTA
+antenna on Pluto RX1. Its dual-receiver acquisition and repeatability checks
+passed, but the strict cross-state free-space model failed, so the retained
+report deliberately gives no RX1 range or position.
+
 The unconstrained seven-frequency direct-path fit remained poor at 53.9 degrees
 RMS. With TX1 fixed at the user-validated `(-26.5, +315.7) mm` result, the
 frequency-slope model identified 2.458 GHz as a fixed multipath outlier: its

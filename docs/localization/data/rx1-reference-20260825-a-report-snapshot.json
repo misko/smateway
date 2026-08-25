@@ -1,0 +1,173 @@
+{
+  "schema": 1,
+  "report_kind": "rx1_reference_negative_localization_result",
+  "run_id": "rx1-reference-multifrequency-20260825-a",
+  "source_commit": "87f1c03f1260cdabdac09456ff2b59496980e172",
+  "coordinate_system": {
+    "description": "millimetres in the board plane; origin at PCB outline center; +x right/east and +y down/south in top view",
+    "tx1_position_mm": [-26.5030351733, 315.6709449163],
+    "tx2_position_mm": [276.2680005073, 131.0998280258],
+    "anchor_separation_mm": 354.5938481746,
+    "anchor_warning": "TX1 is an experimental anchor and TX2 is a conditional, radial-prior-dominated estimate; neither is a persisted physical survey."
+  },
+  "sources": {
+    "run_manifest": {
+      "path": "~/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/reference-distributions/rx1-reference-multifrequency-20260825-a/manifest.json",
+      "sha256": "3ffdbe4e01eaca06b8042bb12b830c865600d0b495d98f5f45ad9887c9afb639"
+    },
+    "strict_locus_result": {
+      "path": "~/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/reference-distributions/rx1-reference-multifrequency-20260825-a/rx1-locus-sys10.json",
+      "sha256": "3b8d7036c31c030ebbafe18a5d94be75b683756c3c1b18107e7399f628390d6c"
+    },
+    "ungated_diagnostic": {
+      "path": "~/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/reference-distributions/rx1-reference-multifrequency-20260825-a/rx1-locus-diagnostic-ungated.json",
+      "sha256": "7b4ab9bb7770402c465a5c5cc80e5654bc417db4135e27c85e3a4711794855ee",
+      "warning": "Diagnostic only. Its quality gates were deliberately disabled and it is not an accepted localization result."
+    },
+    "array_geometry": {
+      "path": "profiles/phase20-v1/array_geometry.json",
+      "sha256": "eb64eb06a008a953baa9c9e47b8876df917b3c2ade7a503938734772bcc1aab8"
+    }
+  },
+  "capture_plan": {
+    "rounds": 3,
+    "center_frequency_hz": [2400000000, 2409000000, 2423000000, 2440000000, 2458000000, 2472000000, 2483000000],
+    "transmitters": ["TX1", "TX2"],
+    "sample_rate_hz": 1000000,
+    "duration_s_per_artifact": 10,
+    "receiver_gain_db": 20,
+    "planned_conditions": 42,
+    "execution_attempts": 43,
+    "finalized_artifacts": 42
+  },
+  "integrity_audit": {
+    "passed": true,
+    "artifact_identity_matches": 42,
+    "artifact_sha256_matches": 42,
+    "data_bytes_hashed": 3360000000,
+    "blocks_per_artifact": 100,
+    "total_blocks": 4200,
+    "samples_per_block_per_receiver": 100000,
+    "samples_per_artifact_per_receiver": 10000000,
+    "total_samples_per_receiver": 420000000,
+    "receiver_channels": 2,
+    "metadata_abi": 2,
+    "buffer_sequence_gaps": 0,
+    "fpga_sample_sequence_gaps": 0,
+    "missing_samples": 0,
+    "failure_flag_blocks": 0,
+    "clipped_samples": 0,
+    "near_full_scale_samples": 0,
+    "rx1_peak_component_counts": [22, 588],
+    "rx2_peak_component_counts": [19, 360],
+    "near_full_scale_threshold_counts": 1843,
+    "clip_threshold_counts": 2047,
+    "complete_selector_cycles_per_artifact": 25,
+    "latest_final_mute_passed": true
+  },
+  "quality_audit": {
+    "capture_analyses_passed": 40,
+    "capture_analyses_rejected": 2,
+    "state_judgments_passed": 334,
+    "state_judgments_total": 336,
+    "global_gate_rejections": 0,
+    "rejected_states": [
+      {
+        "center_frequency_hz": 2483000000,
+        "tx": "TX1",
+        "round": 2,
+        "state": "ANT7",
+        "reason": "transfer_cycle_phase_std_above_maximum",
+        "observed": 32.2877511509,
+        "limit": 30.0,
+        "unit": "deg"
+      },
+      {
+        "center_frequency_hz": 2458000000,
+        "tx": "TX1",
+        "round": 2,
+        "state": "ANT7",
+        "reason": "transfer_detection_snr_below_minimum",
+        "observed": 14.1491437563,
+        "limit": 15.0,
+        "unit": "dB"
+      }
+    ]
+  },
+  "transient_failure": {
+    "kind": "libiio_buffer_refill_ENODATA",
+    "errno": 61,
+    "message": "No data available",
+    "plan_index": 39,
+    "center_frequency_hz": 2483000000,
+    "tx": "TX1",
+    "failed_attempt": 40,
+    "failed_attempt_artifact_accepted": false,
+    "post_attempt_mute_passed": true,
+    "retry_attempt": 41,
+    "retry_artifact_id": "500b5a6bb77d49fa9dfe382e6e1df3d6",
+    "retry_quality_passed": true,
+    "interpretation": "A transient USB/libiio stream refill failure, not absence of RF. The partial attempt was quarantined and never spliced into an accepted artifact."
+  },
+  "repeatability": {
+    "frequency_state_cell_count": 56,
+    "paired_repeat_coherence": {
+      "minimum": 0.940517,
+      "median": 0.998572,
+      "maximum": 0.9999977
+    },
+    "repeat_aligned_residual_deg": [2.3, 7.9],
+    "rx1_cycle_coherence_range": [0.9997, 1.0]
+  },
+  "strict_model_gate": {
+    "minimum_state_coherence": 0.5,
+    "passed": false,
+    "failure": "no frequency has enough coherent, quality-passed selector states",
+    "frequency_rows": [
+      {"carrier_frequency_hz": 2400099992, "state_coherence": 0.438590, "state_phase_rms_deg": 68.492},
+      {"carrier_frequency_hz": 2409099992, "state_coherence": 0.358602, "state_phase_rms_deg": 84.860},
+      {"carrier_frequency_hz": 2423099992, "state_coherence": 0.311666, "state_phase_rms_deg": 76.635},
+      {"carrier_frequency_hz": 2440099992, "state_coherence": 0.268262, "state_phase_rms_deg": 87.494},
+      {"carrier_frequency_hz": 2458099992, "state_coherence": 0.184740, "state_phase_rms_deg": 92.860},
+      {"carrier_frequency_hz": 2472099992, "state_coherence": 0.295240, "state_phase_rms_deg": 81.302},
+      {"carrier_frequency_hz": 2483099992, "state_coherence": 0.455055, "state_phase_rms_deg": 66.047}
+    ]
+  },
+  "invalid_ungated_diagnostic": {
+    "reported_map_mm": 102.2982,
+    "interval_90_mm": [-271.0953, 346.8940],
+    "near_equal_aliases_mm": [102.2982, 225.0961, -20.4996, 347.8940, -143.2975, -266.0954],
+    "maximum_alias_relative_log_likelihood_loss": 0.1276,
+    "leave_one_frequency_out_map_range_mm": [-19.1, 225.8],
+    "leave_one_state_out_map_range_mm": [-144.7, 352.19],
+    "warning": "These modes are evidence of non-identification, not candidate ranges."
+  },
+  "frequency_slope_diagnostic": {
+    "passed": false,
+    "map_mm": -354.5938,
+    "physical_boundary_hit": true,
+    "wrapped_rms_deg": 35.4,
+    "individual_state_map_range_mm": [-354.5938, 169.7],
+    "interpretation": "Allowing a fixed nuisance phase per selector state does not repair the model; state-specific slopes disagree."
+  },
+  "identifiability": {
+    "geometric_rank_if_model_passed": 1,
+    "observable": "d(RX1,TX2)-d(RX1,TX1)",
+    "unique_planar_position_identified": false,
+    "accepted_range_difference_identified": false,
+    "reason": "The strict direct-path gate failed. Independently, two transmitter anchors constrain only a signed range-difference hyperbola, not a unique 2D point."
+  },
+  "conclusion": {
+    "measurement_succeeded": true,
+    "free_space_model_accepted": false,
+    "rx1_position_reported": false,
+    "diagnosis": "Repeatable, frequency-selective state phases are dominated by uncalibrated geometry, antenna response, mutual coupling, and indoor multipath rather than capture discontinuity or random RX phase reset.",
+    "next_experiment": [
+      "Survey all transmitter and receive phase centres in x/y/z and lock the setup in a rigid jig away from reflective bench metal.",
+      "Use at least three non-collinear surveyed transmitter positions; four are preferred.",
+      "Acquire a much wider RX2/RX1 cross-spectrum and estimate group delay, gating the earliest usable path.",
+      "Perform splitter/cable through calibration for RX1 versus each selector path, followed by an OTA surveyed-position array-manifold calibration.",
+      "For later uncontrolled narrowband emitters, infer against the calibrated manifold rather than an uncalibrated free-space phase model."
+    ]
+  }
+}

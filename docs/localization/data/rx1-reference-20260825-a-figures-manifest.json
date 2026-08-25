@@ -1,0 +1,34 @@
+{
+  "figures": [
+    {
+      "byte_size": 220693,
+      "height_px": 1312,
+      "path": "docs/localization/png/fig09_rx1_capture_integrity.png",
+      "sha256": "0519caabce9a959186176ff52f32b03ec90f32244a669bdc27e2edfb79f13856",
+      "width_px": 2240
+    },
+    {
+      "byte_size": 164818,
+      "height_px": 1200,
+      "path": "docs/localization/png/fig10_rx1_coherence_model_gate.png",
+      "sha256": "b877a152af64275d5d85f94c01058ce4f5a1dc0f70c4e4fdd4ce32272ecb5fbc",
+      "width_px": 2240
+    },
+    {
+      "byte_size": 275124,
+      "height_px": 1344,
+      "path": "docs/localization/png/fig11_rx1_identifiability_and_next_experiment.png",
+      "sha256": "7dcc44f8fbddbcec32ac9492f56c45c4a83374757d735db3429f005934cf1a07",
+      "width_px": 2240
+    }
+  ],
+  "matplotlib_version": "3.11.1",
+  "renderer": "scripts/render_rx1_reference_report.py",
+  "renderer_sha256": "73a93fa5f7c383b811d9a1d5fc5f41d35a355625ab12bfe6aeed7f95c8e886af",
+  "report_kind": "rx1_reference_negative_localization_figures",
+  "schema": 1,
+  "snapshot": {
+    "path": "docs/localization/data/rx1-reference-20260825-a-report-snapshot.json",
+    "sha256": "41ff07e56ac5d3295339ed47c9c1f4e30f0584c662e64e5d5cb326b24f220af8"
+  }
+}
