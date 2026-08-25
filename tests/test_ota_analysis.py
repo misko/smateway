@@ -10,6 +10,7 @@ from smateway.ota_analysis import (
     analyze_fast20_phase_sensitive,
     analyze_fast20_tone,
     analyze_guarded_fft_phase,
+    analyze_guarded_single_fft_phase,
     estimate_coherent_pilot_offset,
 )
 from smateway.profile import ControlProfile, load_profile
@@ -384,6 +385,55 @@ def test_equal_dwell_fft_recovers_relative_state_phase(
         )
         assert phase_error < 22.0
         assert estimate.cycle_coherence > 0.8
+
+
+def test_equal_dwell_single_rx_fft_does_not_require_reference_leakage(
+    phase_profile: ControlProfile,
+) -> None:
+    amplitudes = np.asarray([0.18, 0.21, 0.25, 0.31, 0.38, 0.34, 0.28, 0.22])
+    phases_deg = np.asarray([-150.0, -105.0, -60.0, -15.0, 30.0, 75.0, 120.0, 165.0])
+    expected = {ALL_OFF: 0j}
+    expected.update(
+        {
+            state.name: complex(amplitude * np.exp(1j * np.deg2rad(phase)))
+            for state, amplitude, phase in zip(
+                phase_profile.states, amplitudes, phases_deg, strict=True
+            )
+        }
+    )
+    _, rx2 = _paired_phase_capture(
+        phase_profile,
+        cycle_ms=220.0,
+        marker_phase_ms=41.7,
+        state_deltas=expected,
+        duration_ms=450.0,
+        seed=271828,
+    )
+
+    result = analyze_guarded_single_fft_phase(
+        rx2,
+        sample_rate_hz=PHASE_SAMPLE_RATE_HZ,
+        tone_offset_hz=PHASE_TONE_OFFSET_HZ,
+        profile=phase_profile,
+        continuity_ledger=_continuity_ledger(rx2.size),
+        fft_size=128,
+        edge_exclusion_ms=2.0,
+    )
+
+    assert result.cycle_ms == pytest.approx(220.0, abs=2.5)
+    assert result.complete_cycle_count >= 1
+    assert result.continuity_verified
+    assert result.alignment_confidence > 0.3
+    for state, expected_phase in zip(phase_profile.states, phases_deg, strict=True):
+        expected_relative = float(
+            (expected_phase - phases_deg[0] + 180.0) % 360.0 - 180.0
+        )
+        phase_error = abs(
+            (result.estimate(state.name).phase_deg - expected_relative + 180.0)
+            % 360.0
+            - 180.0
+        )
+        assert phase_error < 15.0
 
 
 @pytest.mark.parametrize("residual_hz", [0.375, -0.425])

@@ -22,7 +22,7 @@ from pluto_plus.models import GainMode, RadioSettings
 from smateway.ota_analysis import (
     ContinuityBlock,
     GuardedFftPhaseAnalysis,
-    analyze_guarded_fft_phase,
+    analyze_guarded_single_fft_phase,
     estimate_coherent_pilot_offset,
 )
 from smateway.profile import load_profile
@@ -36,6 +36,12 @@ MAX_CALIBRATION_CENTER_HZ = 2_500_000_000
 SAMPLE_RATE_HZ = 5_000_000
 BANDWIDTH_HZ = 4_000_000
 TONE_OFFSET_HZ = 100_000
+DDS_PHASE_ACCUMULATOR_STEPS = 1 << 16
+COHERENT_TONE_OFFSET_HZ = (
+    round(TONE_OFFSET_HZ * DDS_PHASE_ACCUMULATOR_STEPS / SAMPLE_RATE_HZ)
+    * SAMPLE_RATE_HZ
+    / DDS_PHASE_ACCUMULATOR_STEPS
+)
 SAMPLES_PER_FRAME = 250_000
 FRAME_COUNT = 9
 KERNEL_BUFFERS = 8
@@ -181,16 +187,36 @@ def main() -> int:
     metadata = load_metadata(artifact)
     ledger = _continuity_ledger(metadata)
     rx1, rx2 = _load_iq(artifact)
-    pilot = estimate_coherent_pilot_offset(
-        rx1,
-        sample_rate_hz=SAMPLE_RATE_HZ,
-        nominal_tone_offset_hz=TONE_OFFSET_HZ,
+    try:
+        pilot = estimate_coherent_pilot_offset(
+            rx1,
+            sample_rate_hz=SAMPLE_RATE_HZ,
+            nominal_tone_offset_hz=COHERENT_TONE_OFFSET_HZ,
+        )
+        pilot_document: dict[str, Any] = {"status": "estimated", **asdict(pilot)}
+    except ValueError as error:
+        pilot_document = {
+            "status": "rx1_unavailable",
+            "error": str(error),
+            "coherent_offset_hz": COHERENT_TONE_OFFSET_HZ,
+        }
+    active_frequency_indices = (
+        args.tx_channel * 4,
+        args.tx_channel * 4 + 2,
     )
-    fft = analyze_guarded_fft_phase(
-        rx1,
+    active_frequency_readbacks = tuple(
+        abs(capture.dds_frequency_readback_hz[index])
+        for index in active_frequency_indices
+    )
+    if any(
+        abs(value - COHERENT_TONE_OFFSET_HZ) > SAMPLE_RATE_HZ / DDS_PHASE_ACCUMULATOR_STEPS
+        for value in active_frequency_readbacks
+    ):
+        raise RuntimeError("DDS frequency read-back differs from the coherent tone plan")
+    fft = analyze_guarded_single_fft_phase(
         rx2,
         sample_rate_hz=SAMPLE_RATE_HZ,
-        tone_offset_hz=pilot.estimated_offset_hz,
+        tone_offset_hz=COHERENT_TONE_OFFSET_HZ,
         profile=profile,
         continuity_ledger=ledger,
         fft_size=FFT_SIZE,
@@ -222,9 +248,11 @@ def main() -> int:
             "stream_id": capture.frames[0].stream_id,
             "tx_gain_readback_db": capture.tx_gain_readback_db,
             "dds_scale_readback": capture.dds_scale_readback,
+            "dds_frequency_readback_hz": capture.dds_frequency_readback_hz,
+            "coherent_tone_offset_hz": COHERENT_TONE_OFFSET_HZ,
             "worst_case_load_input_dbm": plan.worst_case_load_input_dbm,
         },
-        "pilot": asdict(pilot),
+        "pilot": pilot_document,
         "fft": {
             "cycle_ms": fft.cycle_ms,
             "marker_phase_ms": fft.marker_phase_ms,
