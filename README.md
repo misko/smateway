@@ -271,7 +271,7 @@ PYTHONPATH=src /home/pi/pluto-plus-utils/.venv/bin/python \
   --center-frequency-hz 2423000000 \
   --center-frequency-hz 2440000000 \
   --center-frequency-hz 2458000000 \
-  --center-frequency-hz 2473000000 \
+  --center-frequency-hz 2472000000 \
   --center-frequency-hz 2483000000
 ```
 
@@ -292,6 +292,25 @@ information: it rotates all antenna observations by the same amount and is
 removed by ANT1 referencing or the marginalized common phase. Phase stepping
 is useful as an estimator-invariance check, but must not be counted as extra
 localization evidence.
+
+The 2026-08-25 run `multifrequency-phase-20260825-b` completed all 42 planned
+conditions: three rounds, seven frequencies, both transmitters, 100 contiguous
+ABI-2 buffers and 10,000,000 samples per artifact. Every capture and phase gate
+passed, no samples were missing, and the final independent TX mute/readback
+passed. The initially proposed 2.473 GHz point was replaced by 2.472 GHz after
+a muted preflight showed a two-hertz synthesizer readback quantization at the
+former value; the stopped earlier run remains an unmodified audit record.
+
+The unconstrained seven-frequency direct-path fit remained poor at 53.9 degrees
+RMS. With TX1 fixed at the user-validated `(-26.5, +315.7) mm` result, the
+frequency-slope model identified 2.458 GHz as a fixed multipath outlier: its
+77.0 degree profile residual was more than twice every other frequency's. With
+that profile excluded, the highest-density TX2 point was
+`(+276.3, +131.1) mm`, radius 305.8 mm and direction 25.4 degrees in the
+board-centered +x-right, +y-down coordinates. Leaving out each remaining
+frequency in turn kept the mode between 18.8 and 35.4 degrees. The retained
+profiles still leave 25.8 degrees RMS, so this is a robust lower-right sector
+estimate rather than a calibrated centimetre-level position.
 
 The powered first-article audit from 2026-08-25 is retained outside Git under
 `~/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/fast20-5238fbd/`.
