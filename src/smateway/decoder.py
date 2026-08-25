@@ -122,6 +122,8 @@ def _candidate(
             return DecodeResult(status="unknown", reason="missed_or_extra_transition")
         matched = _duration_state(observed.duration_ms, profile)
         if matched is None:
+            if cursor + 1 == len(intervals):
+                return DecodeResult(status="unknown", reason="truncated_capture")
             return DecodeResult(status="unknown", reason="ambiguous_duration")
         if matched.name != expected.name:
             return DecodeResult(status="unknown", reason="invalid_order")
@@ -134,6 +136,8 @@ def _candidate(
             return DecodeResult(status="unknown", reason="truncated_capture")
         guard = intervals[cursor]
         if guard.signal_present or not guard_min <= guard.duration_ms <= guard_max:
+            if cursor + 1 == len(intervals):
+                return DecodeResult(status="unknown", reason="truncated_capture")
             return DecodeResult(status="unknown", reason="missed_or_extra_transition")
         cursor += 1
 

@@ -722,9 +722,9 @@ def analyze_fast20_dwell_isolation(
     tone_offset_hz: float,
     profile: ControlProfile,
     continuity_ledger: Sequence[ContinuityBlock] | None = None,
-    bin_ms: float = 1.0,
-    threshold_margin_db: float = 6.0,
-    threshold_sweep_margins_db: tuple[float, ...] = (4.0, 6.0, 8.0),
+    bin_ms: float = 0.1,
+    threshold_margin_db: float = 4.0,
+    threshold_sweep_margins_db: tuple[float, ...] = (3.0, 4.0, 5.0),
     minimum_complete_frames: int = 5,
 ) -> Fast20DwellIsolation:
     """Measure and decode every complete unique-dwell cycle in a long capture.

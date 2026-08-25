@@ -53,6 +53,7 @@ def test_valid_complete_frame_decodes(profile: ControlProfile) -> None:
             (
                 ObservedInterval(False, 85),
                 ObservedInterval(True, 10),
+                ObservedInterval(False, 5),
             ),
             "ambiguous_duration",
         ),
@@ -122,4 +123,17 @@ def test_long_capture_decodes_every_complete_frame(profile: ControlProfile) -> N
     assert result.frames[1].dwell_durations_ms == tuple(
         state.dwell_ms + 0.25 for state in profile.states
     )
+    assert tuple(failure.reason for failure in result.failures) == ("truncated_capture",)
+
+
+def test_partial_final_dwell_is_classified_as_capture_edge(
+    profile: ControlProfile,
+) -> None:
+    intervals = list(valid_frame(profile))
+    intervals[-1] = ObservedInterval(True, 16)
+
+    result = decode_complete_frames(tuple(intervals), profile)
+
+    assert result.marker_count == 1
+    assert not result.frames
     assert tuple(failure.reason for failure in result.failures) == ("truncated_capture",)
