@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Capture 10 seconds at 5 MS/s and verify every fast20 unique dwell."""
+"""Capture 10 continuous seconds and verify every fast20 unique dwell."""
 
 from __future__ import annotations
 
@@ -32,17 +32,9 @@ DEFAULT_BOARD_ID = "stm32c011-4c0055000950313950363920"
 DEFAULT_SERIAL = "104000b29905000e17000800065934759d"
 DEFAULT_URI = "usb:1.3.5"
 CENTER_FREQUENCY_HZ = 2_400_000_000
-SAMPLE_RATE_HZ = 5_000_000
-BANDWIDTH_HZ = 4_000_000
+DEFAULT_SAMPLE_RATE_HZ = 1_000_000
 TONE_OFFSET_HZ = 100_000
 DDS_PHASE_ACCUMULATOR_STEPS = 1 << 16
-COHERENT_TONE_OFFSET_HZ = (
-    round(TONE_OFFSET_HZ * DDS_PHASE_ACCUMULATOR_STEPS / SAMPLE_RATE_HZ)
-    * SAMPLE_RATE_HZ
-    / DDS_PHASE_ACCUMULATOR_STEPS
-)
-SAMPLES_PER_FRAME = 1_000_000
-FRAME_COUNT = 50
 KERNEL_BUFFERS = 8
 MINIMUM_COMPLETE_FRAMES = 20
 
@@ -53,6 +45,13 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--board-id", default=DEFAULT_BOARD_ID)
     parser.add_argument("--serial", default=DEFAULT_SERIAL)
     parser.add_argument("--uri", default=DEFAULT_URI)
+    parser.add_argument(
+        "--sample-rate-hz",
+        type=int,
+        choices=(1_000_000, 5_000_000),
+        default=DEFAULT_SAMPLE_RATE_HZ,
+        help="1 MS/s is qualified on this Pi USB path; 5 MS/s requires a faster host path",
+    )
     parser.add_argument(
         "--profile",
         type=Path,
@@ -111,6 +110,20 @@ def main() -> int:
     profile = load_profile(args.profile)
     if profile.profile_id != "fast20-v1" or profile.nominal_cycle_ms != 386:
         raise SystemExit("capture requires the exact generated fast20-v1 profile")
+    sample_rate_hz = args.sample_rate_hz
+    if sample_rate_hz == 1_000_000:
+        bandwidth_hz = 800_000
+        samples_per_frame = 100_000
+        frame_count = 100
+    else:
+        bandwidth_hz = 4_000_000
+        samples_per_frame = 1_000_000
+        frame_count = 50
+    coherent_tone_offset_hz = (
+        round(TONE_OFFSET_HZ * DDS_PHASE_ACCUMULATOR_STEPS / sample_rate_hz)
+        * sample_rate_hz
+        / DDS_PHASE_ACCUMULATOR_STEPS
+    )
 
     root = (
         Path.home()
@@ -120,8 +133,8 @@ def main() -> int:
     )
     settings = RadioSettings(
         center_frequency_hz=CENTER_FREQUENCY_HZ,
-        sample_rate_hz=SAMPLE_RATE_HZ,
-        bandwidth_hz=BANDWIDTH_HZ,
+        sample_rate_hz=sample_rate_hz,
+        bandwidth_hz=bandwidth_hz,
         gain_mode=GainMode.MANUAL,
         gain_db=60,
         channels=(0, 1),
@@ -130,8 +143,8 @@ def main() -> int:
         uri=args.uri,
         serial=args.serial,
         center_frequency_hz=CENTER_FREQUENCY_HZ,
-        sample_rate_hz=SAMPLE_RATE_HZ,
-        bandwidth_hz=BANDWIDTH_HZ,
+        sample_rate_hz=sample_rate_hz,
+        bandwidth_hz=bandwidth_hz,
         tone_frequency_hz=TONE_OFFSET_HZ,
         tx_channel=args.tx_channel,
         tx_hardware_gain_db=-20.0,
@@ -145,15 +158,15 @@ def main() -> int:
     )
     identity = _radio_identity(args.uri, args.serial)
     label = (
-        f"fast20 dwell isolation 5MS/s 10s TX{args.tx_channel + 1} "
+        f"fast20 dwell isolation {sample_rate_hz}S/s 10s TX{args.tx_channel + 1} "
         f"{CENTER_FREQUENCY_HZ}Hz"
     )
     writer = CaptureWriter(root, radio=identity, settings=settings, label=label)
     try:
         capture = capture_continuous_safe_dds_tone(
             plan,
-            samples_per_frame=SAMPLES_PER_FRAME,
-            frame_count=FRAME_COUNT,
+            samples_per_frame=samples_per_frame,
+            frame_count=frame_count,
             kernel_buffers=KERNEL_BUFFERS,
             block_consumer=lambda block: writer.append(block, settings, revision=1),
         )
@@ -171,15 +184,15 @@ def main() -> int:
     rx1 = _load_channel(artifact, 0)
     pilot = estimate_coherent_pilot_offset(
         rx1,
-        sample_rate_hz=SAMPLE_RATE_HZ,
-        nominal_tone_offset_hz=COHERENT_TONE_OFFSET_HZ,
+        sample_rate_hz=sample_rate_hz,
+        nominal_tone_offset_hz=coherent_tone_offset_hz,
     )
     del rx1
     gc.collect()
     rx2 = _load_channel(artifact, 1)
     dwell = analyze_fast20_dwell_isolation(
         rx2,
-        sample_rate_hz=SAMPLE_RATE_HZ,
+        sample_rate_hz=sample_rate_hz,
         tone_offset_hz=pilot.estimated_offset_hz,
         profile=profile,
         continuity_ledger=ledger,
@@ -202,9 +215,9 @@ def main() -> int:
             "profile_contract_sha256": profile.contract_sha256,
             "tx_channel": args.tx_channel,
             "center_frequency_hz": CENTER_FREQUENCY_HZ,
-            "sample_rate_hz": SAMPLE_RATE_HZ,
-            "samples_per_frame": SAMPLES_PER_FRAME,
-            "frame_count": FRAME_COUNT,
+            "sample_rate_hz": sample_rate_hz,
+            "samples_per_frame": samples_per_frame,
+            "frame_count": frame_count,
             "sample_count": capture.sample_count,
             "duration_s": capture.duration_s,
             "kernel_buffers": capture.kernel_buffers,

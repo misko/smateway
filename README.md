@@ -167,8 +167,9 @@ PYTHONPATH=src /home/pi/pluto-plus-utils/.venv/bin/python \
   scripts/capture_fast20_dwell.py --tx-channel 0
 ```
 
-This emits one bounded TX1 pilot, streams 50 timestamped dual-RX frames
-(10 seconds at 5 MS/s) into a SHA-256-verified artifact, and fails closed on a
+This emits one bounded TX1 pilot and defaults to the qualified Pi USB rate:
+100 timestamped dual-RX frames (10 seconds at 1 MS/s) into a SHA-256-verified
+artifact. It fails closed on a
 buffer sequence, FPGA sample-counter, metadata, or overflow error. It derives
 1 ms signal-presence transitions from the recording, decodes every complete
 `ALL_OFF, ANT1, ..., ANT8` cycle, checks all eight measured dwell distributions
@@ -176,6 +177,10 @@ against the disjoint profile windows, and repeats the decode at three SNR
 thresholds. A passing result requires at least 20 complete cycles with no
 non-edge marker rejection and the same cycle count throughout the threshold
 sweep. Both TX paths are muted during setup and in cooperative cleanup.
+One 1 ms decision bin contains 1,000 IQ samples, and the 20–50 ms antenna
+dwells contain 20,000–50,000 samples. A `--sample-rate-hz 5000000` option is
+retained for faster host paths; sustained dual-RX 5 MS/s on this Pi/hub was
+measured to overflow after 1.4–2.0 seconds and is never reported as continuous.
 
 The powered first-article audit from 2026-08-25 is retained outside Git under
 `~/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/fast20-5238fbd/`.
