@@ -30,7 +30,9 @@ from smateway.profile import load_profile
 DEFAULT_BOARD_ID = "stm32c011-4c0055000950313950363920"
 DEFAULT_SERIAL = "104000b29905000e17000800065934759d"
 DEFAULT_URI = "usb:1.3.5"
-CENTER_FREQUENCY_HZ = 2_400_000_000
+DEFAULT_CENTER_FREQUENCY_HZ = 2_400_000_000
+MIN_CALIBRATION_CENTER_HZ = 2_300_000_000
+MAX_CALIBRATION_CENTER_HZ = 2_500_000_000
 SAMPLE_RATE_HZ = 5_000_000
 BANDWIDTH_HZ = 4_000_000
 TONE_OFFSET_HZ = 100_000
@@ -46,6 +48,11 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--board-id", default=DEFAULT_BOARD_ID)
     parser.add_argument("--serial", default=DEFAULT_SERIAL)
     parser.add_argument("--uri", default=DEFAULT_URI)
+    parser.add_argument(
+        "--center-frequency-hz",
+        type=int,
+        default=DEFAULT_CENTER_FREQUENCY_HZ,
+    )
     parser.add_argument(
         "--profile",
         type=Path,
@@ -102,6 +109,10 @@ def main() -> int:
     profile = load_profile(args.profile)
     if profile.profile_id != "phase20-v1" or profile.nominal_cycle_ms != 220:
         raise SystemExit("capture requires the exact generated phase20-v1 profile")
+    if not MIN_CALIBRATION_CENTER_HZ <= args.center_frequency_hz <= MAX_CALIBRATION_CENTER_HZ:
+        raise SystemExit(
+            "phase calibration center frequency must be within 2.30..2.50 GHz"
+        )
     root = (
         Path.home()
         / ".local/state/smateway/boards"
@@ -109,7 +120,7 @@ def main() -> int:
         / "pluto-usb-captures"
     )
     settings = RadioSettings(
-        center_frequency_hz=CENTER_FREQUENCY_HZ,
+        center_frequency_hz=args.center_frequency_hz,
         sample_rate_hz=SAMPLE_RATE_HZ,
         bandwidth_hz=BANDWIDTH_HZ,
         gain_mode=GainMode.MANUAL,
@@ -119,7 +130,7 @@ def main() -> int:
     plan = SafeDdsTonePlan(
         uri=args.uri,
         serial=args.serial,
-        center_frequency_hz=CENTER_FREQUENCY_HZ,
+        center_frequency_hz=args.center_frequency_hz,
         sample_rate_hz=SAMPLE_RATE_HZ,
         bandwidth_hz=BANDWIDTH_HZ,
         tone_frequency_hz=TONE_OFFSET_HZ,
@@ -133,7 +144,10 @@ def main() -> int:
         required_margin_db=10.0,
         settle_ms=100,
     )
-    label = f"phase20 5MS/s TX{args.tx_channel + 1} 450ms FFT qualification"
+    label = (
+        f"phase20 5MS/s TX{args.tx_channel + 1} "
+        f"{args.center_frequency_hz}Hz 450ms FFT qualification"
+    )
     retained: list[SampleBlockV2] = []
 
     def retain_block(block: SampleBlockV2) -> None:
@@ -195,6 +209,7 @@ def main() -> int:
         "capture": {
             "source_commit": source_commit,
             "tx_channel": args.tx_channel,
+            "center_frequency_hz": args.center_frequency_hz,
             "sample_rate_hz": SAMPLE_RATE_HZ,
             "samples_per_frame": SAMPLES_PER_FRAME,
             "frame_count": FRAME_COUNT,

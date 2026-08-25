@@ -108,6 +108,11 @@ uv run python scripts/capture_phase20.py --tx-channel 0
 uv run python scripts/capture_phase20.py --tx-channel 1
 ```
 
+For phase-slope calibration, `--center-frequency-hz` selects a bounded center
+frequency from 2.30 through 2.50 GHz; the emitted pilot remains 100 kHz above
+that center. Alternate TX1 and TX2 at every frequency without moving any
+antenna.
+
 Each command first retains nine contiguous 250,000-sample dual-RX frames in RAM,
 allowing the real-time refill loop to avoid CI16 conversion and disk latency.
 After TX is muted it persists the 2.25-million-sample capture, refines the pilot
