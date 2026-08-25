@@ -139,7 +139,7 @@ metadata counter discontinuity is rejected rather than analyzed.
 ## Continuous phase-sensitive OTA qualification
 
 The development dependency pins `pluto-plus-utils` at commit
-`f495a1c1191f4b6e323c5dc1e3d0c4e6c8eaa920`. That revision adds a bounded
+`52ff5903c04a988ab4cde33b4e8a1a1312b82bdb`. That revision adds a bounded
 dual-RX DDS capture using the exact tandem-V7 metadata runtime, more than two
 kernel buffers, a fresh buffer generation, and a persisted continuity ledger.
 At 1 MS/s, 100 refills of 100,000 samples form one 10-second capture.
@@ -159,6 +159,22 @@ between independently started captures. Geometric localization requires a
 complex calibration at every RF path and an in-situ antenna calibration,
 preferably at several frequencies. Analysis confidence measures schedule
 alignment and cycle-to-cycle repeatability, not position probability.
+
+For a repeated transition-level proof of the unique-dwell firmware, run:
+
+```bash
+.venv/bin/python scripts/capture_fast20_dwell.py --tx-channel 0
+```
+
+This emits one bounded TX1 pilot, streams 200 timestamped dual-RX frames
+(10 seconds at 5 MS/s) into a SHA-256-verified artifact, and fails closed on a
+buffer sequence, FPGA sample-counter, metadata, or overflow error. It derives
+1 ms signal-presence transitions from the recording, decodes every complete
+`ALL_OFF, ANT1, ..., ANT8` cycle, checks all eight measured dwell distributions
+against the disjoint profile windows, and repeats the decode at three SNR
+thresholds. A passing result requires at least 20 complete cycles with no
+non-edge marker rejection and the same cycle count throughout the threshold
+sweep. Both TX paths are muted during setup and in cooperative cleanup.
 
 The powered first-article audit from 2026-08-25 is retained outside Git under
 `~/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/fast20-5238fbd/`.

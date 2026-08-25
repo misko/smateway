@@ -36,6 +36,26 @@ class DecodeResult:
     marker_index: int | None = None
 
 
+@dataclass(frozen=True, slots=True)
+class DecodedFrame:
+    """One complete framed selector cycle with its measured interval lengths."""
+
+    marker_index: int
+    marker_duration_ms: float
+    states: tuple[str, ...]
+    dwell_durations_ms: tuple[float, ...]
+    guard_durations_ms: tuple[float, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class FrameScanResult:
+    """All complete cycles and fail-closed marker-candidate outcomes."""
+
+    frames: tuple[DecodedFrame, ...]
+    marker_count: int
+    failures: tuple[DecodeResult, ...]
+
+
 def intervals_from_presence(
     presence: Sequence[bool], *, bin_duration_ms: float
 ) -> tuple[ObservedInterval, ...]:
@@ -121,6 +141,62 @@ def _candidate(
         status="decoded",
         states=tuple(decoded),
         marker_index=marker_index,
+    )
+
+
+def _decoded_frame(
+    intervals: tuple[ObservedInterval, ...], marker_index: int, profile: ControlProfile
+) -> DecodedFrame | DecodeResult:
+    result = _candidate(intervals, marker_index, profile)
+    if result.status != "decoded":
+        return result
+
+    cursor = marker_index + 1
+    dwell_durations_ms: list[float] = []
+    guard_durations_ms: list[float] = []
+    for state_index in range(len(profile.states)):
+        dwell_durations_ms.append(intervals[cursor].duration_ms)
+        cursor += 1
+        if state_index + 1 < len(profile.states):
+            guard_durations_ms.append(intervals[cursor].duration_ms)
+            cursor += 1
+    return DecodedFrame(
+        marker_index=marker_index,
+        marker_duration_ms=intervals[marker_index].duration_ms,
+        states=result.states,
+        dwell_durations_ms=tuple(dwell_durations_ms),
+        guard_durations_ms=tuple(guard_durations_ms),
+    )
+
+
+def decode_complete_frames(
+    intervals: tuple[ObservedInterval, ...], profile: ControlProfile
+) -> FrameScanResult:
+    """Decode every complete marker-framed cycle in a long observation.
+
+    Partial cycles at either capture edge are retained as fail-closed outcomes;
+    they are never promoted into the complete-frame collection.
+    """
+
+    normalized = _normalized(intervals)
+    markers = [
+        index
+        for index, interval in enumerate(normalized)
+        if not interval.signal_present
+        and interval.duration_ms >= profile.marker_decoder_min_ms
+    ]
+    frames: list[DecodedFrame] = []
+    failures: list[DecodeResult] = []
+    for marker_index in markers:
+        result = _decoded_frame(normalized, marker_index, profile)
+        if isinstance(result, DecodedFrame):
+            frames.append(result)
+        else:
+            failures.append(result)
+    return FrameScanResult(
+        frames=tuple(frames),
+        marker_count=len(markers),
+        failures=tuple(failures),
     )
 
 

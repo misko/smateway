@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from smateway.decoder import ObservedInterval, decode_intervals
+from smateway.decoder import ObservedInterval, decode_complete_frames, decode_intervals
 from smateway.profile import ControlProfile, load_profile
 
 PROFILE_ROOT = Path("profiles/fast20-v1")
@@ -92,3 +92,34 @@ def test_capture_without_marker_is_unknown(profile: ControlProfile) -> None:
 
     assert result.status == "unknown"
     assert result.reason == "no_valid_marker"
+
+
+def test_long_capture_decodes_every_complete_frame(profile: ControlProfile) -> None:
+    first = valid_frame(profile)
+    second = tuple(
+        ObservedInterval(interval.signal_present, interval.duration_ms + 0.25)
+        if interval.signal_present
+        else interval
+        for interval in valid_frame(profile)
+    )
+    intervals = (
+        ObservedInterval(True, 7),
+        *first,
+        ObservedInterval(False, profile.guard_ms),
+        *second,
+        ObservedInterval(False, profile.marker_body_ms + profile.guard_ms),
+        ObservedInterval(True, profile.states[0].dwell_ms),
+    )
+
+    result = decode_complete_frames(intervals, profile)
+
+    assert result.marker_count == 3
+    assert len(result.frames) == 2
+    assert result.frames[0].states == tuple(state.name for state in profile.states)
+    assert result.frames[0].dwell_durations_ms == tuple(
+        state.dwell_ms for state in profile.states
+    )
+    assert result.frames[1].dwell_durations_ms == tuple(
+        state.dwell_ms + 0.25 for state in profile.states
+    )
+    assert tuple(failure.reason for failure in result.failures) == ("truncated_capture",)

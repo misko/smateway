@@ -9,6 +9,7 @@ from math import atan2, exp, log10, pi, sqrt
 import numpy as np
 import numpy.typing as npt
 
+from .decoder import FrameScanResult, decode_complete_frames, intervals_from_presence
 from .profile import ControlProfile
 
 ALL_OFF = "ALL_OFF"
@@ -125,6 +126,42 @@ class CoherentPilotEstimate:
     phase_residual_rms_rad: float
     phase_step_coherence: float
     confidence: float
+
+
+@dataclass(frozen=True, slots=True)
+class DwellStateMeasurement:
+    """Observed dwell distribution for one uniquely timed selector state."""
+
+    name: str
+    nominal_ms: float
+    window_ms: tuple[float, float]
+    durations_ms: tuple[float, ...]
+    minimum_ms: float
+    median_ms: float
+    maximum_ms: float
+
+
+@dataclass(frozen=True, slots=True)
+class Fast20DwellIsolation:
+    """Transition-derived proof that every unique-dwell state is separable."""
+
+    bin_duration_ms: float
+    bin_count: int
+    baseline_db: float
+    threshold_db: float
+    threshold_margin_db: float
+    threshold_sweep_margins_db: tuple[float, ...]
+    threshold_sweep_frame_counts: tuple[int, ...]
+    threshold_stable: bool
+    marker_count: int
+    complete_frame_count: int
+    edge_truncated_marker_count: int
+    rejected_marker_count: int
+    continuity_verified: bool
+    continuity_block_count: int
+    minimum_complete_frames: int
+    isolation_verified: bool
+    states: tuple[DwellStateMeasurement, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -676,6 +713,147 @@ def _coherent_single_bins(
             axis=1,
         )
     return phasors
+
+
+def analyze_fast20_dwell_isolation(
+    rx2_samples: npt.ArrayLike,
+    *,
+    sample_rate_hz: float,
+    tone_offset_hz: float,
+    profile: ControlProfile,
+    continuity_ledger: Sequence[ContinuityBlock] | None = None,
+    bin_ms: float = 1.0,
+    threshold_margin_db: float = 6.0,
+    threshold_sweep_margins_db: tuple[float, ...] = (4.0, 6.0, 8.0),
+    minimum_complete_frames: int = 5,
+) -> Fast20DwellIsolation:
+    """Measure and decode every complete unique-dwell cycle in a long capture.
+
+    A coherent tone phasor is reduced into fixed-time bins. Presence is derived
+    from the capture's own lower-quintile baseline plus a fixed SNR margin, not
+    from the expected dwell lengths. The profile windows are applied only after
+    transitions have been measured. A small threshold sweep must yield the same
+    complete-frame count, protecting the result from a fragile threshold choice.
+    """
+
+    if not np.isfinite(sample_rate_hz) or sample_rate_hz <= 0:
+        raise ValueError("sample rate must be positive and finite")
+    if not np.isfinite(tone_offset_hz) or abs(tone_offset_hz) >= sample_rate_hz / 2.0:
+        raise ValueError("tone offset must be finite and strictly inside Nyquist")
+    if not np.isfinite(bin_ms) or bin_ms <= 0:
+        raise ValueError("bin duration must be positive and finite")
+    if not np.isfinite(threshold_margin_db) or threshold_margin_db <= 0:
+        raise ValueError("threshold margin must be positive and finite")
+    if not threshold_sweep_margins_db or any(
+        not np.isfinite(margin) or margin <= 0 for margin in threshold_sweep_margins_db
+    ):
+        raise ValueError("threshold sweep margins must be positive and finite")
+    if minimum_complete_frames < 1:
+        raise ValueError("minimum complete frames must be positive")
+
+    samples = np.asarray(rx2_samples)
+    if samples.ndim != 1 or not np.iscomplexobj(samples) or samples.size == 0:
+        raise ValueError("RX2 samples must be a non-empty one-dimensional complex array")
+    for start in range(0, samples.size, 1_048_576):
+        values = samples[start : start + 1_048_576]
+        if not np.all(np.isfinite(values.real)) or not np.all(np.isfinite(values.imag)):
+            raise ValueError("RX2 samples must be finite")
+    continuity_verified, continuity_block_count = _validate_continuity_ledger(
+        continuity_ledger, sample_count=samples.size
+    )
+
+    samples_per_bin = round(sample_rate_hz * bin_ms / 1000.0)
+    if samples_per_bin < 1:
+        raise ValueError("bin duration is shorter than one sample")
+    actual_bin_ms = samples_per_bin * 1000.0 / sample_rate_hz
+    phasors = _coherent_single_bins(
+        samples,
+        sample_rate_hz=sample_rate_hz,
+        tone_offset_hz=tone_offset_hz,
+        samples_per_bin=samples_per_bin,
+    )
+    if phasors.size < 2:
+        raise ValueError("capture must contain at least two coherent bins")
+    power_db = 20.0 * np.log10(np.maximum(np.abs(phasors), np.finfo(np.float64).tiny))
+    baseline_db = float(np.percentile(power_db, 20.0))
+
+    def scan(margin_db: float) -> FrameScanResult:
+        presence = power_db >= baseline_db + margin_db
+        intervals = intervals_from_presence(
+            presence.tolist(), bin_duration_ms=actual_bin_ms
+        )
+        return decode_complete_frames(intervals, profile)
+
+    primary = scan(threshold_margin_db)
+    sweep = tuple(scan(margin) for margin in threshold_sweep_margins_db)
+    sweep_frame_counts = tuple(len(result.frames) for result in sweep)
+    threshold_stable = len(set(sweep_frame_counts)) == 1
+
+    measurements: list[DwellStateMeasurement] = []
+    for state_index, state in enumerate(profile.states):
+        durations = tuple(
+            frame.dwell_durations_ms[state_index] for frame in primary.frames
+        )
+        if durations:
+            values = np.asarray(durations, dtype=np.float64)
+            minimum_ms = float(np.min(values))
+            median_ms = float(np.median(values))
+            maximum_ms = float(np.max(values))
+        else:
+            minimum_ms = median_ms = maximum_ms = float("nan")
+        measurements.append(
+            DwellStateMeasurement(
+                name=state.name,
+                nominal_ms=state.dwell_ms,
+                window_ms=state.window_ms,
+                durations_ms=durations,
+                minimum_ms=minimum_ms,
+                median_ms=median_ms,
+                maximum_ms=maximum_ms,
+            )
+        )
+
+    edge_truncated_marker_count = sum(
+        failure.reason == "truncated_capture" for failure in primary.failures
+    )
+    rejected_marker_count = len(primary.failures) - edge_truncated_marker_count
+    state_counts_match = all(
+        len(measurement.durations_ms) == len(primary.frames)
+        for measurement in measurements
+    )
+    windows_hold = all(
+        measurement.durations_ms
+        and measurement.window_ms[0] <= measurement.minimum_ms
+        and measurement.maximum_ms <= measurement.window_ms[1]
+        for measurement in measurements
+    )
+    isolation_verified = (
+        continuity_verified
+        and len(primary.frames) >= minimum_complete_frames
+        and threshold_stable
+        and rejected_marker_count == 0
+        and state_counts_match
+        and windows_hold
+    )
+    return Fast20DwellIsolation(
+        bin_duration_ms=actual_bin_ms,
+        bin_count=phasors.size,
+        baseline_db=baseline_db,
+        threshold_db=baseline_db + threshold_margin_db,
+        threshold_margin_db=threshold_margin_db,
+        threshold_sweep_margins_db=threshold_sweep_margins_db,
+        threshold_sweep_frame_counts=sweep_frame_counts,
+        threshold_stable=threshold_stable,
+        marker_count=primary.marker_count,
+        complete_frame_count=len(primary.frames),
+        edge_truncated_marker_count=edge_truncated_marker_count,
+        rejected_marker_count=rejected_marker_count,
+        continuity_verified=continuity_verified,
+        continuity_block_count=continuity_block_count,
+        minimum_complete_frames=minimum_complete_frames,
+        isolation_verified=isolation_verified,
+        states=tuple(measurements),
+    )
 
 
 def _weighted_phase_line(

@@ -7,6 +7,7 @@ from smateway.ota_analysis import (
     ALL_OFF,
     ContinuityBlock,
     _labels_and_interior,
+    analyze_fast20_dwell_isolation,
     analyze_fast20_phase_sensitive,
     analyze_fast20_tone,
     analyze_guarded_fft_phase,
@@ -23,6 +24,15 @@ PHASE_SAMPLE_RATE_HZ = 10_000
 PHASE_TONE_OFFSET_HZ = 1_000
 
 
+def _unique_dwell_presence(profile: ControlProfile, cycles: int) -> np.ndarray:
+    one_cycle: list[bool] = [False] * int(profile.marker_body_ms + profile.guard_ms)
+    for index, state in enumerate(profile.states):
+        one_cycle.extend([True] * int(state.dwell_ms))
+        if index + 1 < len(profile.states):
+            one_cycle.extend([False] * int(profile.guard_ms))
+    return np.asarray([True] * 7 + one_cycle * cycles + one_cycle[:105], dtype=np.bool_)
+
+
 @pytest.fixture
 def profile() -> ControlProfile:
     return load_profile(PROFILE_ROOT / "control_profile.json")
@@ -31,6 +41,47 @@ def profile() -> ControlProfile:
 @pytest.fixture
 def phase_profile() -> ControlProfile:
     return load_profile(PHASE_PROFILE_ROOT / "control_profile.json")
+
+
+def test_unique_dwell_analysis_decodes_repeated_long_capture(
+    profile: ControlProfile,
+) -> None:
+    presence = _unique_dwell_presence(profile, cycles=8)
+    samples_per_bin = 10
+    sample_count = presence.size * samples_per_bin
+    time_s = np.arange(sample_count, dtype=np.float64) / PHASE_SAMPLE_RATE_HZ
+    envelope = np.repeat(np.where(presence, 1.0, 0.001), samples_per_bin)
+    rng = np.random.default_rng(1207)
+    noise = 0.0001 * (
+        rng.standard_normal(sample_count) + 1j * rng.standard_normal(sample_count)
+    )
+    samples = envelope * np.exp(2j * np.pi * PHASE_TONE_OFFSET_HZ * time_s) + noise
+    ledger = (
+        ContinuityBlock(sample_start=0, sample_count=sample_count, utc_ns=1_000_000_000),
+    )
+
+    result = analyze_fast20_dwell_isolation(
+        np.asarray(samples, dtype=np.complex64),
+        sample_rate_hz=PHASE_SAMPLE_RATE_HZ,
+        tone_offset_hz=PHASE_TONE_OFFSET_HZ,
+        profile=profile,
+        continuity_ledger=ledger,
+        minimum_complete_frames=8,
+    )
+
+    assert result.isolation_verified
+    assert result.complete_frame_count == 8
+    assert result.marker_count == 9
+    assert result.edge_truncated_marker_count == 1
+    assert result.rejected_marker_count == 0
+    assert result.threshold_stable
+    assert result.threshold_sweep_frame_counts == (8, 8, 8)
+    assert tuple(measurement.name for measurement in result.states) == tuple(
+        state.name for state in profile.states
+    )
+    for measurement, state in zip(result.states, profile.states, strict=True):
+        assert measurement.durations_ms == (state.dwell_ms,) * 8
+        assert measurement.median_ms == state.dwell_ms
 
 
 def _state_at(
