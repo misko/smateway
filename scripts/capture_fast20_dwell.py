@@ -53,6 +53,12 @@ def _parser() -> argparse.ArgumentParser:
         help="1 MS/s is qualified on this Pi USB path; 5 MS/s requires a faster host path",
     )
     parser.add_argument(
+        "--stimulus",
+        choices=("qualification", "phase"),
+        default="qualification",
+        help="phase raises the bounded pilot by 14 dB to resolve deep antenna fades",
+    )
+    parser.add_argument(
         "--profile",
         type=Path,
         default=Path("profiles/fast20-v1/control_profile.json"),
@@ -124,6 +130,12 @@ def main() -> int:
         * sample_rate_hz
         / DDS_PHASE_ACCUMULATOR_STEPS
     )
+    if args.stimulus == "phase":
+        tx_hardware_gain_db = -12.0
+        dds_scale = 0.5
+    else:
+        tx_hardware_gain_db = -20.0
+        dds_scale = 0.25
 
     root = (
         Path.home()
@@ -147,8 +159,8 @@ def main() -> int:
         bandwidth_hz=bandwidth_hz,
         tone_frequency_hz=TONE_OFFSET_HZ,
         tx_channel=args.tx_channel,
-        tx_hardware_gain_db=-20.0,
-        dds_scale=0.25,
+        tx_hardware_gain_db=tx_hardware_gain_db,
+        dds_scale=dds_scale,
         receiver_gain_db=60.0,
         source_peak_output_bound_dbm=7.0,
         load_input_limit_dbm=0.0,
@@ -158,7 +170,7 @@ def main() -> int:
     )
     identity = _radio_identity(args.uri, args.serial)
     label = (
-        f"fast20 dwell isolation {sample_rate_hz}S/s 10s TX{args.tx_channel + 1} "
+        f"fast20 {args.stimulus} {sample_rate_hz}S/s 10s TX{args.tx_channel + 1} "
         f"{CENTER_FREQUENCY_HZ}Hz"
     )
     writer = CaptureWriter(root, radio=identity, settings=settings, label=label)
@@ -214,6 +226,7 @@ def main() -> int:
             "source_commit": source_commit,
             "profile_contract_sha256": profile.contract_sha256,
             "tx_channel": args.tx_channel,
+            "stimulus": args.stimulus,
             "center_frequency_hz": CENTER_FREQUENCY_HZ,
             "sample_rate_hz": sample_rate_hz,
             "samples_per_frame": samples_per_frame,

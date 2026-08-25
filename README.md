@@ -188,6 +188,24 @@ PYTHONPATH=src /home/pi/pluto-plus-utils/.venv/bin/python \
   scripts/reanalyze_fast20_dwell_artifact.py ARTIFACT_ID
 ```
 
+For phase work, use the higher-SNR but still bounded stimulus and then analyze
+the immutable capture:
+
+```bash
+PYTHONPATH=src /home/pi/pluto-plus-utils/.venv/bin/python \
+  scripts/capture_fast20_dwell.py --tx-channel 0 --stimulus phase
+PYTHONPATH=src /home/pi/pluto-plus-utils/.venv/bin/python \
+  scripts/reanalyze_fast20_phase_artifact.py ARTIFACT_ID
+```
+
+The phase stimulus uses -12 dB TX gain and 0.5 DDS scale, whose reviewed
+worst-case load input is approximately -11.02 dBm. The analyzer requires 20
+complete cycles, verified continuity, at least 15 dB detection SNR, 0.75 cycle
+coherence and 0.75 confidence for every state, plus 0.9 overall confidence. It
+writes ANT1-relative, strongest-state-relative and full pairwise wrapped phase
+differences. These are within-capture RF-path fingerprints, not calibrated
+geometric phase or directly comparable absolute phase between separate runs.
+
 The powered first-article audit from 2026-08-25 is retained outside Git under
 `~/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/fast20-5238fbd/`.
 Its 10-second TX1 and TX2 captures each contain 100 contiguous frames and exactly
