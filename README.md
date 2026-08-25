@@ -163,7 +163,8 @@ alignment and cycle-to-cycle repeatability, not position probability.
 For a repeated transition-level proof of the unique-dwell firmware, run:
 
 ```bash
-.venv/bin/python scripts/capture_fast20_dwell.py --tx-channel 0
+PYTHONPATH=src /home/pi/pluto-plus-utils/.venv/bin/python \
+  scripts/capture_fast20_dwell.py --tx-channel 0
 ```
 
 This emits one bounded TX1 pilot, streams 200 timestamped dual-RX frames

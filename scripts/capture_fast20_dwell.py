@@ -14,12 +14,12 @@ from typing import Any
 import numpy as np
 from pluto_plus.artifacts import CaptureWriter, data_path, load_metadata, verify_artifact
 from pluto_plus.hardware import (
-    IioRadioDevice,
     SafeDdsTonePlan,
     capture_continuous_safe_dds_tone,
 )
+from pluto_plus.hardware.iio import find_usb_sysfs_path
 from pluto_plus.hardware.preflight import V7_FIRMWARE_VERSION
-from pluto_plus.models import GainMode, RadioIdentity, RadioSettings
+from pluto_plus.models import GainMode, RadioIdentity, RadioSettings, Transport
 
 from smateway.ota_analysis import (
     ContinuityBlock,
@@ -95,17 +95,15 @@ def _load_channel(artifact: Any, channel: int) -> np.ndarray:
 
 
 def _radio_identity(uri: str, serial: str) -> RadioIdentity:
-    radio = IioRadioDevice(
-        uri,
+    return RadioIdentity(
+        radio_id=serial,
         serial=serial,
-        expected_metadata_abi=2,
-        expected_firmware_version=V7_FIRMWARE_VERSION,
+        uri=uri,
+        transport=Transport.IIO_USB,
+        model="Analog Devices PlutoSDR Rev.C (Z7010-AD9361)",
+        firmware_version=V7_FIRMWARE_VERSION,
+        usb_path=find_usb_sysfs_path(serial),
     )
-    try:
-        radio.open()
-        return radio.identity
-    finally:
-        radio.close()
 
 
 def main() -> int:
