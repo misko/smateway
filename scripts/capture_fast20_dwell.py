@@ -32,6 +32,8 @@ DEFAULT_BOARD_ID = "stm32c011-4c0055000950313950363920"
 DEFAULT_SERIAL = "104000b29905000e17000800065934759d"
 DEFAULT_URI = "usb:1.3.5"
 CENTER_FREQUENCY_HZ = 2_400_000_000
+MINIMUM_CENTER_FREQUENCY_HZ = 2_400_000_000
+MAXIMUM_CENTER_FREQUENCY_HZ = 2_483_500_000
 DEFAULT_SAMPLE_RATE_HZ = 1_000_000
 TONE_OFFSET_HZ = 100_000
 DDS_PHASE_ACCUMULATOR_STEPS = 1 << 16
@@ -45,6 +47,12 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--board-id", default=DEFAULT_BOARD_ID)
     parser.add_argument("--serial", default=DEFAULT_SERIAL)
     parser.add_argument("--uri", default=DEFAULT_URI)
+    parser.add_argument(
+        "--center-frequency-hz",
+        type=int,
+        default=CENTER_FREQUENCY_HZ,
+        help="bounded to the 2.4000–2.4835 GHz ISM band",
+    )
     parser.add_argument(
         "--sample-rate-hz",
         type=int,
@@ -116,6 +124,8 @@ def main() -> int:
     profile = load_profile(args.profile)
     if profile.profile_id != "fast20-v1" or profile.nominal_cycle_ms != 386:
         raise SystemExit("capture requires the exact generated fast20-v1 profile")
+    if not MINIMUM_CENTER_FREQUENCY_HZ <= args.center_frequency_hz <= MAXIMUM_CENTER_FREQUENCY_HZ:
+        raise SystemExit("center frequency must remain within 2.4000–2.4835 GHz")
     sample_rate_hz = args.sample_rate_hz
     if sample_rate_hz == 1_000_000:
         bandwidth_hz = 800_000
@@ -144,7 +154,7 @@ def main() -> int:
         / "pluto-usb-captures"
     )
     settings = RadioSettings(
-        center_frequency_hz=CENTER_FREQUENCY_HZ,
+        center_frequency_hz=args.center_frequency_hz,
         sample_rate_hz=sample_rate_hz,
         bandwidth_hz=bandwidth_hz,
         gain_mode=GainMode.MANUAL,
@@ -154,7 +164,7 @@ def main() -> int:
     plan = SafeDdsTonePlan(
         uri=args.uri,
         serial=args.serial,
-        center_frequency_hz=CENTER_FREQUENCY_HZ,
+        center_frequency_hz=args.center_frequency_hz,
         sample_rate_hz=sample_rate_hz,
         bandwidth_hz=bandwidth_hz,
         tone_frequency_hz=TONE_OFFSET_HZ,
@@ -171,7 +181,7 @@ def main() -> int:
     identity = _radio_identity(args.uri, args.serial)
     label = (
         f"fast20 {args.stimulus} {sample_rate_hz}S/s 10s TX{args.tx_channel + 1} "
-        f"{CENTER_FREQUENCY_HZ}Hz"
+        f"{args.center_frequency_hz}Hz"
     )
     writer = CaptureWriter(root, radio=identity, settings=settings, label=label)
     try:
@@ -227,7 +237,7 @@ def main() -> int:
             "profile_contract_sha256": profile.contract_sha256,
             "tx_channel": args.tx_channel,
             "stimulus": args.stimulus,
-            "center_frequency_hz": CENTER_FREQUENCY_HZ,
+            "center_frequency_hz": args.center_frequency_hz,
             "sample_rate_hz": sample_rate_hz,
             "samples_per_frame": samples_per_frame,
             "frame_count": frame_count,

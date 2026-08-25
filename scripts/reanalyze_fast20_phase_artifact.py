@@ -8,6 +8,7 @@ import gc
 import json
 import subprocess
 from dataclasses import asdict
+from math import atan, degrees
 from pathlib import Path
 
 from capture_fast20_dwell import _continuity_ledger, _load_channel
@@ -96,6 +97,7 @@ def main() -> int:
         tone_offset_hz=pilot.estimated_offset_hz,
         profile=load_profile(args.profile),
         continuity_ledger=ledger,
+        edge_exclusion_bins=2,
     )
     del rx1, rx2
     gc.collect()
@@ -124,6 +126,7 @@ def main() -> int:
     ).stdout.strip()
     states = []
     for estimate in analysis.states:
+        detection_ratio = 10.0 ** (estimate.detection_snr_db / 20.0)
         states.append(
             {
                 **asdict(estimate),
@@ -136,6 +139,9 @@ def main() -> int:
                 ),
                 "phase_relative_to_strongest_deg": _wrapped_phase_difference(
                     estimate.phase_deg, strongest.phase_deg
+                ),
+                "approximate_phase_standard_error_deg": degrees(
+                    atan(1.0 / detection_ratio)
                 ),
                 "quality_passed": state_quality[estimate.name],
             }

@@ -196,6 +196,15 @@ def decode_complete_frames(
         if isinstance(result, DecodedFrame):
             frames.append(result)
         else:
+            guard_tolerance = profile.guard_ms * profile.decoder_window_pct / 100.0
+            minimum_after_marker_ms = sum(
+                state.window_ms[0] for state in profile.states
+            ) + (len(profile.states) - 1) * (profile.guard_ms - guard_tolerance)
+            observed_after_marker_ms = sum(
+                interval.duration_ms for interval in normalized[marker_index + 1 :]
+            )
+            if observed_after_marker_ms < minimum_after_marker_ms:
+                result = DecodeResult(status="unknown", reason="truncated_capture")
             failures.append(result)
     return FrameScanResult(
         frames=tuple(frames),

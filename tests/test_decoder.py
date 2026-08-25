@@ -137,3 +137,21 @@ def test_partial_final_dwell_is_classified_as_capture_edge(
     assert result.marker_count == 1
     assert not result.frames
     assert tuple(failure.reason for failure in result.failures) == ("truncated_capture",)
+
+
+def test_short_final_candidate_is_capture_edge_even_with_bad_transition(
+    profile: ControlProfile,
+) -> None:
+    intervals = (
+        ObservedInterval(False, 85),
+        ObservedInterval(True, 20),
+        ObservedInterval(False, 5),
+        ObservedInterval(True, 23),
+        ObservedInterval(False, 4.5),
+    )
+
+    result = decode_complete_frames(intervals, profile)
+
+    assert result.marker_count == 1
+    assert not result.frames
+    assert tuple(failure.reason for failure in result.failures) == ("truncated_capture",)

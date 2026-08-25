@@ -193,7 +193,8 @@ the immutable capture:
 
 ```bash
 PYTHONPATH=src /home/pi/pluto-plus-utils/.venv/bin/python \
-  scripts/capture_fast20_dwell.py --tx-channel 0 --stimulus phase
+  scripts/capture_fast20_dwell.py --tx-channel 0 --stimulus phase \
+  --center-frequency-hz 2450000000
 PYTHONPATH=src /home/pi/pluto-plus-utils/.venv/bin/python \
   scripts/reanalyze_fast20_phase_artifact.py ARTIFACT_ID
 ```
@@ -205,6 +206,9 @@ coherence and 0.75 confidence for every state, plus 0.9 overall confidence. It
 writes ANT1-relative, strongest-state-relative and full pairwise wrapped phase
 differences. These are within-capture RF-path fingerprints, not calibrated
 geometric phase or directly comparable absolute phase between separate runs.
+The center frequency is constrained to 2.4000–2.4835 GHz. The analysis excludes
+2 ms at each transition and reports an approximate phase standard error derived
+from the complex jackknife detection ratio.
 
 The powered first-article audit from 2026-08-25 is retained outside Git under
 `~/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/fast20-5238fbd/`.
