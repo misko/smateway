@@ -53,6 +53,7 @@ def _source_document() -> dict[str, object]:
     for frequency_hz, values in zip(FREQUENCIES_HZ, phase, strict=True):
         rows.append(
             {
+                "center_frequency_hz": int(frequency_hz),
                 "carrier_frequency_hz": float(frequency_hz),
                 "state_names": list(STATE_NAMES),
                 "valid_mask": [True] * 8,
@@ -128,6 +129,15 @@ def test_cli_extracts_statistical_slope_inputs_and_writes_bounded_posterior(
     assert configuration["systematic_phase_standard_deviation_deg"] == 2.0
     assert configuration["systematic_floor_application_count"] == 1
     assert not configuration["upstream_direct_path_systematic_floors_used"]
+    expected_frequencies = FREQUENCIES_HZ.astype(np.int64).tolist()
+    assert configuration["source_center_frequencies_hz"] == expected_frequencies
+    assert configuration["excluded_center_frequencies_hz"] == []
+    assert configuration["used_center_frequencies_hz"] == expected_frequencies
+    assert document["source"]["frequency_selection"] == {
+        "source_center_frequencies_hz": expected_frequencies,
+        "excluded_center_frequencies_hz": [],
+        "used_center_frequencies_hz": expected_frequencies,
+    }
     extracted_row = document["inputs"]["frequency_profile_rows"][0]
     assert extracted_row["statistical_phase_standard_deviation_deg"][0] == 0.1
     assert extracted_row["statistical_phase_standard_deviation_deg"][1:] == [5.0] * 7
@@ -140,6 +150,60 @@ def test_cli_extracts_statistical_slope_inputs_and_writes_bounded_posterior(
     map_position = np.asarray(posterior["map"]["tx2_position_mm"])
     assert np.linalg.norm(map_position - TX2_MM) < 20.0
     assert posterior["map_residuals"]["overall_weighted_rms_deg"] < 1.0
+
+
+def test_repeatable_frequency_exclusion_filters_measurements_and_provenance(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    source = tmp_path / "aggregate.json"
+    output = tmp_path / "lofo.json"
+    source.write_text(json.dumps(_source_document()), encoding="utf-8")
+    excluded = (int(FREQUENCIES_HZ[1]), int(FREQUENCIES_HZ[7]))
+
+    assert (
+        script.main(
+            (
+                "--analysis",
+                str(source),
+                "--tx1-anchor-x-mm",
+                str(TX1_MM[0]),
+                "--tx1-anchor-y-mm",
+                str(TX1_MM[1]),
+                "--output",
+                str(output),
+                "--sample-count",
+                "1000",
+                "--exclude-center-frequency-hz",
+                str(excluded[0]),
+                "--exclude-center-frequency-hz",
+                str(excluded[1]),
+            )
+        )
+        == 0
+    )
+
+    status = json.loads(capsys.readouterr().out)
+    document = json.loads(output.read_text(encoding="utf-8"))
+    source_frequencies = FREQUENCIES_HZ.astype(np.int64).tolist()
+    used = [value for value in source_frequencies if value not in excluded]
+    assert status["excluded_center_frequencies_hz"] == list(excluded)
+    assert status["used_center_frequencies_hz"] == used
+    for selection in (
+        document["source"]["frequency_selection"],
+        document["analysis_configuration"],
+        document["inputs"],
+    ):
+        assert selection["source_center_frequencies_hz"] == source_frequencies
+        assert selection["excluded_center_frequencies_hz"] == list(excluded)
+        assert selection["used_center_frequencies_hz"] == used
+    assert document["inputs"]["source_frequency_profile_count"] == 10
+    assert document["inputs"]["frequency_profile_count"] == 8
+    assert [
+        row["center_frequency_hz"] for row in document["inputs"]["frequency_profile_rows"]
+    ] == used
+    residuals = document["localization"]["posterior"]["map_residuals"]
+    assert len(residuals["residual_phase_deg"]) == len(used)
 
 
 def test_extraction_rejects_duplicate_profile_frequency_and_changed_state_order() -> None:
@@ -163,3 +227,26 @@ def test_extraction_rejects_duplicate_profile_frequency_and_changed_state_order(
     changed_rows[2]["state_names"] = list(reversed(STATE_NAMES))
     with pytest.raises(script.AnalysisDocumentError, match="differs from selected state order"):
         script._extract_inputs(changed_order)
+
+
+def test_exclusions_reject_duplicates_unknown_values_and_fewer_than_three_profiles() -> None:
+    first = int(FREQUENCIES_HZ[0])
+    with pytest.raises(script.AnalysisDocumentError, match="must not contain duplicates"):
+        script._extract_inputs(_source_document(), (first, first))
+    with pytest.raises(script.AnalysisDocumentError, match="absent from the source"):
+        script._extract_inputs(_source_document(), (123_456_789,))
+    with pytest.raises(script.AnalysisDocumentError, match="at least three.*remain"):
+        script._extract_inputs(
+            _source_document(),
+            tuple(int(value) for value in FREQUENCIES_HZ[:-2]),
+        )
+
+    non_integer_center = _source_document()
+    localization = non_integer_center["localization"]
+    assert isinstance(localization, dict)
+    rows = localization["frequency_profile_rows"]
+    assert isinstance(rows, list)
+    assert isinstance(rows[0], dict)
+    rows[0]["center_frequency_hz"] = float(FREQUENCIES_HZ[0])
+    with pytest.raises(script.AnalysisDocumentError, match="must be an integer"):
+        script._extract_inputs(non_integer_center)

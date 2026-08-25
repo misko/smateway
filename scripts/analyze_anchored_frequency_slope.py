@@ -49,6 +49,10 @@ class ExtractedSlopeInputs:
 
     state_names: tuple[str, ...]
     reference_index: int
+    source_center_frequency_hz: npt.NDArray[np.int64]
+    source_carrier_frequency_hz: npt.NDArray[np.float64]
+    excluded_center_frequency_hz: tuple[int, ...]
+    center_frequency_hz: npt.NDArray[np.int64]
     carrier_frequency_hz: npt.NDArray[np.float64]
     mean_phase_deg: npt.NDArray[np.float64]
     repeat_standard_deviation_deg: npt.NDArray[np.float64]
@@ -74,6 +78,12 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--sample-count", type=int, default=DEFAULT_SAMPLE_COUNT)
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
+    parser.add_argument(
+        "--exclude-center-frequency-hz",
+        type=int,
+        action="append",
+        help="omit one center-frequency profile; repeat for leave-many-frequency-out checks",
+    )
     parser.add_argument(
         "--systematic-phase-std-deg",
         type=float,
@@ -108,6 +118,12 @@ def _number(value: object, label: str) -> float:
     if not isfinite(result):
         raise AnalysisDocumentError(f"{label} must be finite")
     return result
+
+
+def _integer(value: object, label: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise AnalysisDocumentError(f"{label} must be an integer")
+    return value
 
 
 def _boolean(value: object, label: str) -> bool:
@@ -203,7 +219,10 @@ def _geometry(
         raise AnalysisDocumentError(f"invalid selected antenna geometry: {error}") from error
 
 
-def _extract_inputs(document: Mapping[str, Any]) -> ExtractedSlopeInputs:
+def _extract_inputs(
+    document: Mapping[str, Any],
+    excluded_center_frequency_hz: Sequence[int] = (),
+) -> ExtractedSlopeInputs:
     if document.get("schema") != 1:
         raise AnalysisDocumentError("source analysis schema must be 1")
     if document.get("analysis_kind") != EXPECTED_ANALYSIS_KIND:
@@ -224,6 +243,7 @@ def _extract_inputs(document: Mapping[str, Any]) -> ExtractedSlopeInputs:
     if len(rows) < 3:
         raise AnalysisDocumentError("anchored slope analysis requires at least three profiles")
 
+    center_frequencies = []
     frequencies = []
     means = []
     repeat_std = []
@@ -235,6 +255,13 @@ def _extract_inputs(document: Mapping[str, Any]) -> ExtractedSlopeInputs:
         row_names = _state_names(row.get("state_names"), f"{label}.state_names")
         if row_names != names:
             raise AnalysisDocumentError(f"{label}.state_names differs from selected state order")
+        center_frequency_hz = _integer(
+            row.get("center_frequency_hz"),
+            f"{label}.center_frequency_hz",
+        )
+        if center_frequency_hz <= 0:
+            raise AnalysisDocumentError(f"{label}.center_frequency_hz must be positive")
+        center_frequencies.append(center_frequency_hz)
         frequency_hz = _number(row.get("carrier_frequency_hz"), f"{label}.carrier_frequency_hz")
         if frequency_hz <= 0.0:
             raise AnalysisDocumentError(f"{label}.carrier_frequency_hz must be positive")
@@ -270,24 +297,55 @@ def _extract_inputs(document: Mapping[str, Any]) -> ExtractedSlopeInputs:
             )
         )
 
-    frequency_array = np.asarray(frequencies, dtype=np.float64)
-    if np.unique(frequency_array).size != frequency_array.size:
+    source_center_array = np.asarray(center_frequencies, dtype=np.int64)
+    if np.unique(source_center_array).size != source_center_array.size:
+        raise AnalysisDocumentError("frequency profile center frequencies must be unique")
+    exclusions = tuple(
+        _integer(value, f"excluded_center_frequency_hz[{index}]")
+        for index, value in enumerate(excluded_center_frequency_hz)
+    )
+    if len(set(exclusions)) != len(exclusions):
+        raise AnalysisDocumentError("excluded center frequencies must not contain duplicates")
+    unknown_exclusions = sorted(set(exclusions) - set(center_frequencies))
+    if unknown_exclusions:
+        raise AnalysisDocumentError(
+            "excluded center frequencies are absent from the source profiles: "
+            + ", ".join(str(value) for value in unknown_exclusions)
+        )
+    source_frequency_array = np.asarray(frequencies, dtype=np.float64)
+    if np.unique(source_frequency_array).size != source_frequency_array.size:
         raise AnalysisDocumentError(
             "frequency profile carrier frequencies must be unique; repeated captures must "
             "already be circularly aggregated"
         )
-    mean_array = np.asarray(means, dtype=np.float64)
-    repeat_array = np.asarray(repeat_std, dtype=np.float64)
-    analyzer_array = np.asarray(analyzer_se, dtype=np.float64)
-    valid_array = np.asarray(valid_masks, dtype=np.bool_)
-    valid_reference = valid_array[:, reference_index]
-    reference_phase = wrap_phase_deg(mean_array[:, reference_index])
+    source_mean_array = np.asarray(means, dtype=np.float64)
+    source_repeat_array = np.asarray(repeat_std, dtype=np.float64)
+    source_analyzer_array = np.asarray(analyzer_se, dtype=np.float64)
+    source_valid_array = np.asarray(valid_masks, dtype=np.bool_)
+    valid_reference = source_valid_array[:, reference_index]
+    reference_phase = wrap_phase_deg(source_mean_array[:, reference_index])
     if np.any(np.abs(reference_phase[valid_reference]) > 1e-6):
         raise AnalysisDocumentError("valid ANT1 double-relative phases must be zero")
-    statistical_std = np.sqrt(repeat_array**2 + analyzer_array**2)
+    source_statistical_std = np.sqrt(source_repeat_array**2 + source_analyzer_array**2)
     # A zero statistical estimate is possible for a noiseless synthetic cell
     # or ANT1.  This numerical lower bound is not a systematic phase floor.
-    statistical_std = np.maximum(statistical_std, MINIMUM_STATISTICAL_STD_DEG)
+    source_statistical_std = np.maximum(
+        source_statistical_std,
+        MINIMUM_STATISTICAL_STD_DEG,
+    )
+    exclusion_set = set(exclusions)
+    used = np.asarray([value not in exclusion_set for value in center_frequencies], dtype=np.bool_)
+    if np.count_nonzero(used) < 3:
+        raise AnalysisDocumentError(
+            "at least three frequency profiles must remain after exclusions"
+        )
+    center_array = source_center_array[used]
+    frequency_array = source_frequency_array[used]
+    mean_array = source_mean_array[used]
+    repeat_array = source_repeat_array[used]
+    analyzer_array = source_analyzer_array[used]
+    statistical_std = source_statistical_std[used]
+    valid_array = source_valid_array[used]
     try:
         measurements = FrequencySlopeMeasurements(
             carrier_frequency_hz=frequency_array,
@@ -300,6 +358,10 @@ def _extract_inputs(document: Mapping[str, Any]) -> ExtractedSlopeInputs:
     return ExtractedSlopeInputs(
         state_names=names,
         reference_index=reference_index,
+        source_center_frequency_hz=source_center_array,
+        source_carrier_frequency_hz=source_frequency_array,
+        excluded_center_frequency_hz=exclusions,
+        center_frequency_hz=center_array,
         carrier_frequency_hz=frequency_array,
         mean_phase_deg=mean_array,
         repeat_standard_deviation_deg=repeat_array,
@@ -420,10 +482,13 @@ def _posterior_document(
 
 def _profile_input_rows(inputs: ExtractedSlopeInputs) -> list[dict[str, Any]]:
     rows = []
-    for index, frequency_hz in enumerate(inputs.carrier_frequency_hz):
+    for index, (center_frequency_hz, carrier_frequency_hz) in enumerate(
+        zip(inputs.center_frequency_hz, inputs.carrier_frequency_hz, strict=True)
+    ):
         rows.append(
             {
-                "carrier_frequency_hz": float(frequency_hz),
+                "center_frequency_hz": int(center_frequency_hz),
+                "carrier_frequency_hz": float(carrier_frequency_hz),
                 "state_names": list(inputs.state_names),
                 "valid_mask": inputs.valid_mask[index].tolist(),
                 "circular_mean_double_relative_phase_deg": inputs.mean_phase_deg[index].tolist(),
@@ -485,7 +550,11 @@ def _run(args: argparse.Namespace) -> dict[str, Any]:
         )
     except json.JSONDecodeError as error:
         raise AnalysisDocumentError(f"source analysis is not valid JSON: {error}") from error
-    inputs = _extract_inputs(document)
+    excluded_center_frequency_hz = tuple(args.exclude_center_frequency_hz or ())
+    inputs = _extract_inputs(
+        document,
+        excluded_center_frequency_hz=excluded_center_frequency_hz,
+    )
     prior = Tx2RadialPrior(mean_mm=304.8, standard_deviation_mm=50.0)
     likelihood = FrequencySlopeLikelihood(
         systematic_phase_std_deg=args.systematic_phase_std_deg,
@@ -517,6 +586,11 @@ def _run(args: argparse.Namespace) -> dict[str, Any]:
             "analysis_kind": document.get("analysis_kind"),
             "analysis_created_at": document.get("created_at"),
             "upstream_provenance": document.get("source"),
+            "frequency_selection": {
+                "source_center_frequencies_hz": inputs.source_center_frequency_hz.tolist(),
+                "excluded_center_frequencies_hz": list(inputs.excluded_center_frequency_hz),
+                "used_center_frequencies_hz": inputs.center_frequency_hz.tolist(),
+            },
         },
         "analysis_configuration": {
             "sample_count": args.sample_count,
@@ -534,10 +608,18 @@ def _run(args: argparse.Namespace) -> dict[str, Any]:
             "reference_index": inputs.reference_index,
             "radial_prior": asdict(prior),
             "maximum_output_particle_count": MAXIMUM_OUTPUT_PARTICLES,
+            "source_center_frequencies_hz": inputs.source_center_frequency_hz.tolist(),
+            "excluded_center_frequencies_hz": list(inputs.excluded_center_frequency_hz),
+            "used_center_frequencies_hz": inputs.center_frequency_hz.tolist(),
         },
         "inputs": {
+            "source_frequency_profile_count": int(inputs.source_center_frequency_hz.size),
             "frequency_profile_count": inputs.measurements.frequency_count,
             "state_names": list(inputs.state_names),
+            "source_center_frequencies_hz": inputs.source_center_frequency_hz.tolist(),
+            "source_carrier_frequencies_hz": inputs.source_carrier_frequency_hz.tolist(),
+            "excluded_center_frequencies_hz": list(inputs.excluded_center_frequency_hz),
+            "used_center_frequencies_hz": inputs.center_frequency_hz.tolist(),
             "carrier_frequencies_hz": inputs.carrier_frequency_hz.tolist(),
             "geometry": {
                 "inference_center_mm": inputs.geometry.center_mm.tolist(),
@@ -570,6 +652,8 @@ def _run(args: argparse.Namespace) -> dict[str, Any]:
         "output": str(output_path),
         "source_analysis": str(analysis_path),
         "frequency_profiles": inputs.measurements.frequency_count,
+        "excluded_center_frequencies_hz": list(inputs.excluded_center_frequency_hz),
+        "used_center_frequencies_hz": inputs.center_frequency_hz.tolist(),
         "selected_antennas": list(inputs.state_names),
         "effective_sample_size": posterior.effective_sample_size,
         "tx2_map_position_mm": list(posterior.tx2.map_position_mm),
