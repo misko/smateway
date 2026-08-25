@@ -301,6 +301,10 @@ passed. The initially proposed 2.473 GHz point was replaced by 2.472 GHz after
 a muted preflight showed a two-hertz synthesizer readback quantization at the
 former value; the stopped earlier run remains an unmodified audit record.
 
+The complete retained workflow, source-hashed data dictionary, reproduction
+commands, limitations, and deterministic PNG report are collected in
+[`docs/localization/`](docs/localization/README.md).
+
 The unconstrained seven-frequency direct-path fit remained poor at 53.9 degrees
 RMS. With TX1 fixed at the user-validated `(-26.5, +315.7) mm` result, the
 frequency-slope model identified 2.458 GHz as a fixed multipath outlier: its

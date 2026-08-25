@@ -21,6 +21,9 @@ dev = [
   "pytest>=8",
   "ruff>=0.8",
 ]
+report = [
+  "matplotlib>=3.9",
+]
 
 [tool.uv.sources]
 pluto-plus-utils = { git = "https://github.com/misko/pluto-plus-utils.git", rev = "5551d29bc6c326f26285670efd20fc149caef474" }

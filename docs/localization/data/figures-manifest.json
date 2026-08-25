@@ -1,0 +1,67 @@
+{
+  "figures": [
+    {
+      "byte_size": 262618,
+      "height_px": 1280,
+      "path": "png/fig01_setup_coordinate_system.png",
+      "sha256": "7ccf2a1dcb60e42e440dbbf006650aedad8320fcc7dc8470543313f89148be45",
+      "width_px": 2112
+    },
+    {
+      "byte_size": 162533,
+      "height_px": 1184,
+      "path": "png/fig02_capture_plan_and_continuity.png",
+      "sha256": "9a7cc67ba1e156b53fb2d4ef0db4bb91fb80695687712ab3e5c9ec988e9b1782",
+      "width_px": 2480
+    },
+    {
+      "byte_size": 280133,
+      "height_px": 1312,
+      "path": "png/fig03_phase_profiles_by_frequency.png",
+      "sha256": "f5158548b4a0038f5de83c452b2143f735613276c36dc2d53879e69bdd88a197",
+      "width_px": 2400
+    },
+    {
+      "byte_size": 220591,
+      "height_px": 1088,
+      "path": "png/fig04_repeatability_and_quality.png",
+      "sha256": "70639c0e302972f1a95a00eb10fcc75e4e20acf69ef62d1b3a98963f96dfe078",
+      "width_px": 2400
+    },
+    {
+      "byte_size": 200479,
+      "height_px": 1152,
+      "path": "png/fig05_direct_model_residuals.png",
+      "sha256": "30542cde8b4d6cda76dc20659d47802b4a603726fe613132522993ecdf92a6c2",
+      "width_px": 2368
+    },
+    {
+      "byte_size": 331356,
+      "height_px": 1440,
+      "path": "png/fig06_anchored_phase_slope_fit.png",
+      "sha256": "31af6e682b27369cad323944947091d2383dddbfbbfe4829a0d9327326a21112",
+      "width_px": 2400
+    },
+    {
+      "byte_size": 347781,
+      "height_px": 1472,
+      "path": "png/fig07_tx2_posterior_map.png",
+      "sha256": "05eec83739acd12ae2ff84e2ce7ead2e80eef3b6c8656d08a2d15b714f59d999",
+      "width_px": 1728
+    },
+    {
+      "byte_size": 262149,
+      "height_px": 1248,
+      "path": "png/fig08_sensitivity_lofo.png",
+      "sha256": "a08450bb8c5b7b6c6bd669374aebeac7102ed5908191f84041500ddbf2d1d7f6",
+      "width_px": 2240
+    }
+  ],
+  "manifest_kind": "deterministic_localization_report_figures",
+  "matplotlib_version": "3.11.1",
+  "renderer_path": "scripts/render_localization_report.py",
+  "renderer_sha256": "7757996518441982b2a139feb7fa4f7efb394ce0f0adf356466ba20a7e1f1262",
+  "schema": 1,
+  "snapshot_path": "data/multifrequency-phase-20260825-b-report-snapshot.json",
+  "snapshot_sha256": "f620e7a22d9988931553f8c6d10e1d4dd89dce4a15a8b7209e32af65da36f55c"
+}
