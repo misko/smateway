@@ -224,6 +224,39 @@ The resulting capture records `experimental_5g8_user_requested` as its
 frequency policy.  This opt-in does not claim an exact antenna RF model,
 calibrated selector/PCB/antenna phase, or official AD9363-band performance.
 
+For a resumable paired-TX distribution experiment, alternate TX1 and TX2 at
+2.4 GHz and 5.8 GHz for five rounds without moving the setup:
+
+```bash
+PYTHONPATH=src /home/pi/pluto-plus-utils/.venv/bin/python \
+  scripts/run_fast20_phase_distribution.py --rounds 5 --run-id RUN_ID
+PYTHONPATH=src /home/pi/pluto-plus-utils/.venv/bin/python \
+  scripts/analyze_dualband_phase_distribution.py \
+  --manifest MANIFEST.json --output ANALYSIS.json --sample-count 2000000 \
+  --systematic-floor-2g4-deg 25 --systematic-floor-5g8-deg 40
+```
+
+The runner records its fixed condition order in the manifest, verifies every
+10-second artifact with the strict ABI-2 continuity validator, and requires a
+strict post-capture mute/readback before advancing. The analyzer forms the
+per-antenna TX2-minus-TX1 circular phase profile at each frequency. This
+double difference cancels the receive-path phase common to the paired TX
+captures; one unknown circular offset per frequency is marginalized. Repeats
+are combined into exactly two frequency profiles so the systematic phase
+floors enter once per frequency rather than being pseudoreplicated.
+
+The 2026-08-25 five-round run completed all 20 captures with 100 contiguous
+buffers and 10,000,000 samples per artifact, and zero missing samples. With an
+independent radial prior of 304.8 +/- 50 mm for each coplanar transmitter, its
+nominal highest-density direct-path mode was TX1 at `(-26.5, +315.7) mm` and
+TX2 at `(+161.2, -262.7) mm`, in board-centered coordinates where +x is right
+and +y is down. The corresponding radii were 316.8 mm and 308.2 mm. This is a
+conditional likely mode, not a calibrated position fix: direct-path residuals
+were 39.2 degrees RMS at 2.4 GHz and 68.5 degrees RMS at 5.8 GHz despite repeat
+scatter below 4.3 degrees. The mismatch is therefore dominated by fixed
+selector/antenna/multipath effects; range remains prior-dominated and the 5.8
+GHz posterior is multimodal.
+
 The powered first-article audit from 2026-08-25 is retained outside Git under
 `~/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/fast20-5238fbd/`.
 Its 10-second TX1 and TX2 captures each contain 100 contiguous frames and exactly
