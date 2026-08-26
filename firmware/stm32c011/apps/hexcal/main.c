@@ -175,7 +175,7 @@ int main(void)
             if (frame.applied_code != previous_code) {
                 gpio_apply(frame.applied_code);
             }
-            deadline = (uint16_t)(now + frame.phase_duration_us);
+            deadline = high_rate_next_deadline(deadline, frame.phase_duration_us);
             if (cycle_completed) {
                 IWDG->KR = IWDG_KEY_REFRESH;
             }

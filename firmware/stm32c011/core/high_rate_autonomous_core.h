@@ -31,5 +31,9 @@ high_rate_deadline_action_t high_rate_deadline_action(
     uint16_t now,
     uint16_t deadline
 );
+uint16_t high_rate_next_deadline(
+    uint16_t previous_deadline,
+    uint16_t phase_duration_us
+);
 
 #endif

@@ -53,3 +53,11 @@ high_rate_deadline_action_t high_rate_deadline_action(
     }
     return HIGH_RATE_DEADLINE_ADVANCE;
 }
+
+uint16_t high_rate_next_deadline(
+    uint16_t previous_deadline,
+    uint16_t phase_duration_us
+)
+{
+    return (uint16_t)(previous_deadline + phase_duration_us);
+}

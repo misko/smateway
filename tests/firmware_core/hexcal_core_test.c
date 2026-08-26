@@ -100,12 +100,36 @@ static void test_resynchronization_returns_to_full_marker(void)
     assert(frame.phase_duration_us == CONTROL_MARKER_BODY_US);
 }
 
+static void test_late_polling_does_not_accumulate_into_the_schedule(void)
+{
+    high_rate_frame_t frame;
+    uint16_t deadline = UINT16_C(1000);
+    const uint16_t frame_start = deadline;
+    size_t transition;
+
+    high_rate_frame_init(&frame);
+    for (transition = 0u; transition < 13u; ++transition) {
+        const uint16_t observed_late = (uint16_t)(deadline + UINT16_C(3));
+
+        assert(
+            high_rate_deadline_action(observed_late, deadline)
+            == HIGH_RATE_DEADLINE_ADVANCE
+        );
+        (void)high_rate_frame_advance(&frame);
+        deadline = high_rate_next_deadline(deadline, frame.phase_duration_us);
+    }
+
+    assert((uint16_t)(deadline - frame_start) == CONTROL_NOMINAL_CYCLE_US);
+    assert(high_rate_next_deadline(UINT16_C(65530), UINT16_C(20)) == UINT16_C(14));
+}
+
 int main(void)
 {
     test_exact_profile();
     test_one_transition_per_deadline();
     test_deadline_classification_and_wrap();
     test_resynchronization_returns_to_full_marker();
+    test_late_polling_does_not_accumulate_into_the_schedule();
     puts("hexcal_core_test: PASS");
     return 0;
 }
