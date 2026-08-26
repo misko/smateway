@@ -1,0 +1,254 @@
+{
+  "schema": 1,
+  "design_kind": "hexray_tx1_center_high_rate_complex_calibration",
+  "evidence_status": "pre-execution design; contains no measured calibration result",
+  "coordinate_system": {
+    "origin": "surveyed centre of the six receive phase centres",
+    "units": "mm",
+    "view": "from above",
+    "x_direction": "right",
+    "y_direction": "forward",
+    "angular_order": "ANT1 is forward; ANT2 through ANT6 proceed clockwise"
+  },
+  "geometry": {
+    "phase_center_circle_diameter_mm": 51.0,
+    "radius_mm": 25.5,
+    "adjacent_chord_mm": 25.5,
+    "tx1_position_mm": [0.0, 0.0],
+    "antennas": [
+      {"name": "ANT1", "angle_deg": 90.0, "position_mm": [0.0, 25.5]},
+      {"name": "ANT2", "angle_deg": 30.0, "position_mm": [22.083648, 12.75]},
+      {"name": "ANT3", "angle_deg": -30.0, "position_mm": [22.083648, -12.75]},
+      {"name": "ANT4", "angle_deg": -90.0, "position_mm": [0.0, -25.5]},
+      {"name": "ANT5", "angle_deg": -150.0, "position_mm": [-22.083648, -12.75]},
+      {"name": "ANT6", "angle_deg": 150.0, "position_mm": [-22.083648, 12.75]}
+    ],
+    "assumptions_requiring_physical_confirmation": [
+      "51 mm is the RF phase-centre circle diameter, not only a mechanical outline",
+      "TX1 RF phase centre is coincident with the circle centre",
+      "all seven phase centres have recorded height and polarization",
+      "feed cables are identified, immobilized and included in the chosen calibration plane"
+    ]
+  },
+  "frequency_plan": {
+    "center_frequencies_hz": [2400000000, 2423000000, 2440000000, 2458000000, 2483000000, 5800000000],
+    "tone_offset_hz": 100000,
+    "qualification_band_hz": [2400000000, 2483500000],
+    "experimental_exact_center_hz": 5800000000,
+    "round_orders_hz": [
+      [2400000000, 2423000000, 2440000000, 2458000000, 2483000000, 5800000000],
+      [5800000000, 2483000000, 2458000000, 2440000000, 2423000000, 2400000000],
+      [2440000000, 2458000000, 2483000000, 5800000000, 2400000000, 2423000000]
+    ],
+    "wavelength_rows": [
+      {
+        "center_frequency_hz": 2400000000,
+        "free_space_wavelength_mm": 124.913524,
+        "adjacent_spacing_wavelengths": 0.204141,
+        "diameter_wavelengths": 0.408282,
+        "free_space_phase_deg_per_mm": 2.881994,
+        "reactive_boundary_for_51mm_aperture_mm": 20.204226,
+        "fraunhofer_boundary_for_51mm_aperture_mm": 41.644810,
+        "center_regime": "radiating near field / Fresnel by the 51 mm aperture heuristic"
+      },
+      {
+        "center_frequency_hz": 5800000000,
+        "free_space_wavelength_mm": 51.688355,
+        "adjacent_spacing_wavelengths": 0.493341,
+        "diameter_wavelengths": 0.986683,
+        "free_space_phase_deg_per_mm": 6.964818,
+        "reactive_boundary_for_51mm_aperture_mm": 31.408746,
+        "fraunhofer_boundary_for_51mm_aperture_mm": 100.641625,
+        "center_regime": "reactive near field by the 51 mm aperture heuristic"
+      }
+    ],
+    "interpretation": "The 51 mm circle is geometry-relevant at 5.8 GHz, but exact 5.800 GHz remains an explicit experimental condition outside the official AD9363 range. Begin qualification in the established 2.4 GHz band."
+  },
+  "schedule": {
+    "profile_id": "hexcal-v1",
+    "resolution": "integer microseconds",
+    "marker_body_us": 180,
+    "pre_state_all_off_us": 20,
+    "observable_marker_us": 200,
+    "active_dwell_us": 200,
+    "active_states": ["ANT1", "ANT2", "ANT3", "ANT4", "ANT5", "ANT6"],
+    "analysis_edge_trim_us": 5,
+    "switch_settling_max_us": 1.4,
+    "guard_to_settling_ratio": 14.285714,
+    "cycle_us": 1500,
+    "scans_per_second": 666.666667,
+    "active_dwells_per_second": 4000.0,
+    "rf_edges_per_second": 8000.0,
+    "aggregate_active_duty_fraction": 0.8,
+    "per_antenna_duty_fraction": 0.1333333333,
+    "admitted_active_us_per_dwell": 190,
+    "admitted_null_us_per_guard": 10,
+    "transition_contract": "Every selected-to-selected transition passes through ALL_OFF; ANT7 and ANT8 are never selected."
+  },
+  "capture_plan": {
+    "rounds": 3,
+    "conditions_per_round": 6,
+    "planned_artifacts": 18,
+    "duration_s_per_artifact": 1.0,
+    "sample_rate_hz": 1000000,
+    "rx_gain_qualification": {
+      "mode": "manual",
+      "selected_gain_db": null,
+      "selection_stage": "bounded low-power qualification before the calibration matrix",
+      "initial_setting": "lowest conservative supported hardware gain",
+      "selection_rule": "Increase only as needed to pass per-port SNR and selected-to-null contrast while retaining all declared headroom gates; persist the exact selected value before admitting calibration artifacts.",
+      "lock_scope": "Never change gain within an artifact. Reuse the predeclared selected value for all three repeats of a frequency/condition; prefer one global value for the complete matrix when it passes every condition.",
+      "agc_allowed": false
+    },
+    "metadata_abi": 2,
+    "minimum_complete_frames_per_artifact": 600,
+    "nominal_complete_frames_per_artifact": 666.666667,
+    "nominal_gross_active_samples_per_antenna": 133333.333333,
+    "nominal_edge_trimmed_samples_per_antenna": 126666.666667,
+    "state_alignment": "Detect the long ALL_OFF marker, then label the six fixed-order active intervals by ordinal. Reject a missing marker, guard, edge or state instead of guessing.",
+    "ordering_rationale": "Forward, reverse and rotated frequency orders expose time drift and 5.8 GHz transition effects instead of confounding them with one schedule position."
+  },
+  "pcb_route_priors": {
+    "common_route_mm": 14.503822193,
+    "effective_permittivity": 3.13660852672,
+    "interpretation": "Released realized copper and a cross-section model are diagnostic priors, not measured cable/switch calibration.",
+    "rows": [
+      {"name": "ANT1", "route_mm": 22.194973483, "relative_delay_ps": 0.0, "phase_2g4_deg": 0.0, "phase_5g8_deg": 0.0},
+      {"name": "ANT2", "route_mm": 34.930782494, "relative_delay_ps": 75.237784, "phase_2g4_deg": 65.0054, "phase_5g8_deg": 157.0965},
+      {"name": "ANT3", "route_mm": 31.500992048, "relative_delay_ps": 54.976030, "phase_2g4_deg": 47.4993, "phase_5g8_deg": 114.7899},
+      {"name": "ANT4", "route_mm": 36.557344671, "relative_delay_ps": 84.846826, "phase_2g4_deg": 73.3077, "phase_5g8_deg": 177.1602},
+      {"name": "ANT5", "route_mm": 36.557344671, "relative_delay_ps": 84.846826, "phase_2g4_deg": 73.3077, "phase_5g8_deg": 177.1602},
+      {"name": "ANT6", "route_mm": 31.500992048, "relative_delay_ps": 54.976030, "phase_2g4_deg": 47.4993, "phase_5g8_deg": 114.7899}
+    ],
+    "exact_length_pairs": [["ANT3", "ANT6"], ["ANT4", "ANT5"]]
+  },
+  "calibration_model": {
+    "measurement_equation": "H_i(f) = C_i(f) * A_i(f)",
+    "electrical_factor": "C_i contains cable, connector, PCB route and switch response",
+    "ota_factor": "A_i contains element response, mutual coupling and the local electromagnetic environment",
+    "identifiability": "A single centered OTA measurement identifies only the product C_i*A_i; multiplying C_i by any nonzero complex q_i and dividing A_i by q_i leaves H_i unchanged.",
+    "null_subtraction": "Z_i = selected_i - interpolated_ALL_OFF_i",
+    "reference_transfer": "When a stable RX1 reference is present, form RX2/RX1 before local ALL_OFF subtraction.",
+    "normalization": "Use a circular phase centre and geometric-mean amplitude; do not privilege ANT1 as the stored calibration gauge.",
+    "spatial_modes": "M_m = (1/6) * sum_n h_n * exp(-j*2*pi*m*n/6); an ideal centered C6 response contains only M_0.",
+    "separation_experiment": [
+      "Measure a characterized conductive splitter/through standard at the six board SMA planes.",
+      "Repeat at the array feed ends to include the cables.",
+      "Rotate characterized splitter outputs or cyclically permute element-to-port assignments.",
+      "Fit a complex port/element two-factor model and reject separability when its residual gate fails."
+    ],
+    "scope_limit": "Center equalization is not a general direction-of-arrival manifold; directional use requires surveyed off-centre or angular calibration positions."
+  },
+  "acceptance_gates": {
+    "timing": {
+      "duration_tolerance_fraction": 0.05,
+      "minimum_observed_guard_us": 18.0,
+      "illegal_gpio_codes_max": 0,
+      "wrong_or_missing_states_max": 0
+    },
+    "capture": {
+      "minimum_complete_frames": 600,
+      "buffer_sequence_gaps_max": 0,
+      "fpga_sample_sequence_gaps_max": 0,
+      "overflow_or_failure_flags_max": 0,
+      "clipped_samples_max": 0,
+      "maximum_near_full_scale_fraction": 0.0001,
+      "minimum_pilot_snr_db": 20.0,
+      "minimum_selected_to_null_contrast_db": 20.0
+    },
+    "repeatability": {
+      "minimum_cycle_coherence": 0.995,
+      "maximum_cycle_phase_rms_deg": 6.0,
+      "maximum_between_round_phase_spread_deg": 5.0,
+      "maximum_between_round_amplitude_spread_db": 0.5
+    },
+    "corrected_symmetry": {
+      "maximum_amplitude_span_db": 1.0,
+      "maximum_circular_phase_rms_deg": 5.0,
+      "minimum_phase_resultant_length": 0.995,
+      "maximum_opposite_pair_phase_mismatch_deg": 5.0,
+      "target_maximum_noncommon_mode_dbc": -20.0,
+      "minimum_maximum_noncommon_mode_dbc": -15.0
+    },
+    "held_out_validation": {
+      "maximum_phase_residual_deg": 5.0,
+      "maximum_amplitude_residual_db": 0.5,
+      "maximum_two_factor_phase_rms_deg": 5.0,
+      "maximum_two_factor_amplitude_rms_db": 0.5
+    }
+  },
+  "timing_and_gpio_qualification": {
+    "status_at_design_update": "No logic analyzer is physically connected; choose and record one evidence path before calibration-data admission.",
+    "preferred_path": {
+      "name": "independent_logic_analyzer_gpio",
+      "method": "With RF muted, independently observe the selector GPIO and timing reference while exercising boot, reset and the complete repeating frame.",
+      "qualifies": [
+        "GPIO code identity for ALL_OFF and ANT1 through ANT6",
+        "active-state order and absence of illegal GPIO codes",
+        "marker, guard, dwell and cycle timing",
+        "break-before-make transitions and boot/reset return to ALL_OFF"
+      ]
+    },
+    "fallback_path": {
+      "name": "source_readback_hash_plus_low_power_rf_timing",
+      "prerequisites": "Pass host state-machine/profile/ELF tests, bind the exact profile and firmware hashes, flash the exact target, and verify the flashed/readback image hash before a bounded low-power RF timing smoke capture.",
+      "independently_observed": "Selected/null RF edges may independently qualify marker, guard, dwell and cycle timing only when edge contrast and continuity gates pass.",
+      "not_independently_observed": "GPIO code identity, active-port identity/order and absence of illegal GPIO codes remain source-derived and flashed/readback-hash-backed; they are not independently GPIO-observed and must be labelled exactly that way in the report.",
+      "prohibition": "Do not describe RF-only timing evidence as independent GPIO-code or port-identity observation. A centered equal-amplitude source cannot prove which antenna code produced an active dwell."
+    },
+    "gate_policy": "Code identity, ANT1-through-ANT6 order, zero illegal codes, break-before-make and timing gates remain unchanged. The selected evidence path changes only the evidence label, not the claim or threshold."
+  },
+  "safety_and_recovery": {
+    "board_rf_operating_ceiling_dbm": 0.0,
+    "initial_tx_state": "both TX channels muted and read back",
+    "gain_policy": "Use manual gain selected in bounded low-power pre-matrix qualification, starting at the lowest conservative supported hardware gain. Never change it within an artifact; reuse the predeclared value across repeats of each frequency/condition and prefer one global matrix value when feasible. AGC is forbidden.",
+    "power_ramp": "begin at the smallest bounded TX stimulus and increase only while all headroom gates pass",
+    "condition_cleanup": "mute and read back the exact Pluto serial after every condition and once independently at the end",
+    "enodata_policy": "On buffer.refill ENODATA, accept no artifact, splice no partial IQ, mute/read back, preserve the failed attempt, and retry the unchanged plan item with a new artifact identity.",
+    "rollback": "Keep the qualified Fast20 and safe-hold images available; any timing, GPIO, watchdog or readback failure returns the selector to ALL_OFF and blocks RF acquisition."
+  },
+  "source_documents": [
+    {
+      "repository": "circuits",
+      "path": "projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/verification/design_math.md",
+      "sha256": "6febf3ad964cac25d3f84149e2ece3188f2003cdd5bbc1aff23063fd813be3e1",
+      "role": "RF cross-section, operating ceiling and switch settling"
+    },
+    {
+      "repository": "circuits",
+      "path": "projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/verification/fence_pitch.json",
+      "sha256": "869a3e765dfb81e55c5cb7cf7b412921edfdf555d515ea6cf9f0fb133aaaa9c7",
+      "role": "released realized RF route lengths"
+    },
+    {
+      "repository": "circuits",
+      "path": "projects/pluto-rx2-8way-v5/02_parts/PE42482A-X/part.yaml",
+      "sha256": "66fdffa0de5a0d52bb71095c8627aaf2df6d33781f7daf64e472e6019491755d",
+      "role": "PE42482 switching and settling limits"
+    },
+    {
+      "repository": "circuits",
+      "path": "projects/pluto-rx2-8way-v5/03_src/rules/rf.yaml",
+      "sha256": "625acbc4c6f40b1a521c011399c0617fa5ec02817a3bccac31f2b149918b00bb",
+      "role": "RF topology, reference planes and first-article acceptance"
+    },
+    {
+      "repository": "smateway",
+      "path": "docs/localization/method.md",
+      "sha256": "93ebcff5d373fd2607a5f91d3a9d1841a38376ed345f91bba10885ba8825bbf5",
+      "role": "qualified capture continuity and phase-analysis boundary"
+    },
+    {
+      "repository": "smateway",
+      "path": "profiles/fast20-v1/control_profile.json",
+      "sha256": "c8f3de200573d90d1b87b623770cd9253649c634a22cea1a9ca980042ae40f11",
+      "role": "fail-closed RF-only state-decoding precedent"
+    },
+    {
+      "repository": "smateway",
+      "path": "firmware/stm32c011/apps/fast20/main.c",
+      "sha256": "6dd82a3b9623d82b468badaf70a0d4c39cd3410c921a1cfddcb7b86a344f78c9",
+      "role": "evidence that the predecessor implementation uses a 1 ms timing base"
+    }
+  ]
+}

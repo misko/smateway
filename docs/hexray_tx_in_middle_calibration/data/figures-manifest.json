@@ -1,0 +1,41 @@
+{
+  "design_kind": "hexray_tx1_center_high_rate_complex_calibration_figures",
+  "figures": [
+    {
+      "byte_size": 250924,
+      "height_px": 1344,
+      "path": "docs/hexray_tx_in_middle_calibration/png/fig01_geometry_and_wavelengths.png",
+      "sha256": "574973ed3b49a32fb5ab81e4bdea79fb5982626276311ee92b65958cf1ac83b6",
+      "width_px": 2240
+    },
+    {
+      "byte_size": 209148,
+      "height_px": 1328,
+      "path": "docs/hexray_tx_in_middle_calibration/png/fig02_high_rate_timing_and_capture_plan.png",
+      "sha256": "68993fd58d285d896194b1a68f32cf895040b84fb6820416f49fc58237278fa8",
+      "width_px": 2240
+    },
+    {
+      "byte_size": 224183,
+      "height_px": 1344,
+      "path": "docs/hexray_tx_in_middle_calibration/png/fig03_signal_chain_and_identifiability.png",
+      "sha256": "dbc180647153713f61ef87a649c394156175627969e5e9215e783d5b08d51fe0",
+      "width_px": 2240
+    },
+    {
+      "byte_size": 318589,
+      "height_px": 1360,
+      "path": "docs/hexray_tx_in_middle_calibration/png/fig04_expected_phasors_and_acceptance.png",
+      "sha256": "bce5eaa406d2f8ebdd3af67ca7f9b40cec28205580d60bc4ce53c5507d423690",
+      "width_px": 2240
+    }
+  ],
+  "matplotlib_version": "3.11.1",
+  "renderer": "scripts/render_hexray_center_calibration_design.py",
+  "renderer_sha256": "3933909e1270293ae76878ac985de91237c2df323b0cb6b3f47f1a18d3216c05",
+  "schema": 1,
+  "snapshot": {
+    "path": "docs/hexray_tx_in_middle_calibration/data/design-snapshot.json",
+    "sha256": "e2fd0f450193759cb38d78ee489850d8460b0e45703fad2752d2ef8986a37be8"
+  }
+}
