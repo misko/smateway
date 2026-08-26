@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "profile_id": "hexcal-v1",
+  "revision": 1,
+  "source_profile": "profiles/fast20-v1/control_profile.json",
+  "timer_hz": 1000000,
+  "marker_body_us": 180,
+  "all_off_guard_us": 20,
+  "released_transition_guard_us": 5000,
+  "released_contract_conformant": false,
+  "protocol_status": "experimental calibration-only guard waiver; does not supersede qualified Fast20",
+  "antenna_dwell_us": 200,
+  "maximum_lateness_us": 5,
+  "physical_order": "clockwise",
+  "forward_reference": "ANT1",
+  "state_order": [
+    "ANT1",
+    "ANT2",
+    "ANT3",
+    "ANT4",
+    "ANT5",
+    "ANT6"
+  ]
+}

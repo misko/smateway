@@ -8,8 +8,10 @@ numbers labelled “expected” are geometry or released-PCB calculations, not m
 results.
 
 No logic analyzer was physically connected when this revision was prepared. Section 8 therefore
-defines a preferred independent GPIO-observation path and a restricted low-power RF timing
-fallback. The fallback does not independently observe GPIO code or active-port identity.
+defines a preferred independent GPIO-observation path and the selected restricted low-power RF
+timing fallback. That fallback is a **separate paired 5 MS/s qualification**, not timing inferred
+from the 1 MS/s complex-calibration matrix. It does not independently observe GPIO code or
+active-port identity.
 
 The user-confirmed top-view convention is:
 
@@ -45,16 +47,18 @@ positions.
 ## 2. Geometry and expected RF regime
 
 Use an array-centred coordinate system in millimetres: `+x` points right and `+y` points
-forward when viewed from above. With radius `r = 25.5 mm`, the nominal receive coordinates are:
+forward when viewed from above. Array bearing is `0°` at forward/ANT1 and increases clockwise;
+the separate Cartesian angle is the conventional counter-clockwise angle from `+x`. With
+radius `r = 25.5 mm`, the nominal receive coordinates are:
 
-| Port | Angle | Nominal `(x, y)` mm | Opposite element |
-|---|---:|---:|---|
-| ANT1 | +90° | `(0.000, +25.500)` | ANT4 |
-| ANT2 | +30° | `(+22.084, +12.750)` | ANT5 |
-| ANT3 | -30° | `(+22.084, -12.750)` | ANT6 |
-| ANT4 | -90° | `(0.000, -25.500)` | ANT1 |
-| ANT5 | -150° | `(-22.084, -12.750)` | ANT2 |
-| ANT6 | +150° | `(-22.084, +12.750)` | ANT3 |
+| Port | Clockwise bearing from forward | Cartesian angle | Nominal `(x, y)` mm | Opposite element |
+|---|---:|---:|---:|---|
+| ANT1 | 0° | +90° | `(0.000, +25.500)` | ANT4 |
+| ANT2 | 60° | +30° | `(+22.084, +12.750)` | ANT5 |
+| ANT3 | 120° | -30° | `(+22.084, -12.750)` | ANT6 |
+| ANT4 | 180° | -90° | `(0.000, -25.500)` | ANT1 |
+| ANT5 | 240° | -150° | `(-22.084, -12.750)` | ANT2 |
+| ANT6 | 300° | +150° | `(-22.084, +12.750)` | ANT3 |
 
 These are design coordinates. The execution record must contain surveyed coordinates and
 uncertainty before using geometric residuals as a pass/fail metric.
@@ -133,9 +137,21 @@ This produces `666.7` complete array scans/s, `4,000` active dwells/s and `8,000
 Aggregate active duty is `80%`, or `13.33%` per antenna. Each 20 µs guard is `14.3` times the
 PE42482 maximum `1.4 µs` settling time.
 
-Analysis discards `5 µs` at both edges of every interval. It therefore retains `190 µs` from
-each active dwell and `10 µs` from each ordinary null. At the existing 100 kHz pilot these are
-approximately 19 and one pilot periods, respectively.
+This timing is an explicit **experimental protocol waiver**, not a release-conformant Fast20
+selector profile. The released board control contract in
+`projects/pluto-rx2-8way-v5/03_src/rules/rf.yaml` requires `ALL_OFF` followed by a `5 ms` guard
+before each selected path, and the released firmware acceptance procedure repeats that minimum.
+The requested `20 µs` guard violates that procedural requirement even though it retains a
+`14.3×` margin over the switch data-sheet settling maximum. Consequently `hexcal-v1` is a
+separate calibration-only image: its GPIO/RF timing and recovery evidence must be recorded
+separately, it must not supersede or be described as qualified under the released v0.2.1
+contract, and the verified Fast20 and `safe_hold` images remain the rollback targets.
+
+The 1 MS/s complex-calibration analysis discards `5 µs` at both edges of every interval. It
+therefore retains `190 µs` from each active dwell and `10 µs` from each ordinary null. At the
+existing 100 kHz pilot these are approximately 19 and one pilot periods, respectively. Its
+decoder establishes coarse frame consistency and state alignment only; it is not the evidence
+used to claim microsecond guard or dwell timing.
 
 ![High-rate selector timing and capture order](png/fig02_high_rate_timing_and_capture_plan.png)
 
@@ -150,7 +166,7 @@ The predecessor Fast20 image polls a 1 ms SysTick and stores millisecond duratio
 requires a genuine integer-microsecond timer implementation, atomic GPIO writes, and separate
 qualification. Merely scaling the old duration constants is not acceptable.
 
-## 5. Capture matrix
+## 5. Complex-calibration capture matrix
 
 Use a bounded 100 kHz-offset TX1 pilot, manually fixed receive gain, metadata ABI 2 and a
 1 MS/s continuous capture. One artifact lasts exactly one second. The six center frequencies
@@ -171,6 +187,28 @@ gain before admitting calibration artifacts. Never change it within an artifact;
 predeclared value for all three repeats of a frequency/condition. Prefer one common gain for the
 entire matrix when it passes every condition. AGC is forbidden.
 
+The qualification plan is frozen before RF is enabled. Search manual RX gain in integer `1 dB`
+steps from `0` through `62 dB`, stopping at the first gain that passes **all six planned
+frequencies and all six active states**. One gain/frequency condition is a fresh `0.3 s`,
+`1 MS/s`, `800 kHz`-bandwidth, dual-RX ABI-2 stream containing `3 × 100,000` samples with eight
+kernel buffers. Every condition must independently pass:
+
+| Gain-qualification gate | Acceptance |
+|---|---:|
+| Complete / decoded selector cycles | at least 150 / at least 98% |
+| Marker contrast, state pilot SNR and selected-to-null isolation | each at least 20 dB |
+| Per-state cycle coherence | at least 0.995 |
+| Per-state circular phase standard deviation | at most 6° |
+| Per-cycle six-element circular phase-gauge resultant | at least 0.25 |
+| Ordinary ADC headroom admission / clipped samples | pass / zero |
+| Peak absolute I or Q component, RX1 and RX2 independently | at most 1,300 counts |
+| RF cleanup | exact-radio mute before the run, after every condition and finally |
+
+The accepted experiment requires one common gain across both the 2.4 GHz conditions and exact
+experimental 5.8 GHz. If no gain in `0..62 dB` passes the complete plan, abort this experiment.
+Do not choose band-specific gains or change the matrix after seeing the failure; any staged
+2.4-only and 5.8-only replacement must be a new, versioned, predeclared experiment.
+
 Use three independent rounds:
 
 | Round | Centre-frequency order GHz | Purpose |
@@ -186,6 +224,42 @@ arbitrary start/end phase, require at least 600 complete frames. At 1 MS/s this 
 Do not selectively recapture a merely unfavourable antenna or frequency. A transport or safety
 failure may retry the unchanged plan item, but the failed attempt and reason remain in the
 manifest.
+
+### Separate RF-only microsecond timing qualification
+
+Timing claims use a different acquisition product. At each band being claimed, acquire **two
+independent 450 ms captures** at `5 MS/s` and `4 MHz` RF bandwidth. Each capture is exactly nine
+`250,000`-sample frames (`2,250,000` samples total), uses eight kernel buffers and carries
+metadata ABI 2 continuity evidence. Start a fresh continuous stream for the second capture; do
+not split one long stream and call the halves independent.
+
+Keep the complete IQ and continuity record in memory until both TX channels have been muted and
+the exact-radio mute readback passes. Only then persist the artifact. A cleanup failure rejects
+the attempt; later mute success cannot retroactively admit it. The pair rule is per band: both
+captures must independently pass every frozen gate, and averaging cannot rescue a failed member.
+A timing claim at both `2.4 GHz` and exact experimental `5.8 GHz` therefore requires a passing
+pair at 2.4 GHz and a separate passing pair at 5.8 GHz. The 5.8 GHz pair retains the explicit
+experimental opt-in.
+
+The RF detector coherently projects each five native `0.2 µs` complex samples into one `1 µs`
+bin. For local complex plateaus `a` and `b`, form
+
+```text
+q(t) = Re((z(t) - a) * conj(b - a)) / |b - a|².
+```
+
+Use the fractional `q = 0.5` crossing as the reported RF edge and sweep `q = 0.4, 0.5, 0.6`
+to bound threshold sensitivity. An independent local two-mean complex changepoint must agree.
+The fractional crossing interpolates between `1 µs` complex bins; it is not a separate direct
+`0.2 µs` edge fit. Nominal slot positions may recognize the source-backed frame grammar but
+must never snap a measured edge to the expected schedule.
+
+![Separate RF-only microsecond timing qualification](png/fig05_rf_only_timing_qualification.png)
+
+Each 450 ms artifact contains 300 nominal cycles; require at least 290 complete, unambiguous
+cycles and at least 98% of conservatively possible cycles decoded. Missing or extra patterns
+are rejected. Continuity, clipping, headroom and RF-observability gates apply independently to
+each artifact.
 
 ## 6. Observable and gauge ambiguity
 
@@ -235,7 +309,11 @@ centre does not replace an angular OTA manifold.
 
 For each artifact, robustly aggregate admitted frame phasors per antenna. Remove a single common
 amplitude and phase gauge using the geometric-mean amplitude and circular phase centre. Store
-the original complex values, normalized values, uncertainty and gauge choice.
+the original ANT1-relative diagnostics, normalized values, uncertainty and gauge choice. The
+phase centre is admitted only when its six-element circular resultant is at least `0.25` in
+every decoded cycle; a smaller value makes the common phase gauge too poorly conditioned. The
+released-PCB route-only prior predicts about `0.908` at 2.4 GHz and `0.599` at 5.8 GHz, so this
+gate is not expected to reject the nominal electrical geometry.
 
 For normalized antenna phasors `h_n`, use the six-point circular spatial transform:
 
@@ -266,7 +344,7 @@ frequency. Within the 2.4 GHz band, also perform leave-one-frequency-out interpo
 
 ## 8. Predeclared acceptance gates
 
-### Firmware and timing
+### Firmware and schedule contract
 
 | Gate | Acceptance |
 |---|---:|
@@ -277,7 +355,43 @@ frequency. Within the 2.4 GHz band, also perform leave-one-frequency-out interpo
 | Marker, guard and dwell duration error | within ±5% |
 | Minimum observed ordinary guard | 18 µs |
 | Analysis edge trim | at least 5 µs each side |
-| Boot, reset, watchdog and detected clock fault | remain/return ALL_OFF |
+| Boot/reset invalid RCC configuration | remain passive `ALL_OFF` |
+| Runtime RCC source/divider/prescaler drift | apply `ALL_OFF`, stop refresh and reset by independent LSI watchdog |
+| Stalled/stopped core clock | reset to passive `ALL_OFF` by independent LSI watchdog; not immediate |
+
+The GPIO identity/order rows above are direct hardware claims only under Path A. Under Path B,
+they remain source/profile plus flashed/readback-hash backed. The 1 MS/s calibration artifacts
+must still satisfy their coarse schedule-admission checks, but they cannot substitute for the
+separate timing pair below.
+
+### RF-only timing qualification
+
+Every artifact in a claimed band pair must independently meet all of these gates:
+
+| Gate | Acceptance |
+|---|---:|
+| Capture contract | 450 ms, 5 MS/s, 4 MHz BW, `9 × 250,000` samples, 8 kernel buffers |
+| ABI 2 continuity, gaps and failure/overflow flags | verified; zero |
+| Complete / decoded cycles | at least 290 / at least 98% |
+| RF-visible edges per accepted cycle | exactly 12 |
+| Combined marker / pre-ANT1 ALL_OFF plateau | every accepted cycle within 190–210 µs |
+| Every active dwell | every accepted cycle within 190–210 µs |
+| Each ordinary guard aggregate median | 19–21 µs |
+| Conservative ordinary-guard uncertainty envelope | lower bound at least 18 µs; upper bound at most 22 µs |
+| Cycle | every accepted cycle within 1,425–1,575 µs |
+| `q40`–`q60` edge-time span | at most 1.5 µs |
+| Independent changepoint vs `q50` | at most 1.5 µs |
+| Absolute refined-pilot residual from DDS readback | at most 2 kHz |
+| Adjacent-pilot phase-step coherence | at least 0.95 |
+| Transition SNR, pilot SNR and state-to-null contrast | each at least 20 dB |
+| Clipped samples / near-full-scale fraction | zero / at most `1e-4` |
+| Pair marker, dwell and ordinary-guard median agreement | each within 1 µs |
+| Pair cycle-median agreement | within 2 µs |
+| Pair admission | both fresh-stream captures pass; no averaging of a failure |
+
+These are RF-edge gates relative to the Pluto sample clock. They do not calibrate that clock to
+SI time. “Ordinary guards” are the five short ANT1→ANT2 through ANT5→ANT6 null slots; the
+ANT6→ANT1 null is the combined marker/pre-ANT1 plateau and is gated separately.
 
 ### Timing and GPIO evidence paths
 
@@ -291,18 +405,21 @@ to the selector GPIO and a suitable timing reference. Independently observe boot
 break-before-make transitions, 180 µs marker body, 20 µs guards, 200 µs dwells and 1.500 ms
 cycle. Firmware self-report alone is not independent timing or GPIO evidence.
 
-**Path B — fallback when no logic analyzer is connected.** Before the smoke capture, pass the
-host state-machine, generated-profile and ELF checks; bind the exact `hexcal-v1` profile and
-firmware hashes; flash only the intended target; and prove that the flashed/readback image hash
-matches. Then use the smallest bounded TX stimulus and a continuous low-power RF capture to
-observe selected/null edges. If continuity, contrast and edge-fit gates pass, those edges may
-independently qualify only marker, guard, dwell and cycle timing.
+**Path B — selected fallback when no logic analyzer is connected.** Before any timing capture,
+pass the host state-machine, generated-profile and ELF checks; bind the exact `hexcal-v1` profile
+and firmware hashes; flash only the intended target; and prove that the flashed/readback image
+hash matches. Then use the smallest bounded TX stimulus and execute the separate paired `5 MS/s`
+capture contract in Section 5. If both captures for a band pass continuity, observability,
+timing and edge-uncertainty gates, those RF edges may independently qualify only the combined
+marker, ordinary guards, dwells and cycle timing for that band.
 
 Under Path B, GPIO code identity, active-port identity/order and absence of illegal GPIO codes
 remain **source-derived plus flashed/readback-hash-backed; not independently GPIO-observed**.
 A centered equal-amplitude source cannot prove which antenna code produced an active dwell.
 Reports must retain that evidence label and must not describe RF-only timing as full hardware
-GPIO qualification.
+GPIO qualification. RF also sees the contiguous 180 µs marker body and 20 µs pre-ANT1 guard as
+one approximately 200 µs `ALL_OFF` plateau, so it cannot prove that internal split. The measured
+durations are relative to the Pluto sample clock, not an independent timebase.
 
 ### Artifact integrity and RF admission
 
@@ -317,6 +434,7 @@ GPIO qualification.
 | Near-full-scale sample fraction | at most `1e-4` |
 | Pilot SNR, every port | at least 20 dB |
 | Weakest selected-to-null contrast | at least 20 dB |
+| Per-cycle six-element circular phase-gauge resultant | at least 0.25 |
 | Post-condition and independent final TX mute/readback | pass |
 
 ### Repeatability and held-out calibration
@@ -324,7 +442,7 @@ GPIO qualification.
 | Gate | Acceptance |
 |---|---:|
 | Within-artifact cycle coherence | at least 0.995 |
-| Within-artifact cycle phase RMS | at most 6° |
+| Within-artifact circular phase standard deviation | at most 6° |
 | Between-round relative-phase spread | at most 5° |
 | Between-round amplitude spread | at most 0.5 dB |
 | Held-out corrected amplitude span | at most 1.0 dB |
@@ -333,7 +451,11 @@ GPIO qualification.
 | Held-out opposite-pair phase mismatch | at most 5° |
 | Largest non-common mode | target ≤ -20 dBc; minimum ≤ -15 dBc |
 | Held-out coefficient residual | at most 5° and 0.5 dB |
-| Two-factor permutation residual | at most 5° RMS and 0.5 dB RMS |
+
+A physical cable/element permutation is an optional extension and is not part of this baseline
+capture matrix or its admission decision. Unless a separate characterized permutation plan is
+executed, report the two-factor port/element residual as **not evaluated** rather than treating
+it as a passing gate.
 
 The board release separately calls for calibrated VNA insertion loss, return loss and isolation.
 This OTA experiment cannot turn a relative complex response into those missing absolute
@@ -380,6 +502,24 @@ The implementation should remain split into independently reviewable components:
 6. A report snapshot that contains artifact hashes, firmware/profile identities, measurements,
    rejection reasons and calibrated coefficients.
 
+All live-capture and offline Hexcal entry points execute with
+`/home/pi/pluto-plus-utils/.venv/bin/python` and `/home/pi/smateway/src` on `PYTHONPATH` before
+importing RF or analysis code. If invoked with another interpreter, the entry point re-executes
+itself under that exact runtime. Every plan and accepted evidence chain records the interpreter
+and prefix, the clean `pluto-plus-utils` commit
+`5551d29bc6c326f26285670efd20fc149caef474`, every package Python source file, `pyproject.toml`,
+`uv.lock`, and the resolved origin of each critical import. A missing/dirty checkout, wrong
+commit, changed byte, escaped import or different runtime rejects the operation before live RF
+or offline analysis can be accepted.
+
+The live RF record binds exactly eight kernel buffers, both TX hardware-gain readbacks, and all
+eight DDS scale/enable/frequency readbacks. TX1 DDS indices 0 and 2 must have the planned
+non-zero scale and quantized tone; TX2 must read back at `-80 dB`; the selected TX1 gain may not
+exceed the planned value. PyADI can report a global enable on zero-scale sources and can retain
+stale inactive frequency registers, so those raw values are retained as hash-bound diagnostics.
+Exact zero scale on every inactive DDS source is the RF-inactivity contract; an inactive raw
+enable or stale frequency is not by itself evidence of emitted RF.
+
 Before flashing, pass host tests, static checks, ELF policy checks and a timing-model test. Then:
 
 1. Record the current qualified Fast20 image and safe-hold rollback identities.
@@ -388,12 +528,16 @@ Before flashing, pass host tests, static checks, ELF policy checks and a timing-
 4. Prefer Path A: with TX muted, use a logic analyzer to verify boot `ALL_OFF`, all six codes,
    every 20 µs guard, the 180 µs marker body, 200 µs active dwells and 1.500 ms cycle.
 5. If no logic analyzer is connected, use Path B: retain source/test code evidence and verified
-   flashed/readback hashes, then qualify marker/guard/dwell/cycle timing only with a bounded
-   low-power RF edge capture. Mark code identity/order/illegal-state claims as not independently
-   GPIO-observed.
+   flashed/readback hashes, then run two independent 450 ms, 5 MS/s timing captures at 2.4 GHz.
+   Run a separate pair at exact experimental 5.8 GHz if timing will be claimed there. Admit a
+   band only when both members of its pair pass every frozen RF-only gate. Mark code
+   identity/order/illegal-state claims as not independently GPIO-observed.
 6. Exercise reset, watchdog and clock-fault recovery under the strongest available observation
    and prove each returns to `ALL_OFF`; record whether that evidence is direct GPIO, RF-level or
-   source/test plus image-readback evidence.
+   source/test plus image-readback evidence. The image detects boot-time and runtime RCC
+   source/divider/prescaler changes; it cannot measure an HSI frequency error whose status and
+   configuration bits remain nominal. A stopped core relies on the independent LSI watchdog and
+   therefore returns to passive `ALL_OFF` only on reset, not instantaneously.
 7. Select and persist the manual RX gain under the bounded policy in Section 5 before executing
    the matrix.
 
@@ -437,7 +581,7 @@ The compact, source-hashed design snapshot is
 calculated RF scales, released route priors, schedule, plan, equations, gates, safety policy and
 SHA-256 identities of the local source documents used for this design.
 
-Generate the four PNGs:
+Generate the five PNGs:
 
 ```bash
 uv run --extra report python scripts/render_hexray_center_calibration_design.py

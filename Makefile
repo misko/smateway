@@ -6,6 +6,7 @@ UV ?= uv
 BUILD_DIR ?= build
 HOST_TEST := $(BUILD_DIR)/host/control_core_test
 PHASE_HOST_TEST := $(BUILD_DIR)/host/phase20_core_test
+HEXCAL_HOST_TEST := $(BUILD_DIR)/host/hexcal_core_test
 CORE_SOURCES := \
 	firmware/stm32c011/core/control_core.c \
 	firmware/stm32c011/core/autonomous_core.c
@@ -42,6 +43,11 @@ PHASE_ELF := $(PHASE_DIR)/pluto_phase20.elf
 PHASE_BIN := $(PHASE_DIR)/pluto_phase20.bin
 PHASE_MAP := $(PHASE_DIR)/pluto_phase20.map
 PHASE_LST := $(PHASE_DIR)/pluto_phase20.lst
+HEXCAL_DIR := $(BUILD_DIR)/$(MCU)/hexcal
+HEXCAL_ELF := $(HEXCAL_DIR)/pluto_hexcal.elf
+HEXCAL_BIN := $(HEXCAL_DIR)/pluto_hexcal.bin
+HEXCAL_MAP := $(HEXCAL_DIR)/pluto_hexcal.map
+HEXCAL_LST := $(HEXCAL_DIR)/pluto_hexcal.lst
 DEVICE_ROOT := firmware/stm32c011/vendor/cmsis-device-c0
 CMSIS_ROOT := firmware/stm32c011/vendor/CMSIS_5/CMSIS/Core
 TARGET_SOURCES := \
@@ -64,6 +70,11 @@ PHASE_CPPFLAGS := \
 	-I$(DEVICE_ROOT)/Include \
 	-I$(CMSIS_ROOT)/Include \
 	-Iprofiles/phase20-v1
+HEXCAL_CPPFLAGS := \
+	-DSTM32C011xx \
+	-I$(DEVICE_ROOT)/Include \
+	-I$(CMSIS_ROOT)/Include \
+	-Iprofiles/hexcal-v1
 TARGET_CFLAGS := \
 	-mcpu=cortex-m0plus -mthumb -std=c11 -Os -g3 \
 	-ffreestanding -ffunction-sections -fdata-sections -fno-common \
@@ -75,12 +86,14 @@ TARGET_LDFLAGS_COMMON := \
 	-Wl,--print-memory-usage -nostdlib
 TARGET_LDFLAGS := $(TARGET_LDFLAGS_COMMON) -Wl,-Map,$(TARGET_MAP)
 
-.PHONY: all test test-c test-phase20-core test-python profile-check \
-	phase-profile-check safe-hold bench fast20 phase20 clean
+.PHONY: all test test-c test-phase20-core test-hexcal-core test-python \
+	profile-check phase-profile-check hexcal-profile-check safe-hold bench \
+	fast20 phase20 hexcal clean
 
 all: test
 
-test: profile-check phase-profile-check test-c test-phase20-core test-python
+test: profile-check phase-profile-check hexcal-profile-check test-c \
+	test-phase20-core test-hexcal-core test-python
 
 profile-check:
 	$(PYTHON) scripts/sync_control_profile.py \
@@ -88,6 +101,9 @@ profile-check:
 
 phase-profile-check:
 	$(PYTHON) scripts/generate_phase20_profile.py --check
+
+hexcal-profile-check:
+	$(PYTHON) scripts/generate_hexcal_profile.py --check
 
 $(HOST_TEST): tests/firmware_core/control_core_test.c $(CORE_SOURCES) $(CORE_HEADERS)
 	mkdir -p $(dir $@)
@@ -109,6 +125,19 @@ $(PHASE_HOST_TEST): tests/firmware_core/control_core_test.c $(CORE_SOURCES) \
 
 test-phase20-core: $(PHASE_HOST_TEST)
 	$(PHASE_HOST_TEST)
+
+$(HEXCAL_HOST_TEST): tests/firmware_core/hexcal_core_test.c \
+		firmware/stm32c011/core/high_rate_autonomous_core.c \
+		firmware/stm32c011/core/high_rate_autonomous_core.h \
+		profiles/hexcal-v1/control_profile.h
+	mkdir -p $(dir $@)
+	$(CC) -std=c11 -O2 -Wall -Wextra -Werror -Wconversion -Wshadow \
+		-pedantic -Ifirmware/stm32c011/core -Iprofiles/hexcal-v1 \
+		firmware/stm32c011/core/high_rate_autonomous_core.c \
+		tests/firmware_core/hexcal_core_test.c -o $@
+
+test-hexcal-core: $(HEXCAL_HOST_TEST)
+	$(HEXCAL_HOST_TEST)
 
 test-python:
 	$(UV) run pytest
@@ -287,6 +316,58 @@ $(PHASE_LST): $(PHASE_ELF)
 
 phase20: profile-check phase-profile-check test-phase20-core $(PHASE_BIN) $(PHASE_LST)
 	$(PYTHON) scripts/verify_fast20_elf.py $(PHASE_ELF)
+
+$(HEXCAL_DIR)/main.o: firmware/stm32c011/apps/hexcal/main.c \
+		firmware/stm32c011/core/high_rate_autonomous_core.h \
+		profiles/hexcal-v1/control_profile.h
+	mkdir -p $(dir $@)
+	$(TARGET_CC) $(HEXCAL_CPPFLAGS) -Ifirmware/stm32c011/core \
+		$(TARGET_CFLAGS) -c $< -o $@
+
+$(HEXCAL_DIR)/high_rate_autonomous_core.o: \
+		firmware/stm32c011/core/high_rate_autonomous_core.c \
+		firmware/stm32c011/core/high_rate_autonomous_core.h \
+		profiles/hexcal-v1/control_profile.h
+	mkdir -p $(dir $@)
+	$(TARGET_CC) $(HEXCAL_CPPFLAGS) -Ifirmware/stm32c011/core \
+		$(TARGET_CFLAGS) -c $< -o $@
+
+$(HEXCAL_DIR)/safe_runtime.o: firmware/stm32c011/apps/safe_hold/safe_runtime.c
+	mkdir -p $(dir $@)
+	$(TARGET_CC) $(HEXCAL_CPPFLAGS) $(TARGET_CFLAGS) -c $< -o $@
+
+$(HEXCAL_DIR)/system_stm32c0xx.o: \
+		$(DEVICE_ROOT)/Source/Templates/system_stm32c0xx.c
+	mkdir -p $(dir $@)
+	$(TARGET_CC) $(HEXCAL_CPPFLAGS) $(TARGET_CFLAGS) -c $< -o $@
+
+$(HEXCAL_DIR)/startup_stm32c011xx.o: \
+		$(DEVICE_ROOT)/Source/Templates/gcc/startup_stm32c011xx.s
+	mkdir -p $(dir $@)
+	$(TARGET_CC) $(HEXCAL_CPPFLAGS) -mcpu=cortex-m0plus -mthumb -g3 -c $< -o $@
+
+$(HEXCAL_ELF): \
+		$(HEXCAL_DIR)/main.o \
+		$(HEXCAL_DIR)/high_rate_autonomous_core.o \
+		$(HEXCAL_DIR)/safe_runtime.o \
+		$(HEXCAL_DIR)/system_stm32c0xx.o \
+		$(HEXCAL_DIR)/startup_stm32c011xx.o \
+		firmware/stm32c011/linker/stm32c011f4p6.ld
+	$(TARGET_CC) $(filter %.o,$^) $(TARGET_LDFLAGS_COMMON) \
+		-Wl,-Map,$(HEXCAL_MAP) -o $@
+	$(TARGET_SIZE) $@ | tee $(HEXCAL_DIR)/pluto_hexcal.size.txt
+	sha256sum $@ > $@.sha256
+
+$(HEXCAL_BIN): $(HEXCAL_ELF)
+	$(TARGET_OBJCOPY) -O binary $< $@
+	sha256sum $@ > $@.sha256
+
+$(HEXCAL_LST): $(HEXCAL_ELF)
+	$(TARGET_OBJDUMP) -d -S -h $< > $@
+
+hexcal: profile-check hexcal-profile-check test-hexcal-core \
+		$(HEXCAL_BIN) $(HEXCAL_LST)
+	$(PYTHON) scripts/verify_hexcal_elf.py $(HEXCAL_ELF)
 
 clean:
 	test "$(BUILD_DIR)" = "build"

@@ -16,12 +16,12 @@
     "adjacent_chord_mm": 25.5,
     "tx1_position_mm": [0.0, 0.0],
     "antennas": [
-      {"name": "ANT1", "angle_deg": 90.0, "position_mm": [0.0, 25.5]},
-      {"name": "ANT2", "angle_deg": 30.0, "position_mm": [22.083648, 12.75]},
-      {"name": "ANT3", "angle_deg": -30.0, "position_mm": [22.083648, -12.75]},
-      {"name": "ANT4", "angle_deg": -90.0, "position_mm": [0.0, -25.5]},
-      {"name": "ANT5", "angle_deg": -150.0, "position_mm": [-22.083648, -12.75]},
-      {"name": "ANT6", "angle_deg": 150.0, "position_mm": [-22.083648, 12.75]}
+      {"name": "ANT1", "bearing_clockwise_from_forward_deg": 0.0, "angle_deg": 90.0, "position_mm": [0.0, 25.5]},
+      {"name": "ANT2", "bearing_clockwise_from_forward_deg": 60.0, "angle_deg": 30.0, "position_mm": [22.083648, 12.75]},
+      {"name": "ANT3", "bearing_clockwise_from_forward_deg": 120.0, "angle_deg": -30.0, "position_mm": [22.083648, -12.75]},
+      {"name": "ANT4", "bearing_clockwise_from_forward_deg": 180.0, "angle_deg": -90.0, "position_mm": [0.0, -25.5]},
+      {"name": "ANT5", "bearing_clockwise_from_forward_deg": 240.0, "angle_deg": -150.0, "position_mm": [-22.083648, -12.75]},
+      {"name": "ANT6", "bearing_clockwise_from_forward_deg": 300.0, "angle_deg": 150.0, "position_mm": [-22.083648, 12.75]}
     ],
     "assumptions_requiring_physical_confirmation": [
       "51 mm is the RF phase-centre circle diameter, not only a mechanical outline",
@@ -75,6 +75,9 @@
     "analysis_edge_trim_us": 5,
     "switch_settling_max_us": 1.4,
     "guard_to_settling_ratio": 14.285714,
+    "released_transition_guard_ms": 5.0,
+    "released_contract_conformant": false,
+    "protocol_status": "experimental calibration-only waiver; does not supersede the qualified Fast20 release",
     "cycle_us": 1500,
     "scans_per_second": 666.666667,
     "active_dwells_per_second": 4000.0,
@@ -86,18 +89,47 @@
     "transition_contract": "Every selected-to-selected transition passes through ALL_OFF; ANT7 and ANT8 are never selected."
   },
   "capture_plan": {
+    "purpose": "complex manifold calibration and coarse schedule decoding; not the microsecond timing qualification",
     "rounds": 3,
     "conditions_per_round": 6,
     "planned_artifacts": 18,
     "duration_s_per_artifact": 1.0,
     "sample_rate_hz": 1000000,
+    "timing_evidence_limit": "The 1 MS/s calibration decoder admits frames and reports coarse schedule consistency, but its edge detector is not the evidence used to claim microsecond guard or dwell timing.",
     "rx_gain_qualification": {
       "mode": "manual",
       "selected_gain_db": null,
       "selection_stage": "bounded low-power qualification before the calibration matrix",
-      "initial_setting": "lowest conservative supported hardware gain",
-      "selection_rule": "Increase only as needed to pass per-port SNR and selected-to-null contrast while retaining all declared headroom gates; persist the exact selected value before admitting calibration artifacts.",
-      "lock_scope": "Never change gain within an artifact. Reuse the predeclared selected value for all three repeats of a frequency/condition; prefer one global value for the complete matrix when it passes every condition.",
+      "initial_setting": "lowest conservative supported hardware gain: 0 dB",
+      "candidate_gain_range_db": [0, 62],
+      "candidate_gain_step_db": 1,
+      "selection_rule": "Test gains in ascending integer order and stop at the first gain passing all six frequencies and all six active states.",
+      "condition_capture_contract": {
+        "duration_s": 0.3,
+        "sample_rate_hz": 1000000,
+        "bandwidth_hz": 800000,
+        "frames": 3,
+        "samples_per_frame": 100000,
+        "kernel_buffer_count": 8,
+        "metadata_abi": 2,
+        "receiver_channels": 2
+      },
+      "frozen_gates": {
+        "minimum_complete_cycles": 150,
+        "minimum_decoded_fraction": 0.98,
+        "minimum_marker_contrast_db": 20.0,
+        "minimum_state_snr_db": 20.0,
+        "minimum_null_isolation_db": 20.0,
+        "minimum_state_coherence": 0.995,
+        "maximum_state_phase_std_deg": 6.0,
+        "minimum_phase_gauge_resultant": 0.25,
+        "ordinary_adc_headroom_must_pass": true,
+        "clipped_samples_max": 0,
+        "maximum_peak_component_counts_each_rx": 1300
+      },
+      "lock_scope": "Use one common selected gain for the complete 2.4 GHz and exact experimental 5.8 GHz matrix; never change it within or between accepted artifacts.",
+      "failure_policy": "If no 0..62 dB gain passes every condition, abort this experiment. Band-specific gains require a new versioned predeclared experiment and may not be introduced adaptively.",
+      "mute_policy": "Mute and read back the exact radio before qualification, after every condition, and finally.",
       "agc_allowed": false
     },
     "metadata_abi": 2,
@@ -107,6 +139,68 @@
     "nominal_edge_trimmed_samples_per_antenna": 126666.666667,
     "state_alignment": "Detect the long ALL_OFF marker, then label the six fixed-order active intervals by ordinal. Reject a missing marker, guard, edge or state instead of guessing.",
     "ordering_rationale": "Forward, reverse and rotated frequency orders expose time drift and 5.8 GHz transition effects instead of confounding them with one schedule position."
+  },
+  "rf_timing_qualification": {
+    "status": "selected pre-execution RF-only timing path; contains no measured result",
+    "purpose": "separate microsecond timing qualification of RF-visible selector transitions",
+    "capture_contract": {
+      "captures_per_tested_band": 2,
+      "independence_rule": "Each capture starts a fresh continuous stream and is admitted separately; averaging cannot rescue a failed capture.",
+      "duration_ms_per_capture": 450,
+      "sample_rate_hz": 5000000,
+      "native_sample_period_us": 0.2,
+      "rf_bandwidth_hz": 4000000,
+      "frames_per_capture": 9,
+      "samples_per_frame": 250000,
+      "samples_per_capture": 2250000,
+      "kernel_buffer_count": 8,
+      "metadata_abi": 2,
+      "retention_and_cleanup": "Keep the complete IQ capture and continuity metadata in memory until both TX channels are muted and the exact-radio mute readback passes; persist only after that cleanup succeeds.",
+      "band_claim_rule": "A timing claim for a band requires both independent captures at that band to pass every gate. Claiming timing at both 2.4 and exact experimental 5.8 GHz therefore requires a passing pair at 2.4 GHz and a separate passing pair at 5.8 GHz.",
+      "experimental_5g8_opt_in_required": true
+    },
+    "detector": {
+      "coherent_samples_per_bin": 5,
+      "complex_bin_duration_us": 1.0,
+      "native_samples_used_directly_for_edge_fit": false,
+      "binning_interpretation": "Five native 0.2 us complex samples are coherently projected into each 1 us detector bin; fractional threshold interpolation is between those 1 us complex bins, not an independent 0.2 us edge fit.",
+      "projection": "For local complex plateaus a and b, q(t) = Re((z(t)-a)*conj(b-a))/|b-a|^2; use the fractional q=0.5 crossing as the accepted RF edge time.",
+      "threshold_sweep_q": [0.4, 0.5, 0.6],
+      "independent_estimator": "local two-mean complex changepoint",
+      "grammar_policy": "Nominal positions are used only to recognize the source-backed long-marker/six-dwell grammar. Measured edges come from local RF changes and are never snapped to the nominal schedule."
+    },
+    "frozen_gates": {
+      "minimum_complete_cycles_per_capture": 290,
+      "minimum_decoded_cycle_fraction": 0.98,
+      "visible_edges_per_accepted_cycle": 12,
+      "combined_rf_marker_window_us": [190.0, 210.0],
+      "each_dwell_window_us": [190.0, 210.0],
+      "each_ordinary_guard_median_window_us": [19.0, 21.0],
+      "conservative_guard_lower_bound_minimum_us": 18.0,
+      "conservative_guard_upper_bound_maximum_us": 22.0,
+      "cycle_window_us": [1425.0, 1575.0],
+      "maximum_q40_q60_edge_span_us": 1.5,
+      "maximum_independent_estimator_delta_us": 1.5,
+      "maximum_refined_pilot_residual_from_dds_readback_hz": 2000.0,
+      "minimum_pilot_phase_step_coherence": 0.95,
+      "minimum_transition_snr_db": 20.0,
+      "minimum_pilot_snr_db": 20.0,
+      "minimum_state_to_null_contrast_db": 20.0,
+      "buffer_sequence_gaps_max": 0,
+      "fpga_sample_sequence_gaps_max": 0,
+      "overflow_or_failure_flags_max": 0,
+      "clipped_samples_max": 0,
+      "maximum_near_full_scale_fraction": 0.0001,
+      "maximum_pair_marker_dwell_guard_median_delta_us": 1.0,
+      "maximum_pair_cycle_median_delta_us": 2.0
+    },
+    "rf_only_limitations": [
+      "RF sees the contiguous 180 us marker body and 20 us pre-ANT1 guard as one approximately 200 us ALL_OFF plateau and cannot separate them.",
+      "RF-visible edges do not independently identify GPIO codes, physical connector identity, active-state order, illegal codes or break-before-make at the GPIO pins.",
+      "ANT1-forward and ANT2-through-ANT6-clockwise identity remains source/profile plus flashed/readback-hash backed under this path, not independently RF-observed.",
+      "All measured durations are relative to the Pluto sample clock, not a calibrated SI timebase or an independent logic analyzer.",
+      "Firmware detects boot/runtime RCC source-divider-prescaler changes, but not analog HSI rate drift with nominal status bits; a stopped core returns to passive ALL_OFF only after the independent LSI watchdog resets it."
+    ]
   },
   "pcb_route_priors": {
     "common_route_mm": 14.503822193,
@@ -129,7 +223,7 @@
     "identifiability": "A single centered OTA measurement identifies only the product C_i*A_i; multiplying C_i by any nonzero complex q_i and dividing A_i by q_i leaves H_i unchanged.",
     "null_subtraction": "Z_i = selected_i - interpolated_ALL_OFF_i",
     "reference_transfer": "When a stable RX1 reference is present, form RX2/RX1 before local ALL_OFF subtraction.",
-    "normalization": "Use a circular phase centre and geometric-mean amplitude; do not privilege ANT1 as the stored calibration gauge.",
+    "normalization": "Use a circular phase centre and geometric-mean amplitude; do not privilege ANT1 as the stored calibration gauge. Require every cycle's six-element phase-centre resultant to be at least 0.25.",
     "spatial_modes": "M_m = (1/6) * sum_n h_n * exp(-j*2*pi*m*n/6); an ideal centered C6 response contains only M_0.",
     "separation_experiment": [
       "Measure a characterized conductive splitter/through standard at the six board SMA planes.",
@@ -141,6 +235,7 @@
   },
   "acceptance_gates": {
     "timing": {
+      "scope": "firmware/profile schedule contract and coarse calibration-artifact admission; microsecond RF timing uses rf_timing_qualification.frozen_gates",
       "duration_tolerance_fraction": 0.05,
       "minimum_observed_guard_us": 18.0,
       "illegal_gpio_codes_max": 0,
@@ -154,7 +249,8 @@
       "clipped_samples_max": 0,
       "maximum_near_full_scale_fraction": 0.0001,
       "minimum_pilot_snr_db": 20.0,
-      "minimum_selected_to_null_contrast_db": 20.0
+      "minimum_selected_to_null_contrast_db": 20.0,
+      "minimum_per_cycle_phase_gauge_resultant": 0.25
     },
     "repeatability": {
       "minimum_cycle_coherence": 0.995,
@@ -172,13 +268,16 @@
     },
     "held_out_validation": {
       "maximum_phase_residual_deg": 5.0,
-      "maximum_amplitude_residual_db": 0.5,
-      "maximum_two_factor_phase_rms_deg": 5.0,
-      "maximum_two_factor_amplitude_rms_db": 0.5
+      "maximum_amplitude_residual_db": 0.5
+    },
+    "optional_permutation_extension": {
+      "baseline_status": "not planned; not evaluated; not an admission gate",
+      "maximum_two_factor_phase_rms_deg_if_predeclared": 5.0,
+      "maximum_two_factor_amplitude_rms_db_if_predeclared": 0.5
     }
   },
   "timing_and_gpio_qualification": {
-    "status_at_design_update": "No logic analyzer is physically connected; choose and record one evidence path before calibration-data admission.",
+    "status_at_design_update": "No logic analyzer is physically connected; the selected fallback is a separate paired 5 MS/s RF-only timing qualification, backed by source/profile tests and exact flashed/readback hashes.",
     "preferred_path": {
       "name": "independent_logic_analyzer_gpio",
       "method": "With RF muted, independently observe the selector GPIO and timing reference while exercising boot, reset and the complete repeating frame.",
@@ -191,8 +290,10 @@
     },
     "fallback_path": {
       "name": "source_readback_hash_plus_low_power_rf_timing",
-      "prerequisites": "Pass host state-machine/profile/ELF tests, bind the exact profile and firmware hashes, flash the exact target, and verify the flashed/readback image hash before a bounded low-power RF timing smoke capture.",
-      "independently_observed": "Selected/null RF edges may independently qualify marker, guard, dwell and cycle timing only when edge contrast and continuity gates pass.",
+      "selected": true,
+      "prerequisites": "Pass host state-machine/profile/ELF tests, bind the exact profile and firmware hashes, flash the exact target, and verify the flashed/readback image hash before bounded low-power RF timing captures.",
+      "capture_contract_reference": "rf_timing_qualification",
+      "independently_observed": "Two independent 450 ms, 5 MS/s selected/null RF captures per claimed band may qualify RF-visible marker, ordinary-guard, dwell and cycle timing only when both captures pass every continuity, observability, timing and edge-uncertainty gate.",
       "not_independently_observed": "GPIO code identity, active-port identity/order and absence of illegal GPIO codes remain source-derived and flashed/readback-hash-backed; they are not independently GPIO-observed and must be labelled exactly that way in the report.",
       "prohibition": "Do not describe RF-only timing evidence as independent GPIO-code or port-identity observation. A centered equal-amplitude source cannot prove which antenna code produced an active dwell."
     },

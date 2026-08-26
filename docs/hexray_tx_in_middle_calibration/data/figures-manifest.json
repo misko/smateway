@@ -9,10 +9,10 @@
       "width_px": 2240
     },
     {
-      "byte_size": 209148,
+      "byte_size": 220125,
       "height_px": 1328,
       "path": "docs/hexray_tx_in_middle_calibration/png/fig02_high_rate_timing_and_capture_plan.png",
-      "sha256": "68993fd58d285d896194b1a68f32cf895040b84fb6820416f49fc58237278fa8",
+      "sha256": "a3bd27ecef6f21f47a21ed9c42a25939fe42852ce45ffe66ca2ec77dc723563b",
       "width_px": 2240
     },
     {
@@ -28,14 +28,21 @@
       "path": "docs/hexray_tx_in_middle_calibration/png/fig04_expected_phasors_and_acceptance.png",
       "sha256": "bce5eaa406d2f8ebdd3af67ca7f9b40cec28205580d60bc4ce53c5507d423690",
       "width_px": 2240
+    },
+    {
+      "byte_size": 388550,
+      "height_px": 1680,
+      "path": "docs/hexray_tx_in_middle_calibration/png/fig05_rf_only_timing_qualification.png",
+      "sha256": "2b1ac19e517160a92328ad5ef8b2abfb8430913466b34831460eaf7e7aa9b792",
+      "width_px": 2240
     }
   ],
   "matplotlib_version": "3.11.1",
   "renderer": "scripts/render_hexray_center_calibration_design.py",
-  "renderer_sha256": "3933909e1270293ae76878ac985de91237c2df323b0cb6b3f47f1a18d3216c05",
+  "renderer_sha256": "735006258e5b36be5b4ac1de4f35e4db1631d719797c8b01455065d7a409204a",
   "schema": 1,
   "snapshot": {
     "path": "docs/hexray_tx_in_middle_calibration/data/design-snapshot.json",
-    "sha256": "e2fd0f450193759cb38d78ee489850d8460b0e45703fad2752d2ef8986a37be8"
+    "sha256": "417c38f0754b8977317067745594df93020c3338f7556d4dcf862dd0fbe647fc"
   }
 }

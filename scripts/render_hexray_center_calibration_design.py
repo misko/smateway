@@ -35,6 +35,7 @@ FIGURE_NAMES = (
     "fig02_high_rate_timing_and_capture_plan.png",
     "fig03_signal_chain_and_identifiability.png",
     "fig04_expected_phasors_and_acceptance.png",
+    "fig05_rf_only_timing_qualification.png",
 )
 
 INK = "#17212b"
@@ -162,6 +163,10 @@ def load_snapshot(path: Path) -> Mapping[str, Any]:
         raise DesignReportError("cycle and scan rate disagree")
 
     plan = _mapping(root.get("capture_plan"), "capture plan")
+    if "coarse schedule" not in str(plan.get("purpose")):
+        raise DesignReportError("1 MS/s plan must remain scoped to coarse schedule decoding")
+    if "not the evidence" not in str(plan.get("timing_evidence_limit")):
+        raise DesignReportError("1 MS/s plan must disclaim microsecond timing evidence")
     gain = _mapping(plan.get("rx_gain_qualification"), "RX gain qualification")
     if gain.get("mode") != "manual" or gain.get("agc_allowed") is not False:
         raise DesignReportError("RX gain qualification must remain manual with AGC forbidden")
@@ -202,6 +207,77 @@ def load_snapshot(path: Path) -> Mapping[str, Any]:
         raise DesignReportError("RF fallback must remain limited to timing-only evidence")
     if "not independently" not in str(fallback.get("not_independently_observed")):
         raise DesignReportError("RF fallback must label its GPIO evidence boundary")
+    if fallback.get("selected") is not True:
+        raise DesignReportError("paired RF fallback must be marked selected")
+
+    rf_timing = _mapping(root.get("rf_timing_qualification"), "RF timing qualification")
+    if not str(rf_timing.get("status")).startswith("selected pre-execution"):
+        raise DesignReportError("RF timing qualification must remain explicitly pre-execution")
+    timing_capture = _mapping(rf_timing.get("capture_contract"), "RF timing capture")
+    exact_integer_fields = {
+        "captures_per_tested_band": 2,
+        "duration_ms_per_capture": 450,
+        "sample_rate_hz": 5_000_000,
+        "rf_bandwidth_hz": 4_000_000,
+        "frames_per_capture": 9,
+        "samples_per_frame": 250_000,
+        "samples_per_capture": 2_250_000,
+        "kernel_buffer_count": 8,
+        "metadata_abi": 2,
+    }
+    for field, expected in exact_integer_fields.items():
+        if _integer(timing_capture.get(field), f"RF timing {field}") != expected:
+            raise DesignReportError(f"RF timing {field} changed from {expected}")
+    if not _close(_number(timing_capture.get("native_sample_period_us"), "sample period"), 0.2):
+        raise DesignReportError("5 MS/s timing capture must retain the 0.2 us sample period")
+    expected_samples = int(
+        _number(timing_capture["duration_ms_per_capture"], "duration")
+        * _number(timing_capture["sample_rate_hz"], "sample rate")
+        / 1_000.0
+    )
+    if expected_samples != timing_capture["samples_per_capture"]:
+        raise DesignReportError("RF timing duration and sample count disagree")
+    framed_samples = (
+        timing_capture["frames_per_capture"] * timing_capture["samples_per_frame"]
+    )
+    if framed_samples != timing_capture["samples_per_capture"]:
+        raise DesignReportError("RF timing frame and sample counts disagree")
+    if timing_capture.get("experimental_5g8_opt_in_required") is not True:
+        raise DesignReportError("RF timing must retain explicit 5.8 GHz opt-in")
+    timing_detector = _mapping(rf_timing.get("detector"), "RF timing detector")
+    if _integer(timing_detector.get("coherent_samples_per_bin"), "coherent bin") != 5:
+        raise DesignReportError("RF timing detector must coherently combine five samples")
+    if not _close(_number(timing_detector.get("complex_bin_duration_us"), "bin duration"), 1.0):
+        raise DesignReportError("RF timing detector must retain one-microsecond bins")
+    thresholds = tuple(
+        _number(value, "RF timing threshold")
+        for value in _sequence(timing_detector.get("threshold_sweep_q"), "threshold sweep")
+    )
+    if thresholds != (0.4, 0.5, 0.6):
+        raise DesignReportError("RF timing q threshold sweep changed")
+    if "two-mean complex changepoint" not in str(timing_detector.get("independent_estimator")):
+        raise DesignReportError("RF timing independent changepoint is missing")
+    timing_gates = _mapping(rf_timing.get("frozen_gates"), "RF timing gates")
+    if _integer(timing_gates.get("minimum_complete_cycles_per_capture"), "cycles") != 290:
+        raise DesignReportError("RF timing minimum cycle gate changed")
+    if not _close(
+        _number(timing_gates.get("minimum_decoded_cycle_fraction"), "decode fraction"),
+        0.98,
+    ):
+        raise DesignReportError("RF timing decoded-cycle gate changed")
+    if _integer(timing_gates.get("visible_edges_per_accepted_cycle"), "visible edges") != 12:
+        raise DesignReportError("RF timing must require twelve visible edges per cycle")
+    if _number(timing_gates.get("maximum_q40_q60_edge_span_us"), "q span") != 1.5:
+        raise DesignReportError("RF timing q-sweep uncertainty gate changed")
+    if _number(timing_gates.get("maximum_independent_estimator_delta_us"), "edge delta") != 1.5:
+        raise DesignReportError("RF timing independent-estimator gate changed")
+    limitations = tuple(
+        str(value) for value in _sequence(rf_timing.get("rf_only_limitations"), "RF limits")
+    )
+    if not any("cannot separate" in item for item in limitations):
+        raise DesignReportError("RF timing must disclose the combined marker limitation")
+    if not any("not independently" in item for item in limitations):
+        raise DesignReportError("RF timing must disclose its GPIO evidence boundary")
 
     sources = [_mapping(item, "source") for item in _sequence(
         root.get("source_documents"), "source documents"
@@ -465,9 +541,9 @@ def _render_timing(snapshot: Mapping[str, Any], path: Path) -> None:
     fig = plt.figure(figsize=(14, 8.3), constrained_layout=False)
     _title(
         fig,
-        "High-rate selector frame and capture plan",
-        f"{schedule['profile_id']}: a long ALL_OFF marker and six short null slots make "
-        "equal-amplitude centered states ordinally identifiable.",
+        "Selector frame and 1 MS/s complex-calibration matrix",
+        f"{schedule['profile_id']}: the calibration decoder uses the marker and null grammar "
+        "for coarse alignment; a separate 5 MS/s pair qualifies microsecond timing.",
     )
     grid = fig.add_gridspec(
         3,
@@ -542,7 +618,7 @@ def _render_timing(snapshot: Mapping[str, Any], path: Path) -> None:
     zoom.set_ylim(-0.65, 0.62)
     zoom.set_yticks([])
     zoom.set_xlabel("selected-state edge and following null (µs)")
-    zoom.set_title("Analysis excludes 5 µs on both sides of every transition")
+    zoom.set_title("1 MS/s complex analysis excludes 5 µs on both sides of every transition")
     zoom.grid(axis="x")
     zoom.spines[["top", "right", "left"]].set_visible(False)
 
@@ -551,7 +627,14 @@ def _render_timing(snapshot: Mapping[str, Any], path: Path) -> None:
     orders = [_sequence(item, "round order") for item in _sequence(
         frequency["round_orders_hz"], "round orders"
     )]
-    rounds.text(0.0, 1.02, "Three one-second rounds", fontsize=13, fontweight="bold", va="top")
+    rounds.text(
+        0.0,
+        1.02,
+        "Complex-calibration matrix · three one-second rounds",
+        fontsize=13,
+        fontweight="bold",
+        va="top",
+    )
     for round_index, order in enumerate(orders):
         y = 0.73 - round_index * 0.27
         rounds.text(
@@ -604,8 +687,8 @@ def _render_timing(snapshot: Mapping[str, Any], path: Path) -> None:
         0.105,
         -0.13,
         (
-            "Evidence: logic analyzer preferred · RF fallback qualifies edge timing only · "
-            "GPIO identity/order remain source + readback-hash backed"
+            "Timing evidence is separate: two fresh 450 ms captures/band at 5 MS/s · "
+            "see Figure 5 · GPIO identity/order remain source + readback-hash backed"
         ),
         transform=rounds.transAxes,
         fontsize=8.5,
@@ -613,6 +696,312 @@ def _render_timing(snapshot: Mapping[str, Any], path: Path) -> None:
     )
     if fallback.get("name") != "source_readback_hash_plus_low_power_rf_timing":
         raise DesignReportError("unexpected fallback evidence path")
+    _save(fig, path)
+
+
+def _render_rf_timing(snapshot: Mapping[str, Any], path: Path) -> None:
+    qualification = _mapping(
+        snapshot["rf_timing_qualification"],
+        "RF timing qualification",
+    )
+    contract = _mapping(qualification["capture_contract"], "RF timing capture")
+    detector = _mapping(qualification["detector"], "RF timing detector")
+    gates = _mapping(qualification["frozen_gates"], "RF timing gates")
+
+    fig = plt.figure(figsize=(14, 10.5), constrained_layout=False)
+    _title(
+        fig,
+        "Separate RF-only microsecond timing qualification",
+        "Pre-execution contract: two independent 450 ms captures per claimed band measure "
+        "RF-visible edges at 5 MS/s without claiming GPIO or connector identity.",
+    )
+    grid = fig.add_gridspec(
+        3,
+        2,
+        left=0.055,
+        right=0.97,
+        bottom=0.065,
+        top=0.855,
+        height_ratios=(0.88, 1.02, 1.58),
+        width_ratios=(1.08, 0.92),
+        hspace=0.34,
+        wspace=0.22,
+    )
+
+    flow = fig.add_subplot(grid[0, :])
+    flow.set_axis_off()
+    flow.text(
+        0.0,
+        0.97,
+        "Fail-closed acquisition path",
+        transform=flow.transAxes,
+        fontsize=13,
+        fontweight="bold",
+        va="top",
+    )
+    stages = [
+        (0.01, "Fresh stream", "capture A or B\nnever split one stream", BLUE),
+        (0.21, "Continuous IQ", "450 ms · 5 MS/s\n4 MHz RF BW", TEAL),
+        (0.41, "RAM hold", "9 × 250k frames\n8 kernel buffers", PURPLE),
+        (0.61, "Mute + verify", "both TX channels\nexact-radio readback", RED),
+        (0.81, "Persist", "only after cleanup\nthen analyze", AMBER),
+    ]
+    for x, title, subtitle, color in stages:
+        box = FancyBboxPatch(
+            (x, 0.38),
+            0.16,
+            0.25,
+            boxstyle="round,pad=0.012,rounding_size=0.02",
+            edgecolor=color,
+            facecolor="white",
+            linewidth=1.5,
+            transform=flow.transAxes,
+        )
+        flow.add_patch(box)
+        flow.text(
+            x + 0.08,
+            0.555,
+            title,
+            transform=flow.transAxes,
+            ha="center",
+            va="center",
+            fontsize=9.2,
+            fontweight="bold",
+            color=color,
+        )
+        flow.text(
+            x + 0.08,
+            0.455,
+            subtitle,
+            transform=flow.transAxes,
+            ha="center",
+            va="center",
+            fontsize=7.4,
+            color=MUTED,
+            linespacing=1.15,
+        )
+    for left, right in zip(stages[:-1], stages[1:], strict=True):
+        _arrow(flow, (left[0] + 0.165, 0.505), (right[0] - 0.006, 0.505))
+    flow.text(
+        0.01,
+        0.12,
+        "Band claim = A passes AND B passes. Repeat this pair at 2.4 GHz and again at exact "
+        "experimental 5.8 GHz if timing is claimed at both; averaging cannot rescue a failure.",
+        transform=flow.transAxes,
+        fontsize=9.2,
+        color=INK,
+        bbox={"boxstyle": "round,pad=0.4", "facecolor": PALE_AMBER, "edgecolor": AMBER},
+    )
+
+    projection = fig.add_subplot(grid[1, 0])
+    x = np.linspace(-4.0, 4.0, 401)
+    q_curve = 0.5 * (1.0 + np.tanh(0.92 * x))
+    projection.plot(x, q_curve, color=BLUE, linewidth=2.0, label="local complex projection q")
+    bin_x = np.arange(-4.0, 4.1, 1.0)
+    bin_q = 0.5 * (1.0 + np.tanh(0.92 * bin_x))
+    projection.scatter(
+        bin_x,
+        bin_q,
+        s=34,
+        color=BLUE,
+        edgecolor="white",
+        zorder=4,
+        label="1 µs coherent bins",
+    )
+    threshold_colors = {0.4: PURPLE, 0.5: RED, 0.6: TEAL}
+    for threshold in _sequence(detector["threshold_sweep_q"], "threshold sweep"):
+        q_value = _number(threshold, "threshold")
+        crossing = float(np.interp(q_value, q_curve, x))
+        color = threshold_colors[q_value]
+        projection.axhline(q_value, color=color, linestyle=":" if q_value != 0.5 else "--",
+                           linewidth=1.2)
+        projection.axvline(crossing, color=color, linestyle=":" if q_value != 0.5 else "--",
+                           linewidth=1.2)
+        projection.text(
+            crossing + (0.10 if q_value >= 0.5 else -0.10),
+            q_value + 0.035,
+            f"q{int(q_value * 100)}",
+            color=color,
+            ha="left" if q_value >= 0.5 else "right",
+            fontsize=8.5,
+            fontweight="bold",
+        )
+    projection.axvline(0.18, color=AMBER, linewidth=1.6, linestyle="-.",
+                       label="independent two-mean changepoint")
+    projection.set_xlim(-4.0, 4.0)
+    projection.set_ylim(-0.04, 1.08)
+    projection.set_xlabel("time relative to schematic RF edge (µs)")
+    projection.set_ylabel("normalized complex projection q")
+    projection.set_title("Local edge estimator schematic — not measured data")
+    projection.grid(True)
+    projection.legend(loc="lower right", fontsize=7.9)
+
+    resolution = fig.add_subplot(grid[1, 1])
+    resolution.set_axis_off()
+    resolution.text(
+        0.0,
+        0.98,
+        "Sampling and estimator independence",
+        transform=resolution.transAxes,
+        fontsize=13,
+        fontweight="bold",
+        va="top",
+    )
+    for index in range(5):
+        x0 = 0.02 + index * 0.105
+        resolution.add_patch(
+            Rectangle(
+                (x0, 0.66),
+                0.09,
+                0.15,
+                transform=resolution.transAxes,
+                facecolor=PALE_BLUE,
+                edgecolor=BLUE,
+                linewidth=1.1,
+            )
+        )
+        resolution.text(
+            x0 + 0.045,
+            0.735,
+            "0.2",
+            transform=resolution.transAxes,
+            ha="center",
+            va="center",
+            fontsize=8.3,
+            color=BLUE,
+        )
+    resolution.annotate(
+        "",
+        xy=(0.69, 0.735),
+        xytext=(0.56, 0.735),
+        xycoords=resolution.transAxes,
+        arrowprops={"arrowstyle": "->", "color": MUTED, "lw": 1.4},
+    )
+    one_bin = FancyBboxPatch(
+        (0.70, 0.65),
+        0.27,
+        0.17,
+        boxstyle="round,pad=0.012,rounding_size=0.02",
+        edgecolor=TEAL,
+        facecolor=PALE_TEAL,
+        linewidth=1.4,
+        transform=resolution.transAxes,
+    )
+    resolution.add_patch(one_bin)
+    resolution.text(0.835, 0.735, "1 µs\ncomplex bin", transform=resolution.transAxes,
+                    ha="center", va="center", color=TEAL, fontweight="bold")
+    resolution.text(
+        0.02,
+        0.57,
+        "five native samples at 5 MS/s",
+        transform=resolution.transAxes,
+        fontsize=8.8,
+        color=MUTED,
+    )
+    estimator_box = FancyBboxPatch(
+        (0.02, 0.22),
+        0.95,
+        0.28,
+        boxstyle="round,pad=0.012,rounding_size=0.02",
+        edgecolor=PURPLE,
+        facecolor="white",
+        linewidth=1.5,
+        transform=resolution.transAxes,
+    )
+    resolution.add_patch(estimator_box)
+    resolution.text(
+        0.055,
+        0.435,
+        "Two edge estimates must agree",
+        transform=resolution.transAxes,
+        fontsize=10.2,
+        fontweight="bold",
+        color=PURPLE,
+    )
+    resolution.text(
+        0.055,
+        0.35,
+        "q50 is the fractional crossing; q40–q60 span must be ≤ 1.5 µs.\n"
+        "Independent two-mean changepoint must be within 1.5 µs of q50.",
+        transform=resolution.transAxes,
+        fontsize=7.9,
+        va="top",
+        color=INK,
+        linespacing=1.35,
+    )
+    resolution.text(
+        0.02,
+        0.09,
+        "Fractional interpolation is not an independent direct 0.2 µs edge fit.",
+        transform=resolution.transAxes,
+        fontsize=8.6,
+        color=RED,
+        fontweight="bold",
+    )
+
+    gate_ax = fig.add_subplot(grid[2, 0])
+    gate_ax.set_axis_off()
+    gate_ax.text(0.0, 0.98, "Frozen per-artifact gates", fontsize=13,
+                 fontweight="bold", va="top", transform=gate_ax.transAxes)
+    gate_rows = [
+        ("Decode", "≥290 complete cycles · ≥98% · exactly 12 visible edges/cycle"),
+        ("Marker + dwells", "every value 190–210 µs"),
+        ("Ordinary guards", "median 19–21 µs · conservative bounds 18–22 µs"),
+        ("Cycle", "every value 1,425–1,575 µs"),
+        ("Edge uncertainty", "q40–q60 ≤1.5 µs · changepoint–q50 ≤1.5 µs"),
+        ("RF observability", "transition, pilot and state/null contrast each ≥20 dB"),
+        ("Integrity", "ABI 2 continuous · zero gaps, flags and clips · near-FS ≤1e-4"),
+    ]
+    for index, (label, value) in enumerate(gate_rows):
+        y = 0.82 - index * 0.112
+        face = "white" if index % 2 == 0 else PALE_BLUE
+        gate_ax.add_patch(
+            Rectangle((0.0, y), 0.99, 0.092, transform=gate_ax.transAxes,
+                      facecolor=face, edgecolor=GRID, linewidth=0.8)
+        )
+        gate_ax.text(0.025, y + 0.046, label, transform=gate_ax.transAxes,
+                     va="center", fontsize=8.7, fontweight="bold", color=BLUE)
+        gate_ax.text(0.25, y + 0.046, value, transform=gate_ax.transAxes,
+                     va="center", fontsize=8.25, color=INK)
+
+    claim_ax = fig.add_subplot(grid[2, 1])
+    claim_ax.set_axis_off()
+    claim_ax.text(0.0, 0.98, "What a passing pair can claim", fontsize=13,
+                  fontweight="bold", va="top", transform=claim_ax.transAxes)
+    for index, (band, note, color) in enumerate(
+        [
+            ("2.4 GHz", "capture A pass  ∧  capture B pass", BLUE),
+            ("5.8 GHz", "separate A+B pass · experimental opt-in", PURPLE),
+        ]
+    ):
+        y = 0.76 - index * 0.18
+        _card(claim_ax, 0.0, y, 0.98, 0.15, band, note, color)
+    claim_ax.text(0.0, 0.49, "RF-only evidence boundary", fontsize=11.5,
+                  fontweight="bold", transform=claim_ax.transAxes)
+    limits = [
+        "Qualifies only the combined marker, ordinary guards, dwells and cycle.",
+        "Cannot split the 180 µs marker body from its contiguous 20 µs pre-ANT1 guard.",
+        "No independent GPIO code, connector identity/order, illegal-state or GPIO "
+        "break-before-make proof.",
+        "ANT1 forward; ANT2–ANT6 clockwise stays source/profile + readback-hash backed.",
+        "Times use the Pluto sample clock—not a calibrated SI timebase.",
+    ]
+    for index, item in enumerate(limits):
+        y = 0.40 - index * 0.095
+        claim_ax.scatter([0.015], [y + 0.01], s=22, color=RED if index < 3 else AMBER,
+                         transform=claim_ax.transAxes)
+        claim_ax.text(0.045, y, textwrap.fill(item, width=64), transform=claim_ax.transAxes,
+                      fontsize=7.8, va="top", color=INK, linespacing=1.12)
+
+    expected_cycles = (
+        _number(contract["duration_ms_per_capture"], "duration")
+        * 1_000.0
+        / _number(snapshot["schedule"]["cycle_us"], "cycle")
+    )
+    if not _close(expected_cycles, 300.0):
+        raise DesignReportError("RF timing capture must contain 300 nominal cycles")
+    if _integer(gates["minimum_complete_cycles_per_capture"], "minimum cycles") != 290:
+        raise DesignReportError("unexpected RF timing minimum cycle gate")
     _save(fig, path)
 
 
@@ -925,7 +1314,13 @@ def render_report(snapshot_path: Path, output_directory: Path) -> dict[str, str]
     snapshot = load_snapshot(snapshot_path)
     output_directory.mkdir(parents=True, exist_ok=True)
     _configure_style()
-    renderers = (_render_geometry, _render_timing, _render_identifiability, _render_phasors)
+    renderers = (
+        _render_geometry,
+        _render_timing,
+        _render_identifiability,
+        _render_phasors,
+        _render_rf_timing,
+    )
     for filename, renderer in zip(FIGURE_NAMES, renderers, strict=True):
         renderer(snapshot, output_directory / filename)
     return {filename: _sha256(output_directory / filename) for filename in FIGURE_NAMES}

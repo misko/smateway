@@ -1,0 +1,143 @@
+{
+  "array_order": {
+    "direction": "clockwise",
+    "forward_reference": "ANT1"
+  },
+  "clock": {
+    "decoder_window_pct": 5,
+    "manufacturer_error_full_temperature_pct": [
+      -2.5,
+      2.0
+    ],
+    "rationale": "5% windows cover characterized full-temperature controller error and reserve at least 2.5% for timer/capture estimation",
+    "source": "STM32C011_HSI48",
+    "timer_nominal_hz": 1000000,
+    "timer_resolution_us": 1
+  },
+  "contract_sha256": "06324954fb43710af89f6f9e439a7d4bf652c18de714e56645d71f8099689726",
+  "decoder": {
+    "accept": "bounded ALL_OFF marker followed by six ordered equal-duration slots with a bounded ALL_OFF guard before every slot",
+    "fundamental_limit": "RF-only alignment is unavailable when neither the marker nor the guard transitions have usable contrast",
+    "reject_to_unknown": [
+      "no_observable_signal",
+      "truncated_capture",
+      "missed_or_extra_transition",
+      "invalid_order",
+      "no_valid_marker",
+      "reset_or_watchdog_recovery"
+    ],
+    "sync": "190..210us continuous ALL_OFF marker followed by ordered ANT1 through ANT6 slots"
+  },
+  "frame": {
+    "all_off_guard_us": 20,
+    "guard_window_us": [
+      19.0,
+      21.0
+    ],
+    "guards_per_cycle": 6,
+    "marker": {
+      "body_nominal_us": 180,
+      "body_window_us": [
+        171.0,
+        189.0
+      ],
+      "contiguous_pre_ANT1_guard_us": 20,
+      "observable_nominal_us": 200,
+      "observable_window_us": [
+        190.0,
+        210.0
+      ],
+      "state": "ALL_OFF"
+    },
+    "minimum_capture_for_guaranteed_complete_frame_us": 3000,
+    "nominal_cycle_us": 1500,
+    "order": [
+      "ANT1",
+      "ANT2",
+      "ANT3",
+      "ANT4",
+      "ANT5",
+      "ANT6"
+    ],
+    "recommended_capture_us": 2000000
+  },
+  "generated_from": "profiles/hexcal-v1/profile_spec.json",
+  "profile": {
+    "id": "hexcal-v1",
+    "revision": 1
+  },
+  "protocol": "framed_guarded_equal_dwell_hexcal_v1",
+  "release_contract": {
+    "conformant": false,
+    "profile_transition_guard_us": 20,
+    "released_transition_guard_us": 5000,
+    "status": "experimental calibration-only guard waiver; does not supersede qualified Fast20"
+  },
+  "safety": {
+    "all_off_code": "1000",
+    "maximum_deadline_lateness_us": 5,
+    "on_excessive_lateness": "apply ALL_OFF and restart the marker",
+    "unused_states": [
+      "ANT7",
+      "ANT8"
+    ]
+  },
+  "schema": 1,
+  "states": [
+    {
+      "dwell_us": 200,
+      "gpio_code_pa3_pa0": "0000",
+      "name": "ANT1",
+      "window_us": [
+        190.0,
+        210.0
+      ]
+    },
+    {
+      "dwell_us": 200,
+      "gpio_code_pa3_pa0": "0100",
+      "name": "ANT2",
+      "window_us": [
+        190.0,
+        210.0
+      ]
+    },
+    {
+      "dwell_us": 200,
+      "gpio_code_pa3_pa0": "0010",
+      "name": "ANT3",
+      "window_us": [
+        190.0,
+        210.0
+      ]
+    },
+    {
+      "dwell_us": 200,
+      "gpio_code_pa3_pa0": "0110",
+      "name": "ANT4",
+      "window_us": [
+        190.0,
+        210.0
+      ]
+    },
+    {
+      "dwell_us": 200,
+      "gpio_code_pa3_pa0": "0001",
+      "name": "ANT5",
+      "window_us": [
+        190.0,
+        210.0
+      ]
+    },
+    {
+      "dwell_us": 200,
+      "gpio_code_pa3_pa0": "0101",
+      "name": "ANT6",
+      "window_us": [
+        190.0,
+        210.0
+      ]
+    }
+  ],
+  "time_unit": "microseconds"
+}
