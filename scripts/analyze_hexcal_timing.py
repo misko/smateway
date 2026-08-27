@@ -56,7 +56,6 @@ from smateway.hexcal import (
 from smateway.hexcal_timing import (
     BANDWIDTH_HZ,
     SAMPLE_RATE_HZ,
-    TIMING_RECEIVER_GAIN_DB,
     analyze_hexcal_timing_samples,
 )
 from smateway.hexcal_gain import (
@@ -66,6 +65,11 @@ from smateway.hexcal_gain import (
     STIMULUS_PROTOCOLS,
     load_hexcal_stimulus_qualification,
     stimulus_protocol,
+)
+
+__all__ = (
+    "EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID",
+    "STIMULUS_PROTOCOL_ID",
 )
 
 CAPTURE_RECORD_NAME = "hexcal-timing-capture.json"
@@ -663,7 +667,6 @@ def _load_and_verify_record(
         raise ValueError("firmware evidence differs from its independently replayed form")
 
     plan = _mapping(root.get("pair_plan_contract"), "pair_plan_contract")
-    plan_kind = plan.get("plan_kind")
     protocol_id = str(plan.get("protocol_id"))
     contract = None if protocol_id == "hexcal-v1" else stimulus_protocol(protocol_id)
     expected_capture_kind = (

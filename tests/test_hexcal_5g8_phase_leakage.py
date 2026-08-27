@@ -37,4 +37,7 @@ def test_phase_only_alignment_recovers_leakage_subtracted_state_phases() -> None
         (0.0, 60.0, 120.0, -180.0, -120.0, -60.0),
         abs=1e-9,
     )
-    assert all(math.isclose(value, 1.0) for value in result["leakage_subtracted_normalized_magnitude"])
+    assert all(
+        math.isclose(value, 1.0)
+        for value in result["leakage_subtracted_normalized_magnitude"]
+    )

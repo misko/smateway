@@ -1,0 +1,1115 @@
+{
+  "analysis_kind": "hexcal_v2_4_5g8_phase_leakage_exploratory_analysis",
+  "analysis_script_sha256": "0dbde0050f8567449504cfae5837643523cfe45ff062b194ecac21dd0d92c99c",
+  "analysis_source_commit": "d5ca258fbec4eda6c0cd59002cebe834dcb227d4",
+  "capture_source_commit": "2d0ef0af2e22a356d7b55f4e54dc7ad2cdb055d6",
+  "center_frequency_hz": 5800000000,
+  "conclusions": {
+    "all_off_amplitude_contrast_available": false,
+    "may_be_used_as_array_calibration": false,
+    "reason": "ALL_OFF/direct leakage masks the amplitude marker and the exploratory phase-only method is not an accepted calibration protocol",
+    "repeatable_leakage_subtracted_complex_signature_observed": true,
+    "standard_amplitude_marker_calibration_passed": false
+  },
+  "emitted_carrier_frequency_hz": 5800100000,
+  "generated_at": "2026-08-27T17:13:41.548973+00:00",
+  "limitations": [
+    "The physical AD9363 is operated through an experimental extended-band profile.",
+    "Failed stimulus artifacts remain rejected and are analyzed only diagnostically.",
+    "Phase-only cyclic alignment is not independent GPIO timing evidence.",
+    "One exact 5.8 GHz center cannot support frequency interpolation."
+  ],
+  "per_gain_reproducibility": [
+    {
+      "cycle_period_us": {
+        "maximum": 1496.9555874046412,
+        "mean": 1496.872378782502,
+        "minimum": 1496.789170160363
+      },
+      "maximum_state_pair_delta_deg": 7.9841069922663905,
+      "phase_by_state_relative_to_ant1": [
+        {
+          "circular_std_deg": 0.0,
+          "coherence": 1.0,
+          "maximum_pair_delta_deg": 0.0,
+          "mean_deg": 0.0,
+          "name": "ANT1",
+          "values_deg": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "circular_std_deg": 1.477490490356507,
+          "coherence": 0.9996675686819255,
+          "maximum_pair_delta_deg": 2.9548172348458763,
+          "mean_deg": 59.79205152276654,
+          "name": "ANT2",
+          "values_deg": [
+            58.31464290534359,
+            61.269460140189466
+          ]
+        },
+        {
+          "circular_std_deg": 3.8964655918533584,
+          "coherence": 0.997690253104742,
+          "maximum_pair_delta_deg": 7.789928111577467,
+          "mean_deg": 123.78637365608836,
+          "name": "ANT3",
+          "values_deg": [
+            119.8914096002996,
+            127.68133771187706
+          ]
+        },
+        {
+          "circular_std_deg": 1.0691595198875465,
+          "coherence": 0.9998259107523683,
+          "maximum_pair_delta_deg": 2.138256991855428,
+          "mean_deg": -121.74925008219337,
+          "name": "ANT4",
+          "values_deg": [
+            -122.81837857812107,
+            -120.68012158626566
+          ]
+        },
+        {
+          "circular_std_deg": 3.9936702253671843,
+          "coherence": 0.9975737153760468,
+          "maximum_pair_delta_deg": 7.9841069922663905,
+          "mean_deg": -46.01039370173689,
+          "name": "ANT5",
+          "values_deg": [
+            -50.00244719787008,
+            -42.01834020560369
+          ]
+        },
+        {
+          "circular_std_deg": 1.6977795354027423,
+          "coherence": 0.9995610733007099,
+          "maximum_pair_delta_deg": 3.3953106214734134,
+          "mean_deg": 142.7963728900138,
+          "name": "ANT6",
+          "values_deg": [
+            141.0987175792771,
+            144.4940282007505
+          ]
+        }
+      ],
+      "replicate_count": 2,
+      "tx_hardware_gain_db": -35.0
+    },
+    {
+      "cycle_period_us": {
+        "maximum": 1497.0424004513745,
+        "mean": 1496.8593209658757,
+        "minimum": 1496.6762414803766
+      },
+      "maximum_state_pair_delta_deg": 8.813087688633459,
+      "phase_by_state_relative_to_ant1": [
+        {
+          "circular_std_deg": 0.0,
+          "coherence": 1.0,
+          "maximum_pair_delta_deg": 0.0,
+          "mean_deg": 0.0,
+          "name": "ANT1",
+          "values_deg": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "circular_std_deg": 0.06394402415857534,
+          "coherence": 0.9999993772345188,
+          "maximum_pair_delta_deg": -0.1278880350481586,
+          "mean_deg": 58.642728225739205,
+          "name": "ANT2",
+          "values_deg": [
+            58.706672243263284,
+            58.578784208215126
+          ]
+        },
+        {
+          "circular_std_deg": 0.7027291822425218,
+          "coherence": 0.9999247884767021,
+          "maximum_pair_delta_deg": 1.4054407461110259,
+          "mean_deg": 131.69701429997247,
+          "name": "ANT3",
+          "values_deg": [
+            130.99429392691695,
+            132.39973467302798
+          ]
+        },
+        {
+          "circular_std_deg": 0.3412843806240023,
+          "coherence": 0.9999822599960365,
+          "maximum_pair_delta_deg": -0.6825667431054967,
+          "mean_deg": -121.3593703862083,
+          "name": "ANT4",
+          "values_deg": [
+            -121.01808701465556,
+            -121.70065375776105
+          ]
+        },
+        {
+          "circular_std_deg": 4.408718779525757,
+          "coherence": 0.997043983518831,
+          "maximum_pair_delta_deg": 8.813087688633459,
+          "mean_deg": -39.43603556655137,
+          "name": "ANT5",
+          "values_deg": [
+            -43.8425794108681,
+            -35.02949172223464
+          ]
+        },
+        {
+          "circular_std_deg": 0.09019407581035255,
+          "coherence": 0.9999987609737822,
+          "maximum_pair_delta_deg": 0.18038811436781543,
+          "mean_deg": 146.62685498095834,
+          "name": "ANT6",
+          "values_deg": [
+            146.53666092377443,
+            146.71704903814225
+          ]
+        }
+      ],
+      "replicate_count": 2,
+      "tx_hardware_gain_db": -30.0
+    },
+    {
+      "cycle_period_us": {
+        "maximum": 1497.0659988567763,
+        "mean": 1496.877765574367,
+        "minimum": 1496.689532291958
+      },
+      "maximum_state_pair_delta_deg": 19.528820915222354,
+      "phase_by_state_relative_to_ant1": [
+        {
+          "circular_std_deg": 0.0,
+          "coherence": 1.0,
+          "maximum_pair_delta_deg": 0.0,
+          "mean_deg": 0.0,
+          "name": "ANT1",
+          "values_deg": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "circular_std_deg": 0.29139732257638173,
+          "coherence": 0.9999870671855918,
+          "maximum_pair_delta_deg": 0.5827933889487724,
+          "mean_deg": 59.6150889864042,
+          "name": "ANT2",
+          "values_deg": [
+            59.3236922919298,
+            59.906485680878575
+          ]
+        },
+        {
+          "circular_std_deg": 9.788198745545616,
+          "coherence": 0.9855134348045428,
+          "maximum_pair_delta_deg": -19.528820915222354,
+          "mean_deg": 150.49736973499267,
+          "name": "ANT3",
+          "values_deg": [
+            160.26178019260385,
+            140.7329592773815
+          ]
+        },
+        {
+          "circular_std_deg": 1.8685330598160357,
+          "coherence": 0.9994683683306883,
+          "maximum_pair_delta_deg": 3.7367349166077304,
+          "mean_deg": -120.90113805896247,
+          "name": "ANT4",
+          "values_deg": [
+            -122.76950551726635,
+            -119.03277060065862
+          ]
+        },
+        {
+          "circular_std_deg": 6.830688662204244,
+          "coherence": 0.9929187245888128,
+          "maximum_pair_delta_deg": -13.64520240134297,
+          "mean_deg": -30.232546581532347,
+          "name": "ANT5",
+          "values_deg": [
+            -23.409945380860847,
+            -37.05514778220382
+          ]
+        },
+        {
+          "circular_std_deg": 0.8977459540553101,
+          "coherence": 0.999877254664467,
+          "maximum_pair_delta_deg": -1.7954551747051823,
+          "mean_deg": 151.05388019043994,
+          "name": "ANT6",
+          "values_deg": [
+            151.9516077777925,
+            150.15615260308732
+          ]
+        }
+      ],
+      "replicate_count": 2,
+      "tx_hardware_gain_db": -25.0
+    },
+    {
+      "cycle_period_us": {
+        "maximum": 1497.0293967527407,
+        "mean": 1496.8372295609556,
+        "minimum": 1496.6450623691703
+      },
+      "maximum_state_pair_delta_deg": 15.615670118114508,
+      "phase_by_state_relative_to_ant1": [
+        {
+          "circular_std_deg": 0.0,
+          "coherence": 1.0,
+          "maximum_pair_delta_deg": 0.0,
+          "mean_deg": 0.0,
+          "name": "ANT1",
+          "values_deg": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "circular_std_deg": 0.10724933473620862,
+          "coherence": 0.999998248082814,
+          "maximum_pair_delta_deg": -0.21449860683833322,
+          "mean_deg": 61.9975142386985,
+          "name": "ANT2",
+          "values_deg": [
+            62.10476354211767,
+            61.89026493527933
+          ]
+        },
+        {
+          "circular_std_deg": 7.819968543490421,
+          "coherence": 0.9907292724322807,
+          "maximum_pair_delta_deg": -15.615670118114508,
+          "mean_deg": 152.77459141736716,
+          "name": "ANT3",
+          "values_deg": [
+            160.58242647642442,
+            144.9667563583099
+          ]
+        },
+        {
+          "circular_std_deg": 0.32057218842428575,
+          "coherence": 0.9999843478851971,
+          "maximum_pair_delta_deg": -0.6411427042918376,
+          "mean_deg": -120.2400988395051,
+          "name": "ANT4",
+          "values_deg": [
+            -119.9195274873592,
+            -120.56067019165103
+          ]
+        },
+        {
+          "circular_std_deg": 7.797110205544827,
+          "coherence": 0.9907831410697163,
+          "maximum_pair_delta_deg": -15.570165557289414,
+          "mean_deg": -19.134123871647034,
+          "name": "ANT5",
+          "values_deg": [
+            -11.349041093002342,
+            -26.919206650291756
+          ]
+        },
+        {
+          "circular_std_deg": 0.9229928171871492,
+          "coherence": 0.999870254230325,
+          "maximum_pair_delta_deg": -1.8459457139051665,
+          "mean_deg": 151.99889840526492,
+          "name": "ANT6",
+          "values_deg": [
+            152.9218712622175,
+            151.07592554831234
+          ]
+        }
+      ],
+      "replicate_count": 2,
+      "tx_hardware_gain_db": -20.0
+    },
+    {
+      "cycle_period_us": {
+        "maximum": 1497.0020729133048,
+        "mean": 1496.9649053774228,
+        "minimum": 1496.927737841541
+      },
+      "maximum_state_pair_delta_deg": 4.5197254136485014,
+      "phase_by_state_relative_to_ant1": [
+        {
+          "circular_std_deg": 0.0,
+          "coherence": 1.0,
+          "maximum_pair_delta_deg": 0.0,
+          "mean_deg": 0.0,
+          "name": "ANT1",
+          "values_deg": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "circular_std_deg": 0.2903573468505161,
+          "coherence": 0.9999871593328088,
+          "maximum_pair_delta_deg": 0.5807134508998786,
+          "mean_deg": 60.97640924394506,
+          "name": "ANT2",
+          "values_deg": [
+            60.6860525184951,
+            61.26676596939498
+          ]
+        },
+        {
+          "circular_std_deg": 2.075489525704089,
+          "coherence": 0.9993441215368721,
+          "maximum_pair_delta_deg": -4.150525161138887,
+          "mean_deg": 134.17556030351125,
+          "name": "ANT3",
+          "values_deg": [
+            136.25082288408072,
+            132.10029772294183
+          ]
+        },
+        {
+          "circular_std_deg": 0.8896126664356976,
+          "coherence": 0.9998794685223557,
+          "maximum_pair_delta_deg": 1.7791895888232716,
+          "mean_deg": -119.23467491291402,
+          "name": "ANT4",
+          "values_deg": [
+            -120.12426970732567,
+            -118.34508011850241
+          ]
+        },
+        {
+          "circular_std_deg": 2.260155777056587,
+          "coherence": 0.9992222633812439,
+          "maximum_pair_delta_deg": -4.5197254136485014,
+          "mean_deg": -39.60691773437861,
+          "name": "ANT5",
+          "values_deg": [
+            -37.34705502755435,
+            -41.86678044120285
+          ]
+        },
+        {
+          "circular_std_deg": 0.2309185195371602,
+          "coherence": 0.9999918784204055,
+          "maximum_pair_delta_deg": -0.4618364139322466,
+          "mean_deg": 148.38917146830664,
+          "name": "ANT6",
+          "values_deg": [
+            148.62008967527277,
+            148.15825326134052
+          ]
+        }
+      ],
+      "replicate_count": 2,
+      "tx_hardware_gain_db": -15.0
+    },
+    {
+      "cycle_period_us": {
+        "maximum": 1497.1342291182973,
+        "mean": 1496.9505794371994,
+        "minimum": 1496.7669297561015
+      },
+      "maximum_state_pair_delta_deg": 6.197752947694738,
+      "phase_by_state_relative_to_ant1": [
+        {
+          "circular_std_deg": 0.0,
+          "coherence": 1.0,
+          "maximum_pair_delta_deg": 0.0,
+          "mean_deg": 0.0,
+          "name": "ANT1",
+          "values_deg": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "circular_std_deg": 0.2101828749186518,
+          "coherence": 0.9999932715049904,
+          "maximum_pair_delta_deg": 0.42036527842938654,
+          "mean_deg": 59.27416844848301,
+          "name": "ANT2",
+          "values_deg": [
+            59.06398580926833,
+            59.48435108769772
+          ]
+        },
+        {
+          "circular_std_deg": 2.6210629235951237,
+          "coherence": 0.998954190842885,
+          "maximum_pair_delta_deg": -5.241211706383808,
+          "mean_deg": 135.16637976137167,
+          "name": "ANT3",
+          "values_deg": [
+            137.7869856145636,
+            132.5457739081798
+          ]
+        },
+        {
+          "circular_std_deg": 0.3445268890184958,
+          "coherence": 0.9999819213057917,
+          "maximum_pair_delta_deg": 0.6890517018239848,
+          "mean_deg": -121.01671971358935,
+          "name": "ANT4",
+          "values_deg": [
+            -121.36124556450136,
+            -120.67219386267736
+          ]
+        },
+        {
+          "circular_std_deg": 3.0996323876332617,
+          "coherence": 0.9985377305781461,
+          "maximum_pair_delta_deg": -6.197752947694738,
+          "mean_deg": -44.17508498067133,
+          "name": "ANT5",
+          "values_deg": [
+            -41.076208506823974,
+            -47.27396145451871
+          ]
+        },
+        {
+          "circular_std_deg": 0.7930185341387019,
+          "coherence": 0.9999042209300115,
+          "maximum_pair_delta_deg": 1.586011748993485,
+          "mean_deg": 149.60099133457788,
+          "name": "ANT6",
+          "values_deg": [
+            148.8079854600811,
+            150.3939972090746
+          ]
+        }
+      ],
+      "replicate_count": 2,
+      "tx_hardware_gain_db": -10.0
+    }
+  ],
+  "protocol_id": "hexcal-v2.4-experimental-5g8-high-rx-stimulus",
+  "qualification_inputs": [
+    {
+      "final_mute": {
+        "attestation": "mute_returned_radio_exact_serial_readback",
+        "completed_at": "2026-08-27T16:35:43.291700+00:00",
+        "error": null,
+        "purpose": "final",
+        "serial": "104000b29905000e17000800065934759d",
+        "started_at": "2026-08-27T16:35:43.158694+00:00",
+        "status": "passed"
+      },
+      "firmware_evidence_sha256": "ecae2b8391dc9ba2176d0412c0f3ddceb7b9750c989b88e131314dc21d6a4d71",
+      "path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-20260827/stimulus-qualification.json",
+      "qualification_id": "hexcal-v24-5g8-high-rx-stimulus-20260827",
+      "serial": "104000b29905000e17000800065934759d",
+      "sha256": "91b2561d9583c66dc391a8292fe6da251cd3cc709329f10b5616a680558c31bb",
+      "source_commit": "2d0ef0af2e22a356d7b55f4e54dc7ad2cdb055d6",
+      "uri": "usb:1.4.5"
+    },
+    {
+      "final_mute": {
+        "attestation": "mute_returned_radio_exact_serial_readback",
+        "completed_at": "2026-08-27T16:56:10.590870+00:00",
+        "error": null,
+        "purpose": "final",
+        "serial": "104000b29905000e17000800065934759d",
+        "started_at": "2026-08-27T16:56:10.480622+00:00",
+        "status": "passed"
+      },
+      "firmware_evidence_sha256": "ecae2b8391dc9ba2176d0412c0f3ddceb7b9750c989b88e131314dc21d6a4d71",
+      "path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-replicate2-20260827/stimulus-qualification.json",
+      "qualification_id": "hexcal-v24-5g8-high-rx-stimulus-replicate2-20260827",
+      "serial": "104000b29905000e17000800065934759d",
+      "sha256": "4a411b42d594e6ba9a63b46ec5feac2e9c6b29d161778d9d593d2beabeafbd3d",
+      "source_commit": "2d0ef0af2e22a356d7b55f4e54dc7ad2cdb055d6",
+      "uri": "usb:1.4.5"
+    }
+  ],
+  "report_sha256_excludes_this_field": "bd433b2cd7f86af4f1779a6e8d45c37b875666dac5c6184e2498b22d7711e2dd",
+  "schema": 1,
+  "serial": "104000b29905000e17000800065934759d",
+  "status": "exploratory_phase_signature_reproduced_but_calibration_rejected",
+  "trial_count": 12,
+  "trials": [
+    {
+      "accepted_calibration_artifact": false,
+      "amplitude_decoder_error": "HexcalAnalysisError: no repeated long ALL_OFF marker is visible",
+      "artifact_id": "4e6fd5f5280b495298328a88af807c70",
+      "cycle_fundamental_prominence_db": 35.88942146813073,
+      "cycle_period_us": 1496.789170160363,
+      "data_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-20260827/exploratory-artifacts/4e6fd5f5280b495298328a88af807c70/4e6fd5f5280b495298328a88af807c70.sigmf-data",
+      "data_sha256": "ddd2a4fc0f42a05e26e57add06143e90bcec219f6515277251aff372dc6b8661",
+      "metadata_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-20260827/exploratory-artifacts/4e6fd5f5280b495298328a88af807c70/4e6fd5f5280b495298328a88af807c70.sigmf-meta",
+      "metadata_sha256": "cfca5ad9a103c17b70e1dddb09a0a42e361f873dad547d1ae936286deeeb9c10",
+      "peak_abs_component_counts_by_receiver": [
+        51.0,
+        52.0
+      ],
+      "phase_only_alignment": {
+        "all_off_group_complex_std": 1.163609454795472,
+        "all_off_mean_magnitude_counts": 6.128767230793804,
+        "cycle_start_offset_nominal_us": 305,
+        "guard_alignment_score": 1.4188768030846866,
+        "leakage_subtracted_normalized_magnitude": [
+          0.8194276806084316,
+          1.3083630622737725,
+          0.7347821605627187,
+          1.446713752473819,
+          0.398388409020309,
+          0.9083642133034817
+        ],
+        "leakage_subtracted_phase_deg_relative_to_ant1": [
+          0.0,
+          58.31464290534359,
+          119.8914096002996,
+          -122.81837857812107,
+          -50.00244719787008,
+          141.0987175792771
+        ],
+        "state_absolute_magnitude_db_relative_to_all_off": [
+          1.4134431150252904,
+          1.8914833390537977,
+          -0.1540693809288979,
+          -2.274768104323462,
+          0.3040418841176756,
+          -0.8395216692052476
+        ]
+      },
+      "replicate_index": 1,
+      "tone_offset_readback_hz": 99992.0,
+      "tx_hardware_gain_db": -35.0
+    },
+    {
+      "accepted_calibration_artifact": false,
+      "amplitude_decoder_error": "HexcalAnalysisError: no repeated long ALL_OFF marker is visible",
+      "artifact_id": "484441c231894fa8ac9fba10ca58ff0d",
+      "cycle_fundamental_prominence_db": 38.13345263233717,
+      "cycle_period_us": 1497.0424004513745,
+      "data_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-20260827/exploratory-artifacts/484441c231894fa8ac9fba10ca58ff0d/484441c231894fa8ac9fba10ca58ff0d.sigmf-data",
+      "data_sha256": "2d7690e1d5b4901b8f9207f3fb6800fb604bbd0cbe412811d736a82389718e9b",
+      "metadata_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-20260827/exploratory-artifacts/484441c231894fa8ac9fba10ca58ff0d/484441c231894fa8ac9fba10ca58ff0d.sigmf-meta",
+      "metadata_sha256": "3fbd0eaa11d99c8eb5bb69cfb08c59fee46b75b7a895880f5946ca11af3d7190",
+      "peak_abs_component_counts_by_receiver": [
+        52.0,
+        65.0
+      ],
+      "phase_only_alignment": {
+        "all_off_group_complex_std": 2.1652171233508457,
+        "all_off_mean_magnitude_counts": 11.162590331180299,
+        "cycle_start_offset_nominal_us": 708,
+        "guard_alignment_score": 1.3406908334084298,
+        "leakage_subtracted_normalized_magnitude": [
+          0.8731374783694049,
+          1.2290948066907361,
+          0.6352912886238254,
+          1.4540724260168167,
+          0.40694651782874963,
+          1.021484111553323
+        ],
+        "leakage_subtracted_phase_deg_relative_to_ant1": [
+          0.0,
+          58.706672243263284,
+          130.99429392691695,
+          -121.01808701465556,
+          -43.8425794108681,
+          146.53666092377443
+        ],
+        "state_absolute_magnitude_db_relative_to_all_off": [
+          1.4913219291062183,
+          1.760235064861797,
+          -0.3971867787453377,
+          -2.1639785700012943,
+          0.38354371540854404,
+          -1.1245979385024671
+        ]
+      },
+      "replicate_index": 1,
+      "tone_offset_readback_hz": 99992.0,
+      "tx_hardware_gain_db": -30.0
+    },
+    {
+      "accepted_calibration_artifact": false,
+      "amplitude_decoder_error": "HexcalAnalysisError: no repeated long ALL_OFF marker is visible",
+      "artifact_id": "3a02e28bbf42401fa5f47c78523ad076",
+      "cycle_fundamental_prominence_db": 42.0345087263359,
+      "cycle_period_us": 1497.0659988567763,
+      "data_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-20260827/exploratory-artifacts/3a02e28bbf42401fa5f47c78523ad076/3a02e28bbf42401fa5f47c78523ad076.sigmf-data",
+      "data_sha256": "1eb53683b269f94a802ff8cbb308fc64bceac63af897ef55582cac2c58c7a639",
+      "metadata_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-20260827/exploratory-artifacts/3a02e28bbf42401fa5f47c78523ad076/3a02e28bbf42401fa5f47c78523ad076.sigmf-meta",
+      "metadata_sha256": "2ae64f9ecec7440f45feb007d5a0cd8badf1eefbf3ad51a4ea902d6ced28918a",
+      "peak_abs_component_counts_by_receiver": [
+        69.0,
+        103.0
+      ],
+      "phase_only_alignment": {
+        "all_off_group_complex_std": 4.008671132210459,
+        "all_off_mean_magnitude_counts": 19.859397457653657,
+        "cycle_start_offset_nominal_us": 961,
+        "guard_alignment_score": 1.3090547314782743,
+        "leakage_subtracted_normalized_magnitude": [
+          0.9477377290545906,
+          1.0469913288182713,
+          0.6694483533669634,
+          1.3959753282074496,
+          0.2896527986872732,
+          1.2348260588960667
+        ],
+        "leakage_subtracted_phase_deg_relative_to_ant1": [
+          0.0,
+          59.3236922919298,
+          160.26178019260385,
+          -122.76950551726635,
+          -23.409945380860847,
+          151.9516077777925
+        ],
+        "state_absolute_magnitude_db_relative_to_all_off": [
+          1.6958264704928196,
+          1.397940488794802,
+          -1.203299751632262,
+          -1.8159183494381868,
+          0.4724152686353647,
+          -1.9512062121514453
+        ]
+      },
+      "replicate_index": 1,
+      "tone_offset_readback_hz": 99992.0,
+      "tx_hardware_gain_db": -25.0
+    },
+    {
+      "accepted_calibration_artifact": false,
+      "amplitude_decoder_error": "HexcalAnalysisError: ALL_OFF marker has no usable RF amplitude contrast",
+      "artifact_id": "a4d9aa7f371a4401b352716ca651ab2b",
+      "cycle_fundamental_prominence_db": 40.56948457388376,
+      "cycle_period_us": 1497.0293967527407,
+      "data_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-20260827/exploratory-artifacts/a4d9aa7f371a4401b352716ca651ab2b/a4d9aa7f371a4401b352716ca651ab2b.sigmf-data",
+      "data_sha256": "0ebfd06ceea74829dd284ae65d1dcb782351df9a63f07eea15df95d44fe1cb39",
+      "metadata_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-20260827/exploratory-artifacts/a4d9aa7f371a4401b352716ca651ab2b/a4d9aa7f371a4401b352716ca651ab2b.sigmf-meta",
+      "metadata_sha256": "14decc83bb0e2e78e02ed54c3add26c8e20156f096e9f1c260c5fd293fd53976",
+      "peak_abs_component_counts_by_receiver": [
+        87.0,
+        146.0
+      ],
+      "phase_only_alignment": {
+        "all_off_group_complex_std": 7.088542524438861,
+        "all_off_mean_magnitude_counts": 35.28577664154175,
+        "cycle_start_offset_nominal_us": 128,
+        "guard_alignment_score": 1.313359730221102,
+        "leakage_subtracted_normalized_magnitude": [
+          0.9526249693070439,
+          1.0539849080470562,
+          0.6516630299740266,
+          1.4165391542519223,
+          0.2555773873258195,
+          1.2186278350611484
+        ],
+        "leakage_subtracted_phase_deg_relative_to_ant1": [
+          0.0,
+          62.10476354211767,
+          160.58242647642442,
+          -119.9195274873592,
+          -11.349041093002342,
+          152.9218712622175
+        ],
+        "state_absolute_magnitude_db_relative_to_all_off": [
+          1.6975916063727952,
+          1.3523322221398828,
+          -1.1665299480525069,
+          -1.6947511149652503,
+          0.46142903142337555,
+          -1.947717013219378
+        ]
+      },
+      "replicate_index": 1,
+      "tone_offset_readback_hz": 99992.0,
+      "tx_hardware_gain_db": -20.0
+    },
+    {
+      "accepted_calibration_artifact": false,
+      "amplitude_decoder_error": "HexcalAnalysisError: ALL_OFF marker has no usable RF amplitude contrast",
+      "artifact_id": "0f3c4d6ae23d47cdaa2ea23701b8ec8e",
+      "cycle_fundamental_prominence_db": 49.16424056799823,
+      "cycle_period_us": 1497.0020729133048,
+      "data_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-20260827/exploratory-artifacts/0f3c4d6ae23d47cdaa2ea23701b8ec8e/0f3c4d6ae23d47cdaa2ea23701b8ec8e.sigmf-data",
+      "data_sha256": "86ff401234e936d5cd8c776415691efb43d64f3599bf57306133b3c3df4b7ad6",
+      "metadata_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-20260827/exploratory-artifacts/0f3c4d6ae23d47cdaa2ea23701b8ec8e/0f3c4d6ae23d47cdaa2ea23701b8ec8e.sigmf-meta",
+      "metadata_sha256": "a79958014bf7ac1d09b7db15dbaecdddb3ec833662d8b1438abbb50eebd534c9",
+      "peak_abs_component_counts_by_receiver": [
+        127.0,
+        224.0
+      ],
+      "phase_only_alignment": {
+        "all_off_group_complex_std": 12.633599487332221,
+        "all_off_mean_magnitude_counts": 62.78479583682509,
+        "cycle_start_offset_nominal_us": 1085,
+        "guard_alignment_score": 1.2845535531225802,
+        "leakage_subtracted_normalized_magnitude": [
+          0.880688141601406,
+          1.187015121905949,
+          0.6378306321893813,
+          1.4672203816820784,
+          0.3493340049955749,
+          1.0647937296869328
+        ],
+        "leakage_subtracted_phase_deg_relative_to_ant1": [
+          0.0,
+          60.6860525184951,
+          136.25082288408072,
+          -120.12426970732567,
+          -37.34705502755435,
+          148.62008967527277
+        ],
+        "state_absolute_magnitude_db_relative_to_all_off": [
+          1.532443054068866,
+          1.670292651194918,
+          -0.5458365098284874,
+          -2.101393853937784,
+          0.40501557718096576,
+          -1.3045495303013446
+        ]
+      },
+      "replicate_index": 1,
+      "tone_offset_readback_hz": 99992.0,
+      "tx_hardware_gain_db": -15.0
+    },
+    {
+      "accepted_calibration_artifact": false,
+      "amplitude_decoder_error": "HexcalAnalysisError: ALL_OFF marker has no usable RF amplitude contrast",
+      "artifact_id": "7eaf5b1dbafe4f46af5ba9b8f3f6c790",
+      "cycle_fundamental_prominence_db": 48.72474493989582,
+      "cycle_period_us": 1497.1342291182973,
+      "data_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-20260827/exploratory-artifacts/7eaf5b1dbafe4f46af5ba9b8f3f6c790/7eaf5b1dbafe4f46af5ba9b8f3f6c790.sigmf-data",
+      "data_sha256": "7860a7d73933bda0afe3ea81957fdacfaf69acccf8a7b02c7729850d2dffe6f5",
+      "metadata_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-20260827/exploratory-artifacts/7eaf5b1dbafe4f46af5ba9b8f3f6c790/7eaf5b1dbafe4f46af5ba9b8f3f6c790.sigmf-meta",
+      "metadata_sha256": "d12a64af084f841dcfaaa73894fb669beb868b7ae8b6a3203c6c963ddc2038bd",
+      "peak_abs_component_counts_by_receiver": [
+        191.0,
+        376.0
+      ],
+      "phase_only_alignment": {
+        "all_off_group_complex_std": 22.49819250959998,
+        "all_off_mean_magnitude_counts": 111.97102137117207,
+        "cycle_start_offset_nominal_us": 707,
+        "guard_alignment_score": 1.2717728241951105,
+        "leakage_subtracted_normalized_magnitude": [
+          0.8741727983685229,
+          1.177287980963013,
+          0.6298971453575386,
+          1.446287012293057,
+          0.36964463064521746,
+          1.10664413424126
+        ],
+        "leakage_subtracted_phase_deg_relative_to_ant1": [
+          0.0,
+          59.06398580926833,
+          137.7869856145636,
+          -121.36124556450136,
+          -41.076208506823974,
+          148.8079854600811
+        ],
+        "state_absolute_magnitude_db_relative_to_all_off": [
+          1.516878370950236,
+          1.6655234916370927,
+          -0.5830593639331905,
+          -2.0945640262610827,
+          0.3962617867789783,
+          -1.3744194412206714
+        ]
+      },
+      "replicate_index": 1,
+      "tone_offset_readback_hz": 99992.0,
+      "tx_hardware_gain_db": -10.0
+    },
+    {
+      "accepted_calibration_artifact": false,
+      "amplitude_decoder_error": "HexcalAnalysisError: no repeated long ALL_OFF marker is visible",
+      "artifact_id": "f7662e53102d4cdbba9132f2dfa7d18f",
+      "cycle_fundamental_prominence_db": 31.863607052617596,
+      "cycle_period_us": 1496.9555874046412,
+      "data_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-replicate2-20260827/exploratory-artifacts/f7662e53102d4cdbba9132f2dfa7d18f/f7662e53102d4cdbba9132f2dfa7d18f.sigmf-data",
+      "data_sha256": "4d9534f7e827a6ac2d11b9076d08fb31777c8e2ee2c09cf1485744d49d8b1381",
+      "metadata_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-replicate2-20260827/exploratory-artifacts/f7662e53102d4cdbba9132f2dfa7d18f/f7662e53102d4cdbba9132f2dfa7d18f.sigmf-meta",
+      "metadata_sha256": "d5aa5ead321a840ffd95c822cf575a309d1690f024eef62c47133ea7765554f5",
+      "peak_abs_component_counts_by_receiver": [
+        50.0,
+        51.0
+      ],
+      "phase_only_alignment": {
+        "all_off_group_complex_std": 1.12002854389399,
+        "all_off_mean_magnitude_counts": 6.095977295209279,
+        "cycle_start_offset_nominal_us": 1400,
+        "guard_alignment_score": 1.3817810272822983,
+        "leakage_subtracted_normalized_magnitude": [
+          0.8633317618480306,
+          1.2503733675820092,
+          0.6484349851039849,
+          1.493517785537529,
+          0.38203554104522675,
+          0.9456269086593044
+        ],
+        "leakage_subtracted_phase_deg_relative_to_ant1": [
+          0.0,
+          61.269460140189466,
+          127.68133771187706,
+          -120.68012158626566,
+          -42.01834020560369,
+          144.4940282007505
+        ],
+        "state_absolute_magnitude_db_relative_to_all_off": [
+          1.4213909415550399,
+          1.6823120699246805,
+          -0.3139398882109522,
+          -2.1353303806848754,
+          0.3605636526200174,
+          -0.9420040965824974
+        ]
+      },
+      "replicate_index": 2,
+      "tone_offset_readback_hz": 99992.0,
+      "tx_hardware_gain_db": -35.0
+    },
+    {
+      "accepted_calibration_artifact": false,
+      "amplitude_decoder_error": "HexcalAnalysisError: no repeated long ALL_OFF marker is visible",
+      "artifact_id": "9d302ac994b041e0b11bb18fe8e8f959",
+      "cycle_fundamental_prominence_db": 37.07206756534771,
+      "cycle_period_us": 1496.6762414803766,
+      "data_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-replicate2-20260827/exploratory-artifacts/9d302ac994b041e0b11bb18fe8e8f959/9d302ac994b041e0b11bb18fe8e8f959.sigmf-data",
+      "data_sha256": "b290e020d596518d7758b485e8b9c3874d2ef46b2fb0988e7956d4108eaa4645",
+      "metadata_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-replicate2-20260827/exploratory-artifacts/9d302ac994b041e0b11bb18fe8e8f959/9d302ac994b041e0b11bb18fe8e8f959.sigmf-meta",
+      "metadata_sha256": "ed0980b07619828119a8fef231f5a29f1b3d8c8467d72ba53a56d53eb5e0925a",
+      "peak_abs_component_counts_by_receiver": [
+        61.0,
+        81.0
+      ],
+      "phase_only_alignment": {
+        "all_off_group_complex_std": 2.129077913842531,
+        "all_off_mean_magnitude_counts": 10.931770149423663,
+        "cycle_start_offset_nominal_us": 1464,
+        "guard_alignment_score": 1.3834303276012636,
+        "leakage_subtracted_normalized_magnitude": [
+          0.8817638007332652,
+          1.1892619816460366,
+          0.618821326020695,
+          1.4503892151391171,
+          0.36302263093109005,
+          1.090776970434269
+        ],
+        "leakage_subtracted_phase_deg_relative_to_ant1": [
+          0.0,
+          58.578784208215126,
+          132.39973467302798,
+          -121.70065375776105,
+          -35.02949172223464,
+          146.71704903814225
+        ],
+        "state_absolute_magnitude_db_relative_to_all_off": [
+          1.5549090328696378,
+          1.675337583912984,
+          -0.5020317019893776,
+          -2.0440081345344057,
+          0.4655150088453213,
+          -1.3568034952034635
+        ]
+      },
+      "replicate_index": 2,
+      "tone_offset_readback_hz": 99992.0,
+      "tx_hardware_gain_db": -30.0
+    },
+    {
+      "accepted_calibration_artifact": false,
+      "amplitude_decoder_error": "HexcalAnalysisError: no repeated long ALL_OFF marker is visible",
+      "artifact_id": "03d5ef90b18c4357aa83d93f4c6c5ddb",
+      "cycle_fundamental_prominence_db": 39.27121644413529,
+      "cycle_period_us": 1496.689532291958,
+      "data_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-replicate2-20260827/exploratory-artifacts/03d5ef90b18c4357aa83d93f4c6c5ddb/03d5ef90b18c4357aa83d93f4c6c5ddb.sigmf-data",
+      "data_sha256": "707fef46cfeab1c48020574d78fd6ee699408b80420b6c9b1839a8ddbd330f09",
+      "metadata_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-replicate2-20260827/exploratory-artifacts/03d5ef90b18c4357aa83d93f4c6c5ddb/03d5ef90b18c4357aa83d93f4c6c5ddb.sigmf-meta",
+      "metadata_sha256": "0b2a29d6bf085f677821ac4a5469bdfdcc80c3d69e4b396985585054a2ad2f18",
+      "peak_abs_component_counts_by_receiver": [
+        69.0,
+        103.0
+      ],
+      "phase_only_alignment": {
+        "all_off_group_complex_std": 3.9204472521683256,
+        "all_off_mean_magnitude_counts": 19.52745228462691,
+        "cycle_start_offset_nominal_us": 97,
+        "guard_alignment_score": 1.2530733309299154,
+        "leakage_subtracted_normalized_magnitude": [
+          0.9131026809900666,
+          1.1784369442072946,
+          0.6177826441780647,
+          1.4352612383927017,
+          0.412011725475731,
+          1.0798823929884422
+        ],
+        "leakage_subtracted_phase_deg_relative_to_ant1": [
+          0.0,
+          59.906485680878575,
+          140.7329592773815,
+          -119.03277060065862,
+          -37.05514778220382,
+          150.15615260308732
+        ],
+        "state_absolute_magnitude_db_relative_to_all_off": [
+          1.5640428547705736,
+          1.6473473271793195,
+          -0.6192049884946523,
+          -1.9668578317097754,
+          0.47645897083876354,
+          -1.366514259119286
+        ]
+      },
+      "replicate_index": 2,
+      "tone_offset_readback_hz": 99992.0,
+      "tx_hardware_gain_db": -25.0
+    },
+    {
+      "accepted_calibration_artifact": false,
+      "amplitude_decoder_error": "HexcalAnalysisError: ALL_OFF marker has no usable RF amplitude contrast",
+      "artifact_id": "8650b20675414fa48a4dd14f610f5724",
+      "cycle_fundamental_prominence_db": 40.16317455348114,
+      "cycle_period_us": 1496.6450623691703,
+      "data_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-replicate2-20260827/exploratory-artifacts/8650b20675414fa48a4dd14f610f5724/8650b20675414fa48a4dd14f610f5724.sigmf-data",
+      "data_sha256": "4366bdba0ee2749feff4cce73cd261d361a63cd01a3ed2b9d0e822fb06989fb8",
+      "metadata_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-replicate2-20260827/exploratory-artifacts/8650b20675414fa48a4dd14f610f5724/8650b20675414fa48a4dd14f610f5724.sigmf-meta",
+      "metadata_sha256": "687b14c34e2036aa063fc579d3407914906528f43f88d8aec64bf4c67562a627",
+      "peak_abs_component_counts_by_receiver": [
+        86.0,
+        147.0
+      ],
+      "phase_only_alignment": {
+        "all_off_group_complex_std": 7.0093302145678145,
+        "all_off_mean_magnitude_counts": 34.90433818670986,
+        "cycle_start_offset_nominal_us": 1333,
+        "guard_alignment_score": 1.2763748727826778,
+        "leakage_subtracted_normalized_magnitude": [
+          0.8952592436933902,
+          1.1445332426428885,
+          0.6280266815425628,
+          1.4487593059914543,
+          0.31194180204685457,
+          1.1392654720373345
+        ],
+        "leakage_subtracted_phase_deg_relative_to_ant1": [
+          0.0,
+          61.89026493527933,
+          144.9667563583099,
+          -120.56067019165103,
+          -26.919206650291756,
+          151.07592554831234
+        ],
+        "state_absolute_magnitude_db_relative_to_all_off": [
+          1.5637451614396467,
+          1.532352943771274,
+          -0.7691379132343887,
+          -1.9535042436237062,
+          0.45377204780675473,
+          -1.578911543420502
+        ]
+      },
+      "replicate_index": 2,
+      "tone_offset_readback_hz": 99992.0,
+      "tx_hardware_gain_db": -20.0
+    },
+    {
+      "accepted_calibration_artifact": false,
+      "amplitude_decoder_error": "HexcalAnalysisError: ALL_OFF marker has no usable RF amplitude contrast",
+      "artifact_id": "d24ff9ed94cd434dbff9cab41e6c207d",
+      "cycle_fundamental_prominence_db": 44.46526712129937,
+      "cycle_period_us": 1496.927737841541,
+      "data_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-replicate2-20260827/exploratory-artifacts/d24ff9ed94cd434dbff9cab41e6c207d/d24ff9ed94cd434dbff9cab41e6c207d.sigmf-data",
+      "data_sha256": "4ae1598d9b384a044cb190014b04a4cc5bb2292601f7b96cff945e0471515383",
+      "metadata_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-replicate2-20260827/exploratory-artifacts/d24ff9ed94cd434dbff9cab41e6c207d/d24ff9ed94cd434dbff9cab41e6c207d.sigmf-meta",
+      "metadata_sha256": "0b0cb5f7a1cc6f15eed3f47776a6d77164fdf19b310d5398e5eb6f113a6f15c8",
+      "peak_abs_component_counts_by_receiver": [
+        124.0,
+        221.0
+      ],
+      "phase_only_alignment": {
+        "all_off_group_complex_std": 12.08717917389355,
+        "all_off_mean_magnitude_counts": 62.11186089178162,
+        "cycle_start_offset_nominal_us": 86,
+        "guard_alignment_score": 1.2976751486804812,
+        "leakage_subtracted_normalized_magnitude": [
+          0.8767644531784766,
+          1.2490817507000704,
+          0.6503956729484431,
+          1.4553129573830081,
+          0.3866578264620862,
+          0.9902647442120582
+        ],
+        "leakage_subtracted_phase_deg_relative_to_ant1": [
+          0.0,
+          61.26676596939498,
+          132.10029772294183,
+          -118.34508011850241,
+          -41.86678044120285,
+          148.15825326134052
+        ],
+        "state_absolute_magnitude_db_relative_to_all_off": [
+          1.4698781661554627,
+          1.7427102751906276,
+          -0.3958841804010619,
+          -2.0686649950734557,
+          0.3657058075327412,
+          -1.0920052320976323
+        ]
+      },
+      "replicate_index": 2,
+      "tone_offset_readback_hz": 99992.0,
+      "tx_hardware_gain_db": -15.0
+    },
+    {
+      "accepted_calibration_artifact": false,
+      "amplitude_decoder_error": "HexcalAnalysisError: ALL_OFF marker has no usable RF amplitude contrast",
+      "artifact_id": "e547ccdf820544c0a120ec2fe06d3261",
+      "cycle_fundamental_prominence_db": 40.909956793928046,
+      "cycle_period_us": 1496.7669297561015,
+      "data_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-replicate2-20260827/exploratory-artifacts/e547ccdf820544c0a120ec2fe06d3261/e547ccdf820544c0a120ec2fe06d3261.sigmf-data",
+      "data_sha256": "5b13274047a5f5ba58feceefed036977817d343327e21a943d2534acbb52a092",
+      "metadata_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/hexcal-stimulus-qualifications/hexcal-v24-5g8-high-rx-stimulus-replicate2-20260827/exploratory-artifacts/e547ccdf820544c0a120ec2fe06d3261/e547ccdf820544c0a120ec2fe06d3261.sigmf-meta",
+      "metadata_sha256": "42c5ed252b0517e866f7a8d1e4a42201c33ae3ced2a1aa8b5adf1d87df25ba64",
+      "peak_abs_component_counts_by_receiver": [
+        194.0,
+        390.0
+      ],
+      "phase_only_alignment": {
+        "all_off_group_complex_std": 21.78952124431931,
+        "all_off_mean_magnitude_counts": 110.31014475069152,
+        "cycle_start_offset_nominal_us": 697,
+        "guard_alignment_score": 1.2964349896204372,
+        "leakage_subtracted_normalized_magnitude": [
+          0.898292356730307,
+          1.2366395556373146,
+          0.6329892733920008,
+          1.4488164366802896,
+          0.34141803587087044,
+          1.0234660173307308
+        ],
+        "leakage_subtracted_phase_deg_relative_to_ant1": [
+          0.0,
+          59.48435108769772,
+          132.5457739081798,
+          -120.67219386267736,
+          -47.27396145451871,
+          150.3939972090746
+        ],
+        "state_absolute_magnitude_db_relative_to_all_off": [
+          1.540451444769243,
+          1.7381204919608346,
+          -0.4545037875797286,
+          -2.082840495906782,
+          0.2973291378705489,
+          -1.3028599460364543
+        ]
+      },
+      "replicate_index": 2,
+      "tone_offset_readback_hz": 99992.0,
+      "tx_hardware_gain_db": -10.0
+    }
+  ],
+  "uri": "usb:1.4.5"
+}

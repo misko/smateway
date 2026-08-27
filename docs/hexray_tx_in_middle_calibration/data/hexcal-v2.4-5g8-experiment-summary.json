@@ -1,0 +1,166 @@
+{
+  "schema": 1,
+  "result_kind": "hexcal_v2_4_experimental_5g8_rejected_calibration_summary",
+  "status": "rejected_before_timing_or_calibration",
+  "center_frequency_hz": 5800000000,
+  "emitted_carrier_frequency_hz": 5800100000,
+  "hardware": {
+    "pluto_serial": "104000b29905000e17000800065934759d",
+    "board_id": "stm32c011-4c0055000950313950363920",
+    "array_order": [
+      "ANT1",
+      "ANT2",
+      "ANT3",
+      "ANT4",
+      "ANT5",
+      "ANT6"
+    ],
+    "tx_port": "TX1",
+    "rx_port_analyzed": "RX2"
+  },
+  "experimental_scope": {
+    "physical_transceiver": "AD9363",
+    "software_profile": "AD9361 extended-band profile",
+    "officially_qualified_operating_point": false,
+    "calibration_coefficients_released": false
+  },
+  "stimulus": {
+    "sample_rate_hz": 1000000,
+    "duration_s_per_condition": 0.3,
+    "kernel_buffers": 8,
+    "tone_offset_hz_requested": 100000,
+    "dds_scale": 0.125,
+    "tx_hardware_gains_db": [
+      -35,
+      -30,
+      -25,
+      -20,
+      -15,
+      -10
+    ],
+    "tx2_hardware_gain_db": -80,
+    "tx2_dds_scales": 0.0
+  },
+  "sweeps": [
+    {
+      "name": "v2.3 RX30 initial screen",
+      "protocol_id": "hexcal-v2.3-experimental-5g8-stimulus",
+      "source_commit": "69ac0a2a67eda308260983d4d2407fc66c987110",
+      "receiver_gain_db": 30,
+      "user_reported_tx2_antenna_state": "attached",
+      "qualification_id": "hexcal-v23-5g8-stimulus-20260827",
+      "qualification_ledger_sha256": "b98321ef5b062a9beb3344d0f932d48dc5252bd6472163ea1d659657c9bb1a23",
+      "firmware_evidence_sha256": "c4ae1118e7c354b354ab093ad6df8cab23e1fb5580bf73c672de5f949740a9aa",
+      "peak_abs_component_counts_by_gain_rx1_rx2": [
+        [3, 3],
+        [3, 3],
+        [4, 3],
+        [4, 4],
+        [6, 5],
+        [7, 7]
+      ],
+      "status": "failed",
+      "final_exact_mute": "passed"
+    },
+    {
+      "name": "v2.4 RX60 screen A",
+      "protocol_id": "hexcal-v2.4-experimental-5g8-high-rx-stimulus",
+      "source_commit": "2d0ef0af2e22a356d7b55f4e54dc7ad2cdb055d6",
+      "receiver_gain_db": 60,
+      "user_reported_tx2_antenna_state": "attached",
+      "qualification_id": "hexcal-v24-5g8-high-rx-stimulus-20260827",
+      "qualification_ledger_sha256": "91b2561d9583c66dc391a8292fe6da251cd3cc709329f10b5616a680558c31bb",
+      "firmware_evidence_sha256": "ecae2b8391dc9ba2176d0412c0f3ddceb7b9750c989b88e131314dc21d6a4d71",
+      "peak_abs_component_counts_by_gain_rx1_rx2": [
+        [51, 52],
+        [52, 65],
+        [69, 103],
+        [87, 146],
+        [127, 224],
+        [191, 376]
+      ],
+      "status": "failed",
+      "final_exact_mute": "passed"
+    },
+    {
+      "name": "v2.4 RX60 screen B",
+      "protocol_id": "hexcal-v2.4-experimental-5g8-high-rx-stimulus",
+      "source_commit": "2d0ef0af2e22a356d7b55f4e54dc7ad2cdb055d6",
+      "receiver_gain_db": 60,
+      "user_reported_tx2_antenna_state": "attached",
+      "qualification_id": "hexcal-v24-5g8-high-rx-stimulus-replicate2-20260827",
+      "qualification_ledger_sha256": "4a411b42d594e6ba9a63b46ec5feac2e9c6b29d161778d9d593d2beabeafbd3d",
+      "firmware_evidence_sha256": "ecae2b8391dc9ba2176d0412c0f3ddceb7b9750c989b88e131314dc21d6a4d71",
+      "peak_abs_component_counts_by_gain_rx1_rx2": [
+        [50, 51],
+        [61, 81],
+        [69, 103],
+        [86, 147],
+        [124, 221],
+        [194, 390]
+      ],
+      "status": "failed",
+      "final_exact_mute": "passed"
+    },
+    {
+      "name": "v2.4 RX60 after TX2 antenna removal",
+      "protocol_id": "hexcal-v2.4-experimental-5g8-high-rx-stimulus",
+      "source_commit": "d5ca258fbec4eda6c0cd59002cebe834dcb227d4",
+      "receiver_gain_db": 60,
+      "user_reported_tx2_antenna_state": "removed",
+      "qualification_id": "hexcal-v24-5g8-tx2-antenna-removed-20260827",
+      "qualification_ledger_sha256": "6e3b38bbf1ca0463abac9c2f8e2370f14920353c96cb9f7a841120494d7d9120",
+      "firmware_evidence_sha256": "b887f3d34eb1e357579e37c141c769c42c189b08fba62c5d5df85e4f0015e773",
+      "peak_abs_component_counts_by_gain_rx1_rx2": [
+        [81, 49],
+        [81, 63],
+        [89, 101],
+        [117, 154],
+        [161, 239],
+        [231, 389]
+      ],
+      "status": "failed",
+      "final_exact_mute": "passed"
+    }
+  ],
+  "phase_diagnostic": {
+    "path": "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.4-5g8-phase-leakage-results.json",
+    "sha256": "13e47b803c3029704c83a30aac6cf37bf43881b688e1bb090f72bf6626f525bc",
+    "capture_source_commit": "2d0ef0af2e22a356d7b55f4e54dc7ad2cdb055d6",
+    "analysis_source_commit": "d5ca258fbec4eda6c0cd59002cebe834dcb227d4",
+    "trial_count": 12,
+    "status": "exploratory_phase_signature_reproduced_but_calibration_rejected",
+    "may_be_used_as_array_calibration": false
+  },
+  "tx2_antenna_discriminator": {
+    "attached_rx2_peak_counts_at_minus_10_db": [
+      376,
+      390
+    ],
+    "attached_mean_rx2_peak_counts_at_minus_10_db": 383.0,
+    "removed_rx2_peak_counts_at_minus_10_db": 389,
+    "removed_change_from_attached_mean_percent": 1.566579634464752,
+    "conclusion": "Removing the TX2 antenna did not materially reduce the RX2 response and therefore does not support TX1-to-TX2 reradiation as the dominant leakage path."
+  },
+  "findings": {
+    "all_off_amplitude_contrast_available": false,
+    "all_six_states_admissibly_identified": false,
+    "timing_qualification_started": false,
+    "calibration_matrix_started": false,
+    "repeatable_phase_only_signature_observed": true,
+    "external_wifi_is_leading_explanation": false,
+    "reason_external_wifi_is_unlikely": "The exact requested +100 kHz tone rose monotonically with commanded TX1 power and the phase pattern repeated across two independent screens.",
+    "leading_unresolved_paths": [
+      "direct TX1-to-RX2 leakage inside the Pluto",
+      "near-field coupling from the centered TX1 antenna into the RX2 cable or common selector path",
+      "finite ALL_OFF isolation or board-level coupling in the selector",
+      "connector or cable defect"
+    ]
+  },
+  "next_isolation_sequence": [
+    "Capture RX2 with TX1 active and the selector disconnected from RX2, using a 50 ohm termination at the Pluto RX2 reference plane.",
+    "Reconnect the selector but terminate or shield its array inputs while retaining ALL_OFF.",
+    "Separate and immobilize TX1 and RX2 cables and repeat the unchanged bounded sweep.",
+    "Only version a new timing and calibration protocol after the ALL_OFF marker regains the frozen amplitude contrast."
+  ]
+}

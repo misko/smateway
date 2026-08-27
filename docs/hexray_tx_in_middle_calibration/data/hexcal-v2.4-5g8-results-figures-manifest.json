@@ -1,0 +1,31 @@
+{
+  "figures": [
+    {
+      "byte_size": 236949,
+      "path": "docs/hexray_tx_in_middle_calibration/png/fig09_v24_5g8_gain_screen.png",
+      "sha256": "311181703c90e0aa7d426951069903bda385b28ca3292ad9f35733309dfd90d1"
+    },
+    {
+      "byte_size": 241064,
+      "path": "docs/hexray_tx_in_middle_calibration/png/fig10_v24_5g8_phase_signature.png",
+      "sha256": "402c5160597721c1bce037b66617fcd999217b125ccef408fe5b0173ef773411"
+    },
+    {
+      "byte_size": 154417,
+      "path": "docs/hexray_tx_in_middle_calibration/png/fig11_v24_5g8_failure_localization.png",
+      "sha256": "f8d528d541c5ee397e36874d9ef5dd5df738e733a95303a7598e4e9186e713a2"
+    }
+  ],
+  "matplotlib_version": "3.11.1",
+  "phase_diagnostic": {
+    "path": "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.4-5g8-phase-leakage-results.json",
+    "sha256": "13e47b803c3029704c83a30aac6cf37bf43881b688e1bb090f72bf6626f525bc"
+  },
+  "renderer": "scripts/render_hexcal_5g8_results.py",
+  "renderer_sha256": "10a86dc71301c7bf2e5ee692d8c9fa85e0bd5ac740e59b6255b3e8421f3c3e78",
+  "schema": 1,
+  "summary": {
+    "path": "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.4-5g8-experiment-summary.json",
+    "sha256": "fb4ddd510e941c9511f2f27ac7348e0a2e7c50f5b19ee5dc786a05e3c7019b98"
+  }
+}

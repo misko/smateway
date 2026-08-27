@@ -46,6 +46,9 @@ cable identities and the exact calibration reference plane.
 | DONE | Implement/test/source-bind v2.2 at `89f8ed3`; both independent timing captures passed all gates with 300/300 cycles. |
 | DONE | Capture all 15 predeclared calibration artifacts: 15 unique streams, zero retries or failures. |
 | DONE | Aggregate five per-frequency corrections, pass every held-out/leave-one-round-out gate, independently replay/audit all raw artifacts with zero issues, and verify final exact mute. |
+| REJECTED | Exact experimental 5.8 GHz v2.3 RX30 screen: insufficient observable signal. |
+| REJECTED | Exact experimental 5.8 GHz v2.4 RX60 screens: signal tracked TX1 gain, but direct/common leakage masked the ALL_OFF amplitude marker. |
+| DONE | Remove the separately connected TX2 antenna and repeat v2.4; unchanged RX2 response deprioritized TX1→TX2 reradiation, with final exact mute passed. |
 
 The reviewed build has ELF SHA-256
 `8e0cc535f98d30be02f7b9662938516d3d5d2a8bbc5d72440e1494617c7dc9c9`, raw BIN SHA-256
@@ -782,7 +785,89 @@ coefficient, headline metric, immutable local-state relative path and SHA-256. K
 are timing analysis `64879770…0b141`, calibration `cac6f91b…b3194`, and independent audit
 `b15bd713…bd1cc`. The final exact-radio mute readback passed.
 
-## 13. Reproduction and provenance
+## 13. Experimental exact-5.8-GHz extension
+
+### Admission result: rejected before timing or calibration
+
+The exact `5.800 GHz` extension did **not** produce an admissible array calibration. It was
+executed through the AD9361 extended-band software profile on a physical AD9363 and remains an
+explicitly experimental operating point. TX1 emitted a requested `+100 kHz` DDS tone (actual
+readback `99,992 Hz`) at scale `0.125`; TX2 was held at `-80 dB` with exact-zero DDS scales.
+Every condition used eight kernel buffers, retained ADC headroom, and passed its post-condition
+and final exact-radio mute readbacks.
+
+The frozen v2.3 screen used RX `30 dB`. Its strongest TX candidate, `-10 dB`, reached only seven
+ADC component counts on RX2. The separately frozen v2.4 follow-up changed only the fixed RX gain
+to `60 dB`; its full `-35` through `-10 dB` TX ladder was then repeated twice. Signal level rose
+monotonically with commanded TX1 power, but the six-state amplitude decoder could not find a
+usable repeated long ALL_OFF marker. The strict gate therefore rejected every artifact, and no
+5.8 GHz timing pair or calibration matrix was started.
+
+| Screen | User-reported TX2 antenna | RX gain | RX2 peak counts over TX `-35…-10 dB` | Result |
+|---|---|---:|---|---|
+| v2.3 initial | attached | 30 dB | `3, 3, 3, 4, 5, 7` | rejected: insufficient observability |
+| v2.4 A | attached | 60 dB | `52, 65, 103, 146, 224, 376` | rejected: ALL_OFF contrast absent |
+| v2.4 B | attached | 60 dB | `51, 81, 103, 147, 221, 390` | rejected: ALL_OFF contrast absent |
+| v2.4 corrected rerun | removed | 60 dB | `49, 63, 101, 154, 239, 389` | rejected: ALL_OFF contrast absent |
+
+![5.8 GHz gain screens and TX2-antenna discriminator](png/fig09_v24_5g8_gain_screen.png)
+
+### What the TX2-antenna rerun established
+
+The additional antenna formerly connected to TX2 was a reasonable reradiation hypothesis, but
+the controlled removal test does not support it as the dominant RX2 path. At TX `-10 dB`, the
+two attached-antenna screens measured RX2 peaks of `376` and `390` counts (mean `383`); after
+removal the result was `389`, only `+1.57%` from that mean. RX1 did change—from attached values
+of `191/194` to `231` counts at the same condition—so removing the antenna altered the local RF
+environment, just not the response blocking RX2 state discrimination.
+
+External 5.8 GHz Wi-Fi is also not the leading explanation. This is an inference, not a spectrum
+certification: the observed component is at our requested `+100 kHz` offset, rises with our
+commanded TX1 power, and reproduces a coherent phase pattern across two independent screens.
+Unrelated Wi-Fi would not ordinarily track that gain ladder or repeat the selector-synchronous
+phase signature.
+
+The leading paths are therefore still unresolved between direct TX1-to-RX2 leakage inside the
+Pluto, near-field coupling into the RX2 cable/common selector route, finite selector ALL_OFF or
+PCB isolation, and a cable/connector defect. Ordinary contact between intact SMA cable shields
+is not by itself a fault because the shields share ground, although loose connectors, damaged
+shielding, exposed launches, or long parallel runs can increase coupling.
+
+![5.8 GHz failure localization](png/fig11_v24_5g8_failure_localization.png)
+
+The clean next discriminator is to keep the same bounded TX1 stimulus while disconnecting the
+selector from Pluto RX2 and terminating RX2 with `50 ohm` at the Pluto reference plane. A
+remaining tone points to Pluto-internal leakage; a large reduction moves the search downstream
+to the RX2 cable and selector. Then reconnect the selector with its array inputs terminated or
+shielded, separate and immobilize the TX/RX cables, and repeat the unchanged sweep. Do not
+freeze a new timing or calibration protocol until the ALL_OFF amplitude marker again passes the
+predeclared contrast gate.
+
+### Exploratory phase-only finding
+
+The failed v2.4 artifacts were retained only for diagnosis. An offline analyzer independently
+verified their ledger and IQ hashes, demodulated RX2, estimated a `1496.84–1496.97 us` cyclic
+period, aligned the cycle through the longer marker/guard pattern, and subtracted the complex
+ALL_OFF component. Across the two screens it recovered a repeatable relative phase fingerprint:
+ANT2 stayed near `59–62°`, ANT4 near `-119…-122°`, and ANT6 near `143–152°` relative to ANT1.
+ANT3 and ANT5 varied more strongly with TX level.
+
+![Exploratory leakage-subtracted 5.8 GHz phase signature](png/fig10_v24_5g8_phase_signature.png)
+
+This does not reverse the rejection. The alignment is RF-inferred, the ordinary amplitude
+marker is unavailable, independent GPIO timing was not observed, and the leakage-subtracted
+per-cycle quality gates were not passed. It is a useful deterministic fingerprint for locating
+the coupling path—not a six-port calibration coefficient table.
+
+The committed
+[`5.8 GHz experiment summary`](data/hexcal-v2.4-5g8-experiment-summary.json) binds all four
+screen ledgers, firmware evidence, headroom peaks, mute outcomes and the TX2-antenna comparison.
+The separate
+[`exploratory phase report`](data/hexcal-v2.4-5g8-phase-leakage-results.json) binds 12 raw
+artifact/metadata hash pairs and the two-screen phase distribution. The final exact-radio mute
+readback passed after the corrected rerun.
+
+## 14. Reproduction and provenance
 
 The compact, source-hashed design snapshot is
 [`data/design-snapshot.json`](data/design-snapshot.json). It records the confirmed geometry,
@@ -821,3 +906,15 @@ uv run --extra report pytest -q tests/test_render_hexray_center_calibration_resu
 
 [`data/hexcal-v2.2-results-figures-manifest.json`](data/hexcal-v2.2-results-figures-manifest.json)
 binds the result renderer, result snapshot and all three committed PNG hashes.
+
+Generate and byte-check the three experimental 5.8 GHz result PNGs:
+
+```bash
+uv run --extra report python scripts/render_hexcal_5g8_results.py
+uv run --extra report python scripts/render_hexcal_5g8_results.py --check
+uv run --extra report pytest -q tests/test_render_hexcal_5g8_results.py
+```
+
+[`data/hexcal-v2.4-5g8-results-figures-manifest.json`](data/hexcal-v2.4-5g8-results-figures-manifest.json)
+binds the renderer, rejected experiment summary, exploratory phase report, and all three PNG
+hashes. Generated PNGs are never manually edited.

@@ -80,7 +80,7 @@ from smateway.hexcal_gain import (
     load_hexcal_stimulus_qualification,
     stimulus_protocol,
 )
-from smateway.hexcal_timing import BANDWIDTH_HZ, SAMPLE_RATE_HZ, TIMING_RECEIVER_GAIN_DB
+from smateway.hexcal_timing import BANDWIDTH_HZ, SAMPLE_RATE_HZ
 from smateway.rf_policy import classify_fast20_center_frequency
 
 DEFAULT_BOARD_ID = "stm32c011-4c0055000950313950363920"

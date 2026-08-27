@@ -934,7 +934,8 @@ def main() -> int:
                 or args.dds_scale != 0.125
             ):
                 raise ValueError(
-                    "stimulus protocols forbid RX-ladder/fixed-TX overrides and fix DDS scale at 0.125"
+                    "stimulus protocols forbid RX-ladder/fixed-TX overrides and fix DDS "
+                    "scale at 0.125"
                 )
             if args.allow_experimental_5g8 != selected_protocol.allow_experimental_5g8:
                 raise ValueError(
@@ -952,7 +953,8 @@ def main() -> int:
                 raise ValueError("stimulus protocol requires its exact frozen frequency plan")
             if args.fixed_receiver_gain_db != selected_protocol.fixed_receiver_gain_db:
                 raise ValueError(
-                    f"stimulus protocol fixes RX gain at {selected_protocol.fixed_receiver_gain_db} dB"
+                    "stimulus protocol fixes RX gain at "
+                    f"{selected_protocol.fixed_receiver_gain_db} dB"
                 )
             stimulus_candidates = _validate_tx_stimulus_candidates(args.candidate_tx_gains_db)
             candidates = DEFAULT_GAIN_CANDIDATES_DB

@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import math
 import subprocess
@@ -215,7 +214,10 @@ def _load_qualification(path: Path) -> tuple[dict[str, Any], list[dict[str, Any]
     conditions = root.get("conditions")
     if not isinstance(conditions, list) or len(conditions) != len(EXPECTED_GAINS_DB):
         raise ValueError("qualification condition matrix is incomplete")
-    observed = tuple(float(_mapping(item, "condition").get("tx_hardware_gain_db")) for item in conditions)
+    observed = tuple(
+        float(_mapping(item, "condition").get("tx_hardware_gain_db"))
+        for item in conditions
+    )
     if observed != EXPECTED_GAINS_DB:
         raise ValueError("qualification condition order differs from the frozen ladder")
     identity = {
@@ -339,7 +341,9 @@ def build_report(paths: Sequence[Path], *, repository: Path) -> dict[str, Any]:
                 ][state_index])
                 for item in records
             ]
-            phase_summaries.append({"name": name, **_circular_summary(values), "values_deg": values})
+            phase_summaries.append(
+                {"name": name, **_circular_summary(values), "values_deg": values}
+            )
         gain_summaries.append(
             {
                 "tx_hardware_gain_db": gain,

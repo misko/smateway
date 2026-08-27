@@ -72,6 +72,8 @@ from smateway.hexcal_gain import (
 )
 from smateway.rf_policy import EXPERIMENTAL_5G8_CENTER_HZ, classify_fast20_center_frequency
 
+__all__ = ("STIMULUS_CENTER_FREQUENCIES_HZ",)
+
 DEFAULT_BOARD_ID = "stm32c011-4c0055000950313950363920"
 DEFAULT_PYTHON = PLUTO_PLUS_UTILS_PYTHON
 DEFAULT_PROFILE = Path("profiles/hexcal-v1/control_profile.json")
