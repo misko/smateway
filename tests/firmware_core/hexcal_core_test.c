@@ -26,6 +26,48 @@ static void test_exact_profile(void)
     }
 }
 
+static void test_watchdog_bounds_and_refresh_margin(void)
+{
+    assert(IWDG_LSI_MIN_HZ == 29500u);
+    assert(IWDG_LSI_MAX_HZ == 34000u);
+    assert(IWDG_PRESCALER_DIVIDER == 4u);
+    assert(IWDG_RELOAD_VALUE == 127u);
+    assert(IWDG_TIMEOUT_NUMERATOR_US == 512000000u);
+    assert(IWDG_MAX_TIMEOUT_US_CEIL == 17356u);
+    assert(IWDG_MIN_TIMEOUT_US_FLOOR == 15058u);
+    assert(HSI48_MIN_RATE_PERCENT == 97u);
+    assert(HSI48_MAX_RATE_PERCENT == 103u);
+    assert(HIGH_RATE_TIMER_HALF_RANGE_MIN_US_FLOOR == 31813u);
+    assert(CONTROL_CYCLE_MAX_WALL_US_CEIL == 1547u);
+    assert(IWDG_PROVEN_REFRESH_OPPORTUNITIES == 9u);
+
+    assert(
+        IWDG_MAX_TIMEOUT_US_CEIL * IWDG_LSI_MIN_HZ
+        >= IWDG_TIMEOUT_NUMERATOR_US
+    );
+    assert(
+        (IWDG_MAX_TIMEOUT_US_CEIL - 1u) * IWDG_LSI_MIN_HZ
+        < IWDG_TIMEOUT_NUMERATOR_US
+    );
+    assert(
+        IWDG_MIN_TIMEOUT_US_FLOOR * IWDG_LSI_MAX_HZ
+        <= IWDG_TIMEOUT_NUMERATOR_US
+    );
+    assert(
+        (IWDG_MIN_TIMEOUT_US_FLOOR + 1u) * IWDG_LSI_MAX_HZ
+        > IWDG_TIMEOUT_NUMERATOR_US
+    );
+    assert(
+        IWDG_MAX_TIMEOUT_US_CEIL
+        < HIGH_RATE_TIMER_HALF_RANGE_MIN_US_FLOOR
+    );
+    assert(
+        IWDG_MIN_TIMEOUT_US_FLOOR
+        > IWDG_PROVEN_REFRESH_OPPORTUNITIES
+            * CONTROL_CYCLE_MAX_WALL_US_CEIL
+    );
+}
+
 static void test_one_transition_per_deadline(void)
 {
     high_rate_frame_t frame;
@@ -67,20 +109,144 @@ static void test_one_transition_per_deadline(void)
 
 static void test_deadline_classification_and_wrap(void)
 {
+    assert(CONTROL_COUNTER_QUANTIZATION_TICKS == 1u);
+    assert(CONTROL_GPIO_WRITE_BUDGET_US == 2u);
+    assert(CONTROL_PREWRITE_MAX_LATENESS_US == 2u);
+    assert(HIGH_RATE_CORE_CYCLES_PER_TIMER_TICK == 12u);
+    assert(CONTROL_TIGHT_POLL_WINDOW_US == 8u);
+    assert(CONTROL_FAR_POLL_SAMPLE_MAX_CORE_CYCLES == 54u);
+    assert(CONTROL_STAGING_TO_TIGHT_SAMPLE_MAX_CORE_CYCLES == 22u);
+    assert(CONTROL_TIGHT_POLL_SAMPLE_MAX_CORE_CYCLES == 11u);
+    assert(CONTROL_DUE_SAMPLE_TO_FINAL_SAMPLE_MAX_CORE_CYCLES == 23u);
+    assert(CONTROL_GPIO_WRITE_MAX_CORE_CYCLES == 16u);
+    assert(CONTROL_ENDPOINT_MEMORY_ACCESS_CORE_CYCLES == 3u);
+    assert(CONTROL_TRANSITION_TURNOVER_MAX_CORE_CYCLES == 165u);
+    assert(CONTROL_DEADLINE_TO_GPIO_MAX_CORE_CYCLES == 52u);
+    assert(CONTROL_SHORTEST_PHASE_CHAIN_MAX_CORE_CYCLES == 233u);
+    assert(
+        CONTROL_FAR_POLL_SAMPLE_MAX_CORE_CYCLES
+        < CONTROL_TIGHT_POLL_WINDOW_US
+            * HIGH_RATE_CORE_CYCLES_PER_TIMER_TICK
+    );
+    assert(
+        CONTROL_STAGING_TO_TIGHT_SAMPLE_MAX_CORE_CYCLES
+        < CONTROL_TIGHT_POLL_WINDOW_US
+            * HIGH_RATE_CORE_CYCLES_PER_TIMER_TICK
+    );
+    assert(
+        CONTROL_FAR_POLL_SAMPLE_MAX_CORE_CYCLES
+            + CONTROL_STAGING_TO_TIGHT_SAMPLE_MAX_CORE_CYCLES
+        < (CONTROL_TIGHT_POLL_WINDOW_US - 1u)
+            * HIGH_RATE_CORE_CYCLES_PER_TIMER_TICK
+    );
+    assert(
+        CONTROL_TIGHT_POLL_SAMPLE_MAX_CORE_CYCLES
+        < HIGH_RATE_CORE_CYCLES_PER_TIMER_TICK
+    );
+    assert(
+        CONTROL_DUE_SAMPLE_TO_FINAL_SAMPLE_MAX_CORE_CYCLES
+        < CONTROL_PREWRITE_MAX_LATENESS_US
+            * HIGH_RATE_CORE_CYCLES_PER_TIMER_TICK
+    );
+    assert(
+        CONTROL_TRANSITION_TURNOVER_MAX_CORE_CYCLES
+        < CONTROL_GUARD_US * HIGH_RATE_CORE_CYCLES_PER_TIMER_TICK
+    );
+    assert(
+        CONTROL_SHORTEST_PHASE_CHAIN_MAX_CORE_CYCLES
+        < CONTROL_GUARD_US * HIGH_RATE_CORE_CYCLES_PER_TIMER_TICK
+    );
+    assert(
+        ((CONTROL_PREWRITE_MAX_LATENESS_US
+                + CONTROL_COUNTER_QUANTIZATION_TICKS)
+            * HIGH_RATE_CORE_CYCLES_PER_TIMER_TICK
+            + CONTROL_GPIO_WRITE_MAX_CORE_CYCLES)
+            * HSI48_NOMINAL_RATE_PERCENT
+        <= CONTROL_MAX_LATENESS_US
+            * HIGH_RATE_CORE_CYCLES_PER_TIMER_TICK
+            * HSI48_MIN_RATE_PERCENT
+    );
+
+    assert(high_rate_deadline_pending(999u, 1000u));
+    assert(!high_rate_deadline_pending(1000u, 1000u));
+    assert(!high_rate_deadline_pending(1002u, 1000u));
+    assert(!high_rate_deadline_advance_allowed(999u, 1000u));
+    assert(high_rate_deadline_advance_allowed(1000u, 1000u));
+    assert(high_rate_deadline_advance_allowed(1002u, 1000u));
+    assert(!high_rate_deadline_advance_allowed(1003u, 1000u));
+
     assert(high_rate_deadline_action(999u, 1000u) == HIGH_RATE_DEADLINE_WAIT);
     assert(high_rate_deadline_action(1000u, 1000u) == HIGH_RATE_DEADLINE_ADVANCE);
-    assert(high_rate_deadline_action(1005u, 1000u) == HIGH_RATE_DEADLINE_ADVANCE);
+    assert(high_rate_deadline_action(1002u, 1000u) == HIGH_RATE_DEADLINE_ADVANCE);
     assert(
-        high_rate_deadline_action(1006u, 1000u)
+        high_rate_deadline_action(1003u, 1000u)
         == HIGH_RATE_DEADLINE_RESYNCHRONIZE
     );
 
+    assert(high_rate_deadline_pending(UINT16_MAX, 2u));
+    assert(!high_rate_deadline_pending(2u, 2u));
+    assert(!high_rate_deadline_pending(4u, 2u));
+    assert(!high_rate_deadline_advance_allowed(UINT16_MAX, 2u));
+    assert(high_rate_deadline_advance_allowed(2u, 2u));
+    assert(high_rate_deadline_advance_allowed(4u, 2u));
+    assert(!high_rate_deadline_advance_allowed(5u, 2u));
+
     assert(high_rate_deadline_action(UINT16_MAX, 2u) == HIGH_RATE_DEADLINE_WAIT);
     assert(high_rate_deadline_action(2u, 2u) == HIGH_RATE_DEADLINE_ADVANCE);
-    assert(high_rate_deadline_action(7u, 2u) == HIGH_RATE_DEADLINE_ADVANCE);
+    assert(high_rate_deadline_action(4u, 2u) == HIGH_RATE_DEADLINE_ADVANCE);
     assert(
-        high_rate_deadline_action(8u, 2u) == HIGH_RATE_DEADLINE_RESYNCHRONIZE
+        high_rate_deadline_action(5u, 2u) == HIGH_RATE_DEADLINE_RESYNCHRONIZE
     );
+
+    assert(!high_rate_deadline_pending(UINT16_C(32769), UINT16_C(2)));
+    assert(
+        high_rate_deadline_action(UINT16_C(32769), UINT16_C(2))
+        == HIGH_RATE_DEADLINE_RESYNCHRONIZE
+    );
+    assert(high_rate_deadline_pending(UINT16_C(32770), UINT16_C(2)));
+    assert(
+        high_rate_deadline_action(UINT16_C(32770), UINT16_C(2))
+        == HIGH_RATE_DEADLINE_WAIT
+    );
+}
+
+static void test_deadline_staging_window_and_half_range(void)
+{
+    const uint16_t staging_window_us = UINT16_C(8);
+
+    assert(!high_rate_deadline_within_staging_window(
+        991u, 1000u, staging_window_us
+    ));
+    assert(high_rate_deadline_within_staging_window(
+        992u, 1000u, staging_window_us
+    ));
+    assert(high_rate_deadline_within_staging_window(
+        999u, 1000u, staging_window_us
+    ));
+    assert(!high_rate_deadline_within_staging_window(
+        1000u, 1000u, staging_window_us
+    ));
+    assert(!high_rate_deadline_within_staging_window(
+        1001u, 1000u, staging_window_us
+    ));
+
+    assert(!high_rate_deadline_within_staging_window(
+        65529u, 2u, staging_window_us
+    ));
+    assert(high_rate_deadline_within_staging_window(
+        65530u, 2u, staging_window_us
+    ));
+    assert(high_rate_deadline_within_staging_window(
+        UINT16_MAX, 2u, staging_window_us
+    ));
+    assert(!high_rate_deadline_within_staging_window(
+        2u, 2u, staging_window_us
+    ));
+
+    assert(high_rate_deadline_pending(UINT16_C(32770), UINT16_C(2)));
+    assert(!high_rate_deadline_within_staging_window(
+        UINT16_C(32770), UINT16_C(2), UINT16_MAX
+    ));
 }
 
 static void test_resynchronization_returns_to_full_marker(void)
@@ -109,7 +275,7 @@ static void test_late_polling_does_not_accumulate_into_the_schedule(void)
 
     high_rate_frame_init(&frame);
     for (transition = 0u; transition < 13u; ++transition) {
-        const uint16_t observed_late = (uint16_t)(deadline + UINT16_C(3));
+        const uint16_t observed_late = (uint16_t)(deadline + UINT16_C(2));
 
         assert(
             high_rate_deadline_action(observed_late, deadline)
@@ -126,8 +292,10 @@ static void test_late_polling_does_not_accumulate_into_the_schedule(void)
 int main(void)
 {
     test_exact_profile();
+    test_watchdog_bounds_and_refresh_margin();
     test_one_transition_per_deadline();
     test_deadline_classification_and_wrap();
+    test_deadline_staging_window_and_half_range();
     test_resynchronization_returns_to_full_marker();
     test_late_polling_does_not_accumulate_into_the_schedule();
     puts("hexcal_core_test: PASS");

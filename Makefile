@@ -342,6 +342,7 @@ $(HEXCAL_DIR)/system_stm32c0xx.o: \
 	$(TARGET_CC) $(HEXCAL_CPPFLAGS) $(TARGET_CFLAGS) -c $< -o $@
 
 $(HEXCAL_DIR)/startup_stm32c011xx.o: \
+		firmware/stm32c011/apps/hexcal/startup_stm32c011xx.S \
 		$(DEVICE_ROOT)/Source/Templates/gcc/startup_stm32c011xx.s
 	mkdir -p $(dir $@)
 	$(TARGET_CC) $(HEXCAL_CPPFLAGS) -mcpu=cortex-m0plus -mthumb -g3 -c $< -o $@

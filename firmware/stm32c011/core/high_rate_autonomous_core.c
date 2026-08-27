@@ -43,12 +43,10 @@ high_rate_deadline_action_t high_rate_deadline_action(
     uint16_t deadline
 )
 {
-    const uint16_t elapsed_since_deadline = (uint16_t)(now - deadline);
-
-    if (elapsed_since_deadline >= UINT16_C(0x8000)) {
+    if (high_rate_deadline_pending(now, deadline)) {
         return HIGH_RATE_DEADLINE_WAIT;
     }
-    if (elapsed_since_deadline > CONTROL_MAX_LATENESS_US) {
+    if (!high_rate_deadline_advance_allowed(now, deadline)) {
         return HIGH_RATE_DEADLINE_RESYNCHRONIZE;
     }
     return HIGH_RATE_DEADLINE_ADVANCE;

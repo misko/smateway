@@ -14,8 +14,7 @@
 #define IWDG_KEY_ENABLE UINT32_C(0xCCCC)
 #define IWDG_KEY_WRITE_ACCESS UINT32_C(0x5555)
 #define IWDG_KEY_REFRESH UINT32_C(0xAAAA)
-#define IWDG_PRESCALER_DIV32 UINT32_C(3)
-#define IWDG_RELOAD_TICKS UINT32_C(999)
+#define IWDG_PRESCALER_DIV4_REGISTER_VALUE UINT32_C(0)
 
 _Static_assert(CONTROL_ALL_OFF_CODE == 0x8u, "hardware ALL_OFF contract changed");
 _Static_assert(
@@ -29,7 +28,24 @@ _Static_assert(
     RESET_CORE_CLOCK_HZ % CONTROL_TIMER_HZ == 0u,
     "timer frequency must divide the reset clock"
 );
+_Static_assert(
+    RESET_CORE_CLOCK_HZ / CONTROL_TIMER_HZ
+        == HIGH_RATE_CORE_CYCLES_PER_TIMER_TICK,
+    "GPIO cycle proof does not match the configured timer"
+);
 _Static_assert(CONTROL_MAX_LATENESS_US < CONTROL_GUARD_US, "lateness exceeds guard");
+_Static_assert(
+    CONTROL_TIGHT_POLL_WINDOW_US < CONTROL_GUARD_US,
+    "tight-poll window exceeds guard"
+);
+_Static_assert(
+    CONTROL_TIGHT_POLL_WINDOW_US > CONTROL_PREWRITE_MAX_LATENESS_US,
+    "tight-poll window must cover the accepted pre-write lateness"
+);
+_Static_assert(
+    IWDG_PRESCALER_DIVIDER == 4u,
+    "IWDG register value is valid only for the /4 prescaler"
+);
 _Static_assert(CONTROL_NOMINAL_CYCLE_US < 0x8000u, "cycle exceeds timer half-range");
 
 static uint32_t control_bsrr_word(uint8_t code)
@@ -45,14 +61,19 @@ static void gpio_apply(uint8_t code)
     GPIOA->BSRR = control_bsrr_word(code);
 }
 
-static void gpio_preload_all_off(void)
+static bool gpio_preload_all_off(void)
 {
     volatile uint32_t clock_readback;
 
     RCC->IOPENR |= RCC_IOPENR_GPIOAEN;
     clock_readback = RCC->IOPENR;
-    (void)clock_readback;
+    if ((clock_readback & RCC_IOPENR_GPIOAEN) == 0u) {
+        return false;
+    }
     gpio_apply(CONTROL_ALL_OFF_CODE);
+    __COMPILER_BARRIER();
+
+    return (GPIOA->ODR & CONTROL_PIN_MASK) == CONTROL_ALL_OFF_CODE;
 }
 
 static void gpio_enable_control_outputs(void)
@@ -75,6 +96,23 @@ static bool clock_register_configuration_valid(void)
         && (clock_configuration & RCC_CFGR_PPRE) == 0u;
 }
 
+__attribute__((always_inline)) static inline bool
+clock_hsi_signature_valid(void)
+{
+    /*
+     * A full CR/CFGR validation is performed before entering the final 8 us
+     * staging window.  This compact late check detects loss of HSI48 or a
+     * divider change without consuming the deadline admission window.  The
+     * ELF verifier bounds its exact accepted path to the final timer sample.
+     */
+    const uint32_t required_hsi_bits = RCC_CR_HSION | RCC_CR_HSIRDY;
+    const uint32_t hsi_mismatch =
+        (RCC->CR ^ (required_hsi_bits | RESET_HSI_DIVIDER_BITS))
+        & (required_hsi_bits | RCC_CR_HSIDIV);
+
+    return hsi_mismatch == 0u;
+}
+
 static bool reset_clock_configuration_valid(void)
 {
     SystemCoreClockUpdate();
@@ -88,9 +126,19 @@ static bool timer_initialize(void)
 
     RCC->APBENR1 |= RCC_APBENR1_TIM3EN;
     clock_readback = RCC->APBENR1;
-    (void)clock_readback;
+    if ((clock_readback & RCC_APBENR1_TIM3EN) == 0u) {
+        return false;
+    }
     RCC->APBRSTR1 |= RCC_APBRSTR1_TIM3RST;
+    clock_readback = RCC->APBRSTR1;
+    if ((clock_readback & RCC_APBRSTR1_TIM3RST) == 0u) {
+        return false;
+    }
     RCC->APBRSTR1 &= ~RCC_APBRSTR1_TIM3RST;
+    clock_readback = RCC->APBRSTR1;
+    if ((clock_readback & RCC_APBRSTR1_TIM3RST) != 0u) {
+        return false;
+    }
 
     TIM3->CR1 = 0u;
     TIM3->DIER = 0u;
@@ -112,12 +160,12 @@ static uint16_t timer_now(void)
     return (uint16_t)(TIM3->CNT & UINT16_MAX);
 }
 
-static void watchdog_initialize(void)
+__attribute__((noinline)) static void watchdog_initialize(void)
 {
     IWDG->KR = IWDG_KEY_ENABLE;
     IWDG->KR = IWDG_KEY_WRITE_ACCESS;
-    IWDG->PR = IWDG_PRESCALER_DIV32;
-    IWDG->RLR = IWDG_RELOAD_TICKS;
+    IWDG->PR = IWDG_PRESCALER_DIV4_REGISTER_VALUE;
+    IWDG->RLR = IWDG_RELOAD_VALUE;
     while (IWDG->SR != 0u) {
     }
     IWDG->KR = IWDG_KEY_REFRESH;
@@ -130,8 +178,9 @@ int main(void)
     high_rate_frame_t frame;
     uint16_t deadline;
 
-    gpio_preload_all_off();
-    if (!reset_clock_configuration_valid() || !timer_initialize()) {
+    if (!gpio_preload_all_off()
+        || !reset_clock_configuration_valid()
+        || !timer_initialize()) {
         for (;;) {
             __NOP();
         }
@@ -149,36 +198,100 @@ int main(void)
     deadline = (uint16_t)(timer_now() + frame.phase_duration_us);
 
     for (;;) {
-        const uint16_t now = timer_now();
-        const high_rate_deadline_action_t action = high_rate_deadline_action(now, deadline);
+        high_rate_frame_t planned_frame;
 
+        planned_frame.phase = frame.phase;
+        planned_frame.state_index = frame.state_index;
+        planned_frame.applied_code = frame.applied_code;
+        planned_frame.phase_duration_us = frame.phase_duration_us;
+        const bool cycle_completed = high_rate_frame_advance(&planned_frame);
+        const volatile uint32_t planned_bsrr_word =
+            control_bsrr_word(planned_frame.applied_code);
+        uint16_t now;
+
+        /*
+         * Establish a full CR/CFGR validation before the first poll.  The far
+         * path repeats it while waiting; the staging path then enters the
+         * tight loop directly so two consecutive full checks cannot consume
+         * the complete 8 us approach window.
+         */
         if (!clock_register_configuration_valid()) {
             gpio_apply(CONTROL_ALL_OFF_CODE);
             for (;;) {
                 __NOP();
             }
         }
-        if (action == HIGH_RATE_DEADLINE_WAIT) {
-            continue;
+
+        /*
+         * Keep the tight deadline poll itself free of function calls.  A
+         * compact inline HSI signature check follows the due sample.  The
+         * former polling loop took several timer ticks per iteration and made
+         * the 20 us guards alternate between early and late RF edges.  The
+         * frame and atomic BSRR word are prepared before this wait so every
+         * accepted deadline has the same mechanically bounded GPIO path.
+         */
+        for (;;) {
+            now = timer_now();
+            if (!high_rate_deadline_pending(now, deadline)) {
+                /*
+                 * Only the staged tight poll is allowed to admit an edge.
+                 * Reaching the deadline in this outer path means the bounded
+                 * admission proof was not established for this transition.
+                 */
+                goto resynchronize;
+            }
+            if (high_rate_deadline_within_staging_window(
+                now,
+                deadline,
+                CONTROL_TIGHT_POLL_WINDOW_US
+            )) {
+                do {
+                    now = timer_now();
+                } while (high_rate_deadline_pending(now, deadline));
+                break;
+            }
+            if (!clock_register_configuration_valid()) {
+                gpio_apply(CONTROL_ALL_OFF_CODE);
+                for (;;) {
+                    __NOP();
+                }
+            }
         }
-        if (action == HIGH_RATE_DEADLINE_RESYNCHRONIZE) {
+
+        if (!clock_hsi_signature_valid()) {
             gpio_apply(CONTROL_ALL_OFF_CODE);
-            high_rate_frame_init(&frame);
-            deadline = (uint16_t)(timer_now() + frame.phase_duration_us);
-            continue;
-        }
-
-        {
-            const uint8_t previous_code = frame.applied_code;
-            const bool cycle_completed = high_rate_frame_advance(&frame);
-
-            if (frame.applied_code != previous_code) {
-                gpio_apply(frame.applied_code);
-            }
-            deadline = high_rate_next_deadline(deadline, frame.phase_duration_us);
-            if (cycle_completed) {
-                IWDG->KR = IWDG_KEY_REFRESH;
+            for (;;) {
+                __NOP();
             }
         }
+
+        /*
+         * Re-read after the compact HSI check.  Admission reserves a separately
+         * verified write-path budget, so the physical BSRR edge remains
+         * within CONTROL_MAX_LATENESS_US.  The independent watchdog bounds a
+         * normal runtime stall below the timer half-range; debugger-controlled
+         * watchdog freezing is outside that runtime guarantee.
+         */
+        now = timer_now();
+        if (!high_rate_deadline_advance_allowed(now, deadline)) {
+            goto resynchronize;
+        }
+        GPIOA->BSRR = planned_bsrr_word;
+        __COMPILER_BARRIER();
+
+        frame.phase = planned_frame.phase;
+        frame.state_index = planned_frame.state_index;
+        frame.applied_code = planned_frame.applied_code;
+        frame.phase_duration_us = planned_frame.phase_duration_us;
+        deadline = high_rate_next_deadline(deadline, frame.phase_duration_us);
+        if (cycle_completed) {
+            IWDG->KR = IWDG_KEY_REFRESH;
+        }
+        continue;
+
+resynchronize:
+        gpio_apply(CONTROL_ALL_OFF_CODE);
+        high_rate_frame_init(&frame);
+        deadline = (uint16_t)(timer_now() + frame.phase_duration_us);
     }
 }

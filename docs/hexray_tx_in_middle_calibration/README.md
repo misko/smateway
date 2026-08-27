@@ -3,9 +3,10 @@
 ## Status and evidence boundary
 
 This document defines the experiment for a six-element circular receive array connected to
-`ANT1` through `ANT6`, with Pluto `TX1` at its centre. It is a **pre-execution design**. The
-numbers labelled “expected” are geometry or released-PCB calculations, not measured calibration
-results.
+`ANT1` through `ANT6`, with Pluto `TX1` at its centre. The numbers labelled “expected” are
+geometry or released-PCB calculations, not measured calibration results. Sections 5 and 8–10
+remain the authoritative execution, acceptance, and safety plan; the checklist below records
+which gates have actually been reached.
 
 No logic analyzer was physically connected when this revision was prepared. Section 8 therefore
 defines a preferred independent GPIO-observation path and the selected restricted low-power RF
@@ -24,6 +25,31 @@ The user-confirmed top-view convention is:
 Before RF acquisition, physically confirm that `51 mm` describes the RF phase-centre circle,
 not only a mechanical outline. Record all antenna and TX phase-centre heights, polarization,
 cable identities and the exact calibration reference plane.
+
+### Plan and live execution checklist
+
+| State | Gate |
+|---|---|
+| DONE | Design and figures committed (`88f4432`). |
+| DONE | v1 firmware and host pipeline committed (`6f237c6`). |
+| DONE | Absolute-deadline fix committed, deployed, and fully read back (`4d3b640`). |
+| REJECTED | v1 common-gain qualification; preserve its immutable failure ledger. |
+| REJECTED | Initial 2.4 GHz timing qualification: cycle timing improved to about `1494.7 us`, but RF observability/SNR gates failed. |
+| EXPLORATORY | RX `30 dB` / TX `-25 dB` timing run; useful diagnosis, not admissible calibration evidence. |
+| DONE | Harden and mechanically verify the GPIO edge path and watchdog half-range bound. |
+| DONE | Clean build and host/static verification of the reviewed 1,152-byte image (`381` tests). |
+| PENDING | Exact deployment and full-flash readback of the reviewed image. |
+| PENDING | Freeze and commit the versioned replacement RF qualification protocol. |
+| PENDING | Qualify and freeze the operating point and paired 5 MS/s timing evidence. |
+| PENDING | Capture the predeclared calibration matrix. |
+| PENDING | Aggregate, held-out validation, independent audit, findings/figures, commit/push, and a verified muted end state. |
+
+The reviewed build has ELF SHA-256
+`8e0cc535f98d30be02f7b9662938516d3d5d2a8bbc5d72440e1494617c7dc9c9`, raw BIN SHA-256
+`6d0a06f9160d91e6c04f9ba29e8d90c3aaf65e1386a6d7311fbd6689a103e6b3`, and 16 KiB padded
+full-flash SHA-256 `1ac75057a6dbb3235b6dfb07899a2ae5ef025d9b1d5c0dee37df4cdc72b2453e`.
+No capture made with those bytes is accepted as calibration evidence until the source is
+committed, the exact image is deployed, and its complete flash readback is hash-verified.
 
 ![HexRay geometry and RF scale](png/fig01_geometry_and_wavelengths.png)
 
@@ -359,6 +385,53 @@ frequency. Within the 2.4 GHz band, also perform leave-one-frequency-out interpo
 | Runtime RCC source/divider/prescaler drift | apply `ALL_OFF`, stop refresh and reset by independent LSI watchdog |
 | Stalled/stopped core clock | reset to passive `ALL_OFF` by independent LSI watchdog; not immediate |
 
+At boot, the image enables and reads back the GPIOA clock, preloads and reads back the `ALL_OFF`
+ODR latch while the selector pins are still inputs, validates the reset clock, and then enables
+TIM3 with explicit reset-assert and reset-deassert readbacks. Only after those gates pass does it
+start the independent watchdog and enable the GPIO outputs; a second ODR check then guards entry
+to the schedule. The ELF verifier binds this ordering and each failure path.
+
+The hard `5 us` edge bound has a deliberately narrower fault model than the fail-closed reset
+policy. It assumes the reset HSI48 clock configuration, TIM3 configuration, GPIO configuration,
+and fixed-latency uncontended Cortex-M0+/APB execution remain valid during an admitted edge. The
+firmware performs a full CR/CFGR check before entering the final `8 us` staging window, then
+rechecks `HSION`, `HSIRDY`, and `HSIDIV` inline after the due sample. An asynchronous CFGR change
+inside that remaining window can therefore perturb one in-flight edge before the next full check
+fails closed. ICSCR trim corruption, TIM3/GPIO register corruption, DMA or bus contention,
+exceptions, and memory/code corruption are also outside the hard edge-time proof. This is not a
+claim of arbitrary single-event-upset tolerance; direct Path A observation or an independent
+hardware timing monitor is required for that stronger claim.
+
+Under the documented normal-execution model, the far-poll and staging-entry paths take at most
+`54` and `22` conservative core cycles respectively. Their conservative sum is below seven
+`12`-cycle timer ticks: from the minimum far distance of nine ticks, the first tight sample is
+therefore still at least two ticks before the deadline. The tight loop then samples TIM3 at
+most every `11` core cycles, strictly faster than one timer tick, so it cannot skip the due count.
+The verified tight-loop due-sample-to-final-sample path is at most `23` cycles, strictly less
+than two timer ticks, and the compiled final-sample-to-BSRR path is `16` cycles within its
+`16`-cycle cap. At the conservative `97%` HSI48-rate bound, the two admitted timer ticks, one
+quantization tick, and write path total at most `4.467 us`. The independent `/4`, reload-`127`
+IWDG interval is conservatively `15.058–17.356 ms`: longer than nine worst-case `1.547 ms`
+refresh opportunities and shorter than the fastest wall-time TIM3 half-range (`31.813 ms`).
+Debugger-controlled IWDG freezing is outside the runtime guarantee.
+
+The compiled worst turnover from one accepted BSRR store through frame commit, next-frame
+planning, the mandatory full RCC gate, and the next outer TIM3 sample is at most `165` core
+cycles. The stronger end-to-end liveness proof also includes the prior edge's `52`-cycle
+physical lateness envelope and the `22`-cycle staging handoff, subtracting the two shared
+three-cycle endpoint loads/stores. The result is `233` cycles against the shortest
+`20 us × 12 = 240`-cycle phase. This deliberately combines incompatible worst-case state paths,
+but leaves only a seven-cycle proof margin; the ELF verifier therefore binds the complete chain,
+not just its individual segments.
+
+The verifier additionally binds all `956` executable `.text` bytes to SHA-256
+`579562f7d0f6a766c9faefd5ecff054372eadbb0db220efcc4cf0a316ae0af50`, all 48 vector-table
+words, the complete reset/data/BSS tail, every pre-output callee and every permitted GPIO write
+site. Its focused suite contains `133` mutation tests; an independent exhaustive replay rejected
+all `182` single-instruction startup/pre-output mutations and all `956` single-byte `.text`
+mutations. These are static identity and control-flow gates, not a substitute for the deployment
+readback or Path A hardware observation.
+
 The GPIO identity/order rows above are direct hardware claims only under Path A. Under Path B,
 they remain source/profile plus flashed/readback-hash backed. The 1 MS/s calibration artifacts
 must still satisfy their coarse schedule-admission checks, but they cannot substitute for the
@@ -523,7 +596,10 @@ enable or stale frequency is not by itself evidence of emitted RF.
 Before flashing, pass host tests, static checks, ELF policy checks and a timing-model test. Then:
 
 1. Record the current qualified Fast20 image and safe-hold rollback identities.
-2. Flash only the explicitly selected board through the existing SWD recovery workflow.
+2. Record the target DBGMCU device/revision ID. Verify that the reset handler contains the
+   [ES0569 section 2.2.5](https://www.st.com/resource/en/errata_sheet/es0569-stm32c011x4x6-device-errata-stmicroelectronics.pdf)
+   dummy SRAM read before any application SRAM use, then flash only the explicitly selected
+   board through the existing SWD recovery workflow.
 3. Read back and verify the programmed image.
 4. Prefer Path A: with TX muted, use a logic analyzer to verify boot `ALL_OFF`, all six codes,
    every 20 µs guard, the 180 µs marker body, 200 µs active dwells and 1.500 ms cycle.
