@@ -51,6 +51,7 @@ from smateway.hexcal import (
     wrapped_phase_deg,
     write_json_atomic,
 )
+from smateway.hexcal_gain import STIMULUS_PROTOCOL_ID
 
 DEFAULT_BOARD_ID = "stm32c011-4c0055000950313950363920"
 ANALYSIS_FILENAME = "hexcal-analysis.json"
@@ -732,14 +733,14 @@ def main() -> int:
         raise SystemExit(f"cannot load run manifest: {error}") from error
     if not isinstance(manifest, dict) or manifest.get("experiment_kind") not in {
         "hexcal_v1_tx1_center_calibration",
-        "hexcal_v2_2g4_tx1_center_calibration",
+        "hexcal_v2_1_2g4_tx1_center_calibration",
     }:
         raise SystemExit("manifest is not a supported Hexcal calibration run")
     configuration = _mapping(manifest.get("configuration"), "configuration")
     protocol_id = configuration.get("protocol_id", "hexcal-v1")
     expected_experiment_kind = (
-        "hexcal_v2_2g4_tx1_center_calibration"
-        if protocol_id == "hexcal-v2-2g4-stimulus"
+        "hexcal_v2_1_2g4_tx1_center_calibration"
+        if protocol_id == STIMULUS_PROTOCOL_ID
         else "hexcal_v1_tx1_center_calibration"
     )
     if manifest.get("experiment_kind") != expected_experiment_kind:
@@ -782,8 +783,8 @@ def main() -> int:
     output = {
         "schema": 1,
         "calibration_kind": (
-            "hexcal_v2_2g4_tx1_center_end_to_end_complex_correction"
-            if protocol_id == "hexcal-v2-2g4-stimulus"
+            "hexcal_v2_1_2g4_tx1_center_end_to_end_complex_correction"
+            if protocol_id == STIMULUS_PROTOCOL_ID
             else "hexcal_v1_tx1_center_end_to_end_complex_correction"
         ),
         "protocol_id": protocol_id,

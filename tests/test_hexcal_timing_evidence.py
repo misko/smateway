@@ -280,8 +280,8 @@ def test_analyzer_binds_v2_timing_settings_to_stimulus_qualification(
     root, capture_document = _pair_plan_fixture(tmp_path)
     plan = root["pair_plan_contract"]
     assert isinstance(plan, dict)
-    plan["plan_kind"] = "hexcal_v2_2g4_rf_timing_two_replicates"
-    plan["protocol_id"] = "hexcal-v2-2g4-stimulus"
+    plan["plan_kind"] = "hexcal_v2_1_2g4_rf_timing_two_replicates"
+    plan["protocol_id"] = analyze.STIMULUS_PROTOCOL_ID
     plan["stimulus"]["receiver_gain_db"] = 20
     capture_document["receiver_gain_db"] = 20
     plan["stimulus_qualification"] = {

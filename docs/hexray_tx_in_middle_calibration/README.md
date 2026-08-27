@@ -39,7 +39,8 @@ cable identities and the exact calibration reference plane.
 | DONE | Harden and mechanically verify the GPIO edge path and watchdog half-range bound. |
 | DONE | Clean build and host/static verification of the reviewed 1,152-byte image (`381` tests). |
 | DONE | Deploy commit `67ba91d` and verify its exact 16 KiB flash, UID and option-byte readbacks. |
-| DONE | Freeze and test `hexcal-v2-2g4-stimulus`; capture, timing, aggregation and audit paths are source-bound. |
+| REJECTED | `hexcal-v2-2g4-stimulus`: four centres passed at TX `-10 dB`, but burst interference left only 8 valid cycles at 2.458 GHz. |
+| DONE | Freeze and test `hexcal-v2.1-2g4-stimulus` with the surveyed 2.472 GHz replacement centre. |
 | PENDING | Qualify and freeze the operating point and paired 5 MS/s timing evidence. |
 | PENDING | Capture the predeclared calibration matrix. |
 | PENDING | Aggregate, held-out validation, independent audit, findings/figures, commit/push, and a verified muted end state. |
@@ -197,7 +198,23 @@ qualification. Merely scaling the old duration constants is not acceptable.
 
 ## 5. Complex-calibration capture matrix
 
-### Active replacement: `hexcal-v2-2g4-stimulus`
+### Active replacement: `hexcal-v2.1-2g4-stimulus`
+
+The first frozen v2 run was safely rejected. At TX `-10 dB`, 2.400, 2.423, 2.440 and
+2.483 GHz passed every gate, but a burst interferer at 2.458 GHz drove RX1 1 ms RMS from a
+normal median near `10` counts to a 95th percentile near `331` counts and left only eight valid
+cycles. A subsequent receive-only, exact-muted 2 MHz-grid diagnostic found a clean contiguous
+window from 2.468 through 2.478 GHz. The frozen
+[`hexcal-v2.1-2g4-stimulus` protocol](data/hexcal-v2.1-2g4-stimulus.json) therefore replaces
+only 2.458 GHz with the midpoint, 2.472 GHz. The new five-centre plan is `2.400, 2.423, 2.440,
+2.472, 2.483 GHz`; every other stimulus, safety, timing and calibration gate remains unchanged.
+
+The executable v2.1 chain is `qualify_hexcal_rx_gain.py --tx-stimulus-v21`, followed by
+`capture_hexcal_timing.py --protocol-v21`, its independent timing analyzer, and then
+`run_hexcal_calibration.py --protocol-v21`. The rejected v2 raw artifacts remain design input
+only and cannot be promoted into the v2.1 qualification.
+
+### Rejected predecessor: `hexcal-v2-2g4-stimulus`
 
 The v1 common-RX-gain search failed and its ledger remains immutable. The active replacement is
 the machine-readable
@@ -221,7 +238,7 @@ artifacts. Gain, DDS scale and TX level cannot change after the first admitted a
 `ENODATA`, continuity, mute, identity, headroom or analysis failure quarantines that attempt and
 cannot be averaged away.
 
-The executable v2 chain is `qualify_hexcal_rx_gain.py --tx-stimulus-v2`, followed by
+The rejected predecessor's executable chain was `qualify_hexcal_rx_gain.py --tx-stimulus-v2`, followed by
 `capture_hexcal_timing.py --protocol-v2`, its independent timing analyzer, and then
 `run_hexcal_calibration.py --protocol-v2`. The aggregation and audit programs accept the v2
 manifest kind and independently replay the stimulus ledger from its raw artifacts. The protocol

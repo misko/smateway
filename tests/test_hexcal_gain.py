@@ -29,6 +29,7 @@ from smateway.hexcal_gain import (
     SAMPLE_RATE_HZ,
     SAMPLES_PER_FRAME,
     STIMULUS_FIXED_RECEIVER_GAIN_DB,
+    STIMULUS_PROTOCOL_ID,
     STIMULUS_QUALIFICATION_KIND,
     TOTAL_SAMPLES,
     load_hexcal_gain_qualification,
@@ -349,6 +350,7 @@ def _stimulus_document(root: Path, *, lower_tx_passes: bool = False) -> dict[str
     ]
     return {
         "schema": 1,
+        "protocol_id": STIMULUS_PROTOCOL_ID,
         "qualification_kind": STIMULUS_QUALIFICATION_KIND,
         "qualification_id": "stimulus-a",
         "status": "passed",
@@ -452,19 +454,19 @@ def test_stimulus_protocol_defaults_are_frozen() -> None:
 def test_machine_readable_stimulus_protocol_matches_implementation() -> None:
     document = json.loads(
         (
-            REPOSITORY / "docs/hexray_tx_in_middle_calibration/data/hexcal-v2-2g4-stimulus.json"
+            REPOSITORY / "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.1-2g4-stimulus.json"
         ).read_text(encoding="utf-8")
     )
     screen = document["stimulus_screen"]
     timing = document["timing_qualification"]
     matrix = document["calibration_matrix"]
 
-    assert document["protocol_id"] == "hexcal-v2-2g4-stimulus"
+    assert document["protocol_id"] == STIMULUS_PROTOCOL_ID
     assert tuple(document["center_frequencies_hz"]) == (
         2_400_000_000,
         2_423_000_000,
         2_440_000_000,
-        2_458_000_000,
+        2_472_000_000,
         2_483_000_000,
     )
     assert tuple(screen["candidate_tx_hardware_gains_db"]) == (DEFAULT_STIMULUS_TX_GAINS_DB)

@@ -55,8 +55,10 @@ HEXCAL_ANALYSIS_SOURCE_FILES = (
     "uv.lock",
 )
 HEXCAL_AGGREGATION_SOURCE_FILES = (
+    "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.1-2g4-stimulus.json",
     "scripts/aggregate_hexcal_calibration.py",
     "src/smateway/hexcal.py",
+    "src/smateway/hexcal_gain.py",
     "pyproject.toml",
     "uv.lock",
 )

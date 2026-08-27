@@ -73,6 +73,7 @@ from smateway.hexcal import (
 from smateway.hexcal_gain import (
     QUALIFICATION_SOURCE_FILES,
     STIMULUS_CENTER_FREQUENCIES_HZ,
+    STIMULUS_PROTOCOL_ID,
     HexcalStimulusQualification,
     load_hexcal_stimulus_qualification,
 )
@@ -91,6 +92,7 @@ TX_CHANNEL = 0
 CAPTURE_RECORD_NAME = "hexcal-timing-capture.json"
 SOURCE_FILES = (
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2-2g4-stimulus.json",
+    "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.1-2g4-stimulus.json",
     "scripts/qualify_hexcal_rx_gain.py",
     "src/smateway/hexcal_timing.py",
     "src/smateway/hexcal_gain.py",
@@ -196,7 +198,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--source-commit", required=True)
     parser.add_argument("--firmware-evidence", type=Path, required=True)
     parser.add_argument("--firmware-evidence-sha256", required=True)
-    parser.add_argument("--protocol-v2", action="store_true")
+    parser.add_argument("--protocol-v2", "--protocol-v21", action="store_true")
     parser.add_argument("--stimulus-qualification", type=Path)
     parser.add_argument("--stimulus-qualification-sha256")
     parser.add_argument("--board-id", default=DEFAULT_BOARD_ID)
@@ -269,11 +271,11 @@ def _pair_plan_contract(
     contract = {
         "schema": 1,
         "plan_kind": (
-            "hexcal_v2_2g4_rf_timing_two_replicates"
+            "hexcal_v2_1_2g4_rf_timing_two_replicates"
             if protocol_v2
             else "hexcal_v1_rf_timing_two_replicates"
         ),
-        "protocol_id": "hexcal-v2-2g4-stimulus" if protocol_v2 else "hexcal-v1",
+        "protocol_id": STIMULUS_PROTOCOL_ID if protocol_v2 else "hexcal-v1",
         "run_id": run_id,
         "board_id": board_id,
         "serial": plan.serial,
@@ -676,8 +678,8 @@ def _capture_one(
         document = {
             "schema": 1,
             "capture_kind": (
-                "hexcal_v2_2g4_rf_timing_5msps_tx1"
-                if pair_plan_contract["protocol_id"] == "hexcal-v2-2g4-stimulus"
+                "hexcal_v2_1_2g4_rf_timing_5msps_tx1"
+                if pair_plan_contract["protocol_id"] == STIMULUS_PROTOCOL_ID
                 else "hexcal_v1_rf_timing_5msps_tx1"
             ),
             "run_id": run_id,

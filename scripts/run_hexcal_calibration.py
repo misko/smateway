@@ -60,6 +60,7 @@ from smateway.hexcal import (
 from smateway.hexcal_gain import (
     QUALIFICATION_SOURCE_FILES,
     STIMULUS_CENTER_FREQUENCIES_HZ,
+    STIMULUS_PROTOCOL_ID,
     HexcalGainQualification,
     HexcalStimulusQualification,
     load_hexcal_gain_qualification,
@@ -112,7 +113,7 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         help="passed hexcal-v2 ledger; its fixed RX gain and selected TX1 level are used",
     )
-    parser.add_argument("--protocol-v2", action="store_true")
+    parser.add_argument("--protocol-v2", "--protocol-v21", action="store_true")
     parser.add_argument("--allow-experimental-5g8", action="store_true")
     parser.add_argument("--rounds", type=int, default=DEFAULT_ROUNDS)
     parser.add_argument("--max-attempts-per-condition", type=int, default=DEFAULT_MAX_ATTEMPTS)
@@ -363,7 +364,7 @@ def _configuration(
             raise ExperimentError("calibration stimulus differs from the passed v2 qualification")
         qualification_field = "stimulus_qualification"
         qualification_document = stimulus_qualification.as_dict()
-        protocol_id = "hexcal-v2-2g4-stimulus"
+        protocol_id = STIMULUS_PROTOCOL_ID
     dependency_attestation = dict(pluto_plus_utils_source_attestation)
     dependency_sha256 = canonical_json_sha256(dependency_attestation)
     configuration = {
@@ -483,8 +484,8 @@ def _new_manifest(
     return {
         "schema": 1,
         "experiment_kind": (
-            "hexcal_v2_2g4_tx1_center_calibration"
-            if configuration.get("protocol_id") == "hexcal-v2-2g4-stimulus"
+            "hexcal_v2_1_2g4_tx1_center_calibration"
+            if configuration.get("protocol_id") == STIMULUS_PROTOCOL_ID
             else "hexcal_v1_tx1_center_calibration"
         ),
         "run_id": run_id,
@@ -563,8 +564,8 @@ def _load_manifest(
     if not isinstance(document, dict) or document.get("schema") != 1:
         raise ExperimentError("resume manifest schema is unsupported")
     expected_experiment_kind = (
-        "hexcal_v2_2g4_tx1_center_calibration"
-        if configuration.get("protocol_id") == "hexcal-v2-2g4-stimulus"
+        "hexcal_v2_1_2g4_tx1_center_calibration"
+        if configuration.get("protocol_id") == STIMULUS_PROTOCOL_ID
         else "hexcal_v1_tx1_center_calibration"
     )
     if document.get("experiment_kind") != expected_experiment_kind:

@@ -265,13 +265,13 @@ def test_v2_plan_is_exact_fifteen_artifact_five_frequency_matrix() -> None:
     configuration = _v2_configuration()
     plan = runner._execution_plan(configuration, REPOSITORY)
 
-    assert configuration["protocol_id"] == "hexcal-v2-2g4-stimulus"
+    assert configuration["protocol_id"] == runner.STIMULUS_PROTOCOL_ID
     assert len(plan) == 15
     assert [item["center_frequency_hz"] for item in plan] == [
         *runner.STIMULUS_CENTER_FREQUENCIES_HZ,
         *reversed(runner.STIMULUS_CENTER_FREQUENCIES_HZ),
         2_440_000_000,
-        2_458_000_000,
+        2_472_000_000,
         2_483_000_000,
         2_400_000_000,
         2_423_000_000,
@@ -283,7 +283,7 @@ def test_v2_plan_is_exact_fifteen_artifact_five_frequency_matrix() -> None:
     assert {item["stimulus_qualification_sha256"] for item in plan} == {"7" * 64}
     assert all("--allow-experimental-5g8" not in item["capture_command"] for item in plan)
     manifest = runner._new_manifest("v2-run", configuration, REPOSITORY)
-    assert manifest["experiment_kind"] == "hexcal_v2_2g4_tx1_center_calibration"
+    assert manifest["experiment_kind"] == "hexcal_v2_1_2g4_tx1_center_calibration"
 
 
 def test_parser_requires_explicit_serial_and_uri() -> None:

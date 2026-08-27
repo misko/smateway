@@ -74,6 +74,7 @@ from smateway.hexcal_gain import (
     SAMPLES_PER_FRAME,
     STIMULUS_CENTER_FREQUENCIES_HZ,
     STIMULUS_FIXED_RECEIVER_GAIN_DB,
+    STIMULUS_PROTOCOL_ID,
     STIMULUS_QUALIFICATION_KIND,
     TONE_OFFSET_HZ,
     TOTAL_SAMPLES,
@@ -130,6 +131,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--tx-hardware-gain-db", type=float, default=-40.0)
     parser.add_argument(
         "--tx-stimulus-v2",
+        "--tx-stimulus-v21",
         action="store_true",
         help="run the frozen five-frequency TX1 stimulus ladder at fixed 20 dB RX gain",
     )
@@ -272,7 +274,7 @@ def _validate_tx_stimulus_candidates(
             "TX-stimulus candidates must be unique finite gains in strictly ascending power"
         )
     if candidates != DEFAULT_STIMULUS_TX_GAINS_DB:
-        raise ValueError("hexcal-v2 requires the exact frozen TX-stimulus ladder")
+        raise ValueError("hexcal-v2.1 requires the exact frozen TX-stimulus ladder")
     return tuple(candidates)
 
 
@@ -678,7 +680,7 @@ def _run_tx_stimulus_qualification(
 ) -> int:
     receiver_gain_db = int(args.fixed_receiver_gain_db)
     if receiver_gain_db != STIMULUS_FIXED_RECEIVER_GAIN_DB:
-        raise SystemExit("hexcal-v2 fixes the common RX gain at exactly 20 dB")
+        raise SystemExit("hexcal-v2.1 fixes the common RX gain at exactly 20 dB")
     board_root = _board_root(board_id)
     run_root = board_root / "hexcal-stimulus-qualifications" / qualification_id
     ledger_path = run_root / "stimulus-qualification.json"
@@ -701,6 +703,7 @@ def _run_tx_stimulus_qualification(
     )
     document: dict[str, Any] = {
         "schema": 1,
+        "protocol_id": STIMULUS_PROTOCOL_ID,
         "qualification_kind": STIMULUS_QUALIFICATION_KIND,
         "qualification_id": qualification_id,
         "created_at": _now(),
