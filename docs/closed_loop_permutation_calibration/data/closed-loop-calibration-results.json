@@ -3529,7 +3529,7 @@
   ],
   "run_id": "closed-loop-calibration-20260827",
   "schema": 1,
-  "source_commit": "ab704e52f3e28d9bc1b6cb9cd4c394b3a90377cb",
+  "source_commit": "11e6a94fd6ca9ffee48ebf662bec9a4e9ad6bfc6",
   "source_documents": [
     {
       "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/2c5c1adeda884a42a83f637bd5dd002b/fast20-reference-transfer.json",
@@ -3764,9 +3764,9 @@
   ],
   "source_manifest": {
     "committed_snapshot_path": "docs/closed_loop_permutation_calibration/data/closed-loop-permutation-manifest.json",
-    "committed_snapshot_sha256": "1920cfe10bfe1ff0879b56ee28d870d967aa10563eefbbb76418a76f093205bb",
+    "committed_snapshot_sha256": "28470a30f7a3f14aca3bc407cf39e0b5d3295db2203c700780ed01e54efd7e53",
     "path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/closed-loop-calibration-20260827/closed-loop-permutation-manifest.json",
-    "sha256": "71a884ddd04b3c72b3fc6bb3445f59da8404a6a27ec7def94bb5555d4b6713b5"
+    "sha256": "e54ad10a2cb8ec1735546fb967dc47c8836bfd9e699faff4fc47fd561d231722"
   },
   "thresholds": {
     "maximum_closure_shape_amplitude_rms_db": 0.1,

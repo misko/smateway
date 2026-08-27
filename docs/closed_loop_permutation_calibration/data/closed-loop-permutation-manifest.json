@@ -4,6 +4,26 @@
     "experimental_leakage_limited_frequencies_hz": [
       5800000000
     ],
+    "final_mute": {
+      "attestation": "mute_returned_radio_exact_serial_readback",
+      "completed_at": "2026-08-27T22:21:12.580530+00:00",
+      "dds_scale_readback": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "serial": "104000b29905000e17000800065934759d",
+      "status": "passed",
+      "tx_hardware_gain_readback_db_by_channel": [
+        -80.0,
+        -80.0
+      ]
+    },
     "normal_wiring_restored": true,
     "qualified_board_calibration_frequencies_hz": [
       2400000000,

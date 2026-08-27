@@ -73,6 +73,11 @@ The exact program/verify/reset and full-flash readback evidence remains at:
   closed-loop-calibration-20260827/
 ```
 
+Final safety handoff passed at `2026-08-27T22:21:12.580530Z`: the exact-serial
+`pluto-plus-utils` mute helper read back TX1 and TX2 at `-80 dB`, all eight DDS scales at zero,
+and no enabled TX channels. Independent `iio_attr` reads confirmed both hardware gains at
+`-80.000000 dB` and sampled TX1/TX2 DDS scales at `0.000000`.
+
 ## Permutation design
 
 The accepted fit uses 24 complex observations per frequency:
@@ -193,7 +198,8 @@ directory:
 The analyzer validates the admitted source documents, capture identity, TX channel, frequency,
 state order, per-state quality, and source hashes before fitting. The result records every
 source analysis SHA-256 and raw artifact SHA-256. The analyzer implementation is source-bound
-to commit `ab704e5` in the generated result.
+to commit `ab704e5`; the generated result records repository HEAD `11e6a94` after the report
+artifacts were first committed.
 
 ## Next operational step
 
