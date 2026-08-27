@@ -41,6 +41,15 @@ tests/                host-only and explicitly selected hardware tests
 Build outputs are ignored under `build/`. Per-board dumps, logs and RF captures
 belong outside Git under `~/.local/state/smateway/boards/<board-id>/`.
 
+## Conducted closed-loop calibration
+
+The completed three-permutation splitter calibration, reconnect closure, released 2.4 GHz
+board-path coefficients, diagnostic 5.8 GHz result, PNG evidence and exact reproduction command
+are in [`docs/closed_loop_permutation_calibration/`](docs/closed_loop_permutation_calibration/README.md).
+The five 2.400–2.480 GHz points qualify with a measured `1.4–2.0 degree` coherent-isolation
+floor. The 5.8 GHz coefficients remain diagnostic-only because raw ALL_OFF leakage can exceed
+the selected-path signal.
+
 ## Host-only bootstrap
 
 From this repository:

@@ -1,0 +1,3780 @@
+{
+  "analysis_kind": "fast20_closed_loop_permutation_calibration",
+  "board_id": "stm32c011-4c0055000950313950363920",
+  "conclusions": {
+    "5g8_caveat": "The ALL_OFF-subtracted 5.8 GHz model is separable, but raw leakage can equal or exceed selected-path signal. Its coefficients are diagnostic only until RF isolation is improved or a held-out noncyclic validation passes.",
+    "additional_cyclic_rotations_required": false,
+    "captures_complete": true,
+    "experimental_leakage_limited_frequencies_hz": [
+      5800000000
+    ],
+    "normal_wiring": "F1->ANT1, F2->ANT2, ..., F8->ANT8",
+    "normal_wiring_restored": true,
+    "phase_branch_caveat": "Cyclic mappings retain an eight-way 45-degree spatial-ramp ambiguity. This analysis selects the minimum reconnect-common-phase branch using the continuous RX1 reference and closure evidence. A future noncyclic swap can remove that prior if absolute phase metrology is required.",
+    "qualified_board_calibration_frequencies_hz": [
+      2400000000,
+      2420000000,
+      2440000000,
+      2460000000,
+      2480000000
+    ]
+  },
+  "firmware_binary_sha256": "aeaed9d2f892d2a59add1aba2a7477e349b750c99f81610632286d04d91326ac",
+  "fit_input_policy": "use the final rotation-0 closure plus accepted rotations 1 and 2; retain the initial rotation-0 captures only for reconnect closure validation",
+  "frequency_results": [
+    {
+      "carrier_frequency_hz": 2400099992,
+      "center_frequency_hz": 2400000000,
+      "closure": {
+        "closure_artifact_id": "e98eb00ed8554caab778bc07493afd81",
+        "common_gain_change_db": -0.030727531925730637,
+        "common_phase_change_deg": -1.9124003696300633,
+        "frequency_hz": 2400000000,
+        "initial_artifact_id": "93c28dfcd3bf4a659d0880594dfbb2c6",
+        "per_antenna": [
+          {
+            "common_removed_gain_change_db": 0.007942677731472642,
+            "common_removed_phase_change_deg": 0.6492417470890928,
+            "gain_change_db": -0.022784854194257995,
+            "name": "ANT1",
+            "phase_change_deg": -1.2631586225409706
+          },
+          {
+            "common_removed_gain_change_db": -0.02662131394917912,
+            "common_removed_phase_change_deg": -0.6318268407305254,
+            "gain_change_db": -0.05734884587490976,
+            "name": "ANT2",
+            "phase_change_deg": -2.5442272103605887
+          },
+          {
+            "common_removed_gain_change_db": 0.033569455405351445,
+            "common_removed_phase_change_deg": -0.05965515471427807,
+            "gain_change_db": 0.0028419234796208054,
+            "name": "ANT3",
+            "phase_change_deg": -1.9720555243443414
+          },
+          {
+            "common_removed_gain_change_db": -0.040198422767085656,
+            "common_removed_phase_change_deg": -0.673283608841416,
+            "gain_change_db": -0.07092595469281629,
+            "name": "ANT4",
+            "phase_change_deg": -2.5856839784714793
+          },
+          {
+            "common_removed_gain_change_db": 0.05723379826364915,
+            "common_removed_phase_change_deg": -0.33315923353305266,
+            "gain_change_db": 0.026506266337918506,
+            "name": "ANT5",
+            "phase_change_deg": -2.245559603163116
+          },
+          {
+            "common_removed_gain_change_db": -0.031850627934785075,
+            "common_removed_phase_change_deg": 1.0942536857792504,
+            "gain_change_db": -0.06257815986051571,
+            "name": "ANT6",
+            "phase_change_deg": -0.8181466838508129
+          },
+          {
+            "common_removed_gain_change_db": 0.03170592348720918,
+            "common_removed_phase_change_deg": 0.15140879772064864,
+            "gain_change_db": 0.0009783915614785402,
+            "name": "ANT7",
+            "phase_change_deg": -1.7609915719094147
+          },
+          {
+            "common_removed_gain_change_db": -0.03178149023663257,
+            "common_removed_phase_change_deg": -0.1969293796676368,
+            "gain_change_db": -0.0625090221623632,
+            "name": "ANT8",
+            "phase_change_deg": -2.1093297492977
+          }
+        ],
+        "relative_shape_gain_max_abs_db": 0.05723379826364915,
+        "relative_shape_gain_rms_db": 0.03503587604952628,
+        "relative_shape_phase_max_abs_deg": 1.0942536857792504,
+        "relative_shape_phase_rms_deg": 0.575291400789919
+      },
+      "fit_artifact_ids_by_rotation": {
+        "0": "e98eb00ed8554caab778bc07493afd81",
+        "1": "2c5c1adeda884a42a83f637bd5dd002b",
+        "2": "8646fb9a3e2b4571952fad2a1680be1b"
+      },
+      "quality_gate": {
+        "may_be_used_as_board_calibration": true,
+        "one_degree_raw_isolation_passed": false,
+        "operational_raw_isolation_passed": true,
+        "rotation_zero_closure_passed": true,
+        "separable_model_passed": true,
+        "status": "qualified_with_measured_isolation_phase_floor"
+      },
+      "raw_isolation": {
+        "maximum_selected_to_all_off_contrast_db": 35.90863186086922,
+        "minimum_selected_to_all_off_contrast_db": 32.115940626678324,
+        "phase_bound_is_finite": true,
+        "worst_case_coherent_leakage_phase_bound_deg": 1.4202672678744126
+      },
+      "receiver_gain_db": 40,
+      "separable_model": {
+        "board_path_terms": [
+          {
+            "correction_complex": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "correction_gain_db": -0.0,
+            "correction_phase_deg": 0.0,
+            "name": "ANT1",
+            "response_complex_relative_to_ant1": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "response_gain_db_relative_to_ant1": 0.0,
+            "response_phase_deg_relative_to_ant1": 0.0
+          },
+          {
+            "correction_complex": {
+              "imag": 1.223706180054439,
+              "real": 0.2262690922569562
+            },
+            "correction_gain_db": 1.8995454364542232,
+            "correction_phase_deg": 79.52405845434146,
+            "name": "ANT2",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.7901737711363113,
+              "real": 0.14610688810308622
+            },
+            "response_gain_db_relative_to_ant1": -1.8995454364542232,
+            "response_phase_deg_relative_to_ant1": -79.52405845434146
+          },
+          {
+            "correction_complex": {
+              "imag": 1.0765614721116301,
+              "real": 0.4852324523885623
+            },
+            "correction_gain_db": 1.4439831731485482,
+            "correction_phase_deg": 65.73775154488413,
+            "name": "ANT3",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.7720412690785043,
+              "real": 0.3479777867262333
+            },
+            "response_gain_db_relative_to_ant1": -1.4439831731485482,
+            "response_phase_deg_relative_to_ant1": -65.73775154488413
+          },
+          {
+            "correction_complex": {
+              "imag": 1.382425114331997,
+              "real": -0.1408705744872716
+            },
+            "correction_gain_db": 2.8576961484236576,
+            "correction_phase_deg": 95.81841657547727,
+            "name": "ANT4",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.715932371948816,
+              "real": -0.07295426239358985
+            },
+            "response_gain_db_relative_to_ant1": -2.8576961484236576,
+            "response_phase_deg_relative_to_ant1": -95.81841657547729
+          },
+          {
+            "correction_complex": {
+              "imag": 1.3892968821963965,
+              "real": -0.15144038032998364
+            },
+            "correction_gain_db": 2.907200362496139,
+            "correction_phase_deg": 96.2209676839002,
+            "name": "ANT5",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.711336387165971,
+              "real": -0.07753926061121202
+            },
+            "response_gain_db_relative_to_ant1": -2.907200362496139,
+            "response_phase_deg_relative_to_ant1": -96.22096768390017
+          },
+          {
+            "correction_complex": {
+              "imag": 1.0808452230286187,
+              "real": 0.4983932647160162
+            },
+            "correction_gain_db": 1.512540563957114,
+            "correction_phase_deg": 65.24489420994155,
+            "name": "ANT6",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.7629734947216231,
+              "real": 0.35181804279115486
+            },
+            "response_gain_db_relative_to_ant1": -1.512540563957114,
+            "response_phase_deg_relative_to_ant1": -65.24489420994155
+          },
+          {
+            "correction_complex": {
+              "imag": 1.2524531141542068,
+              "real": 0.22393628679879463
+            },
+            "correction_gain_db": 2.0918951050536534,
+            "correction_phase_deg": 79.86274065994252,
+            "name": "ANT7",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.7736988768929097,
+              "real": 0.1383359198310587
+            },
+            "response_gain_db_relative_to_ant1": -2.0918951050536534,
+            "response_phase_deg_relative_to_ant1": -79.8627406599425
+          },
+          {
+            "correction_complex": {
+              "imag": 0.010720785978097537,
+              "real": 1.0144207163744698
+            },
+            "correction_gain_db": 0.12484723421146882,
+            "correction_phase_deg": 0.6055011617352193,
+            "name": "ANT8",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.0104169817365706,
+              "real": 0.9856741937820986
+            },
+            "response_gain_db_relative_to_ant1": -0.12484723421146882,
+            "response_phase_deg_relative_to_ant1": -0.6055011617352193
+          }
+        ],
+        "feed_arm_terms": [
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "gain_db_relative_to_f1": 0.0,
+            "name": "F1",
+            "phase_deg_relative_to_f1": 0.0
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.11382032565317185,
+              "real": 1.0035026669716667
+            },
+            "gain_db_relative_to_f1": 0.08588534707099743,
+            "name": "F2",
+            "phase_deg_relative_to_f1": 6.4710068224392785
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": -0.025836077266674987,
+              "real": 0.9962125427287751
+            },
+            "gain_db_relative_to_f1": -0.030039861581070252,
+            "name": "F3",
+            "phase_deg_relative_to_f1": -1.4855930637205859
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": -0.05415587358115155,
+              "real": 0.98251782034838
+            },
+            "gain_db_relative_to_f1": -0.140016731340795,
+            "name": "F4",
+            "phase_deg_relative_to_f1": -3.154921238576719
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": 1.0208073850570403,
+              "real": 0.4190896570051771
+            },
+            "gain_db_relative_to_f1": 0.855345489294041,
+            "name": "F5",
+            "phase_deg_relative_to_f1": 67.67953353284378
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": -0.028670473488224366,
+              "real": 0.989963510868052
+            },
+            "gain_db_relative_to_f1": -0.08397514761913244,
+            "name": "F6",
+            "phase_deg_relative_to_f1": -1.6588874953294237
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": -0.01003702251817562,
+              "real": 1.0084170914702588
+            },
+            "gain_db_relative_to_f1": 0.07323417842420782,
+            "name": "F7",
+            "phase_deg_relative_to_f1": -0.5702601083358161
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.09968816710287591,
+              "real": 1.0259940253927813
+            },
+            "gain_db_relative_to_f1": 0.2637041270373594,
+            "name": "F8",
+            "phase_deg_relative_to_f1": 5.549582473973459
+          }
+        ],
+        "fit_quality": {
+          "amplitude_residual_max_abs_db": 0.10202655289929385,
+          "amplitude_residual_rms_db": 0.055772319456345074,
+          "phase_residual_max_abs_deg": 1.0766916919928726,
+          "phase_residual_rms_deg": 0.5380286749430717
+        },
+        "gauge": {
+          "exported_board_response": "normalized to ANT1",
+          "feed_arm": "F1 fixed to 1\u22200",
+          "round_common": "rotation 0 fixed to 1\u22200"
+        },
+        "model": "measurement = round_common * feed_arm * board_path",
+        "observation_count": 24,
+        "parameter_count_per_scalar": 17,
+        "phase_branch_resolution": {
+          "ambiguity": "pure cyclic mappings admit eight equivalent 45-degree spatial phase ramps",
+          "chosen_branch_index": 7,
+          "chosen_spatial_ramp_step_deg": 45.0,
+          "independent_noncyclic_mapping_used": false,
+          "resolution": "choose the branch minimizing rotation-common phase, using the continuous RX1 reference and measured rotation-0 closure as the prior",
+          "rotation_common_phase_rms_deg": 1.4833628494225937
+        },
+        "residual_degrees_of_freedom_per_scalar": 7,
+        "residuals": [
+          {
+            "amplitude_residual_db": -0.02580749466737986,
+            "antenna": "ANT1",
+            "artifact_id": "e98eb00ed8554caab778bc07493afd81",
+            "feed": "F1",
+            "phase_residual_deg": 0.12444781460284614,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": -0.04215902542700567,
+            "antenna": "ANT2",
+            "artifact_id": "e98eb00ed8554caab778bc07493afd81",
+            "feed": "F2",
+            "phase_residual_deg": -0.4515950665911443,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.013733490504914236,
+            "antenna": "ANT3",
+            "artifact_id": "e98eb00ed8554caab778bc07493afd81",
+            "feed": "F3",
+            "phase_residual_deg": 0.25142263535288234,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": -0.10202655289929297,
+            "antenna": "ANT4",
+            "artifact_id": "e98eb00ed8554caab778bc07493afd81",
+            "feed": "F4",
+            "phase_residual_deg": -0.8437733488705425,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.08311563089034735,
+            "antenna": "ANT5",
+            "artifact_id": "e98eb00ed8554caab778bc07493afd81",
+            "feed": "F5",
+            "phase_residual_deg": 0.5623685402332853,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": -0.006952899489216069,
+            "antenna": "ANT6",
+            "artifact_id": "e98eb00ed8554caab778bc07493afd81",
+            "feed": "F6",
+            "phase_residual_deg": -0.7195430519815281,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.051082710545098386,
+            "antenna": "ANT7",
+            "artifact_id": "e98eb00ed8554caab778bc07493afd81",
+            "feed": "F7",
+            "phase_residual_deg": 0.6264444091446786,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.029014140542565237,
+            "antenna": "ANT8",
+            "artifact_id": "e98eb00ed8554caab778bc07493afd81",
+            "feed": "F8",
+            "phase_residual_deg": 0.45020102840289516,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.06796652009440951,
+            "antenna": "ANT2",
+            "artifact_id": "2c5c1adeda884a42a83f637bd5dd002b",
+            "feed": "F1",
+            "phase_residual_deg": 0.32714445165477973,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": 0.02842553492211719,
+            "antenna": "ANT3",
+            "artifact_id": "2c5c1adeda884a42a83f637bd5dd002b",
+            "feed": "F2",
+            "phase_residual_deg": 0.20016896958532626,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": 0.08829306239440182,
+            "antenna": "ANT4",
+            "artifact_id": "2c5c1adeda884a42a83f637bd5dd002b",
+            "feed": "F3",
+            "phase_residual_deg": 0.5923315731253199,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": 0.01891092200894917,
+            "antenna": "ANT5",
+            "artifact_id": "2c5c1adeda884a42a83f637bd5dd002b",
+            "feed": "F4",
+            "phase_residual_deg": 0.2813844709198313,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.0761627314011375,
+            "antenna": "ANT6",
+            "artifact_id": "2c5c1adeda884a42a83f637bd5dd002b",
+            "feed": "F5",
+            "phase_residual_deg": 0.15716482492084713,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.04412981105587388,
+            "antenna": "ANT7",
+            "artifact_id": "2c5c1adeda884a42a83f637bd5dd002b",
+            "feed": "F6",
+            "phase_residual_deg": 0.09309225133499145,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.08009685108764764,
+            "antenna": "ANT8",
+            "artifact_id": "2c5c1adeda884a42a83f637bd5dd002b",
+            "feed": "F7",
+            "phase_residual_deg": -1.0766916919928726,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.0032066458751691673,
+            "antenna": "ANT1",
+            "artifact_id": "2c5c1adeda884a42a83f637bd5dd002b",
+            "feed": "F8",
+            "phase_residual_deg": -0.5746537468859567,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.04215902542701144,
+            "antenna": "ANT3",
+            "artifact_id": "8646fb9a3e2b4571952fad2a1680be1b",
+            "feed": "F1",
+            "phase_residual_deg": -0.451595066591144,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.013733490504917789,
+            "antenna": "ANT4",
+            "artifact_id": "8646fb9a3e2b4571952fad2a1680be1b",
+            "feed": "F2",
+            "phase_residual_deg": 0.25142263535287607,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": -0.10202655289929385,
+            "antenna": "ANT5",
+            "artifact_id": "8646fb9a3e2b4571952fad2a1680be1b",
+            "feed": "F3",
+            "phase_residual_deg": -0.8437733488705382,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.08311563089035223,
+            "antenna": "ANT6",
+            "artifact_id": "8646fb9a3e2b4571952fad2a1680be1b",
+            "feed": "F4",
+            "phase_residual_deg": 0.5623685402332784,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": -0.006952899489217845,
+            "antenna": "ANT7",
+            "artifact_id": "8646fb9a3e2b4571952fad2a1680be1b",
+            "feed": "F5",
+            "phase_residual_deg": -0.7195430519815312,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.05108271054509661,
+            "antenna": "ANT8",
+            "artifact_id": "8646fb9a3e2b4571952fad2a1680be1b",
+            "feed": "F6",
+            "phase_residual_deg": 0.6264444091446857,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.029014140542563904,
+            "antenna": "ANT1",
+            "artifact_id": "8646fb9a3e2b4571952fad2a1680be1b",
+            "feed": "F7",
+            "phase_residual_deg": 0.4502010284028873,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": -0.025807494667376307,
+            "antenna": "ANT2",
+            "artifact_id": "8646fb9a3e2b4571952fad2a1680be1b",
+            "feed": "F8",
+            "phase_residual_deg": 0.12444781460285097,
+            "rotation": 2
+          }
+        ],
+        "round_common_terms": [
+          {
+            "complex": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "gain_db": 0.0,
+            "phase_deg": 0.0,
+            "rotation": 0
+          },
+          {
+            "complex": {
+              "imag": 0.035362605934550664,
+              "real": 0.9897015571327314
+            },
+            "gain_db": -0.08437394037661203,
+            "phase_deg": 2.0463406194503477,
+            "rotation": 1
+          },
+          {
+            "complex": {
+              "imag": 0.02719643766068855,
+              "real": 1.002759542906001
+            },
+            "gain_db": 0.02712948682470362,
+            "phase_deg": 1.5535720447822428,
+            "rotation": 2
+          }
+        ]
+      }
+    },
+    {
+      "carrier_frequency_hz": 2420099992,
+      "center_frequency_hz": 2420000000,
+      "closure": {
+        "closure_artifact_id": "19470e855c0242d1b387c2a55b09bc1d",
+        "common_gain_change_db": -0.035219836867071884,
+        "common_phase_change_deg": -1.4633605090739934,
+        "frequency_hz": 2420000000,
+        "initial_artifact_id": "a18c613d7ec842dea5537b40b1a9341a",
+        "per_antenna": [
+          {
+            "common_removed_gain_change_db": 0.024555858588147347,
+            "common_removed_phase_change_deg": 0.6406366561152197,
+            "gain_change_db": -0.010663978278924537,
+            "name": "ANT1",
+            "phase_change_deg": -0.8227238529587737
+          },
+          {
+            "common_removed_gain_change_db": -0.06639896444531143,
+            "common_removed_phase_change_deg": -0.814926533468423,
+            "gain_change_db": -0.10161880131238332,
+            "name": "ANT2",
+            "phase_change_deg": -2.2782870425424164
+          },
+          {
+            "common_removed_gain_change_db": 0.01293997095536771,
+            "common_removed_phase_change_deg": -0.19717358405279128,
+            "gain_change_db": -0.022279865911704173,
+            "name": "ANT3",
+            "phase_change_deg": -1.660534093126813
+          },
+          {
+            "common_removed_gain_change_db": -0.05225041717410169,
+            "common_removed_phase_change_deg": -0.5186071037255147,
+            "gain_change_db": -0.08747025404117358,
+            "name": "ANT4",
+            "phase_change_deg": -1.981967612799508
+          },
+          {
+            "common_removed_gain_change_db": 0.025375875317687716,
+            "common_removed_phase_change_deg": -0.27588702887101135,
+            "gain_change_db": -0.009843961549384167,
+            "name": "ANT5",
+            "phase_change_deg": -1.7392475379450048
+          },
+          {
+            "common_removed_gain_change_db": -0.0029726401139299335,
+            "common_removed_phase_change_deg": 0.8442327275746493,
+            "gain_change_db": -0.03819247698100182,
+            "name": "ANT6",
+            "phase_change_deg": -0.6191277814993725
+          },
+          {
+            "common_removed_gain_change_db": 0.036716778324785725,
+            "common_removed_phase_change_deg": 0.2510234521283792,
+            "gain_change_db": 0.0014969414577138411,
+            "name": "ANT7",
+            "phase_change_deg": -1.2123370569456426
+          },
+          {
+            "common_removed_gain_change_db": 0.022033538547354556,
+            "common_removed_phase_change_deg": 0.0707101193924018,
+            "gain_change_db": -0.013186298319717326,
+            "name": "ANT8",
+            "phase_change_deg": -1.3926503896815916
+          }
+        ],
+        "relative_shape_gain_max_abs_db": 0.06639896444531143,
+        "relative_shape_gain_rms_db": 0.036048113477786935,
+        "relative_shape_phase_max_abs_deg": 0.8442327275746493,
+        "relative_shape_phase_rms_deg": 0.5290565395000901
+      },
+      "fit_artifact_ids_by_rotation": {
+        "0": "19470e855c0242d1b387c2a55b09bc1d",
+        "1": "66768fd0dc1a42c39211dd997e13df57",
+        "2": "f35375bb6ca74c529f62404af5981f4a"
+      },
+      "quality_gate": {
+        "may_be_used_as_board_calibration": true,
+        "one_degree_raw_isolation_passed": false,
+        "operational_raw_isolation_passed": true,
+        "rotation_zero_closure_passed": true,
+        "separable_model_passed": true,
+        "status": "qualified_with_measured_isolation_phase_floor"
+      },
+      "raw_isolation": {
+        "maximum_selected_to_all_off_contrast_db": 36.70713538450773,
+        "minimum_selected_to_all_off_contrast_db": 32.23255398398897,
+        "phase_bound_is_finite": true,
+        "worst_case_coherent_leakage_phase_bound_deg": 1.4013229404638454
+      },
+      "receiver_gain_db": 40,
+      "separable_model": {
+        "board_path_terms": [
+          {
+            "correction_complex": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "correction_gain_db": -0.0,
+            "correction_phase_deg": 0.0,
+            "name": "ANT1",
+            "response_complex_relative_to_ant1": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "response_gain_db_relative_to_ant1": 0.0,
+            "response_phase_deg_relative_to_ant1": 0.0
+          },
+          {
+            "correction_complex": {
+              "imag": 1.2894052321589684,
+              "real": -0.02592279751923324
+            },
+            "correction_gain_db": 2.209543580686019,
+            "correction_phase_deg": 91.1517456210106,
+            "name": "ANT2",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.7752380314661534,
+              "real": -0.015585742959377084
+            },
+            "response_gain_db_relative_to_ant1": -2.209543580686019,
+            "response_phase_deg_relative_to_ant1": -91.15174562101058
+          },
+          {
+            "correction_complex": {
+              "imag": 1.146394958388179,
+              "real": 0.26497765390521916
+            },
+            "correction_gain_db": 1.4127243143791879,
+            "correction_phase_deg": 76.98521908794646,
+            "name": "ANT3",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.8280600567379104,
+              "real": 0.19139774605737428
+            },
+            "response_gain_db_relative_to_ant1": -1.4127243143791879,
+            "response_phase_deg_relative_to_ant1": -76.98521908794643
+          },
+          {
+            "correction_complex": {
+              "imag": 1.4594769436816193,
+              "real": -0.4292065596291745
+            },
+            "correction_gain_db": 3.6441800771287762,
+            "correction_phase_deg": 106.3876843900037,
+            "name": "ANT4",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.6306366852579859,
+              "real": -0.1854591833240863
+            },
+            "response_gain_db_relative_to_ant1": -3.6441800771287762,
+            "response_phase_deg_relative_to_ant1": -106.3876843900037
+          },
+          {
+            "correction_complex": {
+              "imag": 1.4683534685414288,
+              "real": -0.44347223194581187
+            },
+            "correction_gain_db": 3.7157200334361336,
+            "correction_phase_deg": 106.80537047922348,
+            "name": "ANT5",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.6241063625841886,
+              "real": -0.18849265351735958
+            },
+            "response_gain_db_relative_to_ant1": -3.7157200334361336,
+            "response_phase_deg_relative_to_ant1": -106.80537047922351
+          },
+          {
+            "correction_complex": {
+              "imag": 1.157309402073029,
+              "real": 0.27724240048556487
+            },
+            "correction_gain_db": 1.5113329939039963,
+            "correction_phase_deg": 76.52822982377415,
+            "name": "ANT6",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.8171770891313714,
+              "real": 0.19576107945443907
+            },
+            "response_gain_db_relative_to_ant1": -1.5113329939039963,
+            "response_phase_deg_relative_to_ant1": -76.52822982377417
+          },
+          {
+            "correction_complex": {
+              "imag": 1.3196865560541304,
+              "real": -0.03857865621951111
+            },
+            "correction_gain_db": 2.4131256570990005,
+            "correction_phase_deg": 91.67446189435412,
+            "name": "ANT7",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.7571086826112418,
+              "real": -0.022132706780463703
+            },
+            "response_gain_db_relative_to_ant1": -2.4131256570990005,
+            "response_phase_deg_relative_to_ant1": -91.67446189435412
+          },
+          {
+            "correction_complex": {
+              "imag": 0.006994192145604714,
+              "real": 1.0137287223567852
+            },
+            "correction_gain_db": 0.11864176494486944,
+            "correction_phase_deg": 0.3953043093858639,
+            "name": "ANT8",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.006805709112117657,
+              "real": 0.9864102471497754
+            },
+            "response_gain_db_relative_to_ant1": -0.11864176494486944,
+            "response_phase_deg_relative_to_ant1": -0.3953043093858639
+          }
+        ],
+        "feed_arm_terms": [
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "gain_db_relative_to_f1": 0.0,
+            "name": "F1",
+            "phase_deg_relative_to_f1": 0.0
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.11204242688293453,
+              "real": 1.0010214571044938
+            },
+            "gain_db_relative_to_f1": 0.06293772032120921,
+            "name": "F2",
+            "phase_deg_relative_to_f1": 6.386426589162198
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": -0.027671564364617224,
+              "real": 0.9914687616742908
+            },
+            "gain_db_relative_to_f1": -0.07103767403133025,
+            "name": "F3",
+            "phase_deg_relative_to_f1": -1.5986911930148437
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": -0.05097263896986668,
+              "real": 0.981722624259819
+            },
+            "gain_db_relative_to_f1": -0.1485318081269024,
+            "name": "F4",
+            "phase_deg_relative_to_f1": -2.972221295055135
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": 1.0274894552586695,
+              "real": 0.4440528509397823
+            },
+            "gain_db_relative_to_f1": 0.9792248047697681,
+            "name": "F5",
+            "phase_deg_relative_to_f1": 66.62731921521538
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": -0.02577248411921709,
+              "real": 0.9835902290804756
+            },
+            "gain_db_relative_to_f1": -0.1407351753948908,
+            "name": "F6",
+            "phase_deg_relative_to_f1": -1.500946960813934
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": -0.014074798935268472,
+              "real": 1.0059685816966752
+            },
+            "gain_db_relative_to_f1": 0.05253841710619252,
+            "name": "F7",
+            "phase_deg_relative_to_f1": -0.8015896085942416
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.08939725401275103,
+              "real": 1.023618050221542
+            },
+            "gain_db_relative_to_f1": 0.2357580907348847,
+            "name": "F8",
+            "phase_deg_relative_to_f1": 4.991238692484387
+          }
+        ],
+        "fit_quality": {
+          "amplitude_residual_max_abs_db": 0.11803860115004383,
+          "amplitude_residual_rms_db": 0.06385354914017452,
+          "phase_residual_max_abs_deg": 1.0742003897112022,
+          "phase_residual_rms_deg": 0.5247564345637638
+        },
+        "gauge": {
+          "exported_board_response": "normalized to ANT1",
+          "feed_arm": "F1 fixed to 1\u22200",
+          "round_common": "rotation 0 fixed to 1\u22200"
+        },
+        "model": "measurement = round_common * feed_arm * board_path",
+        "observation_count": 24,
+        "parameter_count_per_scalar": 17,
+        "phase_branch_resolution": {
+          "ambiguity": "pure cyclic mappings admit eight equivalent 45-degree spatial phase ramps",
+          "chosen_branch_index": 5,
+          "chosen_spatial_ramp_step_deg": 135.0,
+          "independent_noncyclic_mapping_used": false,
+          "resolution": "choose the branch minimizing rotation-common phase, using the continuous RX1 reference and measured rotation-0 closure as the prior",
+          "rotation_common_phase_rms_deg": 1.324536267747066
+        },
+        "residual_degrees_of_freedom_per_scalar": 7,
+        "residuals": [
+          {
+            "amplitude_residual_db": -0.02095924006500427,
+            "antenna": "ANT1",
+            "artifact_id": "19470e855c0242d1b387c2a55b09bc1d",
+            "feed": "F1",
+            "phase_residual_deg": 0.22989855016301178,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": -0.0559351531745822,
+            "antenna": "ANT2",
+            "artifact_id": "19470e855c0242d1b387c2a55b09bc1d",
+            "feed": "F2",
+            "phase_residual_deg": -0.43417709611050304,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.017197526188817314,
+            "antenna": "ANT3",
+            "artifact_id": "19470e855c0242d1b387c2a55b09bc1d",
+            "feed": "F3",
+            "phase_residual_deg": 0.22652629543414426,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": -0.11803860115004383,
+            "antenna": "ANT4",
+            "artifact_id": "19470e855c0242d1b387c2a55b09bc1d",
+            "feed": "F4",
+            "phase_residual_deg": -0.650194603134831,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.09294008881651017,
+            "antenna": "ANT5",
+            "artifact_id": "19470e855c0242d1b387c2a55b09bc1d",
+            "feed": "F5",
+            "phase_residual_deg": 0.42078588341406303,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": -0.0065246705322872245,
+            "antenna": "ANT6",
+            "artifact_id": "19470e855c0242d1b387c2a55b09bc1d",
+            "feed": "F6",
+            "phase_residual_deg": -0.8670227005536818,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.05176352064188183,
+            "antenna": "ANT7",
+            "artifact_id": "19470e855c0242d1b387c2a55b09bc1d",
+            "feed": "F7",
+            "phase_residual_deg": 0.7168086863900845,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.03955652927474418,
+            "antenna": "ANT8",
+            "artifact_id": "19470e855c0242d1b387c2a55b09bc1d",
+            "feed": "F8",
+            "phase_residual_deg": 0.35734978959009034,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.07689439323961356,
+            "antenna": "ANT2",
+            "artifact_id": "66768fd0dc1a42c39211dd997e13df57",
+            "feed": "F1",
+            "phase_residual_deg": 0.20427544030229047,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": 0.038737626985798634,
+            "antenna": "ANT3",
+            "artifact_id": "66768fd0dc1a42c39211dd997e13df57",
+            "feed": "F2",
+            "phase_residual_deg": 0.2076476900691475,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": 0.10084107496124783,
+            "antenna": "ANT4",
+            "artifact_id": "66768fd0dc1a42c39211dd997e13df57",
+            "feed": "F3",
+            "phase_residual_deg": 0.4236588033824224,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": 0.025098512333538103,
+            "antenna": "ANT5",
+            "artifact_id": "66768fd0dc1a42c39211dd997e13df57",
+            "feed": "F4",
+            "phase_residual_deg": 0.2293991601351496,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.08641541828422561,
+            "antenna": "ANT6",
+            "artifact_id": "66768fd0dc1a42c39211dd997e13df57",
+            "feed": "F5",
+            "phase_residual_deg": 0.4462120207345388,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.04523885010958839,
+            "antenna": "ANT7",
+            "artifact_id": "66768fd0dc1a42c39211dd997e13df57",
+            "feed": "F6",
+            "phase_residual_deg": 0.1501997953516093,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.09132004991661002,
+            "antenna": "ANT8",
+            "artifact_id": "66768fd0dc1a42c39211dd997e13df57",
+            "feed": "F7",
+            "phase_residual_deg": -1.0742003897112022,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.018597289209722145,
+            "antenna": "ANT1",
+            "artifact_id": "66768fd0dc1a42c39211dd997e13df57",
+            "feed": "F8",
+            "phase_residual_deg": -0.5872556882111102,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.05593515317459552,
+            "antenna": "ANT3",
+            "artifact_id": "f35375bb6ca74c529f62404af5981f4a",
+            "feed": "F1",
+            "phase_residual_deg": -0.4341770961105011,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.017197526188817314,
+            "antenna": "ANT4",
+            "artifact_id": "f35375bb6ca74c529f62404af5981f4a",
+            "feed": "F2",
+            "phase_residual_deg": 0.2265262954341523,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": -0.11803860115004383,
+            "antenna": "ANT5",
+            "artifact_id": "f35375bb6ca74c529f62404af5981f4a",
+            "feed": "F3",
+            "phase_residual_deg": -0.6501946031348363,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.09294008881651195,
+            "antenna": "ANT6",
+            "artifact_id": "f35375bb6ca74c529f62404af5981f4a",
+            "feed": "F4",
+            "phase_residual_deg": 0.4207858834140554,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": -0.006524670532288557,
+            "antenna": "ANT7",
+            "artifact_id": "f35375bb6ca74c529f62404af5981f4a",
+            "feed": "F5",
+            "phase_residual_deg": -0.8670227005536904,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.05176352064188361,
+            "antenna": "ANT8",
+            "artifact_id": "f35375bb6ca74c529f62404af5981f4a",
+            "feed": "F6",
+            "phase_residual_deg": 0.7168086863900947,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.039556529274741514,
+            "antenna": "ANT1",
+            "artifact_id": "f35375bb6ca74c529f62404af5981f4a",
+            "feed": "F7",
+            "phase_residual_deg": 0.3573497895900842,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": -0.020959240064999385,
+            "antenna": "ANT2",
+            "artifact_id": "f35375bb6ca74c529f62404af5981f4a",
+            "feed": "F8",
+            "phase_residual_deg": 0.22989855016300728,
+            "rotation": 2
+          }
+        ],
+        "round_common_terms": [
+          {
+            "complex": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "gain_db": 0.0,
+            "phase_deg": 0.0,
+            "rotation": 0
+          },
+          {
+            "complex": {
+              "imag": 0.03226966501383819,
+              "real": 0.9804048811002704
+            },
+            "gain_db": -0.16718822212607073,
+            "phase_deg": 1.8851888566849198,
+            "rotation": 1
+          },
+          {
+            "complex": {
+              "imag": 0.02294380434055645,
+              "real": 1.0053323032222314
+            },
+            "gain_db": 0.04845417788257933,
+            "phase_deg": 1.3073836270823733,
+            "rotation": 2
+          }
+        ]
+      }
+    },
+    {
+      "carrier_frequency_hz": 2440099992,
+      "center_frequency_hz": 2440000000,
+      "closure": {
+        "closure_artifact_id": "47f5e7b8966e4d85a8c3c8cafb70ed2c",
+        "common_gain_change_db": -0.07702564109410533,
+        "common_phase_change_deg": -1.6682590134908821,
+        "frequency_hz": 2440000000,
+        "initial_artifact_id": "973b1c10029840c5a9fcdc6f3ad01c80",
+        "per_antenna": [
+          {
+            "common_removed_gain_change_db": 0.051827331424509945,
+            "common_removed_phase_change_deg": 0.5254152643534553,
+            "gain_change_db": -0.025198309669595378,
+            "name": "ANT1",
+            "phase_change_deg": -1.1428437491374268
+          },
+          {
+            "common_removed_gain_change_db": -0.058778722394343993,
+            "common_removed_phase_change_deg": -0.6640969045420491,
+            "gain_change_db": -0.13580436348844932,
+            "name": "ANT2",
+            "phase_change_deg": -2.3323559180329596
+          },
+          {
+            "common_removed_gain_change_db": 0.003910091636296187,
+            "common_removed_phase_change_deg": -0.1468788696283525,
+            "gain_change_db": -0.07311554945780914,
+            "name": "ANT3",
+            "phase_change_deg": -1.8151378831192346
+          },
+          {
+            "common_removed_gain_change_db": -0.05191424369919427,
+            "common_removed_phase_change_deg": -0.3753588779494521,
+            "gain_change_db": -0.1289398847932996,
+            "name": "ANT4",
+            "phase_change_deg": -2.0436178914403342
+          },
+          {
+            "common_removed_gain_change_db": 0.022848549594273654,
+            "common_removed_phase_change_deg": -0.3651530233822484,
+            "gain_change_db": -0.05417709149983167,
+            "name": "ANT5",
+            "phase_change_deg": -2.0334120368731305
+          },
+          {
+            "common_removed_gain_change_db": -0.023271952818333802,
+            "common_removed_phase_change_deg": 0.9421959084667719,
+            "gain_change_db": -0.10029759391243913,
+            "name": "ANT6",
+            "phase_change_deg": -0.7260631050241102
+          },
+          {
+            "common_removed_gain_change_db": 0.01608915788713927,
+            "common_removed_phase_change_deg": 0.24410016952342062,
+            "gain_change_db": -0.060936483206966055,
+            "name": "ANT7",
+            "phase_change_deg": -1.42415884396749
+          },
+          {
+            "common_removed_gain_change_db": 0.03928978836965302,
+            "common_removed_phase_change_deg": -0.16019349634939317,
+            "gain_change_db": -0.037735852724452304,
+            "name": "ANT8",
+            "phase_change_deg": -1.8284525098402753
+          }
+        ],
+        "relative_shape_gain_max_abs_db": 0.058778722394343993,
+        "relative_shape_gain_rms_db": 0.038271360837039546,
+        "relative_shape_phase_max_abs_deg": 0.9421959084667719,
+        "relative_shape_phase_rms_deg": 0.49823065663498733
+      },
+      "fit_artifact_ids_by_rotation": {
+        "0": "47f5e7b8966e4d85a8c3c8cafb70ed2c",
+        "1": "c82f2b6ae1814aaf9480031628e8965f",
+        "2": "9417609c8c2e4fe899804d343e410c4a"
+      },
+      "quality_gate": {
+        "may_be_used_as_board_calibration": true,
+        "one_degree_raw_isolation_passed": false,
+        "operational_raw_isolation_passed": true,
+        "rotation_zero_closure_passed": true,
+        "separable_model_passed": true,
+        "status": "qualified_with_measured_isolation_phase_floor"
+      },
+      "raw_isolation": {
+        "maximum_selected_to_all_off_contrast_db": 38.12895888528055,
+        "minimum_selected_to_all_off_contrast_db": 31.853131523999156,
+        "phase_bound_is_finite": true,
+        "worst_case_coherent_leakage_phase_bound_deg": 1.463906397108413
+      },
+      "receiver_gain_db": 40,
+      "separable_model": {
+        "board_path_terms": [
+          {
+            "correction_complex": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "correction_gain_db": -0.0,
+            "correction_phase_deg": 0.0,
+            "name": "ANT1",
+            "response_complex_relative_to_ant1": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "response_gain_db_relative_to_ant1": 0.0,
+            "response_phase_deg_relative_to_ant1": 0.0
+          },
+          {
+            "correction_complex": {
+              "imag": 1.599737674397659,
+              "real": -0.15623779375913482
+            },
+            "correction_gain_db": 4.122203800432935,
+            "correction_phase_deg": 95.5780809111393,
+            "name": "ANT2",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.6191963571908734,
+              "real": -0.06047358532555718
+            },
+            "response_gain_db_relative_to_ant1": -4.122203800432935,
+            "response_phase_deg_relative_to_ant1": -95.5780809111393
+          },
+          {
+            "correction_complex": {
+              "imag": 1.4357480815249524,
+              "real": 0.15908034148130562
+            },
+            "correction_gain_db": 3.1945566801212366,
+            "correction_phase_deg": 83.67743834889933,
+            "name": "ANT3",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.6880540834354416,
+              "real": 0.07623613080803168
+            },
+            "response_gain_db_relative_to_ant1": -3.1945566801212366,
+            "response_phase_deg_relative_to_ant1": -83.67743834889933
+          },
+          {
+            "correction_complex": {
+              "imag": 1.8198269817646322,
+              "real": -0.5731090779710721
+            },
+            "correction_gain_db": 5.6112813951835,
+            "correction_phase_deg": 107.48051983749906,
+            "name": "ANT4",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.4999216675619945,
+              "real": -0.15743784921597087
+            },
+            "response_gain_db_relative_to_ant1": -5.6112813951835,
+            "response_phase_deg_relative_to_ant1": -107.48051983749906
+          },
+          {
+            "correction_complex": {
+              "imag": 1.8377420962007702,
+              "real": -0.5896932964296707
+            },
+            "correction_gain_db": 5.711302639479408,
+            "correction_phase_deg": 107.79035755199448,
+            "name": "ANT5",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.4933490538618241,
+              "real": -0.15830547195043151
+            },
+            "response_gain_db_relative_to_ant1": -5.711302639479408,
+            "response_phase_deg_relative_to_ant1": -107.79035755199448
+          },
+          {
+            "correction_complex": {
+              "imag": 1.4510028135642825,
+              "real": 0.18661046674361484
+            },
+            "correction_gain_db": 3.3046098128650017,
+            "correction_phase_deg": 82.67153604063412,
+            "name": "ANT6",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.677964998927919,
+              "real": 0.08719167440826527
+            },
+            "response_gain_db_relative_to_ant1": -3.3046098128650017,
+            "response_phase_deg_relative_to_ant1": -82.6715360406341
+          },
+          {
+            "correction_complex": {
+              "imag": 1.6479353352923451,
+              "real": -0.17515543082052823
+            },
+            "correction_gain_db": 4.387590929546024,
+            "correction_phase_deg": 96.06706436697465,
+            "name": "ANT7",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.6000412030169313,
+              "real": -0.06377706283350841
+            },
+            "response_gain_db_relative_to_ant1": -4.387590929546024,
+            "response_phase_deg_relative_to_ant1": -96.06706436697465
+          },
+          {
+            "correction_complex": {
+              "imag": 0.0063978589031555904,
+              "real": 1.0106413874736169
+            },
+            "correction_gain_db": 0.09211562787261007,
+            "correction_phase_deg": 0.3627057242513274,
+            "name": "ANT8",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.006263586728474679,
+              "real": 0.9894310077242783
+            },
+            "response_gain_db_relative_to_ant1": -0.09211562787261007,
+            "response_phase_deg_relative_to_ant1": -0.3627057242513274
+          }
+        ],
+        "feed_arm_terms": [
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "gain_db_relative_to_f1": 0.0,
+            "name": "F1",
+            "phase_deg_relative_to_f1": 0.0
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.11028601959511479,
+              "real": 1.0001965476225083
+            },
+            "gain_db_relative_to_f1": 0.05419111505225955,
+            "name": "F2",
+            "phase_deg_relative_to_f1": 6.292262974182194
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": -0.027272425852454107,
+              "real": 0.988440139883201
+            },
+            "gain_db_relative_to_f1": -0.0976875729107523,
+            "name": "F3",
+            "phase_deg_relative_to_f1": -1.5804685485451841
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": -0.04805282003084845,
+              "real": 0.9856931173672077
+            },
+            "gain_db_relative_to_f1": -0.11485636334461406,
+            "name": "F4",
+            "phase_deg_relative_to_f1": -2.7909759568532024
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": 1.0262096756542007,
+              "real": 0.48938941905604605
+            },
+            "gain_db_relative_to_f1": 1.1146694089005384,
+            "name": "F5",
+            "phase_deg_relative_to_f1": 64.50397946012777
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": -0.01757630666572254,
+              "real": 0.9780820094296333
+            },
+            "gain_db_relative_to_f1": -0.19109235740735603,
+            "name": "F6",
+            "phase_deg_relative_to_f1": -1.0295044807709814
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": -0.01625353204802823,
+              "real": 1.0030744968091796
+            },
+            "gain_db_relative_to_f1": 0.027803907506158642,
+            "name": "F7",
+            "phase_deg_relative_to_f1": -0.9283231708685094
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.08232531389148681,
+              "real": 1.0142062349945773
+            },
+            "gain_db_relative_to_f1": 0.15104697856751098,
+            "name": "F8",
+            "phase_deg_relative_to_f1": 4.640647918454505
+          }
+        ],
+        "fit_quality": {
+          "amplitude_residual_max_abs_db": 0.09993038227367279,
+          "amplitude_residual_rms_db": 0.05583696316819345,
+          "phase_residual_max_abs_deg": 1.048854618297876,
+          "phase_residual_rms_deg": 0.4949210954062432
+        },
+        "gauge": {
+          "exported_board_response": "normalized to ANT1",
+          "feed_arm": "F1 fixed to 1\u22200",
+          "round_common": "rotation 0 fixed to 1\u22200"
+        },
+        "model": "measurement = round_common * feed_arm * board_path",
+        "observation_count": 24,
+        "parameter_count_per_scalar": 17,
+        "phase_branch_resolution": {
+          "ambiguity": "pure cyclic mappings admit eight equivalent 45-degree spatial phase ramps",
+          "chosen_branch_index": 3,
+          "chosen_spatial_ramp_step_deg": -135.0,
+          "independent_noncyclic_mapping_used": false,
+          "resolution": "choose the branch minimizing rotation-common phase, using the continuous RX1 reference and measured rotation-0 closure as the prior",
+          "rotation_common_phase_rms_deg": 1.3046211489310031
+        },
+        "residual_degrees_of_freedom_per_scalar": 7,
+        "residuals": [
+          {
+            "amplitude_residual_db": 0.007851308236166421,
+            "antenna": "ANT1",
+            "artifact_id": "47f5e7b8966e4d85a8c3c8cafb70ed2c",
+            "feed": "F1",
+            "phase_residual_deg": 0.21050459071467875,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": -0.057539914024634875,
+            "antenna": "ANT2",
+            "artifact_id": "47f5e7b8966e4d85a8c3c8cafb70ed2c",
+            "feed": "F2",
+            "phase_residual_deg": -0.2892382601475598,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.01416846439590369,
+            "antenna": "ANT3",
+            "artifact_id": "47f5e7b8966e4d85a8c3c8cafb70ed2c",
+            "feed": "F3",
+            "phase_residual_deg": 0.2043929821655703,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": -0.09993038227366924,
+            "antenna": "ANT4",
+            "artifact_id": "47f5e7b8966e4d85a8c3c8cafb70ed2c",
+            "feed": "F4",
+            "phase_residual_deg": -0.37635550115695665,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.06393558862742044,
+            "antenna": "ANT5",
+            "artifact_id": "47f5e7b8966e4d85a8c3c8cafb70ed2c",
+            "feed": "F5",
+            "phase_residual_deg": 0.14668287450465003,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": -0.02541540075772364,
+            "antenna": "ANT6",
+            "artifact_id": "47f5e7b8966e4d85a8c3c8cafb70ed2c",
+            "feed": "F6",
+            "phase_residual_deg": -0.9448283952109551,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.06953604590084073,
+            "antenna": "ANT7",
+            "artifact_id": "47f5e7b8966e4d85a8c3c8cafb70ed2c",
+            "feed": "F7",
+            "phase_residual_deg": 0.7239295074122762,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.02739428989573378,
+            "antenna": "ANT8",
+            "artifact_id": "47f5e7b8966e4d85a8c3c8cafb70ed2c",
+            "feed": "F8",
+            "phase_residual_deg": 0.32488751561134416,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.04968860578849554,
+            "antenna": "ANT2",
+            "artifact_id": "c82f2b6ae1814aaf9480031628e8965f",
+            "feed": "F1",
+            "phase_residual_deg": 0.07873293856989551,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": 0.04337144962876227,
+            "antenna": "ANT3",
+            "artifact_id": "c82f2b6ae1814aaf9480031628e8965f",
+            "feed": "F2",
+            "phase_residual_deg": 0.08484452673211675,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": 0.08576191787779663,
+            "antenna": "ANT4",
+            "artifact_id": "c82f2b6ae1814aaf9480031628e8965f",
+            "feed": "F3",
+            "phase_residual_deg": 0.17196052294270767,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": 0.035994793646251466,
+            "antenna": "ANT5",
+            "artifact_id": "c82f2b6ae1814aaf9480031628e8965f",
+            "feed": "F4",
+            "phase_residual_deg": 0.2296707092588199,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.038520187869712785,
+            "antenna": "ANT6",
+            "artifact_id": "c82f2b6ae1814aaf9480031628e8965f",
+            "feed": "F5",
+            "phase_residual_deg": 0.7981286724884242,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.0441206451431162,
+            "antenna": "ANT7",
+            "artifact_id": "c82f2b6ae1814aaf9480031628e8965f",
+            "feed": "F6",
+            "phase_residual_deg": 0.22087586264422598,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.09693033579656785,
+            "antenna": "ANT8",
+            "artifact_id": "c82f2b6ae1814aaf9480031628e8965f",
+            "feed": "F7",
+            "phase_residual_deg": -1.048854618297876,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.03524559813189132,
+            "antenna": "ANT1",
+            "artifact_id": "c82f2b6ae1814aaf9480031628e8965f",
+            "feed": "F8",
+            "phase_residual_deg": -0.5353976971667617,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.05753991402465086,
+            "antenna": "ANT3",
+            "artifact_id": "9417609c8c2e4fe899804d343e410c4a",
+            "feed": "F1",
+            "phase_residual_deg": -0.28923827286359033,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.014168464395909908,
+            "antenna": "ANT4",
+            "artifact_id": "9417609c8c2e4fe899804d343e410c4a",
+            "feed": "F2",
+            "phase_residual_deg": 0.2043929634530673,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": -0.09993038227367279,
+            "antenna": "ANT5",
+            "artifact_id": "9417609c8c2e4fe899804d343e410c4a",
+            "feed": "F3",
+            "phase_residual_deg": -0.37635551490452696,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.06393558862742399,
+            "antenna": "ANT6",
+            "artifact_id": "9417609c8c2e4fe899804d343e410c4a",
+            "feed": "F4",
+            "phase_residual_deg": 0.14668287377588823,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": -0.02541540075772808,
+            "antenna": "ANT7",
+            "artifact_id": "9417609c8c2e4fe899804d343e410c4a",
+            "feed": "F5",
+            "phase_residual_deg": -0.9448283824929542,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.0695360459008385,
+            "antenna": "ANT8",
+            "artifact_id": "9417609c8c2e4fe899804d343e410c4a",
+            "feed": "F6",
+            "phase_residual_deg": 0.7239295261262049,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.027394289895723123,
+            "antenna": "ANT1",
+            "artifact_id": "9417609c8c2e4fe899804d343e410c4a",
+            "feed": "F7",
+            "phase_residual_deg": 0.32488752935913434,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.007851308236168641,
+            "antenna": "ANT2",
+            "artifact_id": "9417609c8c2e4fe899804d343e410c4a",
+            "feed": "F8",
+            "phase_residual_deg": 0.21050459144424796,
+            "rotation": 2
+          }
+        ],
+        "round_common_terms": [
+          {
+            "complex": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "gain_db": 0.0,
+            "phase_deg": 0.0,
+            "rotation": 0
+          },
+          {
+            "complex": {
+              "imag": 0.035679150171578695,
+              "real": 0.9923821706290267
+            },
+            "gain_db": -0.06081078419694277,
+            "phase_deg": 2.059070230016715,
+            "rotation": 1
+          },
+          {
+            "complex": {
+              "imag": 0.016393758541200124,
+              "real": 1.0090648410814411
+            },
+            "gain_db": 0.07952764745007102,
+            "phase_deg": 0.9307732347747617,
+            "rotation": 2
+          }
+        ]
+      }
+    },
+    {
+      "carrier_frequency_hz": 2460099992,
+      "center_frequency_hz": 2460000000,
+      "closure": {
+        "closure_artifact_id": "7d5d4b86c1e943c1bb7f2a7fcbfd3866",
+        "common_gain_change_db": -0.07132238287870428,
+        "common_phase_change_deg": -1.1721320805820596,
+        "frequency_hz": 2460000000,
+        "initial_artifact_id": "80df5488a15f421e9282a2d4083d26cf",
+        "per_antenna": [
+          {
+            "common_removed_gain_change_db": 0.04620143301064418,
+            "common_removed_phase_change_deg": 0.32409588223907804,
+            "gain_change_db": -0.025120949868060096,
+            "name": "ANT1",
+            "phase_change_deg": -0.84803619834301
+          },
+          {
+            "common_removed_gain_change_db": -0.05692237138349819,
+            "common_removed_phase_change_deg": -0.593565915101891,
+            "gain_change_db": -0.12824475426220247,
+            "name": "ANT2",
+            "phase_change_deg": -1.7656979956839507
+          },
+          {
+            "common_removed_gain_change_db": -0.004297537258819692,
+            "common_removed_phase_change_deg": -0.07933047279161087,
+            "gain_change_db": -0.07561992013752397,
+            "name": "ANT3",
+            "phase_change_deg": -1.2514625533736705
+          },
+          {
+            "common_removed_gain_change_db": -0.036344805230068625,
+            "common_removed_phase_change_deg": -0.2747170928642788,
+            "gain_change_db": -0.1076671881087729,
+            "name": "ANT4",
+            "phase_change_deg": -1.4468491734463385
+          },
+          {
+            "common_removed_gain_change_db": 0.004396094097414385,
+            "common_removed_phase_change_deg": -0.48538917490100175,
+            "gain_change_db": -0.0669262887812899,
+            "name": "ANT5",
+            "phase_change_deg": -1.6575212554830614
+          },
+          {
+            "common_removed_gain_change_db": -0.0168779149461111,
+            "common_removed_phase_change_deg": 1.1874247715744275,
+            "gain_change_db": -0.08820029782481538,
+            "name": "ANT6",
+            "phase_change_deg": 0.015292690992367852
+          },
+          {
+            "common_removed_gain_change_db": 0.020314666719021823,
+            "common_removed_phase_change_deg": 0.29669804248302967,
+            "gain_change_db": -0.051007716159682456,
+            "name": "ANT7",
+            "phase_change_deg": -0.8754340380990584
+          },
+          {
+            "common_removed_gain_change_db": 0.04353043499141722,
+            "common_removed_phase_change_deg": -0.3751481690697176,
+            "gain_change_db": -0.027791947887287064,
+            "name": "ANT8",
+            "phase_change_deg": -1.5472802496518057
+          }
+        ],
+        "relative_shape_gain_max_abs_db": 0.05692237138349819,
+        "relative_shape_gain_rms_db": 0.034142928588049015,
+        "relative_shape_phase_max_abs_deg": 1.1874247715744275,
+        "relative_shape_phase_rms_deg": 0.5492571754093765
+      },
+      "fit_artifact_ids_by_rotation": {
+        "0": "7d5d4b86c1e943c1bb7f2a7fcbfd3866",
+        "1": "1c01b3944b4f42a3be08cca939dcd28a",
+        "2": "33052b0b05fd473dab3fd03af1282180"
+      },
+      "quality_gate": {
+        "may_be_used_as_board_calibration": true,
+        "one_degree_raw_isolation_passed": false,
+        "operational_raw_isolation_passed": true,
+        "rotation_zero_closure_passed": true,
+        "separable_model_passed": true,
+        "status": "qualified_with_measured_isolation_phase_floor"
+      },
+      "raw_isolation": {
+        "maximum_selected_to_all_off_contrast_db": 39.463599120809405,
+        "minimum_selected_to_all_off_contrast_db": 31.657866794742908,
+        "phase_bound_is_finite": true,
+        "worst_case_coherent_leakage_phase_bound_deg": 1.497196208487211
+      },
+      "receiver_gain_db": 40,
+      "separable_model": {
+        "board_path_terms": [
+          {
+            "correction_complex": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "correction_gain_db": -0.0,
+            "correction_phase_deg": 0.0,
+            "name": "ANT1",
+            "response_complex_relative_to_ant1": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "response_gain_db_relative_to_ant1": 0.0,
+            "response_phase_deg_relative_to_ant1": 0.0
+          },
+          {
+            "correction_complex": {
+              "imag": 1.9953995990291715,
+              "real": 0.026076554959736372
+            },
+            "correction_gain_db": 6.001339243276966,
+            "correction_phase_deg": 89.25128204928933,
+            "name": "ANT2",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.501067178829053,
+              "real": 0.006548114890678013
+            },
+            "response_gain_db_relative_to_ant1": -6.001339243276966,
+            "response_phase_deg_relative_to_ant1": -89.25128204928933
+          },
+          {
+            "correction_complex": {
+              "imag": 1.7944737343408028,
+              "real": 0.3406844810997209
+            },
+            "correction_gain_db": 5.23252325216734,
+            "correction_phase_deg": 79.25021580049406,
+            "name": "ANT3",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.5378792377439201,
+              "real": 0.10211746513660529
+            },
+            "response_gain_db_relative_to_ant1": -5.23252325216734,
+            "response_phase_deg_relative_to_ant1": -79.25021580049406
+          },
+          {
+            "correction_complex": {
+              "imag": 2.266707648242941,
+              "real": -0.3532225100945144
+            },
+            "correction_gain_db": 7.212110650635781,
+            "correction_phase_deg": 98.85720288573941,
+            "name": "ANT4",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.43070949405144476,
+              "real": -0.06711773736163967
+            },
+            "response_gain_db_relative_to_ant1": -7.212110650635781,
+            "response_phase_deg_relative_to_ant1": -98.85720288573941
+          },
+          {
+            "correction_complex": {
+              "imag": 2.2944130005540724,
+              "real": -0.35929358064846434
+            },
+            "correction_gain_db": 7.318644743248546,
+            "correction_phase_deg": 98.89995352100095,
+            "name": "ANT5",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.42540943767242534,
+              "real": -0.06661698659572832
+            },
+            "response_gain_db_relative_to_ant1": -7.318644743248546,
+            "response_phase_deg_relative_to_ant1": -98.89995352100095
+          },
+          {
+            "correction_complex": {
+              "imag": 1.7910010282582367,
+              "real": 0.38747657870479835
+            },
+            "correction_gain_db": 5.26057771398642,
+            "correction_phase_deg": 77.79240702308755,
+            "name": "ANT6",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.533381641734275,
+              "real": 0.11539518426973573
+            },
+            "response_gain_db_relative_to_ant1": -5.26057771398642,
+            "response_phase_deg_relative_to_ant1": -77.79240702308755
+          },
+          {
+            "correction_complex": {
+              "imag": 2.0585869694418935,
+              "real": 0.01789291389876354
+            },
+            "correction_gain_db": 6.2717124775002,
+            "correction_phase_deg": 89.50200664389922,
+            "name": "ANT7",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.4857334047201069,
+              "real": 0.0042219182951334895
+            },
+            "response_gain_db_relative_to_ant1": -6.2717124775002,
+            "response_phase_deg_relative_to_ant1": -89.50200664389922
+          },
+          {
+            "correction_complex": {
+              "imag": 0.009581499790486935,
+              "real": 1.0065712590320601
+            },
+            "correction_gain_db": 0.057284011673125246,
+            "correction_phase_deg": 0.5453790919381731,
+            "name": "ANT8",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.00945594839176757,
+              "real": 0.9933816298251941
+            },
+            "response_gain_db_relative_to_ant1": -0.057284011673125246,
+            "response_phase_deg_relative_to_ant1": -0.5453790919381731
+          }
+        ],
+        "feed_arm_terms": [
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "gain_db_relative_to_f1": 0.0,
+            "name": "F1",
+            "phase_deg_relative_to_f1": 0.0
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.10847162706778998,
+              "real": 0.9977574403088815
+            },
+            "gain_db_relative_to_f1": 0.031527993888203355,
+            "name": "F2",
+            "phase_deg_relative_to_f1": 6.204567734627062
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": -0.02614176436020979,
+              "real": 0.9856810030400209
+            },
+            "gain_db_relative_to_f1": -0.12221855390045902,
+            "name": "F3",
+            "phase_deg_relative_to_f1": -1.5192153724582624
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": -0.048192660711041224,
+              "real": 0.9900579908996492
+            },
+            "gain_db_relative_to_f1": -0.0765092795780227,
+            "name": "F4",
+            "phase_deg_relative_to_f1": -2.78676435892865
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.9880531980496562,
+              "real": 0.5304989599133226
+            },
+            "gain_db_relative_to_f1": 0.9956955683069371,
+            "name": "F5",
+            "phase_deg_relative_to_f1": 61.76805479933404
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": -0.006418170014187386,
+              "real": 0.9742606431319859
+            },
+            "gain_db_relative_to_f1": -0.22630835070473812,
+            "name": "F6",
+            "phase_deg_relative_to_f1": -0.3774438976581109
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": -0.01709265473902108,
+              "real": 0.9978149489144376
+            },
+            "gain_db_relative_to_f1": -0.017725672055455298,
+            "name": "F7",
+            "phase_deg_relative_to_f1": -0.981385579556985
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.08208298558381796,
+              "real": 1.0027731720852986
+            },
+            "gain_db_relative_to_f1": 0.05305655041752908,
+            "name": "F8",
+            "phase_deg_relative_to_f1": 4.679569403591842
+          }
+        ],
+        "fit_quality": {
+          "amplitude_residual_max_abs_db": 0.09498665161561748,
+          "amplitude_residual_rms_db": 0.04450127904326159,
+          "phase_residual_max_abs_deg": 0.9131018103537034,
+          "phase_residual_rms_deg": 0.4379617310899963
+        },
+        "gauge": {
+          "exported_board_response": "normalized to ANT1",
+          "feed_arm": "F1 fixed to 1\u22200",
+          "round_common": "rotation 0 fixed to 1\u22200"
+        },
+        "model": "measurement = round_common * feed_arm * board_path",
+        "observation_count": 24,
+        "parameter_count_per_scalar": 17,
+        "phase_branch_resolution": {
+          "ambiguity": "pure cyclic mappings admit eight equivalent 45-degree spatial phase ramps",
+          "chosen_branch_index": 0,
+          "chosen_spatial_ramp_step_deg": 0.0,
+          "independent_noncyclic_mapping_used": false,
+          "resolution": "choose the branch minimizing rotation-common phase, using the continuous RX1 reference and measured rotation-0 closure as the prior",
+          "rotation_common_phase_rms_deg": 1.0321857987199785
+        },
+        "residual_degrees_of_freedom_per_scalar": 7,
+        "residuals": [
+          {
+            "amplitude_residual_db": 0.016642719684310414,
+            "antenna": "ANT1",
+            "artifact_id": "7d5d4b86c1e943c1bb7f2a7fcbfd3866",
+            "feed": "F1",
+            "phase_residual_deg": 0.09981158337201776,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": -0.04397288824044843,
+            "antenna": "ANT2",
+            "artifact_id": "7d5d4b86c1e943c1bb7f2a7fcbfd3866",
+            "feed": "F2",
+            "phase_residual_deg": -0.15204591683784538,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.013801711785343507,
+            "antenna": "ANT3",
+            "artifact_id": "7d5d4b86c1e943c1bb7f2a7fcbfd3866",
+            "feed": "F3",
+            "phase_residual_deg": 0.20333777302812697,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": -0.061162778720921906,
+            "antenna": "ANT4",
+            "artifact_id": "7d5d4b86c1e943c1bb7f2a7fcbfd3866",
+            "feed": "F4",
+            "phase_residual_deg": -0.24787895478011698,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.024735440761437744,
+            "antenna": "ANT5",
+            "artifact_id": "7d5d4b86c1e943c1bb7f2a7fcbfd3866",
+            "feed": "F5",
+            "phase_residual_deg": 0.06263470075708788,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": -0.04503085688530639,
+            "antenna": "ANT6",
+            "artifact_id": "7d5d4b86c1e943c1bb7f2a7fcbfd3866",
+            "feed": "F6",
+            "phase_residual_deg": -0.8789572758407229,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.07935892972798442,
+            "antenna": "ANT7",
+            "artifact_id": "7d5d4b86c1e943c1bb7f2a7fcbfd3866",
+            "feed": "F7",
+            "phase_residual_deg": 0.5078890198558708,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.015627721887654822,
+            "antenna": "ANT8",
+            "artifact_id": "7d5d4b86c1e943c1bb7f2a7fcbfd3866",
+            "feed": "F8",
+            "phase_residual_deg": 0.40518416228413046,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.027330168556174428,
+            "antenna": "ANT2",
+            "artifact_id": "1c01b3944b4f42a3be08cca939dcd28a",
+            "feed": "F1",
+            "phase_residual_deg": 0.052234211647543334,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": 0.030171176455147553,
+            "antenna": "ANT3",
+            "artifact_id": "1c01b3944b4f42a3be08cca939dcd28a",
+            "feed": "F2",
+            "phase_residual_deg": -0.051291611028921345,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": 0.047361066935629026,
+            "antenna": "ANT4",
+            "artifact_id": "1c01b3944b4f42a3be08cca939dcd28a",
+            "feed": "F3",
+            "phase_residual_deg": 0.044540846038851056,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": 0.036427337959493045,
+            "antenna": "ANT5",
+            "artifact_id": "1c01b3944b4f42a3be08cca939dcd28a",
+            "feed": "F4",
+            "phase_residual_deg": 0.18524382113569324,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": 0.020295416123855325,
+            "antenna": "ANT6",
+            "artifact_id": "1c01b3944b4f42a3be08cca939dcd28a",
+            "feed": "F5",
+            "phase_residual_deg": 0.8163157306615387,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.03432807284266204,
+            "antenna": "ANT7",
+            "artifact_id": "1c01b3944b4f42a3be08cca939dcd28a",
+            "feed": "F6",
+            "phase_residual_deg": 0.3710430223184875,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.09498665161561748,
+            "antenna": "ANT8",
+            "artifact_id": "1c01b3944b4f42a3be08cca939dcd28a",
+            "feed": "F7",
+            "phase_residual_deg": -0.9131018103537034,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.03227044157193948,
+            "antenna": "ANT1",
+            "artifact_id": "1c01b3944b4f42a3be08cca939dcd28a",
+            "feed": "F8",
+            "phase_residual_deg": -0.5049988615373296,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.04397288824047063,
+            "antenna": "ANT3",
+            "artifact_id": "33052b0b05fd473dab3fd03af1282180",
+            "feed": "F1",
+            "phase_residual_deg": -0.1520459204721553,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.013801711785346171,
+            "antenna": "ANT4",
+            "artifact_id": "33052b0b05fd473dab3fd03af1282180",
+            "feed": "F2",
+            "phase_residual_deg": 0.2033377668060852,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": -0.06116277872093079,
+            "antenna": "ANT5",
+            "artifact_id": "33052b0b05fd473dab3fd03af1282180",
+            "feed": "F3",
+            "phase_residual_deg": -0.24787895994502002,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.024735440761436855,
+            "antenna": "ANT6",
+            "artifact_id": "33052b0b05fd473dab3fd03af1282180",
+            "feed": "F4",
+            "phase_residual_deg": 0.06263469967502168,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": -0.04503085688531705,
+            "antenna": "ANT7",
+            "artifact_id": "33052b0b05fd473dab3fd03af1282180",
+            "feed": "F5",
+            "phase_residual_deg": -0.8789572722059031,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.07935892972797509,
+            "antenna": "ANT8",
+            "artifact_id": "33052b0b05fd473dab3fd03af1282180",
+            "feed": "F6",
+            "phase_residual_deg": 0.5078890260780468,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.015627721887635726,
+            "antenna": "ANT1",
+            "artifact_id": "33052b0b05fd473dab3fd03af1282180",
+            "feed": "F7",
+            "phase_residual_deg": 0.4051841674491899,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.016642719684314855,
+            "antenna": "ANT2",
+            "artifact_id": "33052b0b05fd473dab3fd03af1282180",
+            "feed": "F8",
+            "phase_residual_deg": 0.09981158445438365,
+            "rotation": 2
+          }
+        ],
+        "round_common_terms": [
+          {
+            "complex": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "gain_db": 0.0,
+            "phase_deg": 0.0,
+            "rotation": 0
+          },
+          {
+            "complex": {
+              "imag": 0.030815683452961366,
+              "real": 0.9998808748541935
+            },
+            "gain_db": 0.0030883433760714655,
+            "phase_deg": 1.7652601990196786,
+            "rotation": 1
+          },
+          {
+            "complex": {
+              "imag": 0.004973689977934556,
+              "real": 1.0070209237652787
+            },
+            "gain_db": 0.060875827239188496,
+            "phase_deg": 0.28298232982743343,
+            "rotation": 2
+          }
+        ]
+      }
+    },
+    {
+      "carrier_frequency_hz": 2480099992,
+      "center_frequency_hz": 2480000000,
+      "closure": {
+        "closure_artifact_id": "32c1061800d449e5bbb9dbd6e22e6692",
+        "common_gain_change_db": -0.03144720281613077,
+        "common_phase_change_deg": -1.1180457245106368,
+        "frequency_hz": 2480000000,
+        "initial_artifact_id": "c89b1caf5c3e45289529624bb3d7625d",
+        "per_antenna": [
+          {
+            "common_removed_gain_change_db": 0.03640597856593482,
+            "common_removed_phase_change_deg": 0.21996011511546953,
+            "gain_change_db": 0.004958775749804049,
+            "name": "ANT1",
+            "phase_change_deg": -0.8980856093951672
+          },
+          {
+            "common_removed_gain_change_db": -0.04616057790736457,
+            "common_removed_phase_change_deg": -0.55791021005831,
+            "gain_change_db": -0.07760778072349533,
+            "name": "ANT2",
+            "phase_change_deg": -1.6759559345689468
+          },
+          {
+            "common_removed_gain_change_db": -0.004564917515814788,
+            "common_removed_phase_change_deg": 0.015058863586318694,
+            "gain_change_db": -0.036012120331945556,
+            "name": "ANT3",
+            "phase_change_deg": -1.102986860924318
+          },
+          {
+            "common_removed_gain_change_db": -0.01685348830094527,
+            "common_removed_phase_change_deg": -0.18192668819466462,
+            "gain_change_db": -0.048300691117076036,
+            "name": "ANT4",
+            "phase_change_deg": -1.2999724127053014
+          },
+          {
+            "common_removed_gain_change_db": -0.02205947991683055,
+            "common_removed_phase_change_deg": -0.45702121651783045,
+            "gain_change_db": -0.053506682732961316,
+            "name": "ANT5",
+            "phase_change_deg": -1.5750669410284672
+          },
+          {
+            "common_removed_gain_change_db": 0.0031068286666218123,
+            "common_removed_phase_change_deg": 1.2141921095977182,
+            "gain_change_db": -0.028340374149508955,
+            "name": "ANT6",
+            "phase_change_deg": 0.09614638508710982
+          },
+          {
+            "common_removed_gain_change_db": 0.022516134640227406,
+            "common_removed_phase_change_deg": 0.31509734665371525,
+            "gain_change_db": -0.008931068175903362,
+            "name": "ANT7",
+            "phase_change_deg": -0.8029483778569215
+          },
+          {
+            "common_removed_gain_change_db": 0.02760952176817109,
+            "common_removed_phase_change_deg": -0.5673805555452134,
+            "gain_change_db": -0.0038376810479596756,
+            "name": "ANT8",
+            "phase_change_deg": -1.6854262800558217
+          }
+        ],
+        "relative_shape_gain_max_abs_db": 0.04616057790736457,
+        "relative_shape_gain_rms_db": 0.026283568578796112,
+        "relative_shape_phase_max_abs_deg": 1.2141921095977182,
+        "relative_shape_phase_rms_deg": 0.5587159663029496
+      },
+      "fit_artifact_ids_by_rotation": {
+        "0": "32c1061800d449e5bbb9dbd6e22e6692",
+        "1": "3ee47f66daeb4042869894b928b3e16a",
+        "2": "412c29401fbf4ea1a1f43a9a89eddbcb"
+      },
+      "quality_gate": {
+        "may_be_used_as_board_calibration": true,
+        "one_degree_raw_isolation_passed": false,
+        "operational_raw_isolation_passed": true,
+        "rotation_zero_closure_passed": true,
+        "separable_model_passed": true,
+        "status": "qualified_with_measured_isolation_phase_floor"
+      },
+      "raw_isolation": {
+        "maximum_selected_to_all_off_contrast_db": 37.609174405203326,
+        "minimum_selected_to_all_off_contrast_db": 29.324783029857752,
+        "phase_bound_is_finite": true,
+        "worst_case_coherent_leakage_phase_bound_deg": 1.9587006848380042
+      },
+      "receiver_gain_db": 40,
+      "separable_model": {
+        "board_path_terms": [
+          {
+            "correction_complex": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "correction_gain_db": -0.0,
+            "correction_phase_deg": 0.0,
+            "name": "ANT1",
+            "response_complex_relative_to_ant1": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "response_gain_db_relative_to_ant1": 0.0,
+            "response_phase_deg_relative_to_ant1": 0.0
+          },
+          {
+            "correction_complex": {
+              "imag": 2.130575189951747,
+              "real": 0.5211135159956811
+            },
+            "correction_gain_db": 6.822272266993765,
+            "correction_phase_deg": 76.25596065693117,
+            "name": "ANT2",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.4428632458377163,
+              "real": 0.10831911693713975
+            },
+            "response_gain_db_relative_to_ant1": -6.822272266993765,
+            "response_phase_deg_relative_to_ant1": -76.25596065693117
+          },
+          {
+            "correction_complex": {
+              "imag": 1.9025846855391688,
+              "real": 0.7995850379730035
+            },
+            "correction_gain_db": 6.293244362688809,
+            "correction_phase_deg": 67.20480951603133,
+            "name": "ANT3",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.4467037109955303,
+              "real": 0.18773282810159012
+            },
+            "response_gain_db_relative_to_ant1": -6.293244362688809,
+            "response_phase_deg_relative_to_ant1": -67.20480951603133
+          },
+          {
+            "correction_complex": {
+              "imag": 2.3993449391160446,
+              "real": 0.21443742984144093
+            },
+            "correction_gain_db": 7.636405622405685,
+            "correction_phase_deg": 84.892854885514,
+            "name": "ANT4",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.41347773261610843,
+              "real": 0.03695387888309649
+            },
+            "response_gain_db_relative_to_ant1": -7.636405622405685,
+            "response_phase_deg_relative_to_ant1": -84.892854885514
+          },
+          {
+            "correction_complex": {
+              "imag": 2.423214317486167,
+              "real": 0.2256719715047123
+            },
+            "correction_gain_db": 7.725340678727572,
+            "correction_phase_deg": 84.67943723205349,
+            "name": "ANT5",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.4091266393115457,
+              "real": 0.03810162998059329
+            },
+            "response_gain_db_relative_to_ant1": -7.725340678727572,
+            "response_phase_deg_relative_to_ant1": -84.67943723205349
+          },
+          {
+            "correction_complex": {
+              "imag": 1.8662974424200003,
+              "real": 0.8396393840462508
+            },
+            "correction_gain_db": 6.220129404515977,
+            "correction_phase_deg": 65.77721963529689,
+            "name": "ANT6",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.44562333081888544,
+              "real": 0.20048406566974453
+            },
+            "response_gain_db_relative_to_ant1": -6.220129404515977,
+            "response_phase_deg_relative_to_ant1": -65.77721963529689
+          },
+          {
+            "correction_complex": {
+              "imag": 2.1914614967073907,
+              "real": 0.5352844936524203
+            },
+            "correction_gain_db": 7.066352654317048,
+            "correction_phase_deg": 76.27375081698665,
+            "name": "ANT7",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.4306243455328904,
+              "real": 0.10518393095169946
+            },
+            "response_gain_db_relative_to_ant1": -7.066352654317048,
+            "response_phase_deg_relative_to_ant1": -76.27375081698665
+          },
+          {
+            "correction_complex": {
+              "imag": 0.012976648824002564,
+              "real": 1.0055325664536936
+            },
+            "correction_gain_db": 0.048646053012697976,
+            "correction_phase_deg": 0.7393752950895305,
+            "name": "ANT8",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.01283210623911635,
+              "real": 0.9943322728868638
+            },
+            "response_gain_db_relative_to_ant1": -0.048646053012697976,
+            "response_phase_deg_relative_to_ant1": -0.7393752950895305
+          }
+        ],
+        "feed_arm_terms": [
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "gain_db_relative_to_f1": 0.0,
+            "name": "F1",
+            "phase_deg_relative_to_f1": 0.0
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.1080081276456922,
+              "real": 0.9938302352869631
+            },
+            "gain_db_relative_to_f1": -0.0027617217784493223,
+            "name": "F2",
+            "phase_deg_relative_to_f1": 6.202485084808927
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": -0.023286563278575728,
+              "real": 0.9822497842121751
+            },
+            "gain_db_relative_to_f1": -0.1531209372390919,
+            "name": "F3",
+            "phase_deg_relative_to_f1": -1.35807809693722
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": -0.0483720120512771,
+              "real": 0.9928892436460324
+            },
+            "gain_db_relative_to_f1": -0.05168817754357343,
+            "name": "F4",
+            "phase_deg_relative_to_f1": -2.7891555447695
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.9292674791905343,
+              "real": 0.5403313315899946
+            },
+            "gain_db_relative_to_f1": 0.627684448267067,
+            "name": "F5",
+            "phase_deg_relative_to_f1": 59.82373633879635
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.006657767653632679,
+              "real": 0.975046003181099
+            },
+            "gain_db_relative_to_f1": -0.21929539195332368,
+            "name": "F6",
+            "phase_deg_relative_to_f1": 0.39121852513528665
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": -0.016570594747480946,
+              "real": 0.9926877265305717
+            },
+            "gain_db_relative_to_f1": -0.0625369827516987,
+            "name": "F7",
+            "phase_deg_relative_to_f1": -0.9563299195763193
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.08560971647854054,
+              "real": 0.9944815946570524
+            },
+            "gain_db_relative_to_f1": -0.015999896636723264,
+            "name": "F8",
+            "phase_deg_relative_to_f1": 4.9201639931662555
+          }
+        ],
+        "fit_quality": {
+          "amplitude_residual_max_abs_db": 0.0741877760634213,
+          "amplitude_residual_rms_db": 0.03259211608076073,
+          "phase_residual_max_abs_deg": 0.8809668673930118,
+          "phase_residual_rms_deg": 0.4111062266757556
+        },
+        "gauge": {
+          "exported_board_response": "normalized to ANT1",
+          "feed_arm": "F1 fixed to 1\u22200",
+          "round_common": "rotation 0 fixed to 1\u22200"
+        },
+        "model": "measurement = round_common * feed_arm * board_path",
+        "observation_count": 24,
+        "parameter_count_per_scalar": 17,
+        "phase_branch_resolution": {
+          "ambiguity": "pure cyclic mappings admit eight equivalent 45-degree spatial phase ramps",
+          "chosen_branch_index": 6,
+          "chosen_spatial_ramp_step_deg": 90.0,
+          "independent_noncyclic_mapping_used": false,
+          "resolution": "choose the branch minimizing rotation-common phase, using the continuous RX1 reference and measured rotation-0 closure as the prior",
+          "rotation_common_phase_rms_deg": 0.8867676436301068
+        },
+        "residual_degrees_of_freedom_per_scalar": 7,
+        "residuals": [
+          {
+            "amplitude_residual_db": 0.013333812062979788,
+            "antenna": "ANT1",
+            "artifact_id": "32c1061800d449e5bbb9dbd6e22e6692",
+            "feed": "F1",
+            "phase_residual_deg": -0.03265751091796986,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": -0.019681787283257535,
+            "antenna": "ANT2",
+            "artifact_id": "32c1061800d449e5bbb9dbd6e22e6692",
+            "feed": "F2",
+            "phase_residual_deg": -0.12143301582029345,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.013991849750611962,
+            "antenna": "ANT3",
+            "artifact_id": "32c1061800d449e5bbb9dbd6e22e6692",
+            "feed": "F3",
+            "phase_residual_deg": 0.18094501216060327,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": -0.021981324049592743,
+            "antenna": "ANT4",
+            "artifact_id": "32c1061800d449e5bbb9dbd6e22e6692",
+            "feed": "F4",
+            "phase_residual_deg": -0.2828312300333498,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": -0.010867734679759877,
+            "antenna": "ANT5",
+            "artifact_id": "32c1061800d449e5bbb9dbd6e22e6692",
+            "feed": "F5",
+            "phase_residual_deg": 0.18000837238139866,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": -0.0489825918643767,
+            "antenna": "ANT6",
+            "artifact_id": "32c1061800d449e5bbb9dbd6e22e6692",
+            "feed": "F6",
+            "phase_residual_deg": -0.8049909102574587,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.05210818536356676,
+            "antenna": "ANT7",
+            "artifact_id": "32c1061800d449e5bbb9dbd6e22e6692",
+            "feed": "F7",
+            "phase_residual_deg": 0.3660747707600862,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.022079590699857654,
+            "antenna": "ANT8",
+            "artifact_id": "32c1061800d449e5bbb9dbd6e22e6692",
+            "feed": "F8",
+            "phase_residual_deg": 0.5148668039076608,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.006347975220316826,
+            "antenna": "ANT2",
+            "artifact_id": "3ee47f66daeb4042869894b928b3e16a",
+            "feed": "F1",
+            "phase_residual_deg": 0.15409061928318857,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": 0.005689937532682876,
+            "antenna": "ANT3",
+            "artifact_id": "3ee47f66daeb4042869894b928b3e16a",
+            "feed": "F2",
+            "phase_residual_deg": -0.05951179696264489,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": 0.007989474299028743,
+            "antenna": "ANT4",
+            "artifact_id": "3ee47f66daeb4042869894b928b3e16a",
+            "feed": "F3",
+            "phase_residual_deg": 0.10188542453017163,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": 0.03284905872935617,
+            "antenna": "ANT5",
+            "artifact_id": "3ee47f66daeb4042869894b928b3e16a",
+            "feed": "F4",
+            "phase_residual_deg": 0.1028220612876592,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": 0.05985032654412059,
+            "antenna": "ANT6",
+            "artifact_id": "3ee47f66daeb4042869894b928b3e16a",
+            "feed": "F5",
+            "phase_residual_deg": 0.6249687442126791,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.003125593499179402,
+            "antenna": "ANT7",
+            "artifact_id": "3ee47f66daeb4042869894b928b3e16a",
+            "feed": "F6",
+            "phase_residual_deg": 0.43889643891212854,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.0741877760634213,
+            "antenna": "ANT8",
+            "artifact_id": "3ee47f66daeb4042869894b928b3e16a",
+            "feed": "F7",
+            "phase_residual_deg": -0.8809668673930118,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.03541340276282634,
+            "antenna": "ANT1",
+            "artifact_id": "3ee47f66daeb4042869894b928b3e16a",
+            "feed": "F8",
+            "phase_residual_deg": -0.4822080589944321,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.019681787283257535,
+            "antenna": "ANT3",
+            "artifact_id": "412c29401fbf4ea1a1f43a9a89eddbcb",
+            "feed": "F1",
+            "phase_residual_deg": -0.12143301603312717,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.013991849750636831,
+            "antenna": "ANT4",
+            "artifact_id": "412c29401fbf4ea1a1f43a9a89eddbcb",
+            "feed": "F2",
+            "phase_residual_deg": 0.18094501133190755,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": -0.021981324049590967,
+            "antenna": "ANT5",
+            "artifact_id": "412c29401fbf4ea1a1f43a9a89eddbcb",
+            "feed": "F3",
+            "phase_residual_deg": -0.2828312309924486,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": -0.010867734679733232,
+            "antenna": "ANT6",
+            "artifact_id": "412c29401fbf4ea1a1f43a9a89eddbcb",
+            "feed": "F4",
+            "phase_residual_deg": 0.1800083718537395,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": -0.04898259186436249,
+            "antenna": "ANT7",
+            "artifact_id": "412c29401fbf4ea1a1f43a9a89eddbcb",
+            "feed": "F5",
+            "phase_residual_deg": -0.8049909100445862,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.052108185363580084,
+            "antenna": "ANT8",
+            "artifact_id": "412c29401fbf4ea1a1f43a9a89eddbcb",
+            "feed": "F6",
+            "phase_residual_deg": 0.36607477158876733,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.022079590699870533,
+            "antenna": "ANT1",
+            "artifact_id": "412c29401fbf4ea1a1f43a9a89eddbcb",
+            "feed": "F7",
+            "phase_residual_deg": 0.5148668048667943,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.013333812063001105,
+            "antenna": "ANT2",
+            "artifact_id": "412c29401fbf4ea1a1f43a9a89eddbcb",
+            "feed": "F8",
+            "phase_residual_deg": -0.03265751039027387,
+            "rotation": 2
+          }
+        ],
+        "round_common_terms": [
+          {
+            "complex": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "gain_db": 0.0,
+            "phase_deg": 0.0,
+            "rotation": 0
+          },
+          {
+            "complex": {
+              "imag": 0.026683670983211026,
+              "real": 0.9983851701867703
+            },
+            "gain_db": -0.010936410870019161,
+            "phase_deg": 1.5309701074381508,
+            "rotation": 1
+          },
+          {
+            "complex": {
+              "imag": -0.002151492045828948,
+              "real": 0.9998257562789832
+            },
+            "gain_db": -0.001493483505289106,
+            "phase_deg": -0.12329270659174085,
+            "rotation": 2
+          }
+        ]
+      }
+    },
+    {
+      "carrier_frequency_hz": 5800099992,
+      "center_frequency_hz": 5800000000,
+      "closure": null,
+      "fit_artifact_ids_by_rotation": {
+        "0": "089c96119d6b4daeb3a0004de7796c62",
+        "1": "bcd1bcc3d46742c289b77487598ebdd6",
+        "2": "3f9d9dbb249041e18906273c88c7b879"
+      },
+      "quality_gate": {
+        "may_be_used_as_board_calibration": false,
+        "one_degree_raw_isolation_passed": false,
+        "operational_raw_isolation_passed": false,
+        "rotation_zero_closure_passed": true,
+        "separable_model_passed": true,
+        "status": "experimental_leakage_limited"
+      },
+      "raw_isolation": {
+        "maximum_selected_to_all_off_contrast_db": 9.190384541438227,
+        "minimum_selected_to_all_off_contrast_db": -8.764165473130692,
+        "phase_bound_is_finite": false,
+        "worst_case_coherent_leakage_phase_bound_deg": null
+      },
+      "receiver_gain_db": 50,
+      "separable_model": {
+        "board_path_terms": [
+          {
+            "correction_complex": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "correction_gain_db": -0.0,
+            "correction_phase_deg": 0.0,
+            "name": "ANT1",
+            "response_complex_relative_to_ant1": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "response_gain_db_relative_to_ant1": 0.0,
+            "response_phase_deg_relative_to_ant1": 0.0
+          },
+          {
+            "correction_complex": {
+              "imag": 0.3613319442147115,
+              "real": -1.275582126865056
+            },
+            "correction_gain_db": 2.4493747273914046,
+            "correction_phase_deg": 164.18425686207866,
+            "name": "ANT2",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.20557433077184828,
+              "real": -0.72572310938275
+            },
+            "response_gain_db_relative_to_ant1": -2.4493747273914046,
+            "response_phase_deg_relative_to_ant1": -164.18425686207866
+          },
+          {
+            "correction_complex": {
+              "imag": 2.140068277783541,
+              "real": -2.2722850723942813
+            },
+            "correction_gain_db": 9.887003552923613,
+            "correction_phase_deg": 136.71636257811002,
+            "name": "ANT3",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.21964801065155753,
+              "real": -0.23321821129069442
+            },
+            "response_gain_db_relative_to_ant1": -9.887003552923613,
+            "response_phase_deg_relative_to_ant1": -136.71636257811002
+          },
+          {
+            "correction_complex": {
+              "imag": -1.1866854586349023,
+              "real": -0.21630645061397535
+            },
+            "correction_gain_db": 1.6286623434440841,
+            "correction_phase_deg": -100.33033757197609,
+            "name": "ANT4",
+            "response_complex_relative_to_ant1": {
+              "imag": 0.8155852939894915,
+              "real": -0.14866311778924315
+            },
+            "response_gain_db_relative_to_ant1": -1.6286623434440841,
+            "response_phase_deg_relative_to_ant1": 100.33033757197609
+          },
+          {
+            "correction_complex": {
+              "imag": -1.1945078203617954,
+              "real": -0.051051233392604846
+            },
+            "correction_gain_db": 1.5517053710597608,
+            "correction_phase_deg": -92.44723492069619,
+            "name": "ANT5",
+            "response_complex_relative_to_ant1": {
+              "imag": 0.8356385374446117,
+              "real": -0.03571377037449513
+            },
+            "response_gain_db_relative_to_ant1": -1.5517053710597608,
+            "response_phase_deg_relative_to_ant1": 92.44723492069619
+          },
+          {
+            "correction_complex": {
+              "imag": 1.6618974463167433,
+              "real": -2.003476196650769
+            },
+            "correction_gain_db": 8.309618599480789,
+            "correction_phase_deg": 140.32405729080858,
+            "name": "ANT6",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.24526883065470184,
+              "real": -0.2956802569774269
+            },
+            "response_gain_db_relative_to_ant1": -8.309618599480789,
+            "response_phase_deg_relative_to_ant1": -140.3240572908086
+          },
+          {
+            "correction_complex": {
+              "imag": 0.35491391524718474,
+              "real": -1.2996015463124737
+            },
+            "correction_gain_db": 2.5885941671173853,
+            "correction_phase_deg": 164.72530409751926,
+            "name": "ANT7",
+            "response_complex_relative_to_ant1": {
+              "imag": -0.19555260718870474,
+              "real": -0.716062289388898
+            },
+            "response_gain_db_relative_to_ant1": -2.5885941671173853,
+            "response_phase_deg_relative_to_ant1": -164.72530409751926
+          },
+          {
+            "correction_complex": {
+              "imag": -0.04315173633173687,
+              "real": 1.04253111286672
+            },
+            "correction_gain_db": 0.36921464030235995,
+            "correction_phase_deg": -2.370194849231467,
+            "name": "ANT8",
+            "response_complex_relative_to_ant1": {
+              "imag": 0.03963481281150695,
+              "real": 0.9575634498455722
+            },
+            "response_gain_db_relative_to_ant1": -0.36921464030235995,
+            "response_phase_deg_relative_to_ant1": 2.370194849231467
+          }
+        ],
+        "feed_arm_terms": [
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "gain_db_relative_to_f1": 0.0,
+            "name": "F1",
+            "phase_deg_relative_to_f1": 0.0
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.2636883688179233,
+              "real": 1.0348145916123155
+            },
+            "gain_db_relative_to_f1": 0.5704684807837305,
+            "name": "F2",
+            "phase_deg_relative_to_f1": 14.29570744541266
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.08042165521070911,
+              "real": 0.9241183593347714
+            },
+            "gain_db_relative_to_f1": -0.6526811020589959,
+            "name": "F3",
+            "phase_deg_relative_to_f1": 4.973650466304775
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": -0.012108917527546469,
+              "real": 0.9306236456371969
+            },
+            "gain_db_relative_to_f1": -0.6237831312195189,
+            "name": "F4",
+            "phase_deg_relative_to_f1": -0.7454686141460911
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.21655941737753748,
+              "real": -0.9258282746713264
+            },
+            "gain_db_relative_to_f1": -0.4380467896016201,
+            "name": "F5",
+            "phase_deg_relative_to_f1": 166.83471016017393
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.012068305283505096,
+              "real": 0.9301564395585883
+            },
+            "gain_db_relative_to_f1": -0.6281490400713517,
+            "name": "F6",
+            "phase_deg_relative_to_f1": 0.7433418008454566
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": -0.012145053033484727,
+              "real": 0.964333838281622
+            },
+            "gain_db_relative_to_f1": -0.3147630721018087,
+            "name": "F7",
+            "phase_deg_relative_to_f1": -0.7215587231175107
+          },
+          {
+            "complex_relative_to_f1": {
+              "imag": 0.17471748463081305,
+              "real": 1.005602971929555
+            },
+            "gain_db_relative_to_f1": 0.17769152352574072,
+            "name": "F8",
+            "phase_deg_relative_to_f1": 9.856405645087477
+          }
+        ],
+        "fit_quality": {
+          "amplitude_residual_max_abs_db": 0.34223213153147114,
+          "amplitude_residual_rms_db": 0.1583519287858956,
+          "phase_residual_max_abs_deg": 1.6232236769381796,
+          "phase_residual_rms_deg": 0.8121457573659185
+        },
+        "gauge": {
+          "exported_board_response": "normalized to ANT1",
+          "feed_arm": "F1 fixed to 1\u22200",
+          "round_common": "rotation 0 fixed to 1\u22200"
+        },
+        "model": "measurement = round_common * feed_arm * board_path",
+        "observation_count": 24,
+        "parameter_count_per_scalar": 17,
+        "phase_branch_resolution": {
+          "ambiguity": "pure cyclic mappings admit eight equivalent 45-degree spatial phase ramps",
+          "chosen_branch_index": 4,
+          "chosen_spatial_ramp_step_deg": -180.0,
+          "independent_noncyclic_mapping_used": false,
+          "resolution": "choose the branch minimizing rotation-common phase, using the continuous RX1 reference and measured rotation-0 closure as the prior",
+          "rotation_common_phase_rms_deg": 4.23444852294393
+        },
+        "residual_degrees_of_freedom_per_scalar": 7,
+        "residuals": [
+          {
+            "amplitude_residual_db": -0.056407635220868,
+            "antenna": "ANT1",
+            "artifact_id": "089c96119d6b4daeb3a0004de7796c62",
+            "feed": "F1",
+            "phase_residual_deg": 0.8697050337476183,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": -0.04715547724536506,
+            "antenna": "ANT2",
+            "artifact_id": "089c96119d6b4daeb3a0004de7796c62",
+            "feed": "F2",
+            "phase_residual_deg": -0.15626842261046658,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.00927264719359755,
+            "antenna": "ANT3",
+            "artifact_id": "089c96119d6b4daeb3a0004de7796c62",
+            "feed": "F3",
+            "phase_residual_deg": 0.1503682524429215,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.042902464471417545,
+            "antenna": "ANT4",
+            "artifact_id": "089c96119d6b4daeb3a0004de7796c62",
+            "feed": "F4",
+            "phase_residual_deg": -0.03310334506812512,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.016941639729701308,
+            "antenna": "ANT5",
+            "artifact_id": "089c96119d6b4daeb3a0004de7796c62",
+            "feed": "F5",
+            "phase_residual_deg": -1.590107313884544,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": -0.30778577045992606,
+            "antenna": "ANT6",
+            "artifact_id": "089c96119d6b4daeb3a0004de7796c62",
+            "feed": "F6",
+            "phase_residual_deg": 1.1112173085912653,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.13290737512197026,
+            "antenna": "ANT7",
+            "artifact_id": "089c96119d6b4daeb3a0004de7796c62",
+            "feed": "F7",
+            "phase_residual_deg": 0.3181740623064355,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.2093247564095435,
+            "antenna": "ANT8",
+            "artifact_id": "089c96119d6b4daeb3a0004de7796c62",
+            "feed": "F8",
+            "phase_residual_deg": -0.6701002914399673,
+            "rotation": 0
+          },
+          {
+            "amplitude_residual_db": 0.10356311246626149,
+            "antenna": "ANT2",
+            "artifact_id": "bcd1bcc3d46742c289b77487598ebdd6",
+            "feed": "F1",
+            "phase_residual_deg": -0.7134218421779542,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": 0.03788283005180304,
+            "antenna": "ANT3",
+            "artifact_id": "bcd1bcc3d46742c289b77487598ebdd6",
+            "feed": "F2",
+            "phase_residual_deg": 0.0059001490507404105,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.05217511166487654,
+            "antenna": "ANT4",
+            "artifact_id": "bcd1bcc3d46742c289b77487598ebdd6",
+            "feed": "F3",
+            "phase_residual_deg": -0.11726481847115308,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.05984410420108688,
+            "antenna": "ANT5",
+            "artifact_id": "bcd1bcc3d46742c289b77487598ebdd6",
+            "feed": "F4",
+            "phase_residual_deg": 1.6232236769381796,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": 0.29084413073020343,
+            "antenna": "ANT6",
+            "artifact_id": "bcd1bcc3d46742c289b77487598ebdd6",
+            "feed": "F5",
+            "phase_residual_deg": 0.4787611272001314,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": 0.17487839533799487,
+            "antenna": "ANT7",
+            "artifact_id": "bcd1bcc3d46742c289b77487598ebdd6",
+            "feed": "F6",
+            "phase_residual_deg": -1.42946836477763,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.34223213153147114,
+            "antenna": "ANT8",
+            "artifact_id": "bcd1bcc3d46742c289b77487598ebdd6",
+            "feed": "F7",
+            "phase_residual_deg": 0.3519148007339664,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.15291712118863643,
+            "antenna": "ANT1",
+            "artifact_id": "bcd1bcc3d46742c289b77487598ebdd6",
+            "feed": "F8",
+            "phase_residual_deg": -0.19958702477847468,
+            "rotation": 1
+          },
+          {
+            "amplitude_residual_db": -0.04715547724537217,
+            "antenna": "ANT3",
+            "artifact_id": "3f9d9dbb249041e18906273c88c7b879",
+            "feed": "F1",
+            "phase_residual_deg": -0.15626842260989998,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.009272647193625971,
+            "antenna": "ANT4",
+            "artifact_id": "3f9d9dbb249041e18906273c88c7b879",
+            "feed": "F2",
+            "phase_residual_deg": 0.15036825244332305,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.04290246447138912,
+            "antenna": "ANT5",
+            "artifact_id": "3f9d9dbb249041e18906273c88c7b879",
+            "feed": "F3",
+            "phase_residual_deg": -0.033103345068118885,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.01694163972970486,
+            "antenna": "ANT6",
+            "artifact_id": "3f9d9dbb249041e18906273c88c7b879",
+            "feed": "F4",
+            "phase_residual_deg": -1.5901073138849426,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": -0.30778577045991895,
+            "antenna": "ANT7",
+            "artifact_id": "3f9d9dbb249041e18906273c88c7b879",
+            "feed": "F5",
+            "phase_residual_deg": 1.1112173085906956,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.13290737512199868,
+            "antenna": "ANT8",
+            "artifact_id": "3f9d9dbb249041e18906273c88c7b879",
+            "feed": "F6",
+            "phase_residual_deg": 0.3181740623060355,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": 0.20932475640951864,
+            "antenna": "ANT1",
+            "artifact_id": "3f9d9dbb249041e18906273c88c7b879",
+            "feed": "F7",
+            "phase_residual_deg": -0.6701002914399681,
+            "rotation": 2
+          },
+          {
+            "amplitude_residual_db": -0.056407635220857344,
+            "antenna": "ANT2",
+            "artifact_id": "3f9d9dbb249041e18906273c88c7b879",
+            "feed": "F8",
+            "phase_residual_deg": 0.8697050337480174,
+            "rotation": 2
+          }
+        ],
+        "round_common_terms": [
+          {
+            "complex": {
+              "imag": 0.0,
+              "real": 1.0
+            },
+            "gain_db": 0.0,
+            "phase_deg": 0.0,
+            "rotation": 0
+          },
+          {
+            "complex": {
+              "imag": 0.10927648634878041,
+              "real": 0.965226127863342
+            },
+            "gain_db": -0.2521076601931322,
+            "phase_deg": 6.459144819393686,
+            "rotation": 1
+          },
+          {
+            "complex": {
+              "imag": 0.05952252881774813,
+              "real": 0.9803871616163317
+            },
+            "gain_db": -0.15606857975187438,
+            "phase_deg": 3.4743504547592465,
+            "rotation": 2
+          }
+        ]
+      }
+    }
+  ],
+  "pluto_serial": "104000b29905000e17000800065934759d",
+  "profile_contract_sha256": "25b2bd0769687cc255d5e6926312e7e827672dc4567d64aecd85e8078acb4258",
+  "profile_id": "fast20-v1",
+  "rotation_zero_closure_results": [
+    {
+      "closure_artifact_id": "e98eb00ed8554caab778bc07493afd81",
+      "common_gain_change_db": -0.030727531925730637,
+      "common_phase_change_deg": -1.9124003696300633,
+      "frequency_hz": 2400000000,
+      "initial_artifact_id": "93c28dfcd3bf4a659d0880594dfbb2c6",
+      "per_antenna": [
+        {
+          "common_removed_gain_change_db": 0.007942677731472642,
+          "common_removed_phase_change_deg": 0.6492417470890928,
+          "gain_change_db": -0.022784854194257995,
+          "name": "ANT1",
+          "phase_change_deg": -1.2631586225409706
+        },
+        {
+          "common_removed_gain_change_db": -0.02662131394917912,
+          "common_removed_phase_change_deg": -0.6318268407305254,
+          "gain_change_db": -0.05734884587490976,
+          "name": "ANT2",
+          "phase_change_deg": -2.5442272103605887
+        },
+        {
+          "common_removed_gain_change_db": 0.033569455405351445,
+          "common_removed_phase_change_deg": -0.05965515471427807,
+          "gain_change_db": 0.0028419234796208054,
+          "name": "ANT3",
+          "phase_change_deg": -1.9720555243443414
+        },
+        {
+          "common_removed_gain_change_db": -0.040198422767085656,
+          "common_removed_phase_change_deg": -0.673283608841416,
+          "gain_change_db": -0.07092595469281629,
+          "name": "ANT4",
+          "phase_change_deg": -2.5856839784714793
+        },
+        {
+          "common_removed_gain_change_db": 0.05723379826364915,
+          "common_removed_phase_change_deg": -0.33315923353305266,
+          "gain_change_db": 0.026506266337918506,
+          "name": "ANT5",
+          "phase_change_deg": -2.245559603163116
+        },
+        {
+          "common_removed_gain_change_db": -0.031850627934785075,
+          "common_removed_phase_change_deg": 1.0942536857792504,
+          "gain_change_db": -0.06257815986051571,
+          "name": "ANT6",
+          "phase_change_deg": -0.8181466838508129
+        },
+        {
+          "common_removed_gain_change_db": 0.03170592348720918,
+          "common_removed_phase_change_deg": 0.15140879772064864,
+          "gain_change_db": 0.0009783915614785402,
+          "name": "ANT7",
+          "phase_change_deg": -1.7609915719094147
+        },
+        {
+          "common_removed_gain_change_db": -0.03178149023663257,
+          "common_removed_phase_change_deg": -0.1969293796676368,
+          "gain_change_db": -0.0625090221623632,
+          "name": "ANT8",
+          "phase_change_deg": -2.1093297492977
+        }
+      ],
+      "relative_shape_gain_max_abs_db": 0.05723379826364915,
+      "relative_shape_gain_rms_db": 0.03503587604952628,
+      "relative_shape_phase_max_abs_deg": 1.0942536857792504,
+      "relative_shape_phase_rms_deg": 0.575291400789919
+    },
+    {
+      "closure_artifact_id": "19470e855c0242d1b387c2a55b09bc1d",
+      "common_gain_change_db": -0.035219836867071884,
+      "common_phase_change_deg": -1.4633605090739934,
+      "frequency_hz": 2420000000,
+      "initial_artifact_id": "a18c613d7ec842dea5537b40b1a9341a",
+      "per_antenna": [
+        {
+          "common_removed_gain_change_db": 0.024555858588147347,
+          "common_removed_phase_change_deg": 0.6406366561152197,
+          "gain_change_db": -0.010663978278924537,
+          "name": "ANT1",
+          "phase_change_deg": -0.8227238529587737
+        },
+        {
+          "common_removed_gain_change_db": -0.06639896444531143,
+          "common_removed_phase_change_deg": -0.814926533468423,
+          "gain_change_db": -0.10161880131238332,
+          "name": "ANT2",
+          "phase_change_deg": -2.2782870425424164
+        },
+        {
+          "common_removed_gain_change_db": 0.01293997095536771,
+          "common_removed_phase_change_deg": -0.19717358405279128,
+          "gain_change_db": -0.022279865911704173,
+          "name": "ANT3",
+          "phase_change_deg": -1.660534093126813
+        },
+        {
+          "common_removed_gain_change_db": -0.05225041717410169,
+          "common_removed_phase_change_deg": -0.5186071037255147,
+          "gain_change_db": -0.08747025404117358,
+          "name": "ANT4",
+          "phase_change_deg": -1.981967612799508
+        },
+        {
+          "common_removed_gain_change_db": 0.025375875317687716,
+          "common_removed_phase_change_deg": -0.27588702887101135,
+          "gain_change_db": -0.009843961549384167,
+          "name": "ANT5",
+          "phase_change_deg": -1.7392475379450048
+        },
+        {
+          "common_removed_gain_change_db": -0.0029726401139299335,
+          "common_removed_phase_change_deg": 0.8442327275746493,
+          "gain_change_db": -0.03819247698100182,
+          "name": "ANT6",
+          "phase_change_deg": -0.6191277814993725
+        },
+        {
+          "common_removed_gain_change_db": 0.036716778324785725,
+          "common_removed_phase_change_deg": 0.2510234521283792,
+          "gain_change_db": 0.0014969414577138411,
+          "name": "ANT7",
+          "phase_change_deg": -1.2123370569456426
+        },
+        {
+          "common_removed_gain_change_db": 0.022033538547354556,
+          "common_removed_phase_change_deg": 0.0707101193924018,
+          "gain_change_db": -0.013186298319717326,
+          "name": "ANT8",
+          "phase_change_deg": -1.3926503896815916
+        }
+      ],
+      "relative_shape_gain_max_abs_db": 0.06639896444531143,
+      "relative_shape_gain_rms_db": 0.036048113477786935,
+      "relative_shape_phase_max_abs_deg": 0.8442327275746493,
+      "relative_shape_phase_rms_deg": 0.5290565395000901
+    },
+    {
+      "closure_artifact_id": "47f5e7b8966e4d85a8c3c8cafb70ed2c",
+      "common_gain_change_db": -0.07702564109410533,
+      "common_phase_change_deg": -1.6682590134908821,
+      "frequency_hz": 2440000000,
+      "initial_artifact_id": "973b1c10029840c5a9fcdc6f3ad01c80",
+      "per_antenna": [
+        {
+          "common_removed_gain_change_db": 0.051827331424509945,
+          "common_removed_phase_change_deg": 0.5254152643534553,
+          "gain_change_db": -0.025198309669595378,
+          "name": "ANT1",
+          "phase_change_deg": -1.1428437491374268
+        },
+        {
+          "common_removed_gain_change_db": -0.058778722394343993,
+          "common_removed_phase_change_deg": -0.6640969045420491,
+          "gain_change_db": -0.13580436348844932,
+          "name": "ANT2",
+          "phase_change_deg": -2.3323559180329596
+        },
+        {
+          "common_removed_gain_change_db": 0.003910091636296187,
+          "common_removed_phase_change_deg": -0.1468788696283525,
+          "gain_change_db": -0.07311554945780914,
+          "name": "ANT3",
+          "phase_change_deg": -1.8151378831192346
+        },
+        {
+          "common_removed_gain_change_db": -0.05191424369919427,
+          "common_removed_phase_change_deg": -0.3753588779494521,
+          "gain_change_db": -0.1289398847932996,
+          "name": "ANT4",
+          "phase_change_deg": -2.0436178914403342
+        },
+        {
+          "common_removed_gain_change_db": 0.022848549594273654,
+          "common_removed_phase_change_deg": -0.3651530233822484,
+          "gain_change_db": -0.05417709149983167,
+          "name": "ANT5",
+          "phase_change_deg": -2.0334120368731305
+        },
+        {
+          "common_removed_gain_change_db": -0.023271952818333802,
+          "common_removed_phase_change_deg": 0.9421959084667719,
+          "gain_change_db": -0.10029759391243913,
+          "name": "ANT6",
+          "phase_change_deg": -0.7260631050241102
+        },
+        {
+          "common_removed_gain_change_db": 0.01608915788713927,
+          "common_removed_phase_change_deg": 0.24410016952342062,
+          "gain_change_db": -0.060936483206966055,
+          "name": "ANT7",
+          "phase_change_deg": -1.42415884396749
+        },
+        {
+          "common_removed_gain_change_db": 0.03928978836965302,
+          "common_removed_phase_change_deg": -0.16019349634939317,
+          "gain_change_db": -0.037735852724452304,
+          "name": "ANT8",
+          "phase_change_deg": -1.8284525098402753
+        }
+      ],
+      "relative_shape_gain_max_abs_db": 0.058778722394343993,
+      "relative_shape_gain_rms_db": 0.038271360837039546,
+      "relative_shape_phase_max_abs_deg": 0.9421959084667719,
+      "relative_shape_phase_rms_deg": 0.49823065663498733
+    },
+    {
+      "closure_artifact_id": "7d5d4b86c1e943c1bb7f2a7fcbfd3866",
+      "common_gain_change_db": -0.07132238287870428,
+      "common_phase_change_deg": -1.1721320805820596,
+      "frequency_hz": 2460000000,
+      "initial_artifact_id": "80df5488a15f421e9282a2d4083d26cf",
+      "per_antenna": [
+        {
+          "common_removed_gain_change_db": 0.04620143301064418,
+          "common_removed_phase_change_deg": 0.32409588223907804,
+          "gain_change_db": -0.025120949868060096,
+          "name": "ANT1",
+          "phase_change_deg": -0.84803619834301
+        },
+        {
+          "common_removed_gain_change_db": -0.05692237138349819,
+          "common_removed_phase_change_deg": -0.593565915101891,
+          "gain_change_db": -0.12824475426220247,
+          "name": "ANT2",
+          "phase_change_deg": -1.7656979956839507
+        },
+        {
+          "common_removed_gain_change_db": -0.004297537258819692,
+          "common_removed_phase_change_deg": -0.07933047279161087,
+          "gain_change_db": -0.07561992013752397,
+          "name": "ANT3",
+          "phase_change_deg": -1.2514625533736705
+        },
+        {
+          "common_removed_gain_change_db": -0.036344805230068625,
+          "common_removed_phase_change_deg": -0.2747170928642788,
+          "gain_change_db": -0.1076671881087729,
+          "name": "ANT4",
+          "phase_change_deg": -1.4468491734463385
+        },
+        {
+          "common_removed_gain_change_db": 0.004396094097414385,
+          "common_removed_phase_change_deg": -0.48538917490100175,
+          "gain_change_db": -0.0669262887812899,
+          "name": "ANT5",
+          "phase_change_deg": -1.6575212554830614
+        },
+        {
+          "common_removed_gain_change_db": -0.0168779149461111,
+          "common_removed_phase_change_deg": 1.1874247715744275,
+          "gain_change_db": -0.08820029782481538,
+          "name": "ANT6",
+          "phase_change_deg": 0.015292690992367852
+        },
+        {
+          "common_removed_gain_change_db": 0.020314666719021823,
+          "common_removed_phase_change_deg": 0.29669804248302967,
+          "gain_change_db": -0.051007716159682456,
+          "name": "ANT7",
+          "phase_change_deg": -0.8754340380990584
+        },
+        {
+          "common_removed_gain_change_db": 0.04353043499141722,
+          "common_removed_phase_change_deg": -0.3751481690697176,
+          "gain_change_db": -0.027791947887287064,
+          "name": "ANT8",
+          "phase_change_deg": -1.5472802496518057
+        }
+      ],
+      "relative_shape_gain_max_abs_db": 0.05692237138349819,
+      "relative_shape_gain_rms_db": 0.034142928588049015,
+      "relative_shape_phase_max_abs_deg": 1.1874247715744275,
+      "relative_shape_phase_rms_deg": 0.5492571754093765
+    },
+    {
+      "closure_artifact_id": "32c1061800d449e5bbb9dbd6e22e6692",
+      "common_gain_change_db": -0.03144720281613077,
+      "common_phase_change_deg": -1.1180457245106368,
+      "frequency_hz": 2480000000,
+      "initial_artifact_id": "c89b1caf5c3e45289529624bb3d7625d",
+      "per_antenna": [
+        {
+          "common_removed_gain_change_db": 0.03640597856593482,
+          "common_removed_phase_change_deg": 0.21996011511546953,
+          "gain_change_db": 0.004958775749804049,
+          "name": "ANT1",
+          "phase_change_deg": -0.8980856093951672
+        },
+        {
+          "common_removed_gain_change_db": -0.04616057790736457,
+          "common_removed_phase_change_deg": -0.55791021005831,
+          "gain_change_db": -0.07760778072349533,
+          "name": "ANT2",
+          "phase_change_deg": -1.6759559345689468
+        },
+        {
+          "common_removed_gain_change_db": -0.004564917515814788,
+          "common_removed_phase_change_deg": 0.015058863586318694,
+          "gain_change_db": -0.036012120331945556,
+          "name": "ANT3",
+          "phase_change_deg": -1.102986860924318
+        },
+        {
+          "common_removed_gain_change_db": -0.01685348830094527,
+          "common_removed_phase_change_deg": -0.18192668819466462,
+          "gain_change_db": -0.048300691117076036,
+          "name": "ANT4",
+          "phase_change_deg": -1.2999724127053014
+        },
+        {
+          "common_removed_gain_change_db": -0.02205947991683055,
+          "common_removed_phase_change_deg": -0.45702121651783045,
+          "gain_change_db": -0.053506682732961316,
+          "name": "ANT5",
+          "phase_change_deg": -1.5750669410284672
+        },
+        {
+          "common_removed_gain_change_db": 0.0031068286666218123,
+          "common_removed_phase_change_deg": 1.2141921095977182,
+          "gain_change_db": -0.028340374149508955,
+          "name": "ANT6",
+          "phase_change_deg": 0.09614638508710982
+        },
+        {
+          "common_removed_gain_change_db": 0.022516134640227406,
+          "common_removed_phase_change_deg": 0.31509734665371525,
+          "gain_change_db": -0.008931068175903362,
+          "name": "ANT7",
+          "phase_change_deg": -0.8029483778569215
+        },
+        {
+          "common_removed_gain_change_db": 0.02760952176817109,
+          "common_removed_phase_change_deg": -0.5673805555452134,
+          "gain_change_db": -0.0038376810479596756,
+          "name": "ANT8",
+          "phase_change_deg": -1.6854262800558217
+        }
+      ],
+      "relative_shape_gain_max_abs_db": 0.04616057790736457,
+      "relative_shape_gain_rms_db": 0.026283568578796112,
+      "relative_shape_phase_max_abs_deg": 1.2141921095977182,
+      "relative_shape_phase_rms_deg": 0.5587159663029496
+    }
+  ],
+  "run_id": "closed-loop-calibration-20260827",
+  "schema": 1,
+  "source_commit": "ab704e52f3e28d9bc1b6cb9cd4c394b3a90377cb",
+  "source_documents": [
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/2c5c1adeda884a42a83f637bd5dd002b/fast20-reference-transfer.json",
+      "analysis_sha256": "77a7979bb5f226af9f1d756a693cac3c0e3d240d403f87e11c12c00eb3067f4a",
+      "artifact_id": "2c5c1adeda884a42a83f637bd5dd002b",
+      "center_frequency_hz": 2400000000,
+      "raw_artifact_sha256": "fee797365c757b9345582556d848ca78f12b2007744b1554269366699c444985",
+      "receiver_gain_db": 40,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 263711682781988
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/8646fb9a3e2b4571952fad2a1680be1b/fast20-reference-transfer.json",
+      "analysis_sha256": "a1f276b9fc1a234c8becb5c8c10df504d5c14d94083a51514df93ed490b91a79",
+      "artifact_id": "8646fb9a3e2b4571952fad2a1680be1b",
+      "center_frequency_hz": 2400000000,
+      "raw_artifact_sha256": "3777ab75bdcc9c831a1a1accf161d5aca816721a2b8ba0c5da34a4c6ba5f4cde",
+      "receiver_gain_db": 40,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 264279629581913
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/93c28dfcd3bf4a659d0880594dfbb2c6/fast20-reference-transfer.json",
+      "analysis_sha256": "a6b57ce1b3fd1065b3f41a094e457f9b3cff303d22401769d3b712acb0e65a63",
+      "artifact_id": "93c28dfcd3bf4a659d0880594dfbb2c6",
+      "center_frequency_hz": 2400000000,
+      "raw_artifact_sha256": "ceb62dd33857a0ebcff365014e9dbfd446babef2b044b179fe3ef3904d51f752",
+      "receiver_gain_db": 40,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 259596611006980
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/e98eb00ed8554caab778bc07493afd81/fast20-reference-transfer.json",
+      "analysis_sha256": "390b201c889d279a5fa1d81e084c0daa5ced46c77a77bc1079facc313bdd3d80",
+      "artifact_id": "e98eb00ed8554caab778bc07493afd81",
+      "center_frequency_hz": 2400000000,
+      "raw_artifact_sha256": "ab1f177209264cbbcc931263f176b6f6545bcea81630f919b635dda5062eaa1c",
+      "receiver_gain_db": 40,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 266394712449904
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/19470e855c0242d1b387c2a55b09bc1d/fast20-reference-transfer.json",
+      "analysis_sha256": "6ca6230da5b52cd61ee6665ee9efb0782d12a7cc2fef5a246ac791eeab3aa013",
+      "artifact_id": "19470e855c0242d1b387c2a55b09bc1d",
+      "center_frequency_hz": 2420000000,
+      "raw_artifact_sha256": "6bdc5084160b95e63f9069b34ec731cef48bf18549469c4de9cba6bbde3e35e8",
+      "receiver_gain_db": 40,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 266415052852035
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/66768fd0dc1a42c39211dd997e13df57/fast20-reference-transfer.json",
+      "analysis_sha256": "dc452fc30909cbde015744bd381817647eedc730567881faca4632d25236372c",
+      "artifact_id": "66768fd0dc1a42c39211dd997e13df57",
+      "center_frequency_hz": 2420000000,
+      "raw_artifact_sha256": "d67b5220fa0beb209f780af35992f4385b845e523228b8e5d259546ce4393432",
+      "receiver_gain_db": 40,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 263736728345879
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/a18c613d7ec842dea5537b40b1a9341a/fast20-reference-transfer.json",
+      "analysis_sha256": "527bd97f5d096346e1da6cc4b9bad606cb1ecddcd71720a5e7c3cfc3e23084f7",
+      "artifact_id": "a18c613d7ec842dea5537b40b1a9341a",
+      "center_frequency_hz": 2420000000,
+      "raw_artifact_sha256": "2acb25acaddd9a00eac9ab8eae2562a548cbdc75312dc80d8d03e63b479693e0",
+      "receiver_gain_db": 40,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 259619233533377
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/f35375bb6ca74c529f62404af5981f4a/fast20-reference-transfer.json",
+      "analysis_sha256": "6455a515123c6e3a6126683b36ede1a8e8c7b80caec78551d1d64e0be1eedb95",
+      "artifact_id": "f35375bb6ca74c529f62404af5981f4a",
+      "center_frequency_hz": 2420000000,
+      "raw_artifact_sha256": "ff4253fe61dea025272d30682e1104f81993e580676e390403de2935f92a55ff",
+      "receiver_gain_db": 40,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 264231584365263
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/47f5e7b8966e4d85a8c3c8cafb70ed2c/fast20-reference-transfer.json",
+      "analysis_sha256": "e54020ddd18bc6aea5a264d8c4b0b55c69d74a5f2bbf2dfdd3df20cde2668555",
+      "artifact_id": "47f5e7b8966e4d85a8c3c8cafb70ed2c",
+      "center_frequency_hz": 2440000000,
+      "raw_artifact_sha256": "f171e3a9a10d7b9368961ee559b1f0132a979b964a39a45ccfaea9f1df4484c3",
+      "receiver_gain_db": 40,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 266362518589415
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/9417609c8c2e4fe899804d343e410c4a/fast20-reference-transfer.json",
+      "analysis_sha256": "24f110ff813e8d4a6a61e091aa66da92220dde97cf8457c9c07c568ab6988a96",
+      "artifact_id": "9417609c8c2e4fe899804d343e410c4a",
+      "center_frequency_hz": 2440000000,
+      "raw_artifact_sha256": "a03b6c0c7b6c1101b089933aa6d44d77df0cf58ec2af1f86a0ba9dd82ed57afa",
+      "receiver_gain_db": 40,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 264202057892357
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/973b1c10029840c5a9fcdc6f3ad01c80/fast20-reference-transfer.json",
+      "analysis_sha256": "4431ffd2338b3f99f246edb11c03f328e42d9ba7547d14ff07bcee8cfded8c9b",
+      "artifact_id": "973b1c10029840c5a9fcdc6f3ad01c80",
+      "center_frequency_hz": 2440000000,
+      "raw_artifact_sha256": "d9a629bca23a9e26ff3126a24cacb6e3f443b2f7e9c7a7df3726ae018ff3a73d",
+      "receiver_gain_db": 40,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 260104915715440
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/c82f2b6ae1814aaf9480031628e8965f/fast20-reference-transfer.json",
+      "analysis_sha256": "3203075c19e4f9429d51477bdadc8f4a73431ca923f76dbdc930dcc4e6f6a1e9",
+      "artifact_id": "c82f2b6ae1814aaf9480031628e8965f",
+      "center_frequency_hz": 2440000000,
+      "raw_artifact_sha256": "cfc5007d50c563a0915b3d88626b9e626fa625ec04109025742515149c2ac32c",
+      "receiver_gain_db": 40,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 263682022363240
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/1c01b3944b4f42a3be08cca939dcd28a/fast20-reference-transfer.json",
+      "analysis_sha256": "5c861ed7f35ae4623c3427d57a1ccbbe844bd5c4e3201737c95030a4d3a40674",
+      "artifact_id": "1c01b3944b4f42a3be08cca939dcd28a",
+      "center_frequency_hz": 2460000000,
+      "raw_artifact_sha256": "f74c0e3104f09c5a340113fe544ab63469822eb3c78e8096a15404a0db532576",
+      "receiver_gain_db": 40,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 263638428801690
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/33052b0b05fd473dab3fd03af1282180/fast20-reference-transfer.json",
+      "analysis_sha256": "4ce9c06897eaac37110e8a01d6ab6564c1fcb3666ed786b9b2bafb19a4d4f371",
+      "artifact_id": "33052b0b05fd473dab3fd03af1282180",
+      "center_frequency_hz": 2460000000,
+      "raw_artifact_sha256": "45bd48842bea2d8c2c2a8dd40359820c63ccd89eee2c4939b2d9ed28d9e1777c",
+      "receiver_gain_db": 40,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 264183379223539
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/7d5d4b86c1e943c1bb7f2a7fcbfd3866/fast20-reference-transfer.json",
+      "analysis_sha256": "2876a152f98d0e380c5d9da276b04e099803e393c508219c297e03a2b7bccd3f",
+      "artifact_id": "7d5d4b86c1e943c1bb7f2a7fcbfd3866",
+      "center_frequency_hz": 2460000000,
+      "raw_artifact_sha256": "5146e4a8c082058a2087229fb43cdf78fae9cc703a938785808b193761915ef3",
+      "receiver_gain_db": 40,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 266566798337591
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/80df5488a15f421e9282a2d4083d26cf/fast20-reference-transfer.json",
+      "analysis_sha256": "77b1176c79c2eea6ddbf3c23f8a92d63b9959ea80112233a147f83c2a678e747",
+      "artifact_id": "80df5488a15f421e9282a2d4083d26cf",
+      "center_frequency_hz": 2460000000,
+      "raw_artifact_sha256": "031202d46561e9f7b78b87d4bd115b3dbee1035a467db4ced9a8f1991e7d9347",
+      "receiver_gain_db": 40,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 259556643969625
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/32c1061800d449e5bbb9dbd6e22e6692/fast20-reference-transfer.json",
+      "analysis_sha256": "fefd77b3ac50470b8fcb0f02f644e1be75b01a14bae3de4ec317b68f0cf011bd",
+      "artifact_id": "32c1061800d449e5bbb9dbd6e22e6692",
+      "center_frequency_hz": 2480000000,
+      "raw_artifact_sha256": "fe59e9c2bb7ef575b0f111b99bdca95ed5dd24c8789afc85056e3b7e6d7e6786",
+      "receiver_gain_db": 40,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 266584377877811
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/3ee47f66daeb4042869894b928b3e16a/fast20-reference-transfer.json",
+      "analysis_sha256": "3fa3bf27034088c2e4bd1230df77b3305c783dc538d8d31b4ea6e1b4b25f85a3",
+      "artifact_id": "3ee47f66daeb4042869894b928b3e16a",
+      "center_frequency_hz": 2480000000,
+      "raw_artifact_sha256": "e55cb44719258d6ebdfe3eb19fe79a8d357619bd1a474736b96bb410bc6a52dc",
+      "receiver_gain_db": 40,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 263851157790383
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/412c29401fbf4ea1a1f43a9a89eddbcb/fast20-reference-transfer.json",
+      "analysis_sha256": "62cbabbea4512501929931f68c533bb25c6f3422cd602add63d7ce412f36a8b0",
+      "artifact_id": "412c29401fbf4ea1a1f43a9a89eddbcb",
+      "center_frequency_hz": 2480000000,
+      "raw_artifact_sha256": "540ea35e4a3b29274578e88a5e2ece914fcbff65863eb327777835db85f570c8",
+      "receiver_gain_db": 40,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 264426121799727
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/c89b1caf5c3e45289529624bb3d7625d/fast20-reference-transfer.json",
+      "analysis_sha256": "43f5ae8fa729ed1619b57db2a4833d404c60c5f19f1676cc6cad615062a56af3",
+      "artifact_id": "c89b1caf5c3e45289529624bb3d7625d",
+      "center_frequency_hz": 2480000000,
+      "raw_artifact_sha256": "2d6ac663350074a0126acef0703a696c32ef54aa7cdd2d645ca84b94412b344c",
+      "receiver_gain_db": 40,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 259570670625092
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/089c96119d6b4daeb3a0004de7796c62/fast20-reference-transfer.json",
+      "analysis_sha256": "641e90d4b1ff49ed589ea9798bd698cf5ba7ca3ed0f3504dbda14ef9d1955739",
+      "artifact_id": "089c96119d6b4daeb3a0004de7796c62",
+      "center_frequency_hz": 5800000000,
+      "raw_artifact_sha256": "88a19aa582b6b6fef7f5406ce1a2c76ee6df115645b3a8f07e26ef8bb6a3d44a",
+      "receiver_gain_db": 50,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 266555332088177
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/3f9d9dbb249041e18906273c88c7b879/fast20-reference-transfer.json",
+      "analysis_sha256": "13805e1d3ba2c738cb1af56a0130f5bd23ab5fc3702640d2f8fb60f24f4d3742",
+      "artifact_id": "3f9d9dbb249041e18906273c88c7b879",
+      "center_frequency_hz": 5800000000,
+      "raw_artifact_sha256": "912f0b68f0b7e74d24fc93bdd6352f7958c1bb47f35e9055a71da5372a69f655",
+      "receiver_gain_db": 50,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 265884169875607
+    },
+    {
+      "analysis_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/bcd1bcc3d46742c289b77487598ebdd6/fast20-reference-transfer.json",
+      "analysis_sha256": "381ccff5c3238beedd3507ea21c90f199ecab5cf88b3a8216d94f3ab87aad128",
+      "artifact_id": "bcd1bcc3d46742c289b77487598ebdd6",
+      "center_frequency_hz": 5800000000,
+      "raw_artifact_sha256": "f721ea72487b663e6dbc6675e8c8ec6048b56aed2963699edebb0288cf75c767",
+      "receiver_gain_db": 50,
+      "source_commit": "b84307849a0240442d08eee831228a906671922a",
+      "stream_id": 262879951878942
+    }
+  ],
+  "source_manifest": {
+    "committed_snapshot_path": "docs/closed_loop_permutation_calibration/data/closed-loop-permutation-manifest.json",
+    "committed_snapshot_sha256": "1920cfe10bfe1ff0879b56ee28d870d967aa10563eefbbb76418a76f093205bb",
+    "path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/closed-loop-calibration-20260827/closed-loop-permutation-manifest.json",
+    "sha256": "71a884ddd04b3c72b3fc6bb3445f59da8404a6a27ec7def94bb5555d4b6713b5"
+  },
+  "thresholds": {
+    "maximum_closure_shape_amplitude_rms_db": 0.1,
+    "maximum_closure_shape_phase_rms_deg": 2.0,
+    "maximum_model_amplitude_residual_rms_db": 0.2,
+    "maximum_model_phase_residual_rms_deg": 2.0,
+    "minimum_operational_raw_contrast_db": 20.0,
+    "minimum_raw_contrast_for_precision_target_db": 35.16289363154287,
+    "precision_phase_target_deg": 1.0
+  }
+}

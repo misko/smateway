@@ -1,0 +1,230 @@
+{
+  "analysis": {
+    "additional_cyclic_rotations_required": false,
+    "experimental_leakage_limited_frequencies_hz": [
+      5800000000
+    ],
+    "normal_wiring_restored": true,
+    "qualified_board_calibration_frequencies_hz": [
+      2400000000,
+      2420000000,
+      2440000000,
+      2460000000,
+      2480000000
+    ],
+    "result_path": "/home/pi/smateway/docs/closed_loop_permutation_calibration/data/closed-loop-calibration-results.json",
+    "source_commit": "ab704e52f3e28d9bc1b6cb9cd4c394b3a90377cb"
+  },
+  "board_id": "stm32c011-4c0055000950313950363920",
+  "closure": {
+    "artifacts_by_frequency_hz": {
+      "2400000000": "e98eb00ed8554caab778bc07493afd81",
+      "2420000000": "19470e855c0242d1b387c2a55b09bc1d",
+      "2440000000": "47f5e7b8966e4d85a8c3c8cafb70ed2c",
+      "2460000000": "7d5d4b86c1e943c1bb7f2a7fcbfd3866",
+      "2480000000": "32c1061800d449e5bbb9dbd6e22e6692",
+      "5800000000": "089c96119d6b4daeb3a0004de7796c62"
+    },
+    "complex_transfer_quality_passed": true,
+    "mapping": {
+      "F1": "ANT1",
+      "F2": "ANT2",
+      "F3": "ANT3",
+      "F4": "ANT4",
+      "F5": "ANT5",
+      "F6": "ANT6",
+      "F7": "ANT7",
+      "F8": "ANT8"
+    },
+    "role": "Return-to-original-wiring closure and current-state rotation-0 input to the final fit.",
+    "rotation": 0
+  },
+  "firmware_binary_sha256": "aeaed9d2f892d2a59add1aba2a7477e349b750c99f81610632286d04d91326ac",
+  "frequencies_hz": [
+    2400000000,
+    2420000000,
+    2440000000,
+    2460000000,
+    2480000000,
+    5800000000
+  ],
+  "hardware": {
+    "eight_way_splitter_frequency_range_hz": [
+      2000000000,
+      8000000000
+    ],
+    "eight_way_splitter_rating_provenance": "user-reported",
+    "rx1_attenuator_frequency_range_hz": null,
+    "rx1_attenuator_value_db": null,
+    "two_way_splitter_frequency_range_hz": null
+  },
+  "mapping_convention": "rotation r maps feed arm Fi to ANT(((i + r - 1) mod 8) + 1)",
+  "plan_revision": {
+    "initial_plan": "eight unique cyclic mappings followed by a rotation-0 closure",
+    "reason": "The three completed 2.4 GHz mappings already overdetermine the separable feed-arm-times-board-path model and leave only 0.029-0.055 dB RMS amplitude residual and 0.54-0.57 degree RMS phase residual. More mappings are conditional on the three-mapping 5.8 GHz model failing.",
+    "revised_after_rotation": 2,
+    "revised_plan": "skip rotations 3 through 7; return directly to rotation 0 for a reconnect closure and the missing third 5.8 GHz mapping"
+  },
+  "pluto_serial": "104000b29905000e17000800065934759d",
+  "pluto_uri": "usb:1.4.5",
+  "profile_contract_sha256": "25b2bd0769687cc255d5e6926312e7e827672dc4567d64aecd85e8078acb4258",
+  "profile_id": "fast20-v1",
+  "rounds": [
+    {
+      "additional_2440mhz_repeat_artifact_ids": [
+        "c05255cd1e24446da08ace9d17e2c736",
+        "04c503ac17374aa18cb85eac0840b21c"
+      ],
+      "artifacts_by_frequency_hz": {
+        "2400000000": "93c28dfcd3bf4a659d0880594dfbb2c6",
+        "2420000000": "a18c613d7ec842dea5537b40b1a9341a",
+        "2440000000": "973b1c10029840c5a9fcdc6f3ad01c80",
+        "2460000000": "80df5488a15f421e9282a2d4083d26cf",
+        "2480000000": "c89b1caf5c3e45289529624bb3d7625d"
+      },
+      "complex_transfer_quality_passed": true,
+      "mapping": {
+        "F1": "ANT1",
+        "F2": "ANT2",
+        "F3": "ANT3",
+        "F4": "ANT4",
+        "F5": "ANT5",
+        "F6": "ANT6",
+        "F7": "ANT7",
+        "F8": "ANT8"
+      },
+      "pending_frequency_hz": [
+        5800000000
+      ],
+      "rotation": 0
+    },
+    {
+      "5800mhz_rx40_screen_artifact_id": "bfa6cbcfbbac4c7b95f18a02dd635bf7",
+      "additional_5800mhz_repeat_artifact_ids": [
+        "e75edaf3164a4c0e81adfdeb734995b2"
+      ],
+      "artifacts_by_frequency_hz": {
+        "2400000000": "2c5c1adeda884a42a83f637bd5dd002b",
+        "2420000000": "66768fd0dc1a42c39211dd997e13df57",
+        "2440000000": "c82f2b6ae1814aaf9480031628e8965f",
+        "2460000000": "1c01b3944b4f42a3be08cca939dcd28a",
+        "2480000000": "3ee47f66daeb4042869894b928b3e16a",
+        "5800000000": "bcd1bcc3d46742c289b77487598ebdd6"
+      },
+      "complex_transfer_quality_passed": true,
+      "finding": "The dominant amplitude minimum moves from ANT4 to ANT5 with feed arm F4 from 2.400 through 2.460 GHz, indicating a feed-arm-dominant notch. At 5.8 GHz the raw selected-to-ALL_OFF contrast is inadequate, but two fixed-RX50 ALL_OFF-subtracted transfer captures are repeatable to less than about 0.03 dB and 0.16 degrees.",
+      "mapping": {
+        "F1": "ANT2",
+        "F2": "ANT3",
+        "F3": "ANT4",
+        "F4": "ANT5",
+        "F5": "ANT6",
+        "F6": "ANT7",
+        "F7": "ANT8",
+        "F8": "ANT1"
+      },
+      "rotation": 1
+    },
+    {
+      "artifacts_by_frequency_hz": {
+        "2400000000": "8646fb9a3e2b4571952fad2a1680be1b",
+        "2420000000": "f35375bb6ca74c529f62404af5981f4a",
+        "2440000000": "9417609c8c2e4fe899804d343e410c4a",
+        "2460000000": "33052b0b05fd473dab3fd03af1282180",
+        "2480000000": "412c29401fbf4ea1a1f43a9a89eddbcb",
+        "5800000000": "3f9d9dbb249041e18906273c88c7b879"
+      },
+      "complex_transfer_quality_passed": true,
+      "finding": "All five 2.4 GHz conditions passed. The minimum no longer follows F4 alone after it moves to ANT6, proving that the measured response contains both feed-arm and board-port-dependent terms. The accepted 5.8 GHz retry passed all transfer gates.",
+      "mapping": {
+        "F1": "ANT3",
+        "F2": "ANT4",
+        "F3": "ANT5",
+        "F4": "ANT6",
+        "F5": "ANT7",
+        "F6": "ANT8",
+        "F7": "ANT1",
+        "F8": "ANT2"
+      },
+      "rejected_attempts": [
+        {
+          "artifact_id": "22123095fd9a4846a8de99e48ecd597e",
+          "frequency_hz": 5800000000,
+          "reason": "ANT7 transfer cycle phase standard deviation was 35.86 degrees, above the strict 30-degree maximum; capture continuity and headroom passed."
+        }
+      ],
+      "rotation": 2
+    }
+  ],
+  "run_id": "closed-loop-calibration-20260827",
+  "schema": 1,
+  "separable_model_check_2g4": [
+    {
+      "amplitude_residual_rms_db": 0.048741583365094154,
+      "frequency_hz": 2400000000,
+      "observations": 24,
+      "parameters_per_scalar": 17,
+      "phase_residual_max_abs_deg": 1.1970538063205733,
+      "phase_residual_rms_deg": 0.5722217148674297,
+      "residual_dof_per_scalar": 7
+    },
+    {
+      "amplitude_residual_rms_db": 0.05483369104442585,
+      "frequency_hz": 2420000000,
+      "observations": 24,
+      "parameters_per_scalar": 17,
+      "phase_residual_max_abs_deg": 1.104258162737431,
+      "phase_residual_rms_deg": 0.5385552621849465,
+      "residual_dof_per_scalar": 7
+    },
+    {
+      "amplitude_residual_rms_db": 0.046672668573483414,
+      "frequency_hz": 2440000000,
+      "observations": 24,
+      "parameters_per_scalar": 17,
+      "phase_residual_max_abs_deg": 1.210805222168324,
+      "phase_residual_rms_deg": 0.551333211182436,
+      "residual_dof_per_scalar": 7
+    },
+    {
+      "amplitude_residual_rms_db": 0.037123749407086674,
+      "frequency_hz": 2460000000,
+      "observations": 24,
+      "parameters_per_scalar": 17,
+      "phase_residual_max_abs_deg": 1.2195872074721439,
+      "phase_residual_rms_deg": 0.5455726584496833,
+      "residual_dof_per_scalar": 7
+    },
+    {
+      "amplitude_residual_rms_db": 0.028763058308877966,
+      "frequency_hz": 2480000000,
+      "observations": 24,
+      "parameters_per_scalar": 17,
+      "phase_residual_max_abs_deg": 1.147822064133676,
+      "phase_residual_rms_deg": 0.542684625157486,
+      "residual_dof_per_scalar": 7
+    }
+  ],
+  "smateway_source_commit": "b84307849a0240442d08eee831228a906671922a",
+  "status": "complete",
+  "stimulus": {
+    "bandwidth_hz": 800000,
+    "conservative_load_input_bound_dbm_without_splitter_credit": -25.04119982655925,
+    "dds_scale": 0.25,
+    "duration_s": 10,
+    "kernel_buffers": 8,
+    "receiver_gain_db_by_frequency_hz": {
+      "2400000000": 40,
+      "2420000000": 40,
+      "2440000000": 40,
+      "2460000000": 40,
+      "2480000000": 40,
+      "5800000000": 50
+    },
+    "sample_rate_hz": 1000000,
+    "tone_offset_readback_hz": 99992,
+    "tx_channel": 0,
+    "tx_hardware_gain_db": -20.0,
+    "tx_port": "TX1"
+  }
+}
