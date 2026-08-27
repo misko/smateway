@@ -67,6 +67,7 @@ from smateway.hexcal_gain import (
     DEFAULT_GAIN_CANDIDATES_DB,
     DEFAULT_STIMULUS_TX_GAINS_DB,
     EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID,
+    EXPERIMENTAL_5G8_HIGH_RX_STIMULUS_PROTOCOL_ID,
     FRAME_COUNT,
     KERNEL_BUFFERS,
     QUALIFICATION_KIND,
@@ -141,6 +142,11 @@ def _parser() -> argparse.ArgumentParser:
         "--tx-stimulus-v23-5g8",
         action="store_true",
         help="run the frozen exact-5.800-GHz experimental TX1 stimulus ladder",
+    )
+    parser.add_argument(
+        "--tx-stimulus-v24-5g8",
+        action="store_true",
+        help="run the frozen exact-5.800-GHz high-RX stimulus ladder",
     )
     parser.add_argument(
         "--tx-gain-db",
@@ -902,16 +908,22 @@ def main() -> int:
         signal.signal(signal.SIGHUP, _cooperative_termination)
     if not args.serial.strip() or not args.uri.startswith("usb:"):
         raise SystemExit("explicit non-empty --serial and exact usb: --uri are required")
-    if args.tx_stimulus_v2 and args.tx_stimulus_v23_5g8:
+    if sum((args.tx_stimulus_v2, args.tx_stimulus_v23_5g8, args.tx_stimulus_v24_5g8)) > 1:
         raise SystemExit("select exactly one TX-stimulus protocol")
     try:
         board_id = _validate_identifier(args.board_id, "board ID")
         qualification_id = _validate_identifier(
             args.qualification_id or _new_id(), "qualification ID"
         )
-        stimulus_mode = args.tx_stimulus_v2 or args.tx_stimulus_v23_5g8
+        stimulus_mode = (
+            args.tx_stimulus_v2
+            or args.tx_stimulus_v23_5g8
+            or args.tx_stimulus_v24_5g8
+        )
         selected_protocol = (
-            stimulus_protocol(EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID)
+            stimulus_protocol(EXPERIMENTAL_5G8_HIGH_RX_STIMULUS_PROTOCOL_ID)
+            if args.tx_stimulus_v24_5g8
+            else stimulus_protocol(EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID)
             if args.tx_stimulus_v23_5g8
             else stimulus_protocol(STIMULUS_PROTOCOL_ID)
         )

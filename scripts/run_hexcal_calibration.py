@@ -58,6 +58,7 @@ from smateway.hexcal import (
     validate_tx1_rf_readback_evidence,
 )
 from smateway.hexcal_gain import (
+    EXPERIMENTAL_5G8_HIGH_RX_STIMULUS_PROTOCOL_ID,
     EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID,
     QUALIFICATION_SOURCE_FILES,
     STIMULUS_CENTER_FREQUENCIES_HZ,
@@ -118,6 +119,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--protocol-v2", "--protocol-v21", "--protocol-v22", action="store_true")
     parser.add_argument("--protocol-v23-5g8", action="store_true")
+    parser.add_argument("--protocol-v24-5g8", action="store_true")
     parser.add_argument("--allow-experimental-5g8", action="store_true")
     parser.add_argument("--rounds", type=int, default=DEFAULT_ROUNDS)
     parser.add_argument("--max-attempts-per-condition", type=int, default=DEFAULT_MAX_ATTEMPTS)
@@ -368,7 +370,10 @@ def _configuration(
             raise ExperimentError("calibration stimulus differs from the passed qualification")
         qualification_field = "stimulus_qualification"
         qualification_document = stimulus_qualification.as_dict()
-        protocol_id = stimulus_protocol_for_frequencies(center_frequencies_hz).protocol_id
+        protocol_id = stimulus_protocol_for_frequencies(
+            center_frequencies_hz,
+            fixed_receiver_gain_db=receiver_gain_db,
+        ).protocol_id
     dependency_attestation = dict(pluto_plus_utils_source_attestation)
     dependency_sha256 = canonical_json_sha256(dependency_attestation)
     configuration = {
@@ -1343,14 +1348,16 @@ def main() -> int:
         raise SystemExit("explicit non-empty --serial and exact usb: --uri are required")
     if args.rounds != DEFAULT_ROUNDS:
         raise SystemExit("Hexcal requires exactly three predeclared rounds")
-    if args.protocol_v2 and args.protocol_v23_5g8:
+    if sum((args.protocol_v2, args.protocol_v23_5g8, args.protocol_v24_5g8)) > 1:
         raise SystemExit("select exactly one calibration protocol")
     selected_protocol = (
-        stimulus_protocol(EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID)
+        stimulus_protocol(EXPERIMENTAL_5G8_HIGH_RX_STIMULUS_PROTOCOL_ID)
+        if args.protocol_v24_5g8
+        else stimulus_protocol(EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID)
         if args.protocol_v23_5g8
         else stimulus_protocol(STIMULUS_PROTOCOL_ID)
     )
-    stimulus_mode = args.protocol_v2 or args.protocol_v23_5g8
+    stimulus_mode = args.protocol_v2 or args.protocol_v23_5g8 or args.protocol_v24_5g8
     if stimulus_mode:
         if args.stimulus_qualification is None or args.gain_qualification is not None:
             raise SystemExit("stimulus protocols require only --stimulus-qualification")

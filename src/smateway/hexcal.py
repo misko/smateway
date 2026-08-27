@@ -58,6 +58,7 @@ HEXCAL_AGGREGATION_SOURCE_FILES = (
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.1-2g4-stimulus.json",
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.2-2g4-stimulus.json",
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.3-experimental-5g8-stimulus.json",
+    "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.4-experimental-5g8-high-rx-stimulus.json",
     "scripts/aggregate_hexcal_calibration.py",
     "src/smateway/hexcal.py",
     "src/smateway/hexcal_gain.py",

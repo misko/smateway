@@ -33,12 +33,19 @@ EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID = "hexcal-v2.3-experimental-5g8-stimulus"
 EXPERIMENTAL_5G8_STIMULUS_QUALIFICATION_KIND = (
     "hexcal_v2_3_experimental_5g8_tx_stimulus_qualification"
 )
+EXPERIMENTAL_5G8_HIGH_RX_STIMULUS_PROTOCOL_ID = (
+    "hexcal-v2.4-experimental-5g8-high-rx-stimulus"
+)
+EXPERIMENTAL_5G8_HIGH_RX_STIMULUS_QUALIFICATION_KIND = (
+    "hexcal_v2_4_experimental_5g8_high_rx_tx_stimulus_qualification"
+)
 QUALIFICATION_SOURCE_FILES = (
     "profiles/hexcal-v1/control_profile.json",
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2-2g4-stimulus.json",
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.1-2g4-stimulus.json",
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.2-2g4-stimulus.json",
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.3-experimental-5g8-stimulus.json",
+    "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.4-experimental-5g8-high-rx-stimulus.json",
     "scripts/qualify_hexcal_rx_gain.py",
     "src/smateway/capture_admission.py",
     "src/smateway/capture_continuity.py",
@@ -68,6 +75,7 @@ STIMULUS_CENTER_FREQUENCIES_HZ = (
 STIMULUS_FIXED_RECEIVER_GAIN_DB = 20
 EXPERIMENTAL_5G8_STIMULUS_CENTER_FREQUENCIES_HZ = (5_800_000_000,)
 EXPERIMENTAL_5G8_STIMULUS_FIXED_RECEIVER_GAIN_DB = 30
+EXPERIMENTAL_5G8_HIGH_RX_STIMULUS_FIXED_RECEIVER_GAIN_DB = 60
 MINIMUM_COMPLETE_CYCLES = 150
 MINIMUM_DECODED_FRACTION = 0.98
 MINIMUM_MARKER_CONTRAST_DB = 20.0
@@ -131,6 +139,23 @@ STIMULUS_PROTOCOLS = {
             "hexcal_v2_3_experimental_5g8_independent_calibration_and_artifact_audit"
         ),
     ),
+    EXPERIMENTAL_5G8_HIGH_RX_STIMULUS_PROTOCOL_ID: HexcalStimulusProtocol(
+        protocol_id=EXPERIMENTAL_5G8_HIGH_RX_STIMULUS_PROTOCOL_ID,
+        qualification_kind=EXPERIMENTAL_5G8_HIGH_RX_STIMULUS_QUALIFICATION_KIND,
+        center_frequencies_hz=EXPERIMENTAL_5G8_STIMULUS_CENTER_FREQUENCIES_HZ,
+        fixed_receiver_gain_db=EXPERIMENTAL_5G8_HIGH_RX_STIMULUS_FIXED_RECEIVER_GAIN_DB,
+        timing_receiver_gain_db=60,
+        allow_experimental_5g8=True,
+        timing_plan_kind="hexcal_v2_4_experimental_5g8_high_rx_rf_timing_two_replicates",
+        timing_capture_kind="hexcal_v2_4_experimental_5g8_high_rx_rf_timing_2msps_tx1",
+        experiment_kind="hexcal_v2_4_experimental_5g8_high_rx_tx1_center_calibration",
+        calibration_kind=(
+            "hexcal_v2_4_experimental_5g8_high_rx_tx1_center_end_to_end_complex_correction"
+        ),
+        audit_kind=(
+            "hexcal_v2_4_experimental_5g8_high_rx_independent_calibration_and_artifact_audit"
+        ),
+    ),
 }
 
 
@@ -145,17 +170,23 @@ def stimulus_protocol(protocol_id: str) -> HexcalStimulusProtocol:
 
 def stimulus_protocol_for_frequencies(
     center_frequencies_hz: Sequence[int],
+    *,
+    fixed_receiver_gain_db: int | None = None,
 ) -> HexcalStimulusProtocol:
-    """Identify a stimulus protocol only from its exact frozen frequency tuple."""
+    """Identify a stimulus protocol from its frozen frequency/RX contract."""
 
     frequencies = tuple(int(value) for value in center_frequencies_hz)
     matches = [
         contract
         for contract in STIMULUS_PROTOCOLS.values()
         if contract.center_frequencies_hz == frequencies
+        and (
+            fixed_receiver_gain_db is None
+            or contract.fixed_receiver_gain_db == fixed_receiver_gain_db
+        )
     ]
     if len(matches) != 1:
-        raise ValueError("frequencies do not identify one supported stimulus protocol")
+        raise ValueError("frequencies and fixed RX gain do not identify one stimulus protocol")
     return matches[0]
 
 
@@ -1001,6 +1032,9 @@ __all__ = [
     "DEFAULT_GAIN_CANDIDATES_DB",
     "DEFAULT_STIMULUS_TX_GAINS_DB",
     "EXPERIMENTAL_5G8_STIMULUS_CENTER_FREQUENCIES_HZ",
+    "EXPERIMENTAL_5G8_HIGH_RX_STIMULUS_FIXED_RECEIVER_GAIN_DB",
+    "EXPERIMENTAL_5G8_HIGH_RX_STIMULUS_PROTOCOL_ID",
+    "EXPERIMENTAL_5G8_HIGH_RX_STIMULUS_QUALIFICATION_KIND",
     "EXPERIMENTAL_5G8_STIMULUS_FIXED_RECEIVER_GAIN_DB",
     "EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID",
     "EXPERIMENTAL_5G8_STIMULUS_QUALIFICATION_KIND",

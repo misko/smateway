@@ -24,6 +24,8 @@ from smateway.hexcal_gain import (
     CONDITION_TIMEOUT_S,
     DEFAULT_STIMULUS_TX_GAINS_DB,
     EXPERIMENTAL_5G8_STIMULUS_CENTER_FREQUENCIES_HZ,
+    EXPERIMENTAL_5G8_HIGH_RX_STIMULUS_FIXED_RECEIVER_GAIN_DB,
+    EXPERIMENTAL_5G8_HIGH_RX_STIMULUS_PROTOCOL_ID,
     EXPERIMENTAL_5G8_STIMULUS_FIXED_RECEIVER_GAIN_DB,
     EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID,
     FRAME_COUNT,
@@ -514,6 +516,28 @@ def test_machine_readable_experimental_5g8_protocol_matches_implementation() -> 
     assert document["regulatory_and_device_scope"][
         "experimental_extended_band_opt_in_required"
     ] is True
+
+
+def test_high_rx_5g8_protocol_preserves_tx_ladder_and_quality_gates() -> None:
+    path = (
+        REPOSITORY
+        / "docs/hexray_tx_in_middle_calibration/data/"
+        "hexcal-v2.4-experimental-5g8-high-rx-stimulus.json"
+    )
+    document = json.loads(path.read_text(encoding="utf-8"))
+    contract = stimulus_protocol(EXPERIMENTAL_5G8_HIGH_RX_STIMULUS_PROTOCOL_ID)
+
+    assert document["status"] == "frozen_before_rf"
+    assert document["protocol_id"] == contract.protocol_id
+    assert document["qualification"]["fixed_receiver_gain_db"] == (
+        EXPERIMENTAL_5G8_HIGH_RX_STIMULUS_FIXED_RECEIVER_GAIN_DB
+    )
+    assert tuple(document["qualification"]["candidate_tx_hardware_gains_db"]) == (
+        DEFAULT_STIMULUS_TX_GAINS_DB
+    )
+    assert document["supersedes_failed_protocol"]["failed_artifacts_may_be_accepted"] is False
+    assert document["safety"]["relaxed_quality_gates_permitted"] is False
+    assert document["qualification"]["maximum_peak_component_counts"] == 1_300.0
 
 
 def test_stimulus_loader_reproduces_lowest_all_band_tx_level(tmp_path: Path) -> None:

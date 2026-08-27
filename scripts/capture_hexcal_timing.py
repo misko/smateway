@@ -71,6 +71,7 @@ from smateway.hexcal import (
     write_json_atomic,
 )
 from smateway.hexcal_gain import (
+    EXPERIMENTAL_5G8_HIGH_RX_STIMULUS_PROTOCOL_ID,
     EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID,
     QUALIFICATION_SOURCE_FILES,
     STIMULUS_PROTOCOL_ID,
@@ -97,6 +98,7 @@ SOURCE_FILES = (
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.1-2g4-stimulus.json",
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.2-2g4-stimulus.json",
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.3-experimental-5g8-stimulus.json",
+    "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.4-experimental-5g8-high-rx-stimulus.json",
     "scripts/qualify_hexcal_rx_gain.py",
     "src/smateway/hexcal_timing.py",
     "src/smateway/hexcal_gain.py",
@@ -204,6 +206,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--firmware-evidence-sha256", required=True)
     parser.add_argument("--protocol-v2", "--protocol-v21", "--protocol-v22", action="store_true")
     parser.add_argument("--protocol-v23-5g8", action="store_true")
+    parser.add_argument("--protocol-v24-5g8", action="store_true")
     parser.add_argument("--stimulus-qualification", type=Path)
     parser.add_argument("--stimulus-qualification-sha256")
     parser.add_argument("--board-id", default=DEFAULT_BOARD_ID)
@@ -819,14 +822,16 @@ def main() -> int:
     if not args.uri.removeprefix("pluto://").startswith("usb:"):
         raise SystemExit("--uri must be an exact USB IIO URI")
     repository = Path(__file__).resolve().parents[1]
-    if args.protocol_v2 and args.protocol_v23_5g8:
+    if sum((args.protocol_v2, args.protocol_v23_5g8, args.protocol_v24_5g8)) > 1:
         raise SystemExit("select exactly one timing protocol")
     selected_protocol = (
-        stimulus_protocol(EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID)
+        stimulus_protocol(EXPERIMENTAL_5G8_HIGH_RX_STIMULUS_PROTOCOL_ID)
+        if args.protocol_v24_5g8
+        else stimulus_protocol(EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID)
         if args.protocol_v23_5g8
         else stimulus_protocol(STIMULUS_PROTOCOL_ID)
     )
-    stimulus_mode = args.protocol_v2 or args.protocol_v23_5g8
+    stimulus_mode = args.protocol_v2 or args.protocol_v23_5g8 or args.protocol_v24_5g8
     if stimulus_mode:
         if args.stimulus_qualification is None or args.stimulus_qualification_sha256 is None:
             raise SystemExit(
