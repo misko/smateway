@@ -303,6 +303,30 @@ def test_analyzer_binds_v2_timing_settings_to_stimulus_qualification(
         analyze._validate_pair_plan_binding(corrupted, capture_document)
 
 
+def test_analyzer_binds_v23_5g8_timing_to_its_distinct_protocol(tmp_path: Path) -> None:
+    root, capture_document = _pair_plan_fixture(tmp_path)
+    contract = analyze.stimulus_protocol(analyze.EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID)
+    plan = root["pair_plan_contract"]
+    assert isinstance(plan, dict)
+    plan["plan_kind"] = contract.timing_plan_kind
+    plan["protocol_id"] = contract.protocol_id
+    plan["stimulus"]["center_frequency_hz"] = 5_800_000_000
+    plan["stimulus"]["receiver_gain_db"] = contract.timing_receiver_gain_db
+    plan["stimulus"]["calibration_receiver_gain_db"] = contract.fixed_receiver_gain_db
+    capture_document["center_frequency_hz"] = 5_800_000_000
+    capture_document["receiver_gain_db"] = contract.timing_receiver_gain_db
+    plan["stimulus_qualification"] = {
+        "path": "/evidence/stimulus-5g8.json",
+        "file_sha256": "e" * 64,
+        "fixed_receiver_gain_db": contract.fixed_receiver_gain_db,
+        "selected_tx_hardware_gain_db": -40.0,
+        "dds_scale": 0.125,
+    }
+    root["pair_plan_contract_sha256"] = capture._canonical_sha256(plan)
+
+    analyze._validate_pair_plan_binding(root, capture_document)
+
+
 def test_capture_record_stream_identity_is_bound_to_replayed_abi2_ledger() -> None:
     continuity = {
         "metadata_abi": 2,

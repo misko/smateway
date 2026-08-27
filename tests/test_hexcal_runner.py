@@ -171,6 +171,57 @@ def _v2_configuration() -> dict[str, Any]:
     )
 
 
+def _v23_configuration() -> dict[str, Any]:
+    contract = runner.stimulus_protocol(runner.EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID)
+    qualification = runner.HexcalStimulusQualification(
+        path=Path("/evidence/stimulus-qualification-5g8.json"),
+        file_sha256="6" * 64,
+        qualification_id="stimulus-5g8",
+        board_id="board-a",
+        serial="serial-a",
+        uri="usb:1.2.3",
+        source_commit=SOURCE_COMMIT,
+        profile_file_sha256=PROFILE_SHA,
+        profile_contract_sha256="b" * 64,
+        firmware_evidence_sha256="c" * 64,
+        pluto_plus_utils_source_attestation_sha256=runner.canonical_json_sha256(
+            DEPENDENCY_ATTESTATION
+        ),
+        center_frequencies_hz=contract.center_frequencies_hz,
+        fixed_receiver_gain_db=contract.fixed_receiver_gain_db,
+        candidate_tx_hardware_gains_db=(-35.0, -30.0),
+        tested_tx_hardware_gains_db=(-35.0, -30.0),
+        selected_tx_hardware_gain_db=-30.0,
+        dds_scale=0.125,
+        completed_at="2026-08-27T11:59:00+00:00",
+    )
+    return cast(
+        dict[str, Any],
+        runner._configuration(
+            rounds=3,
+            max_attempts=3,
+            board_id="board-a",
+            serial="serial-a",
+            uri="usb:1.2.3",
+            python=PYTHON,
+            profile=PROFILE,
+            profile_file_sha256=PROFILE_SHA,
+            profile_contract_sha256="b" * 64,
+            timeout_s=180,
+            receiver_gain_db=contract.fixed_receiver_gain_db,
+            tx_hardware_gain_db=-30.0,
+            dds_scale=0.125,
+            center_frequencies_hz=contract.center_frequencies_hz,
+            source_commit=SOURCE_COMMIT,
+            pluto_plus_utils_source_attestation=DEPENDENCY_ATTESTATION,
+            firmware_evidence=_firmware_evidence(),
+            gain_qualification=None,
+            stimulus_qualification=qualification,
+            allow_experimental_5g8=True,
+        ),
+    )
+
+
 def _command_result(
     command: list[str], return_code: int, stdout: str, stderr: str = ""
 ) -> dict[str, Any]:
@@ -284,6 +335,21 @@ def test_v2_plan_is_exact_fifteen_artifact_five_frequency_matrix() -> None:
     assert all("--allow-experimental-5g8" not in item["capture_command"] for item in plan)
     manifest = runner._new_manifest("v2-run", configuration, REPOSITORY)
     assert manifest["experiment_kind"] == "hexcal_v2_2_2g4_tx1_center_calibration"
+
+
+def test_v23_plan_is_exact_three_artifact_5g8_matrix() -> None:
+    configuration = _v23_configuration()
+    plan = runner._execution_plan(configuration, REPOSITORY)
+    contract = runner.stimulus_protocol(runner.EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID)
+
+    assert configuration["protocol_id"] == contract.protocol_id
+    assert len(plan) == 3
+    assert [item["center_frequency_hz"] for item in plan] == [5_800_000_000] * 3
+    assert {item["receiver_gain_db"] for item in plan} == {30}
+    assert all("--allow-experimental-5g8" in item["capture_command"] for item in plan)
+    assert runner._new_manifest("v23-run", configuration, REPOSITORY)[
+        "experiment_kind"
+    ] == contract.experiment_kind
 
 
 def test_parser_requires_explicit_serial_and_uri() -> None:

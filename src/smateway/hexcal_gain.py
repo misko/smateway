@@ -29,11 +29,16 @@ from smateway.hexcal import (
 QUALIFICATION_KIND = "hexcal_v1_exploratory_rx_gain_qualification"
 STIMULUS_PROTOCOL_ID = "hexcal-v2.2-2g4-stimulus"
 STIMULUS_QUALIFICATION_KIND = "hexcal_v2_2_2g4_tx_stimulus_qualification"
+EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID = "hexcal-v2.3-experimental-5g8-stimulus"
+EXPERIMENTAL_5G8_STIMULUS_QUALIFICATION_KIND = (
+    "hexcal_v2_3_experimental_5g8_tx_stimulus_qualification"
+)
 QUALIFICATION_SOURCE_FILES = (
     "profiles/hexcal-v1/control_profile.json",
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2-2g4-stimulus.json",
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.1-2g4-stimulus.json",
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.2-2g4-stimulus.json",
+    "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.3-experimental-5g8-stimulus.json",
     "scripts/qualify_hexcal_rx_gain.py",
     "src/smateway/capture_admission.py",
     "src/smateway/capture_continuity.py",
@@ -61,6 +66,8 @@ STIMULUS_CENTER_FREQUENCIES_HZ = (
     2_483_000_000,
 )
 STIMULUS_FIXED_RECEIVER_GAIN_DB = 20
+EXPERIMENTAL_5G8_STIMULUS_CENTER_FREQUENCIES_HZ = (5_800_000_000,)
+EXPERIMENTAL_5G8_STIMULUS_FIXED_RECEIVER_GAIN_DB = 30
 MINIMUM_COMPLETE_CYCLES = 150
 MINIMUM_DECODED_FRACTION = 0.98
 MINIMUM_MARKER_CONTRAST_DB = 20.0
@@ -74,6 +81,82 @@ PINNED_PYTHON_PREFIX = "/home/pi/pluto-plus-utils/.venv"
 EXPECTED_SMATEWAY_SOURCE_ROOT = "/home/pi/smateway/src"
 EXPECTED_HEXCAL_GAIN_MODULE = "/home/pi/smateway/src/smateway/hexcal_gain.py"
 ARTIFACT_ID = re.compile(r"[0-9a-f]{32}")
+
+
+@dataclass(frozen=True, slots=True)
+class HexcalStimulusProtocol:
+    """Immutable identity and RF contract for one qualified stimulus protocol."""
+
+    protocol_id: str
+    qualification_kind: str
+    center_frequencies_hz: tuple[int, ...]
+    fixed_receiver_gain_db: int
+    timing_receiver_gain_db: int
+    allow_experimental_5g8: bool
+    timing_plan_kind: str
+    timing_capture_kind: str
+    experiment_kind: str
+    calibration_kind: str
+    audit_kind: str
+
+
+STIMULUS_PROTOCOLS = {
+    STIMULUS_PROTOCOL_ID: HexcalStimulusProtocol(
+        protocol_id=STIMULUS_PROTOCOL_ID,
+        qualification_kind=STIMULUS_QUALIFICATION_KIND,
+        center_frequencies_hz=STIMULUS_CENTER_FREQUENCIES_HZ,
+        fixed_receiver_gain_db=STIMULUS_FIXED_RECEIVER_GAIN_DB,
+        timing_receiver_gain_db=30,
+        allow_experimental_5g8=False,
+        timing_plan_kind="hexcal_v2_2_2g4_rf_timing_two_replicates",
+        timing_capture_kind="hexcal_v2_2_2g4_rf_timing_2msps_tx1",
+        experiment_kind="hexcal_v2_2_2g4_tx1_center_calibration",
+        calibration_kind="hexcal_v2_2_2g4_tx1_center_end_to_end_complex_correction",
+        audit_kind="hexcal_v2_2_2g4_independent_calibration_and_artifact_audit",
+    ),
+    EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID: HexcalStimulusProtocol(
+        protocol_id=EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID,
+        qualification_kind=EXPERIMENTAL_5G8_STIMULUS_QUALIFICATION_KIND,
+        center_frequencies_hz=EXPERIMENTAL_5G8_STIMULUS_CENTER_FREQUENCIES_HZ,
+        fixed_receiver_gain_db=EXPERIMENTAL_5G8_STIMULUS_FIXED_RECEIVER_GAIN_DB,
+        timing_receiver_gain_db=30,
+        allow_experimental_5g8=True,
+        timing_plan_kind="hexcal_v2_3_experimental_5g8_rf_timing_two_replicates",
+        timing_capture_kind="hexcal_v2_3_experimental_5g8_rf_timing_2msps_tx1",
+        experiment_kind="hexcal_v2_3_experimental_5g8_tx1_center_calibration",
+        calibration_kind=(
+            "hexcal_v2_3_experimental_5g8_tx1_center_end_to_end_complex_correction"
+        ),
+        audit_kind=(
+            "hexcal_v2_3_experimental_5g8_independent_calibration_and_artifact_audit"
+        ),
+    ),
+}
+
+
+def stimulus_protocol(protocol_id: str) -> HexcalStimulusProtocol:
+    """Return a reviewed stimulus contract or reject the unknown protocol."""
+
+    try:
+        return STIMULUS_PROTOCOLS[protocol_id]
+    except KeyError as error:
+        raise ValueError(f"unsupported Hexcal stimulus protocol: {protocol_id}") from error
+
+
+def stimulus_protocol_for_frequencies(
+    center_frequencies_hz: Sequence[int],
+) -> HexcalStimulusProtocol:
+    """Identify a stimulus protocol only from its exact frozen frequency tuple."""
+
+    frequencies = tuple(int(value) for value in center_frequencies_hz)
+    matches = [
+        contract
+        for contract in STIMULUS_PROTOCOLS.values()
+        if contract.center_frequencies_hz == frequencies
+    ]
+    if len(matches) != 1:
+        raise ValueError("frequencies do not identify one supported stimulus protocol")
+    return matches[0]
 
 
 @dataclass(frozen=True, slots=True)
@@ -702,6 +785,8 @@ def load_hexcal_stimulus_qualification(
     expected_profile: HexcalProfile,
     expected_firmware_evidence_sha256: str,
     expected_pluto_plus_utils_source_attestation_sha256: str,
+    expected_protocol_id: str = STIMULUS_PROTOCOL_ID,
+    expected_qualification_kind: str = STIMULUS_QUALIFICATION_KIND,
     expected_center_frequencies_hz: Sequence[int] = STIMULUS_CENTER_FREQUENCIES_HZ,
     expected_receiver_gain_db: int = STIMULUS_FIXED_RECEIVER_GAIN_DB,
     expected_candidate_tx_hardware_gains_db: Sequence[float] = (DEFAULT_STIMULUS_TX_GAINS_DB),
@@ -718,8 +803,8 @@ def load_hexcal_stimulus_qualification(
     configuration = _mapping(root.get("configuration"), "TX-stimulus qualification configuration")
     if (
         root.get("schema") != 1
-        or root.get("protocol_id") != STIMULUS_PROTOCOL_ID
-        or root.get("qualification_kind") != STIMULUS_QUALIFICATION_KIND
+        or root.get("protocol_id") != expected_protocol_id
+        or root.get("qualification_kind") != expected_qualification_kind
         or root.get("status") != "passed"
     ):
         raise ValueError("TX-stimulus qualification is not a passed supported ledger")
@@ -746,8 +831,8 @@ def load_hexcal_stimulus_qualification(
         or any(not -80.0 <= value <= 0.0 for value in candidates)
     ):
         raise ValueError("TX-stimulus frequencies or ascending candidate ladder changed")
-    if expected_receiver_gain_db != STIMULUS_FIXED_RECEIVER_GAIN_DB:
-        raise ValueError("TX-stimulus qualification requires the frozen 20 dB RX gain")
+    if not 0 <= expected_receiver_gain_db <= 62:
+        raise ValueError("TX-stimulus qualification RX gain is outside 0..62 dB")
 
     dependency = _mapping(
         configuration.get("pluto_plus_utils_source_attestation"),
@@ -915,9 +1000,14 @@ __all__ = [
     "CONDITION_TIMEOUT_S",
     "DEFAULT_GAIN_CANDIDATES_DB",
     "DEFAULT_STIMULUS_TX_GAINS_DB",
+    "EXPERIMENTAL_5G8_STIMULUS_CENTER_FREQUENCIES_HZ",
+    "EXPERIMENTAL_5G8_STIMULUS_FIXED_RECEIVER_GAIN_DB",
+    "EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID",
+    "EXPERIMENTAL_5G8_STIMULUS_QUALIFICATION_KIND",
     "FRAME_COUNT",
     "HexcalGainQualification",
     "HexcalStimulusQualification",
+    "HexcalStimulusProtocol",
     "KERNEL_BUFFERS",
     "MAXIMUM_PEAK_COMPONENT_COUNTS",
     "QUALIFICATION_KIND",
@@ -928,6 +1018,7 @@ __all__ = [
     "STIMULUS_FIXED_RECEIVER_GAIN_DB",
     "STIMULUS_PROTOCOL_ID",
     "STIMULUS_QUALIFICATION_KIND",
+    "STIMULUS_PROTOCOLS",
     "TONE_OFFSET_HZ",
     "TOTAL_SAMPLES",
     "load_hexcal_gain_qualification",
@@ -935,4 +1026,6 @@ __all__ = [
     "gain_headroom_passes",
     "qualification_thresholds",
     "replay_hexcal_gain_artifact",
+    "stimulus_protocol",
+    "stimulus_protocol_for_frequencies",
 ]

@@ -60,11 +60,12 @@ from smateway.hexcal_timing import (
     analyze_hexcal_timing_samples,
 )
 from smateway.hexcal_gain import (
+    EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID,
     QUALIFICATION_SOURCE_FILES,
-    STIMULUS_CENTER_FREQUENCIES_HZ,
-    STIMULUS_FIXED_RECEIVER_GAIN_DB,
     STIMULUS_PROTOCOL_ID,
+    STIMULUS_PROTOCOLS,
     load_hexcal_stimulus_qualification,
+    stimulus_protocol,
 )
 
 CAPTURE_RECORD_NAME = "hexcal-timing-capture.json"
@@ -78,6 +79,7 @@ ANALYSIS_SOURCE_FILES = (
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2-2g4-stimulus.json",
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.1-2g4-stimulus.json",
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.2-2g4-stimulus.json",
+    "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.3-experimental-5g8-stimulus.json",
     "scripts/qualify_hexcal_rx_gain.py",
     "src/smateway/hexcal_gain.py",
     "src/smateway/hexcal_timing.py",
@@ -257,13 +259,17 @@ def _validate_pair_plan_binding(
     plan_kind = plan.get("plan_kind")
     supported_plan_kinds = {
         "hexcal_v1_rf_timing_two_replicates": "hexcal-v1",
-        "hexcal_v2_2_2g4_rf_timing_two_replicates": STIMULUS_PROTOCOL_ID,
+        **{
+            contract.timing_plan_kind: contract.protocol_id
+            for contract in STIMULUS_PROTOCOLS.values()
+        },
     }
     if plan.get("schema") != 1 or plan_kind not in supported_plan_kinds:
         raise ValueError("pair plan schema or kind is unsupported")
     if plan.get("protocol_id") != supported_plan_kinds[plan_kind]:
         raise ValueError("pair plan protocol ID differs from its plan kind")
-    if plan_kind == "hexcal_v2_2_2g4_rf_timing_two_replicates":
+    if plan_kind != "hexcal_v1_rf_timing_two_replicates":
+        contract = stimulus_protocol(str(plan.get("protocol_id")))
         qualification = _mapping(
             plan.get("stimulus_qualification"),
             "pair_plan_contract.stimulus_qualification",
@@ -273,9 +279,9 @@ def _validate_pair_plan_binding(
             != _mapping(plan.get("stimulus"), "pair_plan_contract.stimulus").get(
                 "calibration_receiver_gain_db"
             )
-            or qualification.get("fixed_receiver_gain_db") != STIMULUS_FIXED_RECEIVER_GAIN_DB
+            or qualification.get("fixed_receiver_gain_db") != contract.fixed_receiver_gain_db
             or _mapping(plan.get("stimulus"), "pair_plan_contract.stimulus").get("receiver_gain_db")
-            != TIMING_RECEIVER_GAIN_DB
+            != contract.timing_receiver_gain_db
             or qualification.get("selected_tx_hardware_gain_db")
             != _mapping(plan.get("stimulus"), "pair_plan_contract.stimulus").get(
                 "tx_hardware_gain_db_requested"
@@ -287,7 +293,7 @@ def _validate_pair_plan_binding(
             or _mapping(plan.get("stimulus"), "pair_plan_contract.stimulus").get(
                 "center_frequency_hz"
             )
-            != STIMULUS_CENTER_FREQUENCIES_HZ[0]
+            != contract.center_frequencies_hz[0]
         ):
             raise ValueError("v2 timing stimulus differs from its frozen qualification")
     elif "stimulus_qualification" in plan:
@@ -492,7 +498,7 @@ def _load_and_verify_record(
     capture_kind = root.get("capture_kind")
     supported_capture_kinds = {
         "hexcal_v1_rf_timing_2msps_tx1",
-        "hexcal_v2_2_2g4_rf_timing_2msps_tx1",
+        *(contract.timing_capture_kind for contract in STIMULUS_PROTOCOLS.values()),
     }
     if root.get("schema") != 1 or capture_kind not in supported_capture_kinds:
         raise ValueError("capture record schema or kind is unsupported")
@@ -657,15 +663,15 @@ def _load_and_verify_record(
 
     plan = _mapping(root.get("pair_plan_contract"), "pair_plan_contract")
     plan_kind = plan.get("plan_kind")
+    protocol_id = str(plan.get("protocol_id"))
+    contract = None if protocol_id == "hexcal-v1" else stimulus_protocol(protocol_id)
     expected_capture_kind = (
-        "hexcal_v2_2_2g4_rf_timing_2msps_tx1"
-        if plan_kind == "hexcal_v2_2_2g4_rf_timing_two_replicates"
-        else "hexcal_v1_rf_timing_2msps_tx1"
+        contract.timing_capture_kind if contract is not None else "hexcal_v1_rf_timing_2msps_tx1"
     )
     if capture_kind != expected_capture_kind:
         raise ValueError("capture kind differs from its pair-plan protocol")
     stimulus_qualification_sha256: str | None = None
-    if plan_kind == "hexcal_v2_2_2g4_rf_timing_two_replicates":
+    if contract is not None:
         qualification_summary = _mapping(
             plan.get("stimulus_qualification"),
             "pair_plan_contract.stimulus_qualification",
@@ -689,6 +695,10 @@ def _load_and_verify_record(
             expected_profile=profile,
             expected_firmware_evidence_sha256=firmware.file_sha256,
             expected_pluto_plus_utils_source_attestation_sha256=dependency_sha256,
+            expected_protocol_id=contract.protocol_id,
+            expected_qualification_kind=contract.qualification_kind,
+            expected_center_frequencies_hz=contract.center_frequencies_hz,
+            expected_receiver_gain_db=contract.fixed_receiver_gain_db,
         )
         if qualification.as_dict() != dict(qualification_summary):
             raise ValueError("v2 stimulus qualification differs on independent raw replay")

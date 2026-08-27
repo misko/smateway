@@ -23,6 +23,9 @@ from smateway.hexcal_gain import (
     BANDWIDTH_HZ,
     CONDITION_TIMEOUT_S,
     DEFAULT_STIMULUS_TX_GAINS_DB,
+    EXPERIMENTAL_5G8_STIMULUS_CENTER_FREQUENCIES_HZ,
+    EXPERIMENTAL_5G8_STIMULUS_FIXED_RECEIVER_GAIN_DB,
+    EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID,
     FRAME_COUNT,
     KERNEL_BUFFERS,
     QUALIFICATION_KIND,
@@ -36,6 +39,7 @@ from smateway.hexcal_gain import (
     load_hexcal_stimulus_qualification,
     qualification_thresholds,
     replay_hexcal_gain_artifact,
+    stimulus_protocol,
 )
 
 REPOSITORY = Path(__file__).resolve().parents[1]
@@ -482,6 +486,34 @@ def test_machine_readable_stimulus_protocol_matches_implementation() -> None:
     assert matrix["artifact_count"] == 15
     assert sum(len(order) for order in matrix["orders_hz"]) == 15
     assert len({tuple(order) for order in matrix["orders_hz"]}) == 3
+
+
+def test_machine_readable_experimental_5g8_protocol_matches_implementation() -> None:
+    path = (
+        REPOSITORY
+        / "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.3-experimental-5g8-stimulus.json"
+    )
+    document = json.loads(path.read_text(encoding="utf-8"))
+    contract = stimulus_protocol(EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID)
+
+    assert document["status"] == "frozen_before_rf"
+    assert document["protocol_id"] == contract.protocol_id
+    assert tuple(document["qualification"]["center_frequencies_hz"]) == (
+        EXPERIMENTAL_5G8_STIMULUS_CENTER_FREQUENCIES_HZ
+    )
+    assert document["qualification"]["fixed_receiver_gain_db"] == (
+        EXPERIMENTAL_5G8_STIMULUS_FIXED_RECEIVER_GAIN_DB
+    )
+    assert tuple(document["qualification"]["candidate_tx_hardware_gains_db"]) == (
+        DEFAULT_STIMULUS_TX_GAINS_DB
+    )
+    assert document["timing"]["receiver_gain_db"] == contract.timing_receiver_gain_db
+    assert document["timing"]["replicate_count"] == 2
+    assert document["calibration"]["round_count"] == 3
+    assert document["safety"]["reuse_of_2g4_qualification_permitted"] is False
+    assert document["regulatory_and_device_scope"][
+        "experimental_extended_band_opt_in_required"
+    ] is True
 
 
 def test_stimulus_loader_reproduces_lowest_all_band_tx_level(tmp_path: Path) -> None:

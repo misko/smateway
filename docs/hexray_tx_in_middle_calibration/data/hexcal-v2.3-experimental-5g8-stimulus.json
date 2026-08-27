@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "protocol_id": "hexcal-v2.3-experimental-5g8-stimulus",
+  "status": "frozen_before_rf",
+  "purpose": "Exact 5.800 GHz extension of the verified HexRay center-source calibration",
+  "regulatory_and_device_scope": {
+    "center_frequency_hz": 5800000000,
+    "experimental_extended_band_opt_in_required": true,
+    "physical_transceiver": "AD9363",
+    "software_profile": "AD9361-compatible extended-band profile",
+    "claim": "experimental bench result only; not an Analog Devices guaranteed AD9363 operating-range claim"
+  },
+  "array": {
+    "element_count": 6,
+    "diameter_mm": 51.0,
+    "order": ["ANT1", "ANT2", "ANT3", "ANT4", "ANT5", "ANT6"],
+    "direction": "clockwise",
+    "forward_reference": "ANT1",
+    "source": "TX1 at nominal array center",
+    "tx2_policy": "muted_-80dB_and_zero_DDS"
+  },
+  "qualification": {
+    "center_frequencies_hz": [5800000000],
+    "tone_offset_hz": 100000,
+    "emitted_carrier_frequency_hz": 5800100000,
+    "fixed_receiver_gain_db": 30,
+    "candidate_tx_hardware_gains_db": [-35.0, -30.0, -25.0, -20.0, -15.0, -10.0],
+    "dds_scale": 0.125,
+    "selection_policy": "lowest power ascending TX gain passing the exact frequency and all six states",
+    "headroom_stop_policy": "stop before every stronger candidate after one failed headroom gate",
+    "maximum_permitted_tx_hardware_gain_db": -10.0,
+    "automatic_retry_count": 0
+  },
+  "timing": {
+    "receiver_gain_db": 30,
+    "sample_rate_hz": 2000000,
+    "bandwidth_hz": 1600000,
+    "replicate_count": 2,
+    "samples_per_frame": 100000,
+    "frame_count": 9,
+    "kernel_buffers": 8,
+    "automatic_retry_count": 0
+  },
+  "calibration": {
+    "round_count": 3,
+    "center_frequencies_hz": [5800000000],
+    "sample_rate_hz": 1000000,
+    "samples_per_frame": 100000,
+    "frame_count": 10,
+    "kernel_buffers": 8,
+    "frequency_adaptation_permitted": false
+  },
+  "safety": {
+    "exact_serial_target_required": true,
+    "exclusive_board_lock_required": true,
+    "exact_mute_before_and_after_each_rf_trial": true,
+    "exact_final_mute_required": true,
+    "dirty_source_tree_permitted": false,
+    "reuse_of_2g4_qualification_permitted": false,
+    "relaxed_quality_gates_permitted": false,
+    "abort_if_conservative_ladder_is_insufficient": true
+  },
+  "comparison": {
+    "reference_protocol_id": "hexcal-v2.2-2g4-stimulus",
+    "same_frozen_quality_gates": true,
+    "same_three_round_calibration_shape": true,
+    "single_5g8_frequency_does_not_support_frequency-interpolation_claims": true
+  }
+}

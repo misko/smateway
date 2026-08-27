@@ -58,6 +58,7 @@ from smateway.hexcal import (
     validate_tx1_rf_readback_evidence,
 )
 from smateway.hexcal_gain import (
+    EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID,
     QUALIFICATION_SOURCE_FILES,
     STIMULUS_CENTER_FREQUENCIES_HZ,
     STIMULUS_PROTOCOL_ID,
@@ -65,6 +66,8 @@ from smateway.hexcal_gain import (
     HexcalStimulusQualification,
     load_hexcal_gain_qualification,
     load_hexcal_stimulus_qualification,
+    stimulus_protocol,
+    stimulus_protocol_for_frequencies,
 )
 from smateway.rf_policy import EXPERIMENTAL_5G8_CENTER_HZ, classify_fast20_center_frequency
 
@@ -111,9 +114,10 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--stimulus-qualification",
         type=Path,
-        help="passed hexcal-v2 ledger; its fixed RX gain and selected TX1 level are used",
+        help="passed stimulus ledger; its fixed RX gain and selected TX1 level are used",
     )
     parser.add_argument("--protocol-v2", "--protocol-v21", "--protocol-v22", action="store_true")
+    parser.add_argument("--protocol-v23-5g8", action="store_true")
     parser.add_argument("--allow-experimental-5g8", action="store_true")
     parser.add_argument("--rounds", type=int, default=DEFAULT_ROUNDS)
     parser.add_argument("--max-attempts-per-condition", type=int, default=DEFAULT_MAX_ATTEMPTS)
@@ -361,10 +365,10 @@ def _configuration(
             or dds_scale != stimulus_qualification.dds_scale
             or tuple(center_frequencies_hz) != stimulus_qualification.center_frequencies_hz
         ):
-            raise ExperimentError("calibration stimulus differs from the passed v2 qualification")
+            raise ExperimentError("calibration stimulus differs from the passed qualification")
         qualification_field = "stimulus_qualification"
         qualification_document = stimulus_qualification.as_dict()
-        protocol_id = STIMULUS_PROTOCOL_ID
+        protocol_id = stimulus_protocol_for_frequencies(center_frequencies_hz).protocol_id
     dependency_attestation = dict(pluto_plus_utils_source_attestation)
     dependency_sha256 = canonical_json_sha256(dependency_attestation)
     configuration = {
@@ -484,8 +488,8 @@ def _new_manifest(
     return {
         "schema": 1,
         "experiment_kind": (
-            "hexcal_v2_2_2g4_tx1_center_calibration"
-            if configuration.get("protocol_id") == STIMULUS_PROTOCOL_ID
+            stimulus_protocol(str(configuration.get("protocol_id"))).experiment_kind
+            if configuration.get("protocol_id") != "hexcal-v1"
             else "hexcal_v1_tx1_center_calibration"
         ),
         "run_id": run_id,
@@ -564,8 +568,8 @@ def _load_manifest(
     if not isinstance(document, dict) or document.get("schema") != 1:
         raise ExperimentError("resume manifest schema is unsupported")
     expected_experiment_kind = (
-        "hexcal_v2_2_2g4_tx1_center_calibration"
-        if configuration.get("protocol_id") == STIMULUS_PROTOCOL_ID
+        stimulus_protocol(str(configuration.get("protocol_id"))).experiment_kind
+        if configuration.get("protocol_id") != "hexcal-v1"
         else "hexcal_v1_tx1_center_calibration"
     )
     if document.get("experiment_kind") != expected_experiment_kind:
@@ -1339,13 +1343,21 @@ def main() -> int:
         raise SystemExit("explicit non-empty --serial and exact usb: --uri are required")
     if args.rounds != DEFAULT_ROUNDS:
         raise SystemExit("Hexcal requires exactly three predeclared rounds")
-    if args.protocol_v2:
+    if args.protocol_v2 and args.protocol_v23_5g8:
+        raise SystemExit("select exactly one calibration protocol")
+    selected_protocol = (
+        stimulus_protocol(EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID)
+        if args.protocol_v23_5g8
+        else stimulus_protocol(STIMULUS_PROTOCOL_ID)
+    )
+    stimulus_mode = args.protocol_v2 or args.protocol_v23_5g8
+    if stimulus_mode:
         if args.stimulus_qualification is None or args.gain_qualification is not None:
-            raise SystemExit("--protocol-v22 requires only --stimulus-qualification")
+            raise SystemExit("stimulus protocols require only --stimulus-qualification")
         if args.tx_hardware_gain_db is not None:
-            raise SystemExit("hexcal-v2.2 derives TX1 gain from its qualification ledger")
-        if args.allow_experimental_5g8:
-            raise SystemExit("hexcal-v2.2 does not permit the experimental 5.8 GHz band")
+            raise SystemExit("stimulus protocols derive TX1 gain from their qualification ledger")
+        if args.allow_experimental_5g8 != selected_protocol.allow_experimental_5g8:
+            raise SystemExit("calibration experimental-5.8 opt-in differs from its protocol")
     elif args.gain_qualification is None or args.stimulus_qualification is not None:
         raise SystemExit("legacy hexcal-v1 requires only --gain-qualification")
     if not 1 <= args.max_attempts_per_condition <= 10:
@@ -1358,11 +1370,11 @@ def main() -> int:
             args.center_frequencies_hz,
             allow_experimental_5g8=args.allow_experimental_5g8,
             defaults=(
-                STIMULUS_CENTER_FREQUENCIES_HZ if args.protocol_v2 else DEFAULT_FREQUENCIES_HZ
+                selected_protocol.center_frequencies_hz if stimulus_mode else DEFAULT_FREQUENCIES_HZ
             ),
         )
-        if args.protocol_v2 and frequencies != STIMULUS_CENTER_FREQUENCIES_HZ:
-            raise ValueError("hexcal-v2.2 requires the exact frozen five-frequency plan")
+        if stimulus_mode and frequencies != selected_protocol.center_frequencies_hz:
+            raise ValueError("stimulus protocol requires its exact frozen frequency plan")
         board_id = _validate_identifier(args.board_id, "board ID")
         run_id = _validate_identifier(args.run_id or _new_run_id(), "run ID")
         profile = load_hexcal_profile(args.profile)
@@ -1382,7 +1394,7 @@ def main() -> int:
         dependency_sha256 = canonical_json_sha256(dependency_attestation)
         gain_qualification: HexcalGainQualification | None = None
         stimulus_qualification: HexcalStimulusQualification | None = None
-        if args.protocol_v2:
+        if stimulus_mode:
             assert isinstance(args.stimulus_qualification, Path)
             stimulus_qualification = load_hexcal_stimulus_qualification(
                 args.stimulus_qualification,
@@ -1394,7 +1406,10 @@ def main() -> int:
                 expected_profile=profile,
                 expected_firmware_evidence_sha256=firmware_evidence.file_sha256,
                 expected_pluto_plus_utils_source_attestation_sha256=dependency_sha256,
+                expected_protocol_id=selected_protocol.protocol_id,
+                expected_qualification_kind=selected_protocol.qualification_kind,
                 expected_center_frequencies_hz=frequencies,
+                expected_receiver_gain_db=selected_protocol.fixed_receiver_gain_db,
                 expected_dds_scale=args.dds_scale,
             )
         else:

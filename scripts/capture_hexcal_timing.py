@@ -71,11 +71,13 @@ from smateway.hexcal import (
     write_json_atomic,
 )
 from smateway.hexcal_gain import (
+    EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID,
     QUALIFICATION_SOURCE_FILES,
-    STIMULUS_CENTER_FREQUENCIES_HZ,
     STIMULUS_PROTOCOL_ID,
+    HexcalStimulusProtocol,
     HexcalStimulusQualification,
     load_hexcal_stimulus_qualification,
+    stimulus_protocol,
 )
 from smateway.hexcal_timing import BANDWIDTH_HZ, SAMPLE_RATE_HZ, TIMING_RECEIVER_GAIN_DB
 from smateway.rf_policy import classify_fast20_center_frequency
@@ -94,6 +96,7 @@ SOURCE_FILES = (
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2-2g4-stimulus.json",
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.1-2g4-stimulus.json",
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.2-2g4-stimulus.json",
+    "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.3-experimental-5g8-stimulus.json",
     "scripts/qualify_hexcal_rx_gain.py",
     "src/smateway/hexcal_timing.py",
     "src/smateway/hexcal_gain.py",
@@ -200,6 +203,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--firmware-evidence", type=Path, required=True)
     parser.add_argument("--firmware-evidence-sha256", required=True)
     parser.add_argument("--protocol-v2", "--protocol-v21", "--protocol-v22", action="store_true")
+    parser.add_argument("--protocol-v23-5g8", action="store_true")
     parser.add_argument("--stimulus-qualification", type=Path)
     parser.add_argument("--stimulus-qualification-sha256")
     parser.add_argument("--board-id", default=DEFAULT_BOARD_ID)
@@ -267,16 +271,21 @@ def _pair_plan_contract(
     plan: SafeDdsTonePlan,
     bench_lock_path: Path,
     stimulus_qualification: HexcalStimulusQualification | None = None,
+    stimulus_protocol_contract: HexcalStimulusProtocol | None = None,
 ) -> dict[str, Any]:
-    protocol_v2 = stimulus_qualification is not None
+    protocol_v2 = stimulus_protocol_contract is not None
+    if protocol_v2 != (stimulus_qualification is not None):
+        raise ValueError("stimulus qualification and protocol contract must be paired")
     contract = {
         "schema": 1,
         "plan_kind": (
-            "hexcal_v2_2_2g4_rf_timing_two_replicates"
+            stimulus_protocol_contract.timing_plan_kind
             if protocol_v2
             else "hexcal_v1_rf_timing_two_replicates"
         ),
-        "protocol_id": STIMULUS_PROTOCOL_ID if protocol_v2 else "hexcal-v1",
+        "protocol_id": (
+            stimulus_protocol_contract.protocol_id if protocol_v2 else "hexcal-v1"
+        ),
         "run_id": run_id,
         "board_id": board_id,
         "serial": plan.serial,
@@ -685,8 +694,8 @@ def _capture_one(
         document = {
             "schema": 1,
             "capture_kind": (
-                "hexcal_v2_2_2g4_rf_timing_2msps_tx1"
-                if pair_plan_contract["protocol_id"] == STIMULUS_PROTOCOL_ID
+                stimulus_protocol(str(pair_plan_contract["protocol_id"])).timing_capture_kind
+                if pair_plan_contract["protocol_id"] != "hexcal-v1"
                 else "hexcal_v1_rf_timing_2msps_tx1"
             ),
             "run_id": run_id,
@@ -810,19 +819,27 @@ def main() -> int:
     if not args.uri.removeprefix("pluto://").startswith("usb:"):
         raise SystemExit("--uri must be an exact USB IIO URI")
     repository = Path(__file__).resolve().parents[1]
-    if args.protocol_v2:
+    if args.protocol_v2 and args.protocol_v23_5g8:
+        raise SystemExit("select exactly one timing protocol")
+    selected_protocol = (
+        stimulus_protocol(EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID)
+        if args.protocol_v23_5g8
+        else stimulus_protocol(STIMULUS_PROTOCOL_ID)
+    )
+    stimulus_mode = args.protocol_v2 or args.protocol_v23_5g8
+    if stimulus_mode:
         if args.stimulus_qualification is None or args.stimulus_qualification_sha256 is None:
             raise SystemExit(
-                "--protocol-v22 requires --stimulus-qualification and its reviewed SHA-256"
+                "stimulus timing requires --stimulus-qualification and its reviewed SHA-256"
             )
-        if args.center_frequency_hz != STIMULUS_CENTER_FREQUENCIES_HZ[0]:
-            raise SystemExit("hexcal-v2.2 timing is frozen at 2.400 GHz")
-        if args.allow_experimental_5g8:
-            raise SystemExit("hexcal-v2.2 timing does not permit the experimental 5.8 GHz band")
+        if args.center_frequency_hz != selected_protocol.center_frequencies_hz[0]:
+            raise SystemExit("stimulus timing is frozen at its protocol reference frequency")
+        if args.allow_experimental_5g8 != selected_protocol.allow_experimental_5g8:
+            raise SystemExit("timing experimental-5.8 opt-in differs from its protocol")
         if args.receiver_gain_db is not None or args.tx_hardware_gain_db is not None:
-            raise SystemExit("hexcal-v2.2 derives TX gain from its qualification ledger")
+            raise SystemExit("stimulus timing derives RF gains from its protocol and ledger")
     elif args.stimulus_qualification is not None or args.stimulus_qualification_sha256 is not None:
-        raise SystemExit("stimulus qualification arguments require --protocol-v2")
+        raise SystemExit("stimulus qualification arguments require a stimulus protocol")
     try:
         policy = classify_fast20_center_frequency(
             args.center_frequency_hz,
@@ -839,7 +856,7 @@ def main() -> int:
             expected_profile=profile,
         )
         stimulus_qualification: HexcalStimulusQualification | None = None
-        if args.protocol_v2:
+        if stimulus_mode:
             assert isinstance(args.stimulus_qualification, Path)
             qualification_source_attestation = attest_source_files_at_commit(
                 repository,
@@ -856,6 +873,10 @@ def main() -> int:
                 expected_profile=profile,
                 expected_firmware_evidence_sha256=firmware.file_sha256,
                 expected_pluto_plus_utils_source_attestation_sha256=(dependency_attestation_sha256),
+                expected_protocol_id=selected_protocol.protocol_id,
+                expected_qualification_kind=selected_protocol.qualification_kind,
+                expected_center_frequencies_hz=selected_protocol.center_frequencies_hz,
+                expected_receiver_gain_db=selected_protocol.fixed_receiver_gain_db,
             )
     except (RuntimeError, ValueError, subprocess.CalledProcessError) as error:
         raise SystemExit(str(error)) from error
@@ -867,7 +888,7 @@ def main() -> int:
     ):
         raise SystemExit("stimulus qualification SHA-256 differs from the reviewed plan")
     receiver_gain_db = (
-        TIMING_RECEIVER_GAIN_DB
+        selected_protocol.timing_receiver_gain_db
         if stimulus_qualification is not None
         else (0 if args.receiver_gain_db is None else args.receiver_gain_db)
     )
@@ -880,7 +901,7 @@ def main() -> int:
         stimulus_qualification.dds_scale if stimulus_qualification is not None else args.dds_scale
     )
     if stimulus_qualification is not None and args.dds_scale != stimulus_qualification.dds_scale:
-        raise SystemExit("hexcal-v2.2 DDS scale differs from the qualification ledger")
+        raise SystemExit("stimulus DDS scale differs from the qualification ledger")
     capture_root = args.capture_root or (
         Path.home() / ".local/state/smateway/boards" / args.board_id / "pluto-usb-captures"
     )
@@ -926,6 +947,7 @@ def main() -> int:
         plan=plan,
         bench_lock_path=bench_lock_path,
         stimulus_qualification=stimulus_qualification,
+        stimulus_protocol_contract=(selected_protocol if stimulus_mode else None),
     )
     pair_contract_sha256 = _canonical_sha256(pair_contract)
     manifest_path = capture_root / "timing-runs" / f"{run_id}.json"

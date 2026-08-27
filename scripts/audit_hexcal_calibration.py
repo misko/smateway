@@ -63,7 +63,7 @@ from smateway.hexcal import (
 )
 from smateway.hexcal_gain import (
     QUALIFICATION_SOURCE_FILES,
-    STIMULUS_PROTOCOL_ID,
+    STIMULUS_PROTOCOLS,
     load_hexcal_gain_qualification,
     load_hexcal_stimulus_qualification,
 )
@@ -564,7 +564,7 @@ def audit_manifest(
     issues: list[str] = []
     supported_experiment_kinds = {
         "hexcal_v1_tx1_center_calibration",
-        "hexcal_v2_2_2g4_tx1_center_calibration",
+        *(contract.experiment_kind for contract in STIMULUS_PROTOCOLS.values()),
     }
     if manifest.get("schema") != 1 or manifest.get("experiment_kind") not in (
         supported_experiment_kinds
@@ -572,11 +572,16 @@ def audit_manifest(
         issues.append("manifest schema or experiment kind is unsupported")
     configuration = _mapping(manifest.get("configuration"), "configuration")
     protocol_id = configuration.get("protocol_id", "hexcal-v1")
+    protocol_contract = (
+        None if protocol_id == "hexcal-v1" else STIMULUS_PROTOCOLS.get(str(protocol_id))
+    )
     expected_experiment_kind = (
-        "hexcal_v2_2_2g4_tx1_center_calibration"
-        if protocol_id == STIMULUS_PROTOCOL_ID
+        protocol_contract.experiment_kind
+        if protocol_contract is not None
         else "hexcal_v1_tx1_center_calibration"
     )
+    if protocol_id != "hexcal-v1" and protocol_contract is None:
+        issues.append("manifest protocol ID is unsupported")
     if manifest.get("experiment_kind") != expected_experiment_kind:
         issues.append("manifest experiment kind differs from its protocol ID")
     if (
@@ -652,7 +657,7 @@ def audit_manifest(
     qualification_source_attestation: dict[str, Any] = {}
     qualification_evidence: dict[str, Any] = {}
     try:
-        qualification_kind = "stimulus" if protocol_id == STIMULUS_PROTOCOL_ID else "gain"
+        qualification_kind = "stimulus" if protocol_contract is not None else "gain"
         qualification_configuration = _mapping(
             configuration.get(f"{qualification_kind}_qualification"),
             f"configured {qualification_kind} qualification",
@@ -704,6 +709,8 @@ def audit_manifest(
                 expected_profile=profile,
                 expected_firmware_evidence_sha256=firmware_evidence.file_sha256,
                 expected_pluto_plus_utils_source_attestation_sha256=dependency_sha256,
+                expected_protocol_id=protocol_contract.protocol_id,
+                expected_qualification_kind=protocol_contract.qualification_kind,
                 expected_center_frequencies_hz=center_frequencies,
                 expected_receiver_gain_db=int(receiver_gain),
                 expected_dds_scale=float(dds_scale),
@@ -934,11 +941,11 @@ def audit_manifest(
                 relative_paths=HEXCAL_AGGREGATION_SOURCE_FILES,
             )
             expected_calibration_kind = (
-                "hexcal_v2_2_2g4_tx1_center_end_to_end_complex_correction"
-                if protocol_id == STIMULUS_PROTOCOL_ID
+                protocol_contract.calibration_kind
+                if protocol_contract is not None
                 else "hexcal_v1_tx1_center_end_to_end_complex_correction"
             )
-            v2_binding_mismatch = protocol_id == STIMULUS_PROTOCOL_ID and (
+            v2_binding_mismatch = protocol_contract is not None and (
                 calibration_root.get("protocol_id") != protocol_id
                 or calibration_root.get("qualification_kind") != qualification_kind
                 or calibration_root.get("qualification")
@@ -1030,8 +1037,8 @@ def audit_manifest(
     return {
         "schema": 1,
         "audit_kind": (
-            "hexcal_v2_2_2g4_independent_calibration_and_artifact_audit"
-            if protocol_id == STIMULUS_PROTOCOL_ID
+            protocol_contract.audit_kind
+            if protocol_contract is not None
             else "hexcal_v1_independent_calibration_and_artifact_audit"
         ),
         "protocol_id": protocol_id,

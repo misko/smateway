@@ -66,16 +66,16 @@ from smateway.hexcal_gain import (
     CONDITION_TIMEOUT_S,
     DEFAULT_GAIN_CANDIDATES_DB,
     DEFAULT_STIMULUS_TX_GAINS_DB,
+    EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID,
     FRAME_COUNT,
     KERNEL_BUFFERS,
     QUALIFICATION_KIND,
     QUALIFICATION_SOURCE_FILES,
     SAMPLE_RATE_HZ,
     SAMPLES_PER_FRAME,
-    STIMULUS_CENTER_FREQUENCIES_HZ,
     STIMULUS_FIXED_RECEIVER_GAIN_DB,
     STIMULUS_PROTOCOL_ID,
-    STIMULUS_QUALIFICATION_KIND,
+    HexcalStimulusProtocol,
     TONE_OFFSET_HZ,
     TOTAL_SAMPLES,
     gain_headroom_passes,
@@ -83,6 +83,7 @@ from smateway.hexcal_gain import (
     load_hexcal_stimulus_qualification,
     qualification_thresholds,
     replay_hexcal_gain_artifact,
+    stimulus_protocol,
 )
 from smateway.rf_policy import EXPERIMENTAL_5G8_CENTER_HZ, classify_fast20_center_frequency
 
@@ -137,6 +138,11 @@ def _parser() -> argparse.ArgumentParser:
         help="run the frozen five-frequency TX1 stimulus ladder at fixed 20 dB RX gain",
     )
     parser.add_argument(
+        "--tx-stimulus-v23-5g8",
+        action="store_true",
+        help="run the frozen exact-5.800-GHz experimental TX1 stimulus ladder",
+    )
+    parser.add_argument(
         "--tx-gain-db",
         action="append",
         type=float,
@@ -148,7 +154,7 @@ def _parser() -> argparse.ArgumentParser:
         "--fixed-receiver-gain-db",
         type=int,
         default=STIMULUS_FIXED_RECEIVER_GAIN_DB,
-        help="v2 only; must remain the frozen 20 dB",
+        help="stimulus only; must match the selected protocol's frozen RX gain",
     )
     parser.add_argument("--dds-scale", type=float, default=0.125)
     return parser
@@ -621,6 +627,7 @@ def _stimulus_configuration(
     candidates: Sequence[float],
     receiver_gain_db: int,
     dds_scale: float,
+    allow_experimental_5g8: bool,
 ) -> dict[str, Any]:
     dependency = dict(dependency_attestation)
     return {
@@ -652,7 +659,7 @@ def _stimulus_configuration(
         "tx_port": "TX1",
         "tx2_policy": "muted_-80dB_and_zero_DDS",
         "dds_scale": dds_scale,
-        "allow_experimental_5g8": False,
+        "allow_experimental_5g8": allow_experimental_5g8,
         "thresholds": qualification_thresholds(),
         "selection_policy": (
             "lowest power ascending TX gain passing every frequency and all six states"
@@ -678,10 +685,14 @@ def _run_tx_stimulus_qualification(
     firmware_evidence: Any,
     frequencies: tuple[int, ...],
     candidates: tuple[float, ...],
+    protocol: HexcalStimulusProtocol,
 ) -> int:
     receiver_gain_db = int(args.fixed_receiver_gain_db)
-    if receiver_gain_db != STIMULUS_FIXED_RECEIVER_GAIN_DB:
-        raise SystemExit("hexcal-v2.2 fixes the calibration RX gain at exactly 20 dB")
+    if receiver_gain_db != protocol.fixed_receiver_gain_db:
+        raise SystemExit(
+            f"{protocol.protocol_id} fixes calibration RX gain at exactly "
+            f"{protocol.fixed_receiver_gain_db} dB"
+        )
     board_root = _board_root(board_id)
     run_root = board_root / "hexcal-stimulus-qualifications" / qualification_id
     ledger_path = run_root / "stimulus-qualification.json"
@@ -701,11 +712,12 @@ def _run_tx_stimulus_qualification(
         candidates=candidates,
         receiver_gain_db=receiver_gain_db,
         dds_scale=args.dds_scale,
+        allow_experimental_5g8=protocol.allow_experimental_5g8,
     )
     document: dict[str, Any] = {
         "schema": 1,
-        "protocol_id": STIMULUS_PROTOCOL_ID,
-        "qualification_kind": STIMULUS_QUALIFICATION_KIND,
+        "protocol_id": protocol.protocol_id,
+        "qualification_kind": protocol.qualification_kind,
         "qualification_id": qualification_id,
         "created_at": _now(),
         "updated_at": _now(),
@@ -766,7 +778,7 @@ def _run_tx_stimulus_qualification(
                         receiver_gain_db=receiver_gain_db,
                         tx_hardware_gain_db=gain,
                         dds_scale=args.dds_scale,
-                        allow_experimental_5g8=False,
+                        allow_experimental_5g8=protocol.allow_experimental_5g8,
                     )
                     gain_records.append(record)
                     conditions.append(record)
@@ -787,7 +799,7 @@ def _run_tx_stimulus_qualification(
                     break
             if selected is None:
                 raise QualificationError(
-                    "no tested TX1 stimulus passed every 2.4 GHz frequency and state"
+                    "no tested TX1 stimulus passed every frozen frequency and state"
                 )
             document["selected_tx_hardware_gain_db"] = selected
         except KeyboardInterrupt as error:
@@ -847,6 +859,8 @@ def _run_tx_stimulus_qualification(
             expected_pluto_plus_utils_source_attestation_sha256=canonical_json_sha256(
                 dependency_attestation
             ),
+            expected_protocol_id=protocol.protocol_id,
+            expected_qualification_kind=protocol.qualification_kind,
             expected_center_frequencies_hz=frequencies,
             expected_receiver_gain_db=receiver_gain_db,
             expected_candidate_tx_hardware_gains_db=candidates,
@@ -888,31 +902,46 @@ def main() -> int:
         signal.signal(signal.SIGHUP, _cooperative_termination)
     if not args.serial.strip() or not args.uri.startswith("usb:"):
         raise SystemExit("explicit non-empty --serial and exact usb: --uri are required")
+    if args.tx_stimulus_v2 and args.tx_stimulus_v23_5g8:
+        raise SystemExit("select exactly one TX-stimulus protocol")
     try:
         board_id = _validate_identifier(args.board_id, "board ID")
         qualification_id = _validate_identifier(
             args.qualification_id or _new_id(), "qualification ID"
         )
-        if args.tx_stimulus_v2:
+        stimulus_mode = args.tx_stimulus_v2 or args.tx_stimulus_v23_5g8
+        selected_protocol = (
+            stimulus_protocol(EXPERIMENTAL_5G8_STIMULUS_PROTOCOL_ID)
+            if args.tx_stimulus_v23_5g8
+            else stimulus_protocol(STIMULUS_PROTOCOL_ID)
+        )
+        if stimulus_mode:
             if (
                 args.candidate_gains_db is not None
-                or args.allow_experimental_5g8
                 or args.tx_hardware_gain_db != -40.0
                 or args.dds_scale != 0.125
             ):
                 raise ValueError(
-                    "v2 forbids RX-ladder/5.8 GHz/fixed-TX overrides and fixes DDS scale at 0.125"
+                    "stimulus protocols forbid RX-ladder/fixed-TX overrides and fix DDS scale at 0.125"
+                )
+            if args.allow_experimental_5g8 != selected_protocol.allow_experimental_5g8:
+                raise ValueError(
+                    "the selected stimulus protocol requires its exact experimental-5.8 opt-in"
                 )
             frequencies = (
-                STIMULUS_CENTER_FREQUENCIES_HZ
+                selected_protocol.center_frequencies_hz
                 if args.center_frequencies_hz is None
                 else _validate_frequencies(
                     args.center_frequencies_hz,
-                    allow_experimental_5g8=False,
+                    allow_experimental_5g8=selected_protocol.allow_experimental_5g8,
                 )
             )
-            if frequencies != STIMULUS_CENTER_FREQUENCIES_HZ:
-                raise ValueError("v2 requires the exact frozen five-frequency 2.4 GHz plan")
+            if frequencies != selected_protocol.center_frequencies_hz:
+                raise ValueError("stimulus protocol requires its exact frozen frequency plan")
+            if args.fixed_receiver_gain_db != selected_protocol.fixed_receiver_gain_db:
+                raise ValueError(
+                    f"stimulus protocol fixes RX gain at {selected_protocol.fixed_receiver_gain_db} dB"
+                )
             stimulus_candidates = _validate_tx_stimulus_candidates(args.candidate_tx_gains_db)
             candidates = DEFAULT_GAIN_CANDIDATES_DB
         else:
@@ -920,7 +949,7 @@ def main() -> int:
                 args.candidate_tx_gains_db is not None
                 or args.fixed_receiver_gain_db != STIMULUS_FIXED_RECEIVER_GAIN_DB
             ):
-                raise ValueError("TX-stimulus options require --tx-stimulus-v2")
+                raise ValueError("TX-stimulus options require a TX-stimulus protocol")
             frequencies = _validate_frequencies(
                 args.center_frequencies_hz,
                 allow_experimental_5g8=args.allow_experimental_5g8,
@@ -945,7 +974,7 @@ def main() -> int:
     except (OSError, ValueError, QualificationError, subprocess.CalledProcessError) as error:
         raise SystemExit(str(error)) from error
 
-    if args.tx_stimulus_v2:
+    if stimulus_mode:
         return _run_tx_stimulus_qualification(
             repository=repository,
             args=args,
@@ -959,6 +988,7 @@ def main() -> int:
             firmware_evidence=firmware_evidence,
             frequencies=frequencies,
             candidates=stimulus_candidates,
+            protocol=selected_protocol,
         )
 
     board_root = _board_root(board_id)
