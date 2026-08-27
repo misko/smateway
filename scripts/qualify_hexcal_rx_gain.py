@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import fcntl
 import json
+import math
 import os
 import re
 import signal
@@ -25,8 +26,7 @@ _PINNED_PYTHON = Path("/home/pi/pluto-plus-utils/.venv/bin/python")
 _PINNED_PREFIX = Path("/home/pi/pluto-plus-utils/.venv")
 _SMATEWAY_SOURCE = Path(__file__).resolve().parents[1] / "src"
 if __name__ == "__main__" and (
-    Path(sys.prefix).resolve() != _PINNED_PREFIX
-    or str(_SMATEWAY_SOURCE) not in sys.path
+    Path(sys.prefix).resolve() != _PINNED_PREFIX or str(_SMATEWAY_SOURCE) not in sys.path
 ):
     if not _PINNED_PYTHON.is_file() or not os.access(_PINNED_PYTHON, os.X_OK):
         raise SystemExit(f"pinned hexcal Python is not executable: {_PINNED_PYTHON}")
@@ -65,16 +65,21 @@ from smateway.hexcal_gain import (
     BANDWIDTH_HZ,
     CONDITION_TIMEOUT_S,
     DEFAULT_GAIN_CANDIDATES_DB,
+    DEFAULT_STIMULUS_TX_GAINS_DB,
     FRAME_COUNT,
     KERNEL_BUFFERS,
     QUALIFICATION_KIND,
     QUALIFICATION_SOURCE_FILES,
     SAMPLE_RATE_HZ,
     SAMPLES_PER_FRAME,
+    STIMULUS_CENTER_FREQUENCIES_HZ,
+    STIMULUS_FIXED_RECEIVER_GAIN_DB,
+    STIMULUS_QUALIFICATION_KIND,
     TONE_OFFSET_HZ,
     TOTAL_SAMPLES,
     gain_headroom_passes,
     load_hexcal_gain_qualification,
+    load_hexcal_stimulus_qualification,
     qualification_thresholds,
     replay_hexcal_gain_artifact,
 )
@@ -123,6 +128,25 @@ def _parser() -> argparse.ArgumentParser:
         help="repeat only to truncate the exhaustive ascending 0..62 dB search",
     )
     parser.add_argument("--tx-hardware-gain-db", type=float, default=-40.0)
+    parser.add_argument(
+        "--tx-stimulus-v2",
+        action="store_true",
+        help="run the frozen five-frequency TX1 stimulus ladder at fixed 20 dB RX gain",
+    )
+    parser.add_argument(
+        "--tx-gain-db",
+        action="append",
+        type=float,
+        dest="candidate_tx_gains_db",
+        metavar="DB",
+        help="repeat only to replace the frozen v2 TX ladder",
+    )
+    parser.add_argument(
+        "--fixed-receiver-gain-db",
+        type=int,
+        default=STIMULUS_FIXED_RECEIVER_GAIN_DB,
+        help="v2 only; must remain the frozen 20 dB",
+    )
     parser.add_argument("--dds-scale", type=float, default=0.125)
     return parser
 
@@ -224,12 +248,31 @@ def _validate_candidates(values: Sequence[int] | None) -> tuple[int, ...]:
         not candidates
         or candidates[0] != 0
         or any(
-            second != first + 1
-            for first, second in zip(candidates, candidates[1:], strict=False)
+            second != first + 1 for first, second in zip(candidates, candidates[1:], strict=False)
         )
         or any(not 0 <= value <= 62 for value in candidates)
     ):
         raise ValueError("gain candidates must be a contiguous ascending prefix from 0 dB")
+    return tuple(candidates)
+
+
+def _validate_tx_stimulus_candidates(
+    values: Sequence[float] | None,
+) -> tuple[float, ...]:
+    candidates = (
+        DEFAULT_STIMULUS_TX_GAINS_DB if values is None else tuple(float(value) for value in values)
+    )
+    if (
+        not candidates
+        or len(set(candidates)) != len(candidates)
+        or any(not math.isfinite(value) or not -80.0 <= value <= 0.0 for value in candidates)
+        or any(second <= first for first, second in zip(candidates, candidates[1:], strict=False))
+    ):
+        raise ValueError(
+            "TX-stimulus candidates must be unique finite gains in strictly ascending power"
+        )
+    if candidates != DEFAULT_STIMULUS_TX_GAINS_DB:
+        raise ValueError("hexcal-v2 requires the exact frozen TX-stimulus ladder")
     return tuple(candidates)
 
 
@@ -317,9 +360,7 @@ def _rf_readback_evidence(
             capture.tx_gain_readback_db,
             -80.0,
         ],
-        "tx2_gain_readback_provenance": (
-            "pluto_plus_utils_capture_helper_internal_exact_readback"
-        ),
+        "tx2_gain_readback_provenance": ("pluto_plus_utils_capture_helper_internal_exact_readback"),
         "dds_scale_requested": dds_scale,
         "dds_scale_readback": list(capture.dds_scale_readback),
         "dds_enabled_readback": list(capture.dds_enabled_readback),
@@ -405,8 +446,9 @@ def _capture_condition(
         radio=_radio_identity(uri, serial),
         settings=settings,
         label=(
-            "EXPLORATORY hexcal-v1 RX-gain qualification "
-            f"gain={receiver_gain_db}dB frequency={center_frequency_hz}Hz"
+            "EXPLORATORY hexcal qualification "
+            f"RX={receiver_gain_db}dB TX={tx_hardware_gain_db}dB "
+            f"frequency={center_frequency_hz}Hz"
         ),
     )
     headroom = AdcHeadroomMonitor(receiver_count=2)
@@ -447,9 +489,7 @@ def _capture_condition(
 
     post_mute = _strict_mute(serial, "post_condition")
     if not _mute_passed(post_mute, serial=serial, purpose="post_condition"):
-        mute_failure = QualificationError(
-            f"exact post-condition mute failed: {post_mute['error']}"
-        )
+        mute_failure = QualificationError(f"exact post-condition mute failed: {post_mute['error']}")
         writer.fail(mute_failure)
         raise mute_failure
     artifact = writer.finalize()
@@ -458,9 +498,7 @@ def _capture_condition(
     evidence = _artifact_evidence(artifact)
     dds_frequencies = rf_readback["dds_frequency_readback_hz"]
     assert isinstance(dds_frequencies, list)
-    tone_offset_hz = (
-        abs(float(dds_frequencies[0])) + abs(float(dds_frequencies[2]))
-    ) / 2.0
+    tone_offset_hz = (abs(float(dds_frequencies[0])) + abs(float(dds_frequencies[2]))) / 2.0
     replayed = replay_hexcal_gain_artifact(
         evidence,
         ledger_root=artifact_root.parent,
@@ -471,14 +509,13 @@ def _capture_condition(
         expected_receiver_gain_db=receiver_gain_db,
         tone_offset_hz=tone_offset_hz,
     )
-    passed = bool(replayed["passed"]) and gain_headroom_passes(
-        live_headroom_document
-    )
+    passed = bool(replayed["passed"]) and gain_headroom_passes(live_headroom_document)
     rejection_reasons = list(replayed["rejection_reasons"])
     if not gain_headroom_passes(live_headroom_document):
         rejection_reasons.append("live_conservative_dual_rx_headroom_failed")
     return {
         "receiver_gain_db": receiver_gain_db,
+        "tx_hardware_gain_db": tx_hardware_gain_db,
         "center_frequency_hz": center_frequency_hz,
         "status": "complete",
         "passed": passed,
@@ -502,9 +539,7 @@ def _capture_condition(
             "channels": [0, 1],
             "requested_gain_db": receiver_gain_db,
             "verified_tolerance_db": 0.25,
-            "provenance": (
-                "pinned_helper_verified_each_channel_within_requested_gain_tolerance"
-            ),
+            "provenance": ("pinned_helper_verified_each_channel_within_requested_gain_tolerance"),
         },
         "live_adc_headroom_admission": live_headroom_document,
         "replayed_artifact_analysis": replayed,
@@ -568,6 +603,276 @@ def _configuration(
     }
 
 
+def _stimulus_configuration(
+    *,
+    board_id: str,
+    serial: str,
+    uri: str,
+    source_commit: str,
+    source_attestation: Mapping[str, Any],
+    dependency_attestation: Mapping[str, Any],
+    python_runtime: Mapping[str, Any],
+    profile: Any,
+    firmware_evidence: Any,
+    frequencies: Sequence[int],
+    candidates: Sequence[float],
+    receiver_gain_db: int,
+    dds_scale: float,
+) -> dict[str, Any]:
+    dependency = dict(dependency_attestation)
+    return {
+        "board_id": board_id,
+        "serial": serial,
+        "uri": uri,
+        "source_commit": source_commit,
+        "source_attestation": dict(source_attestation),
+        "profile": str(profile.path),
+        "profile_file_sha256": profile.file_sha256,
+        "profile_contract_sha256": profile.contract_sha256,
+        "firmware_evidence": firmware_evidence.as_dict(),
+        "firmware_evidence_sha256": firmware_evidence.file_sha256,
+        "pluto_plus_utils_source_attestation": dependency,
+        "pluto_plus_utils_source_attestation_sha256": canonical_json_sha256(dependency),
+        "python_runtime": dict(python_runtime),
+        "center_frequencies_hz": list(frequencies),
+        "candidate_tx_hardware_gains_db": list(candidates),
+        "fixed_receiver_gain_db": receiver_gain_db,
+        "sample_rate_hz": SAMPLE_RATE_HZ,
+        "bandwidth_hz": BANDWIDTH_HZ,
+        "samples_per_frame": SAMPLES_PER_FRAME,
+        "frame_count": FRAME_COUNT,
+        "kernel_buffers": KERNEL_BUFFERS,
+        "condition_timeout_s": CONDITION_TIMEOUT_S,
+        "duration_s_per_condition": TOTAL_SAMPLES / SAMPLE_RATE_HZ,
+        "tone_offset_hz": TONE_OFFSET_HZ,
+        "tx_channel": 0,
+        "tx_port": "TX1",
+        "tx2_policy": "muted_-80dB_and_zero_DDS",
+        "dds_scale": dds_scale,
+        "allow_experimental_5g8": False,
+        "thresholds": qualification_thresholds(),
+        "selection_policy": (
+            "lowest power ascending TX gain passing every frequency and all six states"
+        ),
+        "headroom_stop_policy": (
+            "stop before any stronger candidate after one failed condition headroom gate"
+        ),
+        "adaptation_policy": "explore between finite captures; never adapt within a capture",
+    }
+
+
+def _run_tx_stimulus_qualification(
+    *,
+    repository: Path,
+    args: argparse.Namespace,
+    board_id: str,
+    qualification_id: str,
+    source_commit: str,
+    source_attestation: Mapping[str, Any],
+    dependency_attestation: Mapping[str, Any],
+    python_runtime: Mapping[str, Any],
+    profile: Any,
+    firmware_evidence: Any,
+    frequencies: tuple[int, ...],
+    candidates: tuple[float, ...],
+) -> int:
+    receiver_gain_db = int(args.fixed_receiver_gain_db)
+    if receiver_gain_db != STIMULUS_FIXED_RECEIVER_GAIN_DB:
+        raise SystemExit("hexcal-v2 fixes the common RX gain at exactly 20 dB")
+    board_root = _board_root(board_id)
+    run_root = board_root / "hexcal-stimulus-qualifications" / qualification_id
+    ledger_path = run_root / "stimulus-qualification.json"
+    if run_root.exists():
+        raise SystemExit(f"qualification output already exists: {run_root}")
+    configuration = _stimulus_configuration(
+        board_id=board_id,
+        serial=args.serial,
+        uri=args.uri,
+        source_commit=source_commit,
+        source_attestation=source_attestation,
+        dependency_attestation=dependency_attestation,
+        python_runtime=python_runtime,
+        profile=profile,
+        firmware_evidence=firmware_evidence,
+        frequencies=frequencies,
+        candidates=candidates,
+        receiver_gain_db=receiver_gain_db,
+        dds_scale=args.dds_scale,
+    )
+    document: dict[str, Any] = {
+        "schema": 1,
+        "qualification_kind": STIMULUS_QUALIFICATION_KIND,
+        "qualification_id": qualification_id,
+        "created_at": _now(),
+        "updated_at": _now(),
+        "completed_at": None,
+        "status": "running",
+        "configuration": configuration,
+        "plan": [
+            {
+                "tx_gain_index": gain_index,
+                "frequency_index": frequency_index,
+                "receiver_gain_db": receiver_gain_db,
+                "tx_hardware_gain_db": gain,
+                "center_frequency_hz": frequency,
+                "tx_channel": 0,
+                "tx_port": "TX1",
+            }
+            for gain_index, gain in enumerate(candidates)
+            for frequency_index, frequency in enumerate(frequencies)
+        ],
+        "conditions": [],
+        "tested_tx_hardware_gains_db": [],
+        "selected_tx_hardware_gain_db": None,
+        "selection_policy": ("lowest_power_ascending_tx_gain_passing_every_frequency_and_state"),
+        "receiver_gain_is_fixed": True,
+        "selected_stimulus_is_frozen": True,
+        "preflight_mute": None,
+        "final_mute": None,
+        "error": None,
+    }
+    pending_error: BaseException | None = None
+    interrupted = False
+    selected: float | None = None
+
+    with _board_lock(board_root):
+        # The complete ladder and immutable evidence identities are durable
+        # before the first finite TX1 tone can be enabled.
+        write_json_atomic(ledger_path, document)
+        try:
+            preflight_mute = _strict_mute(args.serial, "preflight")
+            document["preflight_mute"] = preflight_mute
+            document["updated_at"] = _now()
+            write_json_atomic(ledger_path, document)
+            if not _mute_passed(preflight_mute, serial=args.serial, purpose="preflight"):
+                raise QualificationError(f"exact preflight mute failed: {preflight_mute['error']}")
+            conditions = document["conditions"]
+            tested_gains = document["tested_tx_hardware_gains_db"]
+            assert isinstance(conditions, list) and isinstance(tested_gains, list)
+            for gain in candidates:
+                gain_records: list[dict[str, Any]] = []
+                headroom_failed = False
+                for frequency in frequencies:
+                    record = _capture_condition(
+                        artifact_root=run_root / "exploratory-artifacts",
+                        profile=profile,
+                        serial=args.serial,
+                        uri=args.uri,
+                        center_frequency_hz=frequency,
+                        receiver_gain_db=receiver_gain_db,
+                        tx_hardware_gain_db=gain,
+                        dds_scale=args.dds_scale,
+                        allow_experimental_5g8=False,
+                    )
+                    gain_records.append(record)
+                    conditions.append(record)
+                    headroom_failed = headroom_failed or not gain_headroom_passes(
+                        record.get("live_adc_headroom_admission")
+                    )
+                    document["updated_at"] = _now()
+                    write_json_atomic(ledger_path, document)
+                tested_gains.append(gain)
+                document["updated_at"] = _now()
+                write_json_atomic(ledger_path, document)
+                if headroom_failed:
+                    raise QualificationError(
+                        "TX-stimulus headroom failed; stronger candidates are forbidden"
+                    )
+                if all(record["passed"] is True for record in gain_records):
+                    selected = gain
+                    break
+            if selected is None:
+                raise QualificationError(
+                    "no tested TX1 stimulus passed every 2.4 GHz frequency and state"
+                )
+            document["selected_tx_hardware_gain_db"] = selected
+        except KeyboardInterrupt as error:
+            interrupted = True
+            pending_error = error
+        except BaseException as error:
+            pending_error = error
+        finally:
+            final_mute = _strict_mute(args.serial, "final")
+            document["final_mute"] = final_mute
+            if not _mute_passed(final_mute, serial=args.serial, purpose="final"):
+                mute_error = QualificationError(f"exact final mute failed: {final_mute['error']}")
+                if pending_error is not None:
+                    final_mute["prior_error"] = _error_text(pending_error)
+                pending_error = mute_error
+            document["completed_at"] = _now()
+            document["updated_at"] = document["completed_at"]
+            document["status"] = "failed" if pending_error is not None else "passed"
+            document["error"] = None if pending_error is None else _error_text(pending_error)
+            write_json_atomic(ledger_path, document)
+
+    if pending_error is not None:
+        print(
+            json.dumps(
+                {
+                    "status": "failed",
+                    "qualification": str(ledger_path),
+                    "error": _error_text(pending_error),
+                },
+                sort_keys=True,
+            ),
+            file=sys.stderr,
+        )
+        return 130 if interrupted else 1
+
+    try:
+        final_source_attestation = attest_source_files_at_commit(
+            repository,
+            expected_commit=source_commit,
+            relative_paths=QUALIFICATION_SOURCE_FILES,
+        )
+        final_dependency_attestation = attest_pluto_plus_utils_source()
+        if (
+            final_source_attestation != source_attestation
+            or final_dependency_attestation != dependency_attestation
+        ):
+            raise QualificationError("scientific source changed during qualification")
+        load_hexcal_stimulus_qualification(
+            ledger_path,
+            expected_board_id=board_id,
+            expected_serial=args.serial,
+            expected_uri=args.uri,
+            expected_source_commit=source_commit,
+            expected_source_attestation=source_attestation,
+            expected_profile=profile,
+            expected_firmware_evidence_sha256=firmware_evidence.file_sha256,
+            expected_pluto_plus_utils_source_attestation_sha256=canonical_json_sha256(
+                dependency_attestation
+            ),
+            expected_center_frequencies_hz=frequencies,
+            expected_receiver_gain_db=receiver_gain_db,
+            expected_candidate_tx_hardware_gains_db=candidates,
+            expected_dds_scale=args.dds_scale,
+        )
+    except (OSError, ValueError, QualificationError, subprocess.CalledProcessError) as error:
+        document["status"] = "failed"
+        document["error"] = _error_text(error)
+        document["updated_at"] = _now()
+        write_json_atomic(ledger_path, document)
+        print(json.dumps({"status": "failed", "error": str(error)}), file=sys.stderr)
+        return 1
+
+    print(
+        json.dumps(
+            {
+                "status": "passed",
+                "qualification_id": qualification_id,
+                "qualification": str(ledger_path),
+                "qualification_sha256": sha256_path(ledger_path),
+                "fixed_receiver_gain_db": receiver_gain_db,
+                "selected_tx_hardware_gain_db": selected,
+                "tested_tx_hardware_gains_db": document["tested_tx_hardware_gains_db"],
+            },
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
 def main() -> int:
     repository = Path(__file__).resolve().parents[1]
     if sys.argv[1:] == ["--print-routed-runtime-evidence"]:
@@ -584,11 +889,40 @@ def main() -> int:
         qualification_id = _validate_identifier(
             args.qualification_id or _new_id(), "qualification ID"
         )
-        frequencies = _validate_frequencies(
-            args.center_frequencies_hz,
-            allow_experimental_5g8=args.allow_experimental_5g8,
-        )
-        candidates = _validate_candidates(args.candidate_gains_db)
+        if args.tx_stimulus_v2:
+            if (
+                args.candidate_gains_db is not None
+                or args.allow_experimental_5g8
+                or args.tx_hardware_gain_db != -40.0
+                or args.dds_scale != 0.125
+            ):
+                raise ValueError(
+                    "v2 forbids RX-ladder/5.8 GHz/fixed-TX overrides and fixes DDS scale at 0.125"
+                )
+            frequencies = (
+                STIMULUS_CENTER_FREQUENCIES_HZ
+                if args.center_frequencies_hz is None
+                else _validate_frequencies(
+                    args.center_frequencies_hz,
+                    allow_experimental_5g8=False,
+                )
+            )
+            if frequencies != STIMULUS_CENTER_FREQUENCIES_HZ:
+                raise ValueError("v2 requires the exact frozen five-frequency 2.4 GHz plan")
+            stimulus_candidates = _validate_tx_stimulus_candidates(args.candidate_tx_gains_db)
+            candidates = DEFAULT_GAIN_CANDIDATES_DB
+        else:
+            if (
+                args.candidate_tx_gains_db is not None
+                or args.fixed_receiver_gain_db != STIMULUS_FIXED_RECEIVER_GAIN_DB
+            ):
+                raise ValueError("TX-stimulus options require --tx-stimulus-v2")
+            frequencies = _validate_frequencies(
+                args.center_frequencies_hz,
+                allow_experimental_5g8=args.allow_experimental_5g8,
+            )
+            candidates = _validate_candidates(args.candidate_gains_db)
+            stimulus_candidates = DEFAULT_STIMULUS_TX_GAINS_DB
         source_commit = _repository_commit_and_require_clean(repository)
         profile = load_hexcal_profile(args.profile)
         firmware_evidence = load_hexcal_firmware_evidence(
@@ -606,6 +940,22 @@ def main() -> int:
         python_runtime = _runtime_evidence(repository)
     except (OSError, ValueError, QualificationError, subprocess.CalledProcessError) as error:
         raise SystemExit(str(error)) from error
+
+    if args.tx_stimulus_v2:
+        return _run_tx_stimulus_qualification(
+            repository=repository,
+            args=args,
+            board_id=board_id,
+            qualification_id=qualification_id,
+            source_commit=source_commit,
+            source_attestation=source_attestation,
+            dependency_attestation=dependency_attestation,
+            python_runtime=python_runtime,
+            profile=profile,
+            firmware_evidence=firmware_evidence,
+            frequencies=frequencies,
+            candidates=stimulus_candidates,
+        )
 
     board_root = _board_root(board_id)
     run_root = board_root / "hexcal-gain-qualifications" / qualification_id
@@ -672,9 +1022,7 @@ def main() -> int:
             document["updated_at"] = _now()
             write_json_atomic(ledger_path, document)
             if not _mute_passed(preflight_mute, serial=args.serial, purpose="preflight"):
-                raise QualificationError(
-                    f"exact preflight mute failed: {preflight_mute['error']}"
-                )
+                raise QualificationError(f"exact preflight mute failed: {preflight_mute['error']}")
             conditions = document["conditions"]
             tested_gains = document["tested_gains_db"]
             assert isinstance(conditions, list) and isinstance(tested_gains, list)

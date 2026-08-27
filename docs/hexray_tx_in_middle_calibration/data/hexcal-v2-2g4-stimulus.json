@@ -1,0 +1,99 @@
+{
+  "schema": 1,
+  "protocol_id": "hexcal-v2-2g4-stimulus",
+  "status": "frozen_before_first_v2_rf_capture",
+  "purpose": "Select the lowest sufficient bounded TX1 stimulus at a fixed RX gain, then qualify timing and acquire the centered six-element calibration without adapting accepted conditions.",
+  "array": {
+    "ports": ["ANT1", "ANT2", "ANT3", "ANT4", "ANT5", "ANT6"],
+    "order": "clockwise",
+    "forward_reference": "ANT1",
+    "diameter_mm": 51.0,
+    "tx1_position": "center"
+  },
+  "center_frequencies_hz": [
+    2400000000,
+    2423000000,
+    2440000000,
+    2458000000,
+    2483000000
+  ],
+  "stimulus_screen": {
+    "selection_policy": "lowest_power_ascending_tx_gain_passing_every_frequency_and_state",
+    "receiver_gain_db": 20,
+    "tx_channel": 0,
+    "tx_port": "TX1",
+    "tx2_policy": "muted_-80dB_and_zero_DDS",
+    "tone_offset_hz": 100000,
+    "dds_scale": 0.125,
+    "candidate_tx_hardware_gains_db": [-35.0, -30.0, -25.0, -20.0, -15.0, -10.0],
+    "sample_rate_hz": 1000000,
+    "bandwidth_hz": 800000,
+    "samples_per_frame": 100000,
+    "frame_count": 3,
+    "total_samples": 300000,
+    "kernel_buffers": 8,
+    "receiver_channels": [0, 1],
+    "metadata_abi": 2,
+    "fresh_stream_per_condition": true,
+    "automatic_retry_count": 0,
+    "headroom_stop_policy": "stop before every stronger candidate after one failed condition headroom gate",
+    "gates": {
+      "minimum_complete_cycles": 150,
+      "minimum_decoded_fraction": 0.98,
+      "minimum_marker_contrast_db": 20.0,
+      "minimum_state_snr_db": 20.0,
+      "minimum_state_coherence": 0.995,
+      "maximum_state_phase_std_deg": 6.0,
+      "minimum_null_isolation_db": 20.0,
+      "minimum_phase_gauge_resultant": 0.25,
+      "maximum_peak_component_counts": 1300.0,
+      "clipped_samples": 0
+    }
+  },
+  "timing_qualification": {
+    "must_use_new_artifacts_after_stimulus_selection": true,
+    "center_frequency_hz": 2400000000,
+    "replicate_count": 2,
+    "sample_rate_hz": 5000000,
+    "bandwidth_hz": 4000000,
+    "samples_per_frame": 250000,
+    "frame_count": 9,
+    "total_samples": 2250000,
+    "duration_s": 0.45,
+    "kernel_buffers": 8,
+    "receiver_gain_db_source": "selected_stimulus_screen.fixed_receiver_gain_db",
+    "tx_hardware_gain_db_source": "selected_stimulus_screen.selected_tx_hardware_gain_db",
+    "dds_scale": 0.125,
+    "tone_offset_hz": 100000,
+    "pair_gate_source": "docs/hexray_tx_in_middle_calibration/README.md#rf-only-timing-qualification",
+    "both_replicates_must_pass": true
+  },
+  "calibration_matrix": {
+    "artifact_count": 15,
+    "one_second_per_artifact": true,
+    "sample_rate_hz": 1000000,
+    "bandwidth_hz": 800000,
+    "kernel_buffers": 8,
+    "receiver_gain_db_source": "selected_stimulus_screen.fixed_receiver_gain_db",
+    "tx_hardware_gain_db_source": "selected_stimulus_screen.selected_tx_hardware_gain_db",
+    "dds_scale": 0.125,
+    "tone_offset_hz": 100000,
+    "orders_hz": [
+      [2400000000, 2423000000, 2440000000, 2458000000, 2483000000],
+      [2483000000, 2458000000, 2440000000, 2423000000, 2400000000],
+      [2440000000, 2458000000, 2483000000, 2400000000, 2423000000]
+    ],
+    "exact_mute_between_artifacts": true,
+    "no_adaptive_gain_or_stimulus_after_first_accepted_artifact": true
+  },
+  "safety_and_admission": {
+    "exact_usb_serial_required": true,
+    "exclusive_board_lock_required": true,
+    "firmware_full_flash_evidence_required": true,
+    "pluto_plus_utils_pin": "5551d29bc6c326f26285670efd20fc149caef474",
+    "enodata_policy": "quarantine the incomplete attempt, exact-mute, and accept no artifact identity",
+    "prior_v1_and_exploratory_artifacts_are_inputs_for_design_only": true,
+    "five_g8_is_out_of_scope": true,
+    "final_exact_mute_required": true
+  }
+}

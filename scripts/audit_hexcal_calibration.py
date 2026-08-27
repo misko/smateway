@@ -64,6 +64,7 @@ from smateway.hexcal import (
 from smateway.hexcal_gain import (
     QUALIFICATION_SOURCE_FILES,
     load_hexcal_gain_qualification,
+    load_hexcal_stimulus_qualification,
 )
 
 DEFAULT_BOARD_ID = "stm32c011-4c0055000950313950363920"
@@ -560,12 +561,23 @@ def audit_manifest(
     manifest_path: Path,
 ) -> dict[str, Any]:
     issues: list[str] = []
-    if (
-        manifest.get("schema") != 1
-        or manifest.get("experiment_kind") != "hexcal_v1_tx1_center_calibration"
+    supported_experiment_kinds = {
+        "hexcal_v1_tx1_center_calibration",
+        "hexcal_v2_2g4_tx1_center_calibration",
+    }
+    if manifest.get("schema") != 1 or manifest.get("experiment_kind") not in (
+        supported_experiment_kinds
     ):
         issues.append("manifest schema or experiment kind is unsupported")
     configuration = _mapping(manifest.get("configuration"), "configuration")
+    protocol_id = configuration.get("protocol_id", "hexcal-v1")
+    expected_experiment_kind = (
+        "hexcal_v2_2g4_tx1_center_calibration"
+        if protocol_id == "hexcal-v2-2g4-stimulus"
+        else "hexcal_v1_tx1_center_calibration"
+    )
+    if manifest.get("experiment_kind") != expected_experiment_kind:
+        issues.append("manifest experiment kind differs from its protocol ID")
     if (
         configuration.get("board_id") != board_id
         or configuration.get("serial") != serial
@@ -639,9 +651,10 @@ def audit_manifest(
     qualification_source_attestation: dict[str, Any] = {}
     qualification_evidence: dict[str, Any] = {}
     try:
+        qualification_kind = "stimulus" if protocol_id == "hexcal-v2-2g4-stimulus" else "gain"
         qualification_configuration = _mapping(
-            configuration.get("gain_qualification"),
-            "configured RX-gain qualification",
+            configuration.get(f"{qualification_kind}_qualification"),
+            f"configured {qualification_kind} qualification",
         )
         center_frequencies = configuration.get("center_frequencies_hz")
         if (
@@ -679,53 +692,96 @@ def audit_manifest(
             expected_commit=source_commit,
             relative_paths=QUALIFICATION_SOURCE_FILES,
         )
-        qualification = load_hexcal_gain_qualification(
-            Path(str(qualification_configuration.get("path"))),
-            expected_board_id=board_id,
-            expected_serial=serial,
-            expected_uri=uri,
-            expected_source_commit=source_commit,
-            expected_source_attestation=qualification_source_attestation,
-            expected_profile=profile,
-            expected_firmware_evidence_sha256=firmware_evidence.file_sha256,
-            expected_pluto_plus_utils_source_attestation_sha256=dependency_sha256,
-            expected_center_frequencies_hz=center_frequencies,
-            expected_tx_hardware_gain_db=float(tx_gain),
-            expected_dds_scale=float(dds_scale),
-        )
-        qualification_evidence = qualification.as_dict()
+        if qualification_kind == "stimulus":
+            stimulus_qualification = load_hexcal_stimulus_qualification(
+                Path(str(qualification_configuration.get("path"))),
+                expected_board_id=board_id,
+                expected_serial=serial,
+                expected_uri=uri,
+                expected_source_commit=source_commit,
+                expected_source_attestation=qualification_source_attestation,
+                expected_profile=profile,
+                expected_firmware_evidence_sha256=firmware_evidence.file_sha256,
+                expected_pluto_plus_utils_source_attestation_sha256=dependency_sha256,
+                expected_center_frequencies_hz=center_frequencies,
+                expected_receiver_gain_db=int(receiver_gain),
+                expected_dds_scale=float(dds_scale),
+            )
+            qualification_evidence = stimulus_qualification.as_dict()
+            if (
+                stimulus_qualification.fixed_receiver_gain_db != receiver_gain
+                or stimulus_qualification.selected_tx_hardware_gain_db != float(tx_gain)
+                or stimulus_qualification.dds_scale != float(dds_scale)
+            ):
+                qualification_issues.append(
+                    "calibration RF settings differ from the frozen stimulus qualification"
+                )
+        else:
+            gain_qualification = load_hexcal_gain_qualification(
+                Path(str(qualification_configuration.get("path"))),
+                expected_board_id=board_id,
+                expected_serial=serial,
+                expected_uri=uri,
+                expected_source_commit=source_commit,
+                expected_source_attestation=qualification_source_attestation,
+                expected_profile=profile,
+                expected_firmware_evidence_sha256=firmware_evidence.file_sha256,
+                expected_pluto_plus_utils_source_attestation_sha256=dependency_sha256,
+                expected_center_frequencies_hz=center_frequencies,
+                expected_tx_hardware_gain_db=float(tx_gain),
+                expected_dds_scale=float(dds_scale),
+            )
+            qualification_evidence = gain_qualification.as_dict()
+            if gain_qualification.selected_receiver_gain_db != receiver_gain:
+                qualification_issues.append(
+                    "calibration receiver gain differs from the qualified selected gain"
+                )
         if qualification_evidence != dict(qualification_configuration):
             qualification_issues.append(
-                "configured RX-gain qualification differs from independently replayed evidence"
-            )
-        if qualification.selected_receiver_gain_db != receiver_gain:
-            qualification_issues.append(
-                "calibration receiver gain differs from the qualified selected gain"
+                f"configured {qualification_kind} qualification differs from independently "
+                "replayed evidence"
             )
     except (OSError, ValueError, subprocess.CalledProcessError) as error:
-        qualification_issues.append(f"cannot independently replay RX-gain qualification: {error}")
+        qualification_issues.append(
+            f"cannot independently replay {qualification_kind} qualification: {error}"
+        )
     issues.extend(qualification_issues)
     plan = manifest.get("plan")
     attempts = manifest.get("attempts")
     if not isinstance(plan, list) or not isinstance(attempts, list):
         raise ValueError("manifest plan or attempts are malformed")
-    gain_configuration = configuration.get("gain_qualification")
-    expected_gain_id = (
-        gain_configuration.get("qualification_id")
-        if isinstance(gain_configuration, Mapping)
+    planned_qualification_configuration = configuration.get(f"{qualification_kind}_qualification")
+    expected_qualification_id = (
+        planned_qualification_configuration.get("qualification_id")
+        if isinstance(planned_qualification_configuration, Mapping)
         else None
     )
-    expected_gain_sha = (
-        gain_configuration.get("file_sha256") if isinstance(gain_configuration, Mapping) else None
+    expected_qualification_sha = (
+        planned_qualification_configuration.get("file_sha256")
+        if isinstance(planned_qualification_configuration, Mapping)
+        else None
     )
     for index, raw_condition in enumerate(plan):
         condition = _mapping(raw_condition, f"plan[{index}]")
-        if (
-            condition.get("gain_qualification_id") != expected_gain_id
-            or condition.get("gain_qualification_sha256") != expected_gain_sha
-            or condition.get("receiver_gain_db") != configuration.get("receiver_gain_db")
+        qualification_binding_mismatch = (
+            condition.get("stimulus_qualification_id") != expected_qualification_id
+            or condition.get("stimulus_qualification_sha256") != expected_qualification_sha
+            or condition.get("qualification_kind") != qualification_kind
+            or condition.get("qualification_id") != expected_qualification_id
+            or condition.get("qualification_sha256") != expected_qualification_sha
+            if qualification_kind == "stimulus"
+            else condition.get("gain_qualification_id") != expected_qualification_id
+            or condition.get("gain_qualification_sha256") != expected_qualification_sha
+        )
+        if qualification_binding_mismatch or condition.get("receiver_gain_db") != configuration.get(
+            "receiver_gain_db"
         ):
-            issues.append(f"plan condition {index} differs from the fixed RX-gain qualification")
+            qualifier_label = (
+                "stimulus qualification"
+                if qualification_kind == "stimulus"
+                else "RX-gain qualification"
+            )
+            issues.append(f"plan condition {index} differs from the fixed {qualifier_label}")
     completed: dict[int, Mapping[str, Any]] = {}
     failed_attempts: list[dict[str, Any]] = []
     failed_attempt_records: list[Mapping[str, Any]] = []
@@ -876,10 +932,23 @@ def audit_manifest(
                 expected_commit=str(source_commit),
                 relative_paths=HEXCAL_AGGREGATION_SOURCE_FILES,
             )
+            expected_calibration_kind = (
+                "hexcal_v2_2g4_tx1_center_end_to_end_complex_correction"
+                if protocol_id == "hexcal-v2-2g4-stimulus"
+                else "hexcal_v1_tx1_center_end_to_end_complex_correction"
+            )
+            v2_binding_mismatch = protocol_id == "hexcal-v2-2g4-stimulus" and (
+                calibration_root.get("protocol_id") != protocol_id
+                or calibration_root.get("qualification_kind") != qualification_kind
+                or calibration_root.get("qualification")
+                != configuration.get("stimulus_qualification")
+                or calibration_root.get("stimulus_qualification")
+                != configuration.get("stimulus_qualification")
+            )
             if (
                 calibration_root.get("schema") != 1
-                or calibration_root.get("calibration_kind")
-                != "hexcal_v1_tx1_center_end_to_end_complex_correction"
+                or calibration_root.get("calibration_kind") != expected_calibration_kind
+                or v2_binding_mismatch
                 or calibration_root.get("run_id") != manifest.get("run_id")
                 or calibration_root.get("manifest_path") != str(manifest_path)
                 or calibration_root.get("source_commit") != source_commit
@@ -959,7 +1028,12 @@ def audit_manifest(
             issues.append(f"calibration artifact audit failed: {error}")
     return {
         "schema": 1,
-        "audit_kind": "hexcal_v1_independent_calibration_and_artifact_audit",
+        "audit_kind": (
+            "hexcal_v2_2g4_independent_calibration_and_artifact_audit"
+            if protocol_id == "hexcal-v2-2g4-stimulus"
+            else "hexcal_v1_independent_calibration_and_artifact_audit"
+        ),
+        "protocol_id": protocol_id,
         "run_id": manifest.get("run_id"),
         "manifest_path": str(manifest_path),
         "manifest_sha256": sha256_path(manifest_path),
@@ -974,7 +1048,8 @@ def audit_manifest(
         "artifact_audits": artifact_audits,
         "calibration_artifact": calibration,
         "audit_source_attestation": audit_source_attestation or None,
-        "gain_qualification_audit": {
+        "qualification_audit": {
+            "kind": qualification_kind,
             "passed": not qualification_issues,
             "issues": qualification_issues,
             "qualification": qualification_evidence or None,
@@ -986,6 +1061,22 @@ def audit_manifest(
             ),
             "raw_artifacts_and_selection_replayed": not qualification_issues,
         },
+        "gain_qualification_audit": (
+            {
+                "passed": not qualification_issues,
+                "issues": qualification_issues,
+                "qualification": qualification_evidence or None,
+                "source_attestation": qualification_source_attestation or None,
+                "source_attestation_sha256": (
+                    canonical_json_sha256(qualification_source_attestation)
+                    if qualification_source_attestation
+                    else None
+                ),
+                "raw_artifacts_and_selection_replayed": not qualification_issues,
+            }
+            if qualification_kind == "gain"
+            else None
+        ),
         "attestations": {
             "data_sha256_recomputed": True,
             "finalized_metadata_sha256_and_size_recomputed": True,
@@ -1005,7 +1096,7 @@ def audit_manifest(
             "pluto_plus_utils_clean_source_and_import_paths_revalidated": bool(
                 dependency_attestation
             ),
-            "rx_gain_qualification_source_raw_artifacts_and_selection_revalidated": (
+            "qualification_source_raw_artifacts_and_selection_revalidated": (
                 not qualification_issues
             ),
             "failed_partial_quarantine_hashes_recomputed": True,

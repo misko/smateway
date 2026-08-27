@@ -59,8 +59,11 @@ from smateway.hexcal import (
 )
 from smateway.hexcal_gain import (
     QUALIFICATION_SOURCE_FILES,
+    STIMULUS_CENTER_FREQUENCIES_HZ,
     HexcalGainQualification,
+    HexcalStimulusQualification,
     load_hexcal_gain_qualification,
+    load_hexcal_stimulus_qualification,
 )
 from smateway.rf_policy import EXPERIMENTAL_5G8_CENTER_HZ, classify_fast20_center_frequency
 
@@ -102,14 +105,19 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--gain-qualification",
         type=Path,
-        required=True,
         help="passed exploratory ledger; its lowest sufficient gain is fixed for this run",
     )
+    parser.add_argument(
+        "--stimulus-qualification",
+        type=Path,
+        help="passed hexcal-v2 ledger; its fixed RX gain and selected TX1 level are used",
+    )
+    parser.add_argument("--protocol-v2", action="store_true")
     parser.add_argument("--allow-experimental-5g8", action="store_true")
     parser.add_argument("--rounds", type=int, default=DEFAULT_ROUNDS)
     parser.add_argument("--max-attempts-per-condition", type=int, default=DEFAULT_MAX_ATTEMPTS)
     parser.add_argument("--timeout-s", type=int, default=DEFAULT_TIMEOUT_S)
-    parser.add_argument("--tx-hardware-gain-db", type=float, default=-40.0)
+    parser.add_argument("--tx-hardware-gain-db", type=float)
     parser.add_argument("--dds-scale", type=float, default=0.125)
     parser.add_argument(
         "--center-frequency-hz",
@@ -207,9 +215,12 @@ def _write_manifest(path: Path, document: Mapping[str, Any]) -> None:
 
 
 def _validate_frequencies(
-    values: Sequence[int] | None, *, allow_experimental_5g8: bool
+    values: Sequence[int] | None,
+    *,
+    allow_experimental_5g8: bool,
+    defaults: Sequence[int] = DEFAULT_FREQUENCIES_HZ,
 ) -> tuple[int, ...]:
-    frequencies = DEFAULT_FREQUENCIES_HZ if values is None else tuple(values)
+    frequencies = tuple(defaults) if values is None else tuple(values)
     if not frequencies:
         raise ValueError("at least one center frequency is required")
     output: list[int] = []
@@ -329,14 +340,34 @@ def _configuration(
     source_commit: str,
     pluto_plus_utils_source_attestation: Mapping[str, Any],
     firmware_evidence: HexcalFirmwareEvidence,
-    gain_qualification: HexcalGainQualification,
+    gain_qualification: HexcalGainQualification | None,
+    stimulus_qualification: HexcalStimulusQualification | None = None,
     allow_experimental_5g8: bool,
 ) -> dict[str, Any]:
-    if receiver_gain_db != gain_qualification.selected_receiver_gain_db:
-        raise ExperimentError("calibration gain differs from the passed qualification")
+    if (gain_qualification is None) == (stimulus_qualification is None):
+        raise ExperimentError("exactly one gain/stimulus qualification is required")
+    if gain_qualification is not None:
+        if receiver_gain_db != gain_qualification.selected_receiver_gain_db:
+            raise ExperimentError("calibration gain differs from the passed qualification")
+        qualification_field = "gain_qualification"
+        qualification_document = gain_qualification.as_dict()
+        protocol_id = "hexcal-v1"
+    else:
+        assert stimulus_qualification is not None
+        if (
+            receiver_gain_db != stimulus_qualification.fixed_receiver_gain_db
+            or tx_hardware_gain_db != stimulus_qualification.selected_tx_hardware_gain_db
+            or dds_scale != stimulus_qualification.dds_scale
+            or tuple(center_frequencies_hz) != stimulus_qualification.center_frequencies_hz
+        ):
+            raise ExperimentError("calibration stimulus differs from the passed v2 qualification")
+        qualification_field = "stimulus_qualification"
+        qualification_document = stimulus_qualification.as_dict()
+        protocol_id = "hexcal-v2-2g4-stimulus"
     dependency_attestation = dict(pluto_plus_utils_source_attestation)
     dependency_sha256 = canonical_json_sha256(dependency_attestation)
-    return {
+    configuration = {
+        "protocol_id": protocol_id,
         "rounds": rounds,
         "max_attempts_per_condition": max_attempts,
         "board_id": board_id,
@@ -354,7 +385,6 @@ def _configuration(
         "pluto_plus_utils_source_attestation": dependency_attestation,
         "pluto_plus_utils_source_attestation_sha256": dependency_sha256,
         "firmware_evidence": firmware_evidence.as_dict(),
-        "gain_qualification": gain_qualification.as_dict(),
         "allow_experimental_5g8": allow_experimental_5g8,
         "center_frequencies_hz": list(center_frequencies_hz),
         "sample_rate_hz": 1_000_000,
@@ -366,12 +396,19 @@ def _configuration(
         "tx_port": "TX1",
         "round_order_policy": ["forward", "reverse", "rotated"],
     }
+    configuration[qualification_field] = qualification_document
+    return configuration
 
 
 def _execution_plan(configuration: Mapping[str, Any], repository: Path) -> list[dict[str, Any]]:
     frequencies = tuple(int(value) for value in configuration["center_frequencies_hz"])
     python = Path(str(configuration["python"]))
     profile = Path(str(configuration["profile"]))
+    qualification_kind = "stimulus" if "stimulus_qualification" in configuration else "gain"
+    qualification = _mapping(
+        configuration.get(f"{qualification_kind}_qualification"),
+        f"{qualification_kind} qualification",
+    )
     plan: list[dict[str, Any]] = []
     for round_index in range(int(configuration["rounds"])):
         order_name, ordered = _round_order(round_index, frequencies)
@@ -387,12 +424,9 @@ def _execution_plan(configuration: Mapping[str, Any], repository: Path) -> list[
                 "tx_port": "TX1",
                 "sample_rate_hz": 1_000_000,
                 "receiver_gain_db": int(configuration["receiver_gain_db"]),
-                "gain_qualification_id": str(
-                    configuration["gain_qualification"]["qualification_id"]
-                ),
-                "gain_qualification_sha256": str(
-                    configuration["gain_qualification"]["file_sha256"]
-                ),
+                "qualification_kind": (qualification_kind),
+                "qualification_id": str(qualification["qualification_id"]),
+                "qualification_sha256": str(qualification["file_sha256"]),
                 "planned_tx_hardware_gain_db": float(configuration["tx_hardware_gain_db"]),
                 "planned_dds_scale": float(configuration["dds_scale"]),
                 "profile_file_sha256": str(configuration["profile_file_sha256"]),
@@ -408,6 +442,10 @@ def _execution_plan(configuration: Mapping[str, Any], repository: Path) -> list[
                     configuration["firmware_evidence"]["full_flash_readback_sha256"]
                 ),
             }
+            condition[f"{qualification_kind}_qualification_id"] = condition["qualification_id"]
+            condition[f"{qualification_kind}_qualification_sha256"] = condition[
+                "qualification_sha256"
+            ]
             condition["capture_command"] = _capture_command(
                 python,
                 repository,
@@ -444,7 +482,11 @@ def _new_manifest(
     now = _now()
     return {
         "schema": 1,
-        "experiment_kind": "hexcal_v1_tx1_center_calibration",
+        "experiment_kind": (
+            "hexcal_v2_2g4_tx1_center_calibration"
+            if configuration.get("protocol_id") == "hexcal-v2-2g4-stimulus"
+            else "hexcal_v1_tx1_center_calibration"
+        ),
         "run_id": run_id,
         "created_at": now,
         "updated_at": now,
@@ -520,7 +562,12 @@ def _load_manifest(
         raise ExperimentError(f"cannot load resume manifest: {error}") from error
     if not isinstance(document, dict) or document.get("schema") != 1:
         raise ExperimentError("resume manifest schema is unsupported")
-    if document.get("experiment_kind") != "hexcal_v1_tx1_center_calibration":
+    expected_experiment_kind = (
+        "hexcal_v2_2g4_tx1_center_calibration"
+        if configuration.get("protocol_id") == "hexcal-v2-2g4-stimulus"
+        else "hexcal_v1_tx1_center_calibration"
+    )
+    if document.get("experiment_kind") != expected_experiment_kind:
         raise ExperimentError("resume manifest belongs to another experiment")
     if document.get("configuration") != dict(configuration):
         raise ExperimentError("resume arguments differ from persisted configuration")
@@ -1290,7 +1337,16 @@ def main() -> int:
     if not args.serial.strip() or not args.uri.startswith("usb:"):
         raise SystemExit("explicit non-empty --serial and exact usb: --uri are required")
     if args.rounds != DEFAULT_ROUNDS:
-        raise SystemExit("hexcal-v1 requires exactly three predeclared rounds")
+        raise SystemExit("Hexcal requires exactly three predeclared rounds")
+    if args.protocol_v2:
+        if args.stimulus_qualification is None or args.gain_qualification is not None:
+            raise SystemExit("--protocol-v2 requires only --stimulus-qualification")
+        if args.tx_hardware_gain_db is not None:
+            raise SystemExit("hexcal-v2 derives TX1 gain from its qualification ledger")
+        if args.allow_experimental_5g8:
+            raise SystemExit("hexcal-v2 does not permit the experimental 5.8 GHz band")
+    elif args.gain_qualification is None or args.stimulus_qualification is not None:
+        raise SystemExit("legacy hexcal-v1 requires only --gain-qualification")
     if not 1 <= args.max_attempts_per_condition <= 10:
         raise SystemExit("max attempts must be within 1..10")
     if not 30 <= args.timeout_s <= 600:
@@ -1300,7 +1356,12 @@ def main() -> int:
         frequencies = _validate_frequencies(
             args.center_frequencies_hz,
             allow_experimental_5g8=args.allow_experimental_5g8,
+            defaults=(
+                STIMULUS_CENTER_FREQUENCIES_HZ if args.protocol_v2 else DEFAULT_FREQUENCIES_HZ
+            ),
         )
+        if args.protocol_v2 and frequencies != STIMULUS_CENTER_FREQUENCIES_HZ:
+            raise ValueError("hexcal-v2 requires the exact frozen five-frequency plan")
         board_id = _validate_identifier(args.board_id, "board ID")
         run_id = _validate_identifier(args.run_id or _new_run_id(), "run ID")
         profile = load_hexcal_profile(args.profile)
@@ -1317,22 +1378,43 @@ def main() -> int:
             expected_commit=source_commit,
             relative_paths=QUALIFICATION_SOURCE_FILES,
         )
-        gain_qualification = load_hexcal_gain_qualification(
-            args.gain_qualification,
-            expected_board_id=board_id,
-            expected_serial=args.serial,
-            expected_uri=args.uri,
-            expected_source_commit=source_commit,
-            expected_source_attestation=qualification_source_attestation,
-            expected_profile=profile,
-            expected_firmware_evidence_sha256=firmware_evidence.file_sha256,
-            expected_pluto_plus_utils_source_attestation_sha256=(
-                canonical_json_sha256(dependency_attestation)
-            ),
-            expected_center_frequencies_hz=frequencies,
-            expected_tx_hardware_gain_db=args.tx_hardware_gain_db,
-            expected_dds_scale=args.dds_scale,
-        )
+        dependency_sha256 = canonical_json_sha256(dependency_attestation)
+        gain_qualification: HexcalGainQualification | None = None
+        stimulus_qualification: HexcalStimulusQualification | None = None
+        if args.protocol_v2:
+            assert isinstance(args.stimulus_qualification, Path)
+            stimulus_qualification = load_hexcal_stimulus_qualification(
+                args.stimulus_qualification,
+                expected_board_id=board_id,
+                expected_serial=args.serial,
+                expected_uri=args.uri,
+                expected_source_commit=source_commit,
+                expected_source_attestation=qualification_source_attestation,
+                expected_profile=profile,
+                expected_firmware_evidence_sha256=firmware_evidence.file_sha256,
+                expected_pluto_plus_utils_source_attestation_sha256=dependency_sha256,
+                expected_center_frequencies_hz=frequencies,
+                expected_dds_scale=args.dds_scale,
+            )
+        else:
+            assert isinstance(args.gain_qualification, Path)
+            tx_hardware_gain_db = (
+                -40.0 if args.tx_hardware_gain_db is None else args.tx_hardware_gain_db
+            )
+            gain_qualification = load_hexcal_gain_qualification(
+                args.gain_qualification,
+                expected_board_id=board_id,
+                expected_serial=args.serial,
+                expected_uri=args.uri,
+                expected_source_commit=source_commit,
+                expected_source_attestation=qualification_source_attestation,
+                expected_profile=profile,
+                expected_firmware_evidence_sha256=firmware_evidence.file_sha256,
+                expected_pluto_plus_utils_source_attestation_sha256=dependency_sha256,
+                expected_center_frequencies_hz=frequencies,
+                expected_tx_hardware_gain_db=tx_hardware_gain_db,
+                expected_dds_scale=args.dds_scale,
+            )
     except (ExperimentError, ValueError) as error:
         raise SystemExit(str(error)) from error
     python = Path(os.path.abspath(args.python.expanduser()))
@@ -1343,6 +1425,17 @@ def main() -> int:
             "capture/reanalysis Python differs from the attested pinned dependency runtime"
         )
     profile_path = profile.path
+    if stimulus_qualification is not None:
+        receiver_gain_db = stimulus_qualification.fixed_receiver_gain_db
+        tx_hardware_gain_db = stimulus_qualification.selected_tx_hardware_gain_db
+        dds_scale = stimulus_qualification.dds_scale
+    else:
+        assert gain_qualification is not None
+        receiver_gain_db = gain_qualification.selected_receiver_gain_db
+        tx_hardware_gain_db = (
+            -40.0 if args.tx_hardware_gain_db is None else args.tx_hardware_gain_db
+        )
+        dds_scale = args.dds_scale
     configuration = _configuration(
         rounds=args.rounds,
         max_attempts=args.max_attempts_per_condition,
@@ -1354,14 +1447,15 @@ def main() -> int:
         profile_file_sha256=profile.file_sha256,
         profile_contract_sha256=profile.contract_sha256,
         timeout_s=args.timeout_s,
-        receiver_gain_db=gain_qualification.selected_receiver_gain_db,
-        tx_hardware_gain_db=args.tx_hardware_gain_db,
-        dds_scale=args.dds_scale,
+        receiver_gain_db=receiver_gain_db,
+        tx_hardware_gain_db=tx_hardware_gain_db,
+        dds_scale=dds_scale,
         center_frequencies_hz=frequencies,
         source_commit=source_commit,
         pluto_plus_utils_source_attestation=dependency_attestation,
         firmware_evidence=firmware_evidence,
         gain_qualification=gain_qualification,
+        stimulus_qualification=stimulus_qualification,
         allow_experimental_5g8=args.allow_experimental_5g8,
     )
     board_root = _board_root(board_id)

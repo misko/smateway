@@ -38,8 +38,8 @@ cable identities and the exact calibration reference plane.
 | EXPLORATORY | RX `30 dB` / TX `-25 dB` timing run; useful diagnosis, not admissible calibration evidence. |
 | DONE | Harden and mechanically verify the GPIO edge path and watchdog half-range bound. |
 | DONE | Clean build and host/static verification of the reviewed 1,152-byte image (`381` tests). |
-| PENDING | Exact deployment and full-flash readback of the reviewed image. |
-| PENDING | Freeze and commit the versioned replacement RF qualification protocol. |
+| DONE | Deploy commit `67ba91d` and verify its exact 16 KiB flash, UID and option-byte readbacks. |
+| DONE | Freeze and test `hexcal-v2-2g4-stimulus`; capture, timing, aggregation and audit paths are source-bound. |
 | PENDING | Qualify and freeze the operating point and paired 5 MS/s timing evidence. |
 | PENDING | Capture the predeclared calibration matrix. |
 | PENDING | Aggregate, held-out validation, independent audit, findings/figures, commit/push, and a verified muted end state. |
@@ -48,8 +48,11 @@ The reviewed build has ELF SHA-256
 `8e0cc535f98d30be02f7b9662938516d3d5d2a8bbc5d72440e1494617c7dc9c9`, raw BIN SHA-256
 `6d0a06f9160d91e6c04f9ba29e8d90c3aaf65e1386a6d7311fbd6689a103e6b3`, and 16 KiB padded
 full-flash SHA-256 `1ac75057a6dbb3235b6dfb07899a2ae5ef025d9b1d5c0dee37df4cdc72b2453e`.
-No capture made with those bytes is accepted as calibration evidence until the source is
-committed, the exact image is deployed, and its complete flash readback is hash-verified.
+That image was programmed with OpenOCD verify+reset and independently read back in full on the
+target with UID `4c0055000950313950363920`; option bytes remained `aa fe ff ff`, the image prefix
+matched, and all `15,232` tail bytes were erased. The validated local evidence manifest is
+`hexcal-67ba91d/hexcal-firmware-evidence.json` with SHA-256
+`5411052707bca5fdc6b5401625633f95768dbed26b5623c11f324b84e29284aa`.
 
 ![HexRay geometry and RF scale](png/fig01_geometry_and_wavelengths.png)
 
@@ -193,6 +196,41 @@ requires a genuine integer-microsecond timer implementation, atomic GPIO writes,
 qualification. Merely scaling the old duration constants is not acceptable.
 
 ## 5. Complex-calibration capture matrix
+
+### Active replacement: `hexcal-v2-2g4-stimulus`
+
+The v1 common-RX-gain search failed and its ledger remains immutable. The active replacement is
+the machine-readable
+[`hexcal-v2-2g4-stimulus` protocol](data/hexcal-v2-2g4-stimulus.json), frozen before its first
+RF capture. It removes experimental 5.8 GHz from scope and fixes one common `20 dB` RX gain for
+the five 2.4 GHz centres `2.400, 2.423, 2.440, 2.458, 2.483 GHz`.
+
+At each TX candidate, capture a fresh `0.3 s`, `1 MS/s`, dual-RX ABI-2 screen at every one of the
+five centres. TX1 emits the `+100 kHz` DDS tone at scale `0.125`; TX2 remains at `-80 dB` with
+zero DDS scales. Search the ascending-power TX hardware-gain ladder `-35, -30, -25, -20, -15,
+-10 dB`. A candidate passes only when every frequency and all six selector states pass the
+existing continuity, `20 dB` SNR/contrast, coherence, phase, null-isolation and dual-RX
+headroom gates. The first complete pass is frozen. If any condition fails the conservative
+headroom gate, stop: no stronger candidate is safe to test under this protocol.
+
+The stimulus screens are not timing evidence or calibration artifacts. After selection, acquire
+a new independent two-replicate `5 MS/s` timing pair at `2.400 GHz` using the frozen RX/TX
+settings. Both members must pass every RF-only timing gate below. Only then acquire 15 one-second
+calibration artifacts: five forward-frequency, five reverse-frequency, and five rotated-order
+artifacts. Gain, DDS scale and TX level cannot change after the first admitted artifact. Any
+`ENODATA`, continuity, mute, identity, headroom or analysis failure quarantines that attempt and
+cannot be averaged away.
+
+The executable v2 chain is `qualify_hexcal_rx_gain.py --tx-stimulus-v2`, followed by
+`capture_hexcal_timing.py --protocol-v2`, its independent timing analyzer, and then
+`run_hexcal_calibration.py --protocol-v2`. The aggregation and audit programs accept the v2
+manifest kind and independently replay the stimulus ledger from its raw artifacts. The protocol
+implementation passed the full `388`-test repository suite; its firmware rebuild remained exactly
+`1,152` bytes with raw SHA-256
+`6d0a06f9160d91e6c04f9ba29e8d90c3aaf65e1386a6d7311fbd6689a103e6b3`, identical to the image
+already read back from the target.
+
+### Rejected v1 common-gain plan retained for provenance
 
 Use a bounded 100 kHz-offset TX1 pilot, manually fixed receive gain, metadata ABI 2 and a
 1 MS/s continuous capture. One artifact lasts exactly one second. The six center frequencies

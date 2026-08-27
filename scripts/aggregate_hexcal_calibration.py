@@ -730,12 +730,20 @@ def main() -> int:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError) as error:
         raise SystemExit(f"cannot load run manifest: {error}") from error
-    if (
-        not isinstance(manifest, dict)
-        or manifest.get("experiment_kind") != "hexcal_v1_tx1_center_calibration"
-    ):
-        raise SystemExit("manifest is not a hexcal-v1 calibration run")
+    if not isinstance(manifest, dict) or manifest.get("experiment_kind") not in {
+        "hexcal_v1_tx1_center_calibration",
+        "hexcal_v2_2g4_tx1_center_calibration",
+    }:
+        raise SystemExit("manifest is not a supported Hexcal calibration run")
     configuration = _mapping(manifest.get("configuration"), "configuration")
+    protocol_id = configuration.get("protocol_id", "hexcal-v1")
+    expected_experiment_kind = (
+        "hexcal_v2_2g4_tx1_center_calibration"
+        if protocol_id == "hexcal-v2-2g4-stimulus"
+        else "hexcal_v1_tx1_center_calibration"
+    )
+    if manifest.get("experiment_kind") != expected_experiment_kind:
+        raise SystemExit("manifest experiment kind differs from its protocol ID")
     if configuration.get("serial") != args.serial or configuration.get("uri") != args.uri:
         raise SystemExit("explicit serial/URI differ from the persisted run")
     if manifest.get("status") != "complete":
@@ -766,9 +774,19 @@ def main() -> int:
         raise SystemExit(f"cannot aggregate attested analyses: {error}") from error
     frequencies = scientific_payload["frequency_results"]
     overall_passed = bool(scientific_payload["quality_gate"]["passed"])
+    qualification_kind = "stimulus" if "stimulus_qualification" in configuration else "gain"
+    qualification = _mapping(
+        configuration.get(f"{qualification_kind}_qualification"),
+        f"{qualification_kind} qualification",
+    )
     output = {
         "schema": 1,
-        "calibration_kind": "hexcal_v1_tx1_center_end_to_end_complex_correction",
+        "calibration_kind": (
+            "hexcal_v2_2g4_tx1_center_end_to_end_complex_correction"
+            if protocol_id == "hexcal-v2-2g4-stimulus"
+            else "hexcal_v1_tx1_center_end_to_end_complex_correction"
+        ),
+        "protocol_id": protocol_id,
         "source_commit": implementation_commit,
         "aggregation_runtime_head": _git_commit(repository),
         "aggregation_python_runtime": {
@@ -785,7 +803,10 @@ def main() -> int:
         "profile_file_sha256": configuration["profile_file_sha256"],
         "profile_contract_sha256": configuration["profile_contract_sha256"],
         "receiver_gain_db": configuration["receiver_gain_db"],
-        "gain_qualification": configuration["gain_qualification"],
+        "qualification_kind": qualification_kind,
+        "qualification": dict(qualification),
+        "gain_qualification": configuration.get("gain_qualification"),
+        "stimulus_qualification": configuration.get("stimulus_qualification"),
         "firmware_evidence": configuration["firmware_evidence"],
         "pluto_plus_utils_source_attestation": dependency_attestation,
         "pluto_plus_utils_source_attestation_sha256": dependency_sha256,
@@ -801,8 +822,8 @@ def main() -> int:
         **scientific_payload,
         "scope_limit": (
             "Coefficients flatten the measured centered-TX1 near-field manifold at each "
-            "listed frequency. Do not treat them as geometry-only, interpolate through "
-            "5.8 GHz, or apply them as absolute phase across independent captures."
+            "listed frequency. Do not treat them as geometry-only or apply them as "
+            "absolute phase across independent captures."
         ),
     }
     output_path = run_root / OUTPUT_FILENAME

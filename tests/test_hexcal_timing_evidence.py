@@ -274,6 +274,34 @@ def test_analyzer_binds_full_dds_and_mute_readbacks_to_pair_plan(tmp_path: Path)
         analyze._validate_pair_plan_binding(corrupted_mute, capture_document)
 
 
+def test_analyzer_binds_v2_timing_settings_to_stimulus_qualification(
+    tmp_path: Path,
+) -> None:
+    root, capture_document = _pair_plan_fixture(tmp_path)
+    plan = root["pair_plan_contract"]
+    assert isinstance(plan, dict)
+    plan["plan_kind"] = "hexcal_v2_2g4_rf_timing_two_replicates"
+    plan["protocol_id"] = "hexcal-v2-2g4-stimulus"
+    plan["stimulus"]["receiver_gain_db"] = 20
+    capture_document["receiver_gain_db"] = 20
+    plan["stimulus_qualification"] = {
+        "path": "/evidence/stimulus.json",
+        "file_sha256": "f" * 64,
+        "fixed_receiver_gain_db": 20,
+        "selected_tx_hardware_gain_db": -40.0,
+        "dds_scale": 0.125,
+    }
+    root["pair_plan_contract_sha256"] = capture._canonical_sha256(plan)
+    analyze._validate_pair_plan_binding(root, capture_document)
+
+    corrupted = json.loads(json.dumps(root))
+    corrupted_plan = corrupted["pair_plan_contract"]
+    corrupted_plan["stimulus_qualification"]["selected_tx_hardware_gain_db"] = -35.0
+    corrupted["pair_plan_contract_sha256"] = capture._canonical_sha256(corrupted_plan)
+    with pytest.raises(ValueError, match="frozen qualification"):
+        analyze._validate_pair_plan_binding(corrupted, capture_document)
+
+
 def test_capture_record_stream_identity_is_bound_to_replayed_abi2_ledger() -> None:
     continuity = {
         "metadata_abi": 2,

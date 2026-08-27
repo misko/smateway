@@ -27,8 +27,10 @@ from smateway.hexcal import (
 )
 
 QUALIFICATION_KIND = "hexcal_v1_exploratory_rx_gain_qualification"
+STIMULUS_QUALIFICATION_KIND = "hexcal_v2_2g4_tx_stimulus_qualification"
 QUALIFICATION_SOURCE_FILES = (
     "profiles/hexcal-v1/control_profile.json",
+    "docs/hexray_tx_in_middle_calibration/data/hexcal-v2-2g4-stimulus.json",
     "scripts/qualify_hexcal_rx_gain.py",
     "src/smateway/capture_admission.py",
     "src/smateway/capture_continuity.py",
@@ -47,6 +49,15 @@ TOTAL_SAMPLES = SAMPLES_PER_FRAME * FRAME_COUNT
 KERNEL_BUFFERS = 8
 CONDITION_TIMEOUT_S = 30
 DEFAULT_GAIN_CANDIDATES_DB = tuple(range(63))
+DEFAULT_STIMULUS_TX_GAINS_DB = (-35.0, -30.0, -25.0, -20.0, -15.0, -10.0)
+STIMULUS_CENTER_FREQUENCIES_HZ = (
+    2_400_000_000,
+    2_423_000_000,
+    2_440_000_000,
+    2_458_000_000,
+    2_483_000_000,
+)
+STIMULUS_FIXED_RECEIVER_GAIN_DB = 20
 MINIMUM_COMPLETE_CYCLES = 150
 MINIMUM_DECODED_FRACTION = 0.98
 MINIMUM_MARKER_CONTRAST_DB = 20.0
@@ -106,6 +117,54 @@ class HexcalGainQualification:
         }
 
 
+@dataclass(frozen=True, slots=True)
+class HexcalStimulusQualification:
+    """Validated ledger that freezes the lowest sufficient TX1 stimulus."""
+
+    path: Path
+    file_sha256: str
+    qualification_id: str
+    board_id: str
+    serial: str
+    uri: str
+    source_commit: str
+    profile_file_sha256: str
+    profile_contract_sha256: str
+    firmware_evidence_sha256: str
+    pluto_plus_utils_source_attestation_sha256: str
+    center_frequencies_hz: tuple[int, ...]
+    fixed_receiver_gain_db: int
+    candidate_tx_hardware_gains_db: tuple[float, ...]
+    tested_tx_hardware_gains_db: tuple[float, ...]
+    selected_tx_hardware_gain_db: float
+    dds_scale: float
+    completed_at: str
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "path": str(self.path),
+            "file_sha256": self.file_sha256,
+            "qualification_id": self.qualification_id,
+            "board_id": self.board_id,
+            "serial": self.serial,
+            "uri": self.uri,
+            "source_commit": self.source_commit,
+            "profile_file_sha256": self.profile_file_sha256,
+            "profile_contract_sha256": self.profile_contract_sha256,
+            "firmware_evidence_sha256": self.firmware_evidence_sha256,
+            "pluto_plus_utils_source_attestation_sha256": (
+                self.pluto_plus_utils_source_attestation_sha256
+            ),
+            "center_frequencies_hz": list(self.center_frequencies_hz),
+            "fixed_receiver_gain_db": self.fixed_receiver_gain_db,
+            "candidate_tx_hardware_gains_db": list(self.candidate_tx_hardware_gains_db),
+            "tested_tx_hardware_gains_db": list(self.tested_tx_hardware_gains_db),
+            "selected_tx_hardware_gain_db": self.selected_tx_hardware_gain_db,
+            "dds_scale": self.dds_scale,
+            "completed_at": self.completed_at,
+        }
+
+
 def qualification_thresholds() -> dict[str, float | int]:
     """Return the reviewed exploratory admission thresholds."""
 
@@ -134,6 +193,19 @@ def _integer_list(value: object, label: str) -> tuple[int, ...]:
     if any(isinstance(item, bool) or not isinstance(item, int) for item in value):
         raise ValueError(f"{label} must be a non-empty integer list")
     return tuple(value)
+
+
+def _number_list(value: object, label: str) -> tuple[float, ...]:
+    if not isinstance(value, list) or not value:
+        raise ValueError(f"{label} must be a non-empty numeric list")
+    if any(
+        isinstance(item, bool)
+        or not isinstance(item, (int, float))
+        or not math.isfinite(float(item))
+        for item in value
+    ):
+        raise ValueError(f"{label} must be a non-empty finite numeric list")
+    return tuple(float(item) for item in value)
 
 
 def gain_headroom_passes(value: object) -> bool:
@@ -192,9 +264,7 @@ def _validate_artifact(value: object, *, ledger_root: Path) -> tuple[str, Path, 
         raise ValueError("gain-qualification artifact escaped its exploratory root")
     paths: dict[str, Path] = {}
     for prefix in ("data", "metadata"):
-        path = Path(str(evidence.get(f"{prefix}_path", ""))).expanduser().resolve(
-            strict=True
-        )
+        path = Path(str(evidence.get(f"{prefix}_path", ""))).expanduser().resolve(strict=True)
         if (
             not path.is_file()
             or path.parent != artifact_root
@@ -229,8 +299,7 @@ def _condition_pass_result(
     reasons = list(quality["global_rejection_reasons"])
     for state in quality["states"]:
         reasons.extend(
-            f"{str(state['name']).lower()}_{reason}"
-            for reason in state["rejection_reasons"]
+            f"{str(state['name']).lower()}_{reason}" for reason in state["rejection_reasons"]
         )
     if not gain_headroom_passes(headroom):
         reasons.append("conservative_dual_rx_headroom_failed")
@@ -261,9 +330,7 @@ def replay_hexcal_gain_artifact(
         raise ValueError("gain-qualification metadata root must be an object")
     global_metadata = _mapping(metadata.get("global"), "gain artifact global metadata")
     radio = _mapping(global_metadata.get("pluto:radio"), "gain artifact radio metadata")
-    capture_metadata = _mapping(
-        metadata.get("pluto:capture"), "gain artifact capture metadata"
-    )
+    capture_metadata = _mapping(metadata.get("pluto:capture"), "gain artifact capture metadata")
     initial_settings = _mapping(
         capture_metadata.get("initial_settings"), "gain artifact initial settings"
     )
@@ -276,8 +343,7 @@ def replay_hexcal_gain_artifact(
         or radio.get("uri") != expected_uri
         or capture_metadata.get("sample_count") != TOTAL_SAMPLES
         or capture_metadata.get("receiver_count") != 2
-        or initial_settings.get("center_frequency_hz")
-        != expected_center_frequency_hz
+        or initial_settings.get("center_frequency_hz") != expected_center_frequency_hz
         or initial_settings.get("sample_rate_hz") != SAMPLE_RATE_HZ
         or initial_settings.get("bandwidth_hz") != BANDWIDTH_HZ
         or initial_settings.get("gain_mode") != "manual"
@@ -329,13 +395,9 @@ def replay_hexcal_gain_artifact(
         "continuity_audit": continuity,
         "adc_headroom_admission": headroom,
         "analysis_error": analysis_error,
-        "alignment": {"contrast_db": 0.0}
-        if analysis is None
-        else dict(analysis["alignment"]),
+        "alignment": {"contrast_db": 0.0} if analysis is None else dict(analysis["alignment"]),
         "valid_cycle_count": 0 if analysis is None else analysis["valid_cycle_count"],
-        "decoded_cycle_fraction": (
-            0.0 if analysis is None else analysis["decoded_cycle_fraction"]
-        ),
+        "decoded_cycle_fraction": (0.0 if analysis is None else analysis["decoded_cycle_fraction"]),
         "all_six_states_observed": (
             [state.get("name") for state in states] == list(EXPECTED_STATE_NAMES)
         ),
@@ -471,8 +533,7 @@ def load_hexcal_gain_qualification(
     if (
         candidates[0] != 0
         or any(
-            second != first + 1
-            for first, second in zip(candidates, candidates[1:], strict=False)
+            second != first + 1 for first, second in zip(candidates, candidates[1:], strict=False)
         )
         or any(not 0 <= value <= 62 for value in candidates)
     ):
@@ -481,18 +542,14 @@ def load_hexcal_gain_qualification(
         configuration.get("pluto_plus_utils_source_attestation"),
         "qualification dependency attestation",
     )
-    dependency_sha = configuration.get(
-        "pluto_plus_utils_source_attestation_sha256"
-    )
+    dependency_sha = configuration.get("pluto_plus_utils_source_attestation_sha256")
     if dependency_sha != canonical_json_sha256(dependency):
         raise ValueError("qualification dependency attestation SHA-256 is inconsistent")
     source_attestation = _mapping(
         configuration.get("source_attestation"),
         "qualification source attestation",
     )
-    python_runtime = _mapping(
-        configuration.get("python_runtime"), "qualification Python runtime"
-    )
+    python_runtime = _mapping(configuration.get("python_runtime"), "qualification Python runtime")
     firmware_evidence = _mapping(
         configuration.get("firmware_evidence"), "qualification firmware evidence"
     )
@@ -503,16 +560,13 @@ def load_hexcal_gain_qualification(
         or configuration.get("source_commit") != expected_source_commit
         or dict(source_attestation) != dict(expected_source_attestation)
         or configuration.get("profile_file_sha256") != expected_profile.file_sha256
-        or configuration.get("profile_contract_sha256")
-        != expected_profile.contract_sha256
-        or configuration.get("firmware_evidence_sha256")
-        != expected_firmware_evidence_sha256
+        or configuration.get("profile_contract_sha256") != expected_profile.contract_sha256
+        or configuration.get("firmware_evidence_sha256") != expected_firmware_evidence_sha256
         or firmware_evidence.get("file_sha256") != expected_firmware_evidence_sha256
         or firmware_evidence.get("board_id") != expected_board_id
         or firmware_evidence.get("source_commit") != expected_source_commit
         or firmware_evidence.get("profile_file_sha256") != expected_profile.file_sha256
-        or firmware_evidence.get("profile_contract_sha256")
-        != expected_profile.contract_sha256
+        or firmware_evidence.get("profile_contract_sha256") != expected_profile.contract_sha256
         or dependency_sha != expected_pluto_plus_utils_source_attestation_sha256
         or frequencies != expected_frequencies
         or configuration.get("sample_rate_hz") != SAMPLE_RATE_HZ
@@ -607,9 +661,7 @@ def load_hexcal_gain_qualification(
         raise ValueError("RX-gain selection policy is unsupported")
     if root.get("calibration_gain_is_fixed") is not True:
         raise ValueError("RX-gain ledger does not freeze gain for the calibration")
-    if not _mute_passed(
-        root.get("preflight_mute"), serial=expected_serial, purpose="preflight"
-    ):
+    if not _mute_passed(root.get("preflight_mute"), serial=expected_serial, purpose="preflight"):
         raise ValueError("RX-gain qualification lacks an exact preflight mute")
     if not _mute_passed(root.get("final_mute"), serial=expected_serial, purpose="final"):
         raise ValueError("RX-gain qualification lacks an exact final mute")
@@ -636,21 +688,245 @@ def load_hexcal_gain_qualification(
     )
 
 
+def load_hexcal_stimulus_qualification(
+    path: Path,
+    *,
+    expected_board_id: str,
+    expected_serial: str,
+    expected_uri: str,
+    expected_source_commit: str,
+    expected_source_attestation: Mapping[str, Any],
+    expected_profile: HexcalProfile,
+    expected_firmware_evidence_sha256: str,
+    expected_pluto_plus_utils_source_attestation_sha256: str,
+    expected_center_frequencies_hz: Sequence[int] = STIMULUS_CENTER_FREQUENCIES_HZ,
+    expected_receiver_gain_db: int = STIMULUS_FIXED_RECEIVER_GAIN_DB,
+    expected_candidate_tx_hardware_gains_db: Sequence[float] = (DEFAULT_STIMULUS_TX_GAINS_DB),
+    expected_dds_scale: float = 0.125,
+) -> HexcalStimulusQualification:
+    """Replay and validate the first all-band passing TX1 stimulus ledger."""
+
+    resolved = path.expanduser().resolve(strict=True)
+    try:
+        document = json.loads(resolved.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise ValueError(f"cannot load TX-stimulus qualification: {error}") from error
+    root = _mapping(document, "TX-stimulus qualification root")
+    configuration = _mapping(root.get("configuration"), "TX-stimulus qualification configuration")
+    if (
+        root.get("schema") != 1
+        or root.get("qualification_kind") != STIMULUS_QUALIFICATION_KIND
+        or root.get("status") != "passed"
+    ):
+        raise ValueError("TX-stimulus qualification is not a passed supported ledger")
+    qualification_id = root.get("qualification_id")
+    completed_at = root.get("completed_at")
+    if not isinstance(qualification_id, str) or not qualification_id:
+        raise ValueError("TX-stimulus qualification ID is malformed")
+    if not isinstance(completed_at, str) or not completed_at:
+        raise ValueError("TX-stimulus qualification completion time is malformed")
+
+    expected_frequencies = tuple(int(value) for value in expected_center_frequencies_hz)
+    expected_candidates = tuple(float(value) for value in expected_candidate_tx_hardware_gains_db)
+    frequencies = _integer_list(configuration.get("center_frequencies_hz"), "stimulus frequencies")
+    candidates = _number_list(
+        configuration.get("candidate_tx_hardware_gains_db"),
+        "stimulus TX-gain candidates",
+    )
+    if (
+        frequencies != expected_frequencies
+        or candidates != expected_candidates
+        or len(set(frequencies)) != len(frequencies)
+        or len(set(candidates)) != len(candidates)
+        or any(second <= first for first, second in zip(candidates, candidates[1:], strict=False))
+        or any(not -80.0 <= value <= 0.0 for value in candidates)
+    ):
+        raise ValueError("TX-stimulus frequencies or ascending candidate ladder changed")
+    if expected_receiver_gain_db != STIMULUS_FIXED_RECEIVER_GAIN_DB:
+        raise ValueError("TX-stimulus qualification requires the frozen 20 dB RX gain")
+
+    dependency = _mapping(
+        configuration.get("pluto_plus_utils_source_attestation"),
+        "stimulus dependency attestation",
+    )
+    dependency_sha = configuration.get("pluto_plus_utils_source_attestation_sha256")
+    source_attestation = _mapping(
+        configuration.get("source_attestation"),
+        "stimulus source attestation",
+    )
+    python_runtime = _mapping(configuration.get("python_runtime"), "stimulus Python runtime")
+    firmware_evidence = _mapping(
+        configuration.get("firmware_evidence"), "stimulus firmware evidence"
+    )
+    if dependency_sha != canonical_json_sha256(dependency):
+        raise ValueError("stimulus dependency attestation SHA-256 is inconsistent")
+    if (
+        configuration.get("board_id") != expected_board_id
+        or configuration.get("serial") != expected_serial
+        or configuration.get("uri") != expected_uri
+        or configuration.get("source_commit") != expected_source_commit
+        or dict(source_attestation) != dict(expected_source_attestation)
+        or configuration.get("profile_file_sha256") != expected_profile.file_sha256
+        or configuration.get("profile_contract_sha256") != expected_profile.contract_sha256
+        or configuration.get("firmware_evidence_sha256") != expected_firmware_evidence_sha256
+        or firmware_evidence.get("file_sha256") != expected_firmware_evidence_sha256
+        or firmware_evidence.get("board_id") != expected_board_id
+        or firmware_evidence.get("source_commit") != expected_source_commit
+        or firmware_evidence.get("profile_file_sha256") != expected_profile.file_sha256
+        or firmware_evidence.get("profile_contract_sha256") != expected_profile.contract_sha256
+        or dependency_sha != expected_pluto_plus_utils_source_attestation_sha256
+        or configuration.get("fixed_receiver_gain_db") != expected_receiver_gain_db
+        or configuration.get("sample_rate_hz") != SAMPLE_RATE_HZ
+        or configuration.get("bandwidth_hz") != BANDWIDTH_HZ
+        or configuration.get("samples_per_frame") != SAMPLES_PER_FRAME
+        or configuration.get("frame_count") != FRAME_COUNT
+        or configuration.get("kernel_buffers") != KERNEL_BUFFERS
+        or configuration.get("condition_timeout_s") != CONDITION_TIMEOUT_S
+        or python_runtime.get("requested_executable") != PINNED_PYTHON
+        or python_runtime.get("sys_executable") != PINNED_PYTHON
+        or python_runtime.get("sys_prefix") != PINNED_PYTHON_PREFIX
+        or python_runtime.get("smateway_source_root") != EXPECTED_SMATEWAY_SOURCE_ROOT
+        or python_runtime.get("hexcal_gain_module_path") != EXPECTED_HEXCAL_GAIN_MODULE
+        or python_runtime.get("auto_reexec_before_pluto_import") is not True
+        or configuration.get("tx_channel") != 0
+        or configuration.get("tx_port") != "TX1"
+        or configuration.get("tx2_policy") != "muted_-80dB_and_zero_DDS"
+        or configuration.get("dds_scale") != expected_dds_scale
+        or configuration.get("tone_offset_hz") != TONE_OFFSET_HZ
+        or configuration.get("thresholds") != qualification_thresholds()
+    ):
+        raise ValueError("TX-stimulus qualification identity or exact plan differs")
+
+    expected_plan = [
+        {
+            "tx_gain_index": gain_index,
+            "frequency_index": frequency_index,
+            "receiver_gain_db": expected_receiver_gain_db,
+            "tx_hardware_gain_db": gain,
+            "center_frequency_hz": frequency,
+            "tx_channel": 0,
+            "tx_port": "TX1",
+        }
+        for gain_index, gain in enumerate(candidates)
+        for frequency_index, frequency in enumerate(frequencies)
+    ]
+    if root.get("plan") != expected_plan:
+        raise ValueError("TX-stimulus pre-RF execution plan changed")
+
+    raw_records = root.get("conditions")
+    if not isinstance(raw_records, list) or not raw_records:
+        raise ValueError("TX-stimulus qualification has no condition evidence")
+    records: dict[tuple[float, int], Mapping[str, Any]] = {}
+    for raw_record in raw_records:
+        record = _mapping(raw_record, "TX-stimulus condition")
+        raw_gain = record.get("tx_hardware_gain_db")
+        frequency = record.get("center_frequency_hz")
+        receiver_gain = record.get("receiver_gain_db")
+        if (
+            isinstance(raw_gain, bool)
+            or not isinstance(raw_gain, (int, float))
+            or isinstance(frequency, bool)
+            or not isinstance(frequency, int)
+            or receiver_gain != expected_receiver_gain_db
+        ):
+            raise ValueError("TX-stimulus condition identity is malformed")
+        gain = float(raw_gain)
+        key = (gain, frequency)
+        if gain not in candidates or frequency not in frequencies or key in records:
+            raise ValueError("TX-stimulus condition is outside or duplicates the plan")
+        records[key] = record
+
+    tested = _number_list(root.get("tested_tx_hardware_gains_db"), "tested stimulus gain list")
+    raw_selected = root.get("selected_tx_hardware_gain_db")
+    if isinstance(raw_selected, bool) or not isinstance(raw_selected, (int, float)):
+        raise ValueError("selected TX-stimulus gain is malformed")
+    selected = float(raw_selected)
+    if selected not in candidates or tested != candidates[: candidates.index(selected) + 1]:
+        raise ValueError("TX-stimulus selection is not a tested ascending prefix")
+    expected_keys = {(gain, frequency) for gain in tested for frequency in frequencies}
+    if set(records) != expected_keys:
+        raise ValueError("TX-stimulus matrix is incomplete or contains extra rows")
+
+    per_gain_passed: dict[float, bool] = {}
+    ledger_root = resolved.parent
+    for gain in tested:
+        outcomes: list[bool] = []
+        for frequency in frequencies:
+            record = records[(gain, frequency)]
+            if not gain_headroom_passes(record.get("live_adc_headroom_admission")):
+                raise ValueError("passed TX-stimulus ledger crossed a headroom stop boundary")
+            outcomes.append(
+                _record_passes(
+                    record,
+                    serial=expected_serial,
+                    uri=expected_uri,
+                    tx_hardware_gain_db=gain,
+                    dds_scale=expected_dds_scale,
+                    ledger_root=ledger_root,
+                    profile=expected_profile,
+                )
+            )
+        per_gain_passed[gain] = all(outcomes)
+    reproduced = next((gain for gain in tested if per_gain_passed[gain]), None)
+    if reproduced != selected or any(per_gain_passed[gain] for gain in tested[:-1]):
+        raise ValueError("TX-stimulus ledger does not prove the lowest sufficient level")
+    if (
+        root.get("selection_policy")
+        != "lowest_power_ascending_tx_gain_passing_every_frequency_and_state"
+        or root.get("receiver_gain_is_fixed") is not True
+        or root.get("selected_stimulus_is_frozen") is not True
+    ):
+        raise ValueError("TX-stimulus selection/freeze policy is unsupported")
+    if not _mute_passed(root.get("preflight_mute"), serial=expected_serial, purpose="preflight"):
+        raise ValueError("TX-stimulus qualification lacks an exact preflight mute")
+    if not _mute_passed(root.get("final_mute"), serial=expected_serial, purpose="final"):
+        raise ValueError("TX-stimulus qualification lacks an exact final mute")
+
+    return HexcalStimulusQualification(
+        path=resolved,
+        file_sha256=sha256_path(resolved),
+        qualification_id=qualification_id,
+        board_id=expected_board_id,
+        serial=expected_serial,
+        uri=expected_uri,
+        source_commit=expected_source_commit,
+        profile_file_sha256=expected_profile.file_sha256,
+        profile_contract_sha256=expected_profile.contract_sha256,
+        firmware_evidence_sha256=expected_firmware_evidence_sha256,
+        pluto_plus_utils_source_attestation_sha256=(
+            expected_pluto_plus_utils_source_attestation_sha256
+        ),
+        center_frequencies_hz=frequencies,
+        fixed_receiver_gain_db=expected_receiver_gain_db,
+        candidate_tx_hardware_gains_db=candidates,
+        tested_tx_hardware_gains_db=tested,
+        selected_tx_hardware_gain_db=selected,
+        dds_scale=expected_dds_scale,
+        completed_at=completed_at,
+    )
+
+
 __all__ = [
     "BANDWIDTH_HZ",
     "CONDITION_TIMEOUT_S",
     "DEFAULT_GAIN_CANDIDATES_DB",
+    "DEFAULT_STIMULUS_TX_GAINS_DB",
     "FRAME_COUNT",
     "HexcalGainQualification",
+    "HexcalStimulusQualification",
     "KERNEL_BUFFERS",
     "MAXIMUM_PEAK_COMPONENT_COUNTS",
     "QUALIFICATION_KIND",
     "QUALIFICATION_SOURCE_FILES",
     "SAMPLES_PER_FRAME",
     "SAMPLE_RATE_HZ",
+    "STIMULUS_CENTER_FREQUENCIES_HZ",
+    "STIMULUS_FIXED_RECEIVER_GAIN_DB",
+    "STIMULUS_QUALIFICATION_KIND",
     "TONE_OFFSET_HZ",
     "TOTAL_SAMPLES",
     "load_hexcal_gain_qualification",
+    "load_hexcal_stimulus_qualification",
     "gain_headroom_passes",
     "qualification_thresholds",
     "replay_hexcal_gain_artifact",

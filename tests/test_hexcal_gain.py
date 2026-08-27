@@ -22,13 +22,17 @@ from smateway.hexcal import (
 from smateway.hexcal_gain import (
     BANDWIDTH_HZ,
     CONDITION_TIMEOUT_S,
+    DEFAULT_STIMULUS_TX_GAINS_DB,
     FRAME_COUNT,
     KERNEL_BUFFERS,
     QUALIFICATION_KIND,
     SAMPLE_RATE_HZ,
     SAMPLES_PER_FRAME,
+    STIMULUS_FIXED_RECEIVER_GAIN_DB,
+    STIMULUS_QUALIFICATION_KIND,
     TOTAL_SAMPLES,
     load_hexcal_gain_qualification,
+    load_hexcal_stimulus_qualification,
     qualification_thresholds,
     replay_hexcal_gain_artifact,
 )
@@ -71,9 +75,7 @@ def _metadata(*, artifact_id: str, gain: int, frequency: int) -> dict[str, Any]:
                 "stream_id": 44,
                 "buffer_sequence": index,
                 "first_sample_sequence": first_sample + sample_start,
-                "last_sample_sequence_exclusive": first_sample
-                + sample_start
-                + SAMPLES_PER_FRAME,
+                "last_sample_sequence_exclusive": first_sample + sample_start + SAMPLES_PER_FRAME,
                 "metadata_flags": REQUIRED_METADATA_FLAGS,
                 "missing_samples_before": 0,
                 "sample_time_realtime_start_ns": time_start,
@@ -129,13 +131,9 @@ def _samples(*, sufficient: bool, seed: int) -> np.ndarray:
     carrier = np.exp(2j * np.pi * 100_000.0 / SAMPLE_RATE_HZ * sample_numbers)
     rng = np.random.default_rng(seed)
     noise_sigma = 4.0 if sufficient else 15.0
-    noise = noise_sigma * (
-        rng.normal(size=TOTAL_SAMPLES) + 1j * rng.normal(size=TOTAL_SAMPLES)
-    )
+    noise = noise_sigma * (rng.normal(size=TOTAL_SAMPLES) + 1j * rng.normal(size=TOTAL_SAMPLES))
     rx2 = envelope * carrier + noise
-    rx1 = 3.0 * (
-        rng.normal(size=TOTAL_SAMPLES) + 1j * rng.normal(size=TOTAL_SAMPLES)
-    )
+    rx1 = 3.0 * (rng.normal(size=TOTAL_SAMPLES) + 1j * rng.normal(size=TOTAL_SAMPLES))
     return np.stack((rx1, rx2))
 
 
@@ -150,8 +148,7 @@ def _artifact(
     seed = sum(label.encode())
     data.write_bytes(complex_to_ci16(_samples(sufficient=sufficient, seed=seed)).tobytes())
     metadata.write_text(
-        json.dumps(_metadata(artifact_id=artifact_id, gain=gain, frequency=frequency))
-        + "\n",
+        json.dumps(_metadata(artifact_id=artifact_id, gain=gain, frequency=frequency)) + "\n",
         encoding="utf-8",
     )
     return {
@@ -166,8 +163,15 @@ def _artifact(
     }
 
 
-def _record(root: Path, gain: int, frequency: int, *, passed: bool) -> dict[str, Any]:
-    label = f"g{gain}-f{frequency}"
+def _record(
+    root: Path,
+    gain: int,
+    frequency: int,
+    *,
+    passed: bool,
+    tx_gain: float = -40.0,
+) -> dict[str, Any]:
+    label = f"g{gain}-tx{tx_gain}-f{frequency}"
     artifact = _artifact(
         root,
         label,
@@ -188,6 +192,7 @@ def _record(root: Path, gain: int, frequency: int, *, passed: bool) -> dict[str,
     assert replayed["passed"] is passed
     return {
         "receiver_gain_db": gain,
+        "tx_hardware_gain_db": tx_gain,
         "center_frequency_hz": frequency,
         "status": "complete",
         "passed": passed,
@@ -198,8 +203,8 @@ def _record(root: Path, gain: int, frequency: int, *, passed: bool) -> dict[str,
             "tx_channel": 0,
             "tx_port": "TX1",
             "kernel_buffers": KERNEL_BUFFERS,
-            "tx_hardware_gain_db_requested": -40.0,
-            "tx_hardware_gain_readback_db_by_channel": [-40.0, -80.0],
+            "tx_hardware_gain_db_requested": tx_gain,
+            "tx_hardware_gain_readback_db_by_channel": [tx_gain, -80.0],
             "tx2_gain_readback_provenance": (
                 "pluto_plus_utils_capture_helper_internal_exact_readback"
             ),
@@ -229,9 +234,7 @@ def _record(root: Path, gain: int, frequency: int, *, passed: bool) -> dict[str,
             "channels": [0, 1],
             "requested_gain_db": gain,
             "verified_tolerance_db": 0.25,
-            "provenance": (
-                "pinned_helper_verified_each_channel_within_requested_gain_tolerance"
-            ),
+            "provenance": ("pinned_helper_verified_each_channel_within_requested_gain_tolerance"),
         },
         "live_adc_headroom_admission": deepcopy(replayed["adc_headroom_admission"]),
         "replayed_artifact_analysis": replayed,
@@ -268,9 +271,7 @@ def _document(root: Path, *, lower_gain_passes: bool = False) -> dict[str, Any]:
             },
             "firmware_evidence_sha256": FIRMWARE_SHA,
             "pluto_plus_utils_source_attestation": DEPENDENCY,
-            "pluto_plus_utils_source_attestation_sha256": canonical_json_sha256(
-                DEPENDENCY
-            ),
+            "pluto_plus_utils_source_attestation_sha256": canonical_json_sha256(DEPENDENCY),
             "python_runtime": {
                 "requested_executable": "/home/pi/pluto-plus-utils/.venv/bin/python",
                 "sys_executable": "/home/pi/pluto-plus-utils/.venv/bin/python",
@@ -326,13 +327,193 @@ def _load(path: Path) -> Any:
         expected_source_attestation=SOURCE_ATTESTATION,
         expected_profile=PROFILE,
         expected_firmware_evidence_sha256=FIRMWARE_SHA,
-        expected_pluto_plus_utils_source_attestation_sha256=canonical_json_sha256(
-            DEPENDENCY
-        ),
+        expected_pluto_plus_utils_source_attestation_sha256=canonical_json_sha256(DEPENDENCY),
         expected_center_frequencies_hz=FREQUENCIES,
         expected_tx_hardware_gain_db=-40.0,
         expected_dds_scale=0.125,
     )
+
+
+def _stimulus_document(root: Path, *, lower_tx_passes: bool = False) -> dict[str, Any]:
+    candidates = (-35.0, -30.0)
+    conditions = [
+        _record(
+            root,
+            STIMULUS_FIXED_RECEIVER_GAIN_DB,
+            frequency,
+            passed=tx_gain == -30.0 or lower_tx_passes,
+            tx_gain=tx_gain,
+        )
+        for tx_gain in candidates
+        for frequency in FREQUENCIES
+    ]
+    return {
+        "schema": 1,
+        "qualification_kind": STIMULUS_QUALIFICATION_KIND,
+        "qualification_id": "stimulus-a",
+        "status": "passed",
+        "completed_at": "2026-08-27T12:00:00+00:00",
+        "configuration": {
+            "board_id": "board-a",
+            "serial": "serial-a",
+            "uri": "usb:1.2.3",
+            "source_commit": SOURCE_COMMIT,
+            "source_attestation": SOURCE_ATTESTATION,
+            "profile_file_sha256": PROFILE.file_sha256,
+            "profile_contract_sha256": PROFILE.contract_sha256,
+            "firmware_evidence": {
+                "file_sha256": FIRMWARE_SHA,
+                "board_id": "board-a",
+                "source_commit": SOURCE_COMMIT,
+                "profile_file_sha256": PROFILE.file_sha256,
+                "profile_contract_sha256": PROFILE.contract_sha256,
+            },
+            "firmware_evidence_sha256": FIRMWARE_SHA,
+            "pluto_plus_utils_source_attestation": DEPENDENCY,
+            "pluto_plus_utils_source_attestation_sha256": canonical_json_sha256(DEPENDENCY),
+            "python_runtime": {
+                "requested_executable": "/home/pi/pluto-plus-utils/.venv/bin/python",
+                "sys_executable": "/home/pi/pluto-plus-utils/.venv/bin/python",
+                "sys_prefix": "/home/pi/pluto-plus-utils/.venv",
+                "smateway_source_root": "/home/pi/smateway/src",
+                "hexcal_gain_module_path": "/home/pi/smateway/src/smateway/hexcal_gain.py",
+                "auto_reexec_before_pluto_import": True,
+            },
+            "center_frequencies_hz": list(FREQUENCIES),
+            "candidate_tx_hardware_gains_db": list(candidates),
+            "fixed_receiver_gain_db": STIMULUS_FIXED_RECEIVER_GAIN_DB,
+            "sample_rate_hz": SAMPLE_RATE_HZ,
+            "bandwidth_hz": BANDWIDTH_HZ,
+            "samples_per_frame": SAMPLES_PER_FRAME,
+            "frame_count": FRAME_COUNT,
+            "kernel_buffers": KERNEL_BUFFERS,
+            "condition_timeout_s": CONDITION_TIMEOUT_S,
+            "tone_offset_hz": 100_000,
+            "tx_channel": 0,
+            "tx_port": "TX1",
+            "tx2_policy": "muted_-80dB_and_zero_DDS",
+            "dds_scale": 0.125,
+            "thresholds": qualification_thresholds(),
+        },
+        "plan": [
+            {
+                "tx_gain_index": gain_index,
+                "frequency_index": frequency_index,
+                "receiver_gain_db": STIMULUS_FIXED_RECEIVER_GAIN_DB,
+                "tx_hardware_gain_db": gain,
+                "center_frequency_hz": frequency,
+                "tx_channel": 0,
+                "tx_port": "TX1",
+            }
+            for gain_index, gain in enumerate(candidates)
+            for frequency_index, frequency in enumerate(FREQUENCIES)
+        ],
+        "conditions": conditions,
+        "tested_tx_hardware_gains_db": list(candidates),
+        "selected_tx_hardware_gain_db": -30.0,
+        "selection_policy": ("lowest_power_ascending_tx_gain_passing_every_frequency_and_state"),
+        "receiver_gain_is_fixed": True,
+        "selected_stimulus_is_frozen": True,
+        "preflight_mute": _mute("preflight"),
+        "final_mute": _mute("final"),
+    }
+
+
+def _load_stimulus(path: Path) -> Any:
+    return load_hexcal_stimulus_qualification(
+        path,
+        expected_board_id="board-a",
+        expected_serial="serial-a",
+        expected_uri="usb:1.2.3",
+        expected_source_commit=SOURCE_COMMIT,
+        expected_source_attestation=SOURCE_ATTESTATION,
+        expected_profile=PROFILE,
+        expected_firmware_evidence_sha256=FIRMWARE_SHA,
+        expected_pluto_plus_utils_source_attestation_sha256=canonical_json_sha256(DEPENDENCY),
+        expected_center_frequencies_hz=FREQUENCIES,
+        expected_receiver_gain_db=STIMULUS_FIXED_RECEIVER_GAIN_DB,
+        expected_candidate_tx_hardware_gains_db=(-35.0, -30.0),
+        expected_dds_scale=0.125,
+    )
+
+
+def test_stimulus_protocol_defaults_are_frozen() -> None:
+    assert DEFAULT_STIMULUS_TX_GAINS_DB == (
+        -35.0,
+        -30.0,
+        -25.0,
+        -20.0,
+        -15.0,
+        -10.0,
+    )
+    assert STIMULUS_FIXED_RECEIVER_GAIN_DB == 20
+
+
+def test_machine_readable_stimulus_protocol_matches_implementation() -> None:
+    document = json.loads(
+        (
+            REPOSITORY / "docs/hexray_tx_in_middle_calibration/data/hexcal-v2-2g4-stimulus.json"
+        ).read_text(encoding="utf-8")
+    )
+    screen = document["stimulus_screen"]
+    timing = document["timing_qualification"]
+    matrix = document["calibration_matrix"]
+
+    assert document["protocol_id"] == "hexcal-v2-2g4-stimulus"
+    assert tuple(document["center_frequencies_hz"]) == (
+        2_400_000_000,
+        2_423_000_000,
+        2_440_000_000,
+        2_458_000_000,
+        2_483_000_000,
+    )
+    assert tuple(screen["candidate_tx_hardware_gains_db"]) == (DEFAULT_STIMULUS_TX_GAINS_DB)
+    assert screen["receiver_gain_db"] == STIMULUS_FIXED_RECEIVER_GAIN_DB
+    assert screen["gates"] == {
+        **qualification_thresholds(),
+        "clipped_samples": 0,
+    }
+    assert timing["replicate_count"] == 2
+    assert timing["sample_rate_hz"] == 5_000_000
+    assert timing["must_use_new_artifacts_after_stimulus_selection"] is True
+    assert matrix["artifact_count"] == 15
+    assert sum(len(order) for order in matrix["orders_hz"]) == 15
+    assert len({tuple(order) for order in matrix["orders_hz"]}) == 3
+
+
+def test_stimulus_loader_reproduces_lowest_all_band_tx_level(tmp_path: Path) -> None:
+    path = tmp_path / "stimulus-qualification.json"
+    path.write_text(json.dumps(_stimulus_document(tmp_path)), encoding="utf-8")
+
+    evidence = _load_stimulus(path)
+
+    assert evidence.selected_tx_hardware_gain_db == -30.0
+    assert evidence.tested_tx_hardware_gains_db == (-35.0, -30.0)
+    assert evidence.fixed_receiver_gain_db == 20
+    assert evidence.file_sha256 == sha256_path(path)
+
+
+def test_stimulus_loader_rejects_skipped_lower_power_pass(tmp_path: Path) -> None:
+    path = tmp_path / "stimulus-qualification.json"
+    path.write_text(
+        json.dumps(_stimulus_document(tmp_path, lower_tx_passes=True)),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="lowest sufficient"):
+        _load_stimulus(path)
+
+
+def test_stimulus_loader_rejects_crossing_headroom_stop(tmp_path: Path) -> None:
+    document = _stimulus_document(tmp_path)
+    document["conditions"][0]["live_adc_headroom_admission"]["receivers"][1][
+        "peak_abs_component_counts"
+    ] = 1_301.0
+    path = tmp_path / "stimulus-qualification.json"
+    path.write_text(json.dumps(document), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="headroom stop boundary"):
+        _load_stimulus(path)
 
 
 def test_loader_reproduces_lowest_sufficient_gain_and_hashes_raw_evidence(

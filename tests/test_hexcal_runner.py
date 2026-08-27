@@ -86,6 +86,31 @@ def _gain_qualification(frequencies: tuple[int, ...]) -> Any:
     )
 
 
+def _stimulus_qualification() -> Any:
+    return runner.HexcalStimulusQualification(
+        path=Path("/evidence/stimulus-qualification.json"),
+        file_sha256="7" * 64,
+        qualification_id="stimulus-a",
+        board_id="board-a",
+        serial="serial-a",
+        uri="usb:1.2.3",
+        source_commit=SOURCE_COMMIT,
+        profile_file_sha256=PROFILE_SHA,
+        profile_contract_sha256="b" * 64,
+        firmware_evidence_sha256="c" * 64,
+        pluto_plus_utils_source_attestation_sha256=runner.canonical_json_sha256(
+            DEPENDENCY_ATTESTATION
+        ),
+        center_frequencies_hz=runner.STIMULUS_CENTER_FREQUENCIES_HZ,
+        fixed_receiver_gain_db=20,
+        candidate_tx_hardware_gains_db=(-35.0, -30.0),
+        tested_tx_hardware_gains_db=(-35.0, -30.0),
+        selected_tx_hardware_gain_db=-30.0,
+        dds_scale=0.125,
+        completed_at="2026-08-26T11:59:00+00:00",
+    )
+
+
 def _configuration(
     *,
     rounds: int = 3,
@@ -114,6 +139,34 @@ def _configuration(
             firmware_evidence=_firmware_evidence(),
             gain_qualification=_gain_qualification(frequencies),
             allow_experimental_5g8=5_800_000_000 in frequencies,
+        ),
+    )
+
+
+def _v2_configuration() -> dict[str, Any]:
+    return cast(
+        dict[str, Any],
+        runner._configuration(
+            rounds=3,
+            max_attempts=3,
+            board_id="board-a",
+            serial="serial-a",
+            uri="usb:1.2.3",
+            python=PYTHON,
+            profile=PROFILE,
+            profile_file_sha256=PROFILE_SHA,
+            profile_contract_sha256="b" * 64,
+            timeout_s=180,
+            receiver_gain_db=20,
+            tx_hardware_gain_db=-30.0,
+            dds_scale=0.125,
+            center_frequencies_hz=runner.STIMULUS_CENTER_FREQUENCIES_HZ,
+            source_commit=SOURCE_COMMIT,
+            pluto_plus_utils_source_attestation=DEPENDENCY_ATTESTATION,
+            firmware_evidence=_firmware_evidence(),
+            gain_qualification=None,
+            stimulus_qualification=_stimulus_qualification(),
+            allow_experimental_5g8=False,
         ),
     )
 
@@ -199,15 +252,38 @@ def test_default_plan_is_three_rounds_six_frequencies_tx1_only() -> None:
     assert "--allow-experimental-5g8" in five_g8["capture_command"]
     assert "--serial" in five_g8["capture_command"]
     assert "--uri" in five_g8["capture_command"]
-    parsed_capture = capture_program._parser().parse_args(
-        five_g8["capture_command"][2:]
-    )
+    parsed_capture = capture_program._parser().parse_args(five_g8["capture_command"][2:])
     assert parsed_capture.board_id == "board-a"
     assert parsed_capture.serial == "serial-a"
     assert parsed_capture.uri == "usb:1.2.3"
     assert parsed_capture.center_frequency_hz == 5_800_000_000
     assert parsed_capture.receiver_gain_db == 0
     assert runner.ARTIFACT_TOKEN in five_g8["reanalysis_command_template"]
+
+
+def test_v2_plan_is_exact_fifteen_artifact_five_frequency_matrix() -> None:
+    configuration = _v2_configuration()
+    plan = runner._execution_plan(configuration, REPOSITORY)
+
+    assert configuration["protocol_id"] == "hexcal-v2-2g4-stimulus"
+    assert len(plan) == 15
+    assert [item["center_frequency_hz"] for item in plan] == [
+        *runner.STIMULUS_CENTER_FREQUENCIES_HZ,
+        *reversed(runner.STIMULUS_CENTER_FREQUENCIES_HZ),
+        2_440_000_000,
+        2_458_000_000,
+        2_483_000_000,
+        2_400_000_000,
+        2_423_000_000,
+    ]
+    assert {item["receiver_gain_db"] for item in plan} == {20}
+    assert {item["planned_tx_hardware_gain_db"] for item in plan} == {-30.0}
+    assert {item["qualification_kind"] for item in plan} == {"stimulus"}
+    assert {item["stimulus_qualification_id"] for item in plan} == {"stimulus-a"}
+    assert {item["stimulus_qualification_sha256"] for item in plan} == {"7" * 64}
+    assert all("--allow-experimental-5g8" not in item["capture_command"] for item in plan)
+    manifest = runner._new_manifest("v2-run", configuration, REPOSITORY)
+    assert manifest["experiment_kind"] == "hexcal_v2_2g4_tx1_center_calibration"
 
 
 def test_parser_requires_explicit_serial_and_uri() -> None:

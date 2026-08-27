@@ -58,6 +58,12 @@ from smateway.hexcal_timing import (
     SAMPLE_RATE_HZ,
     analyze_hexcal_timing_samples,
 )
+from smateway.hexcal_gain import (
+    QUALIFICATION_SOURCE_FILES,
+    STIMULUS_CENTER_FREQUENCIES_HZ,
+    STIMULUS_FIXED_RECEIVER_GAIN_DB,
+    load_hexcal_stimulus_qualification,
+)
 
 CAPTURE_RECORD_NAME = "hexcal-timing-capture.json"
 SAMPLES_PER_FRAME = 250_000
@@ -67,6 +73,9 @@ KERNEL_BUFFERS = 8
 EXPECTED_DATA_SIZE_BYTES = TOTAL_SAMPLES * 2 * 2 * 2
 DEFAULT_PROFILE = Path("profiles/hexcal-v1/control_profile.json")
 ANALYSIS_SOURCE_FILES = (
+    "docs/hexray_tx_in_middle_calibration/data/hexcal-v2-2g4-stimulus.json",
+    "scripts/qualify_hexcal_rx_gain.py",
+    "src/smateway/hexcal_gain.py",
     "src/smateway/hexcal_timing.py",
     "scripts/capture_hexcal_timing.py",
     "scripts/analyze_hexcal_timing.py",
@@ -241,8 +250,40 @@ def _validate_pair_plan_binding(
     expected_sha = _sha256(root.get("pair_plan_contract_sha256"), "pair_plan_contract_sha256")
     if _canonical_sha256(plan) != expected_sha:
         raise ValueError("pair plan contract SHA-256 does not match its canonical bytes")
-    if plan.get("schema") != 1 or plan.get("plan_kind") != ("hexcal_v1_rf_timing_two_replicates"):
-        raise ValueError("pair plan schema or kind differs from timing-v1")
+    plan_kind = plan.get("plan_kind")
+    supported_plan_kinds = {
+        "hexcal_v1_rf_timing_two_replicates": "hexcal-v1",
+        "hexcal_v2_2g4_rf_timing_two_replicates": "hexcal-v2-2g4-stimulus",
+    }
+    if plan.get("schema") != 1 or plan_kind not in supported_plan_kinds:
+        raise ValueError("pair plan schema or kind is unsupported")
+    if plan.get("protocol_id") != supported_plan_kinds[plan_kind]:
+        raise ValueError("pair plan protocol ID differs from its plan kind")
+    if plan_kind == "hexcal_v2_2g4_rf_timing_two_replicates":
+        qualification = _mapping(
+            plan.get("stimulus_qualification"),
+            "pair_plan_contract.stimulus_qualification",
+        )
+        if (
+            qualification.get("fixed_receiver_gain_db")
+            != _mapping(plan.get("stimulus"), "pair_plan_contract.stimulus").get("receiver_gain_db")
+            or qualification.get("fixed_receiver_gain_db") != STIMULUS_FIXED_RECEIVER_GAIN_DB
+            or qualification.get("selected_tx_hardware_gain_db")
+            != _mapping(plan.get("stimulus"), "pair_plan_contract.stimulus").get(
+                "tx_hardware_gain_db_requested"
+            )
+            or qualification.get("dds_scale")
+            != _mapping(plan.get("stimulus"), "pair_plan_contract.stimulus").get(
+                "dds_scale_requested"
+            )
+            or _mapping(plan.get("stimulus"), "pair_plan_contract.stimulus").get(
+                "center_frequency_hz"
+            )
+            != STIMULUS_CENTER_FREQUENCIES_HZ[0]
+        ):
+            raise ValueError("v2 timing stimulus differs from its frozen qualification")
+    elif "stimulus_qualification" in plan:
+        raise ValueError("legacy timing plan unexpectedly contains a v2 qualification")
     if plan.get("run_id") != root.get("run_id"):
         raise ValueError("capture run ID differs from pair plan")
     if plan.get("source") != root.get("source"):
@@ -440,8 +481,13 @@ def _load_and_verify_record(
     except (OSError, UnicodeError, json.JSONDecodeError) as error:
         raise ValueError(f"cannot load timing capture record: {error}") from error
     root = dict(_mapping(document, "capture record"))
-    if root.get("schema") != 1 or root.get("capture_kind") != ("hexcal_v1_rf_timing_5msps_tx1"):
-        raise ValueError("capture record schema or kind differs from timing-v1")
+    capture_kind = root.get("capture_kind")
+    supported_capture_kinds = {
+        "hexcal_v1_rf_timing_5msps_tx1",
+        "hexcal_v2_2g4_rf_timing_5msps_tx1",
+    }
+    if root.get("schema") != 1 or capture_kind not in supported_capture_kinds:
+        raise ValueError("capture record schema or kind is unsupported")
     if root.get("accepted") is not True or root.get("accepted_retry_fragment") is not False:
         raise ValueError("capture record is not an accepted full non-retry artifact")
     if root.get("automatic_retry_count") != 0 or root.get("required_replicate_count") != 2:
@@ -601,6 +647,45 @@ def _load_and_verify_record(
     if firmware.as_dict() != firmware_raw:
         raise ValueError("firmware evidence differs from its independently replayed form")
 
+    plan = _mapping(root.get("pair_plan_contract"), "pair_plan_contract")
+    plan_kind = plan.get("plan_kind")
+    expected_capture_kind = (
+        "hexcal_v2_2g4_rf_timing_5msps_tx1"
+        if plan_kind == "hexcal_v2_2g4_rf_timing_two_replicates"
+        else "hexcal_v1_rf_timing_5msps_tx1"
+    )
+    if capture_kind != expected_capture_kind:
+        raise ValueError("capture kind differs from its pair-plan protocol")
+    stimulus_qualification_sha256: str | None = None
+    if plan_kind == "hexcal_v2_2g4_rf_timing_two_replicates":
+        qualification_summary = _mapping(
+            plan.get("stimulus_qualification"),
+            "pair_plan_contract.stimulus_qualification",
+        )
+        qualification_path = _exact_file(
+            qualification_summary.get("path"),
+            "pair_plan_contract.stimulus_qualification",
+        )
+        qualification_source_attestation = attest_source_files_at_commit(
+            repository,
+            expected_commit=source_commit,
+            relative_paths=QUALIFICATION_SOURCE_FILES,
+        )
+        qualification = load_hexcal_stimulus_qualification(
+            qualification_path,
+            expected_board_id=board_id,
+            expected_serial=serial,
+            expected_uri=uri,
+            expected_source_commit=source_commit,
+            expected_source_attestation=qualification_source_attestation,
+            expected_profile=profile,
+            expected_firmware_evidence_sha256=firmware.file_sha256,
+            expected_pluto_plus_utils_source_attestation_sha256=dependency_sha256,
+        )
+        if qualification.as_dict() != dict(qualification_summary):
+            raise ValueError("v2 stimulus qualification differs on independent raw replay")
+        stimulus_qualification_sha256 = qualification.file_sha256
+
     radio = _mapping(_mapping(metadata.get("global"), "global").get("pluto:radio"), "radio")
     if radio.get("serial") != serial or radio.get("uri") != uri:
         raise ValueError("SigMF radio identity differs from capture record")
@@ -631,6 +716,7 @@ def _load_and_verify_record(
         "full_flash_readback_sha256": firmware.full_flash_readback_sha256,
         "pluto_plus_utils_source_attestation_sha256": dependency_sha256,
         "rf_readback_evidence_sha256": str(capture.get("rf_readback_evidence_sha256")),
+        "stimulus_qualification_sha256": stimulus_qualification_sha256,
     }
     return root, rx2, verified
 
@@ -650,23 +736,24 @@ def _verify_run_manifest(
         manifest = _mapping(json.loads(manifest_path.read_bytes()), "timing run manifest")
     except (OSError, UnicodeError, json.JSONDecodeError) as error:
         raise ValueError(f"cannot load durable timing run manifest: {error}") from error
+    plan = records[0].get("pair_plan_contract")
+    plan_mapping = _mapping(plan, "pair plan")
+    expected_run_kind = plan_mapping.get("plan_kind")
     if (
         manifest.get("schema") != 1
-        or manifest.get("run_kind") != "hexcal_v1_rf_timing_two_replicates"
+        or manifest.get("run_kind") != expected_run_kind
         or manifest.get("run_id") != run_id
         or manifest.get("status") != "two_independent_artifacts_verified_unanalyzed"
         or manifest.get("accepted") is not True
         or manifest.get("automatic_retry_count") != 0
     ):
         raise ValueError("durable timing run manifest is not a completed accepted pair")
-    plan = records[0].get("pair_plan_contract")
     plan_sha = records[0].get("pair_plan_contract_sha256")
     if (
         manifest.get("pair_plan_contract") != plan
         or manifest.get("pair_plan_contract_sha256") != plan_sha
     ):
         raise ValueError("durable pre-RF pair plan differs from capture records")
-    plan_mapping = _mapping(plan, "pair plan")
     board_id = _string(plan_mapping.get("board_id"), "pair plan board_id")
     expected_lock = Path.home() / ".local/state/smateway/boards" / board_id / ".bench.lock"
     safety = _mapping(plan_mapping.get("safety"), "pair plan safety")
@@ -782,12 +869,8 @@ def _replicate_agreement(analyses: list[dict[str, Any]]) -> dict[str, Any]:
         "passed": not failed,
         "failed_metrics": failed,
         "frozen_gates": {
-            "maximum_marker_dwell_guard_median_delta_us": (
-                MAXIMUM_REPLICATE_SLOT_MEDIAN_DELTA_US
-            ),
-            "maximum_cycle_median_delta_us": (
-                MAXIMUM_REPLICATE_CYCLE_MEDIAN_DELTA_US
-            ),
+            "maximum_marker_dwell_guard_median_delta_us": (MAXIMUM_REPLICATE_SLOT_MEDIAN_DELTA_US),
+            "maximum_cycle_median_delta_us": (MAXIMUM_REPLICATE_CYCLE_MEDIAN_DELTA_US),
         },
         "comparisons": comparisons,
     }

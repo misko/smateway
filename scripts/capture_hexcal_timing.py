@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Capture two independent, muted-between, 5 MS/s ``hexcal-v1`` timing artifacts."""
+"""Capture two independent, muted-between, 5 MS/s Hexcal timing artifacts."""
 
 from __future__ import annotations
 
@@ -70,6 +70,12 @@ from smateway.hexcal import (
     validate_tx1_rf_readback_evidence,
     write_json_atomic,
 )
+from smateway.hexcal_gain import (
+    QUALIFICATION_SOURCE_FILES,
+    STIMULUS_CENTER_FREQUENCIES_HZ,
+    HexcalStimulusQualification,
+    load_hexcal_stimulus_qualification,
+)
 from smateway.hexcal_timing import BANDWIDTH_HZ, SAMPLE_RATE_HZ
 from smateway.rf_policy import classify_fast20_center_frequency
 
@@ -84,7 +90,10 @@ REPLICATE_COUNT = 2
 TX_CHANNEL = 0
 CAPTURE_RECORD_NAME = "hexcal-timing-capture.json"
 SOURCE_FILES = (
+    "docs/hexray_tx_in_middle_calibration/data/hexcal-v2-2g4-stimulus.json",
+    "scripts/qualify_hexcal_rx_gain.py",
     "src/smateway/hexcal_timing.py",
+    "src/smateway/hexcal_gain.py",
     "scripts/capture_hexcal_timing.py",
     "scripts/analyze_hexcal_timing.py",
     "profiles/hexcal-v1/control_profile.json",
@@ -187,6 +196,9 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--source-commit", required=True)
     parser.add_argument("--firmware-evidence", type=Path, required=True)
     parser.add_argument("--firmware-evidence-sha256", required=True)
+    parser.add_argument("--protocol-v2", action="store_true")
+    parser.add_argument("--stimulus-qualification", type=Path)
+    parser.add_argument("--stimulus-qualification-sha256")
     parser.add_argument("--board-id", default=DEFAULT_BOARD_ID)
     parser.add_argument("--profile", type=Path, default=DEFAULT_PROFILE)
     parser.add_argument("--allow-experimental-5g8", action="store_true")
@@ -194,10 +206,13 @@ def _parser() -> argparse.ArgumentParser:
         "--receiver-gain-db",
         type=int,
         choices=range(63),
-        default=0,
-        help="common RX1/RX2 tandem-HOLD gain (conservative default: 0 dB)",
+        help="legacy v1 common RX1/RX2 gain; v2 derives this from its qualification",
     )
-    parser.add_argument("--tx-hardware-gain-db", type=float, default=-40.0)
+    parser.add_argument(
+        "--tx-hardware-gain-db",
+        type=float,
+        help="legacy v1 TX1 gain; v2 derives this from its qualification",
+    )
     parser.add_argument("--dds-scale", type=float, default=0.125)
     parser.add_argument(
         "--capture-root",
@@ -248,10 +263,17 @@ def _pair_plan_contract(
     center_frequency_policy: str,
     plan: SafeDdsTonePlan,
     bench_lock_path: Path,
+    stimulus_qualification: HexcalStimulusQualification | None = None,
 ) -> dict[str, Any]:
-    return {
+    protocol_v2 = stimulus_qualification is not None
+    contract = {
         "schema": 1,
-        "plan_kind": "hexcal_v1_rf_timing_two_replicates",
+        "plan_kind": (
+            "hexcal_v2_2g4_rf_timing_two_replicates"
+            if protocol_v2
+            else "hexcal_v1_rf_timing_two_replicates"
+        ),
+        "protocol_id": "hexcal-v2-2g4-stimulus" if protocol_v2 else "hexcal-v1",
         "run_id": run_id,
         "board_id": board_id,
         "serial": plan.serial,
@@ -299,6 +321,9 @@ def _pair_plan_contract(
             "sigkill_cannot_be_intercepted": True,
         },
     }
+    if stimulus_qualification is not None:
+        contract["stimulus_qualification"] = stimulus_qualification.as_dict()
+    return contract
 
 
 def _metadata_path(artifact_root: Path, artifact_id: str) -> Path:
@@ -629,7 +654,7 @@ def _capture_one(
             radio=capture.identity,
             settings=settings,
             label=(
-                f"hexcal-v1 RF timing replicate {replicate_index}/2 "
+                f"{pair_plan_contract['protocol_id']} RF timing replicate {replicate_index}/2 "
                 f"TX1 {plan.center_frequency_hz}Hz 5MS/s 450ms"
             ),
         )
@@ -650,7 +675,11 @@ def _capture_one(
         )
         document = {
             "schema": 1,
-            "capture_kind": "hexcal_v1_rf_timing_5msps_tx1",
+            "capture_kind": (
+                "hexcal_v2_2g4_rf_timing_5msps_tx1"
+                if pair_plan_contract["protocol_id"] == "hexcal-v2-2g4-stimulus"
+                else "hexcal_v1_rf_timing_5msps_tx1"
+            ),
             "run_id": run_id,
             "replicate_index": replicate_index,
             "required_replicate_count": REPLICATE_COUNT,
@@ -772,6 +801,19 @@ def main() -> int:
     if not args.uri.removeprefix("pluto://").startswith("usb:"):
         raise SystemExit("--uri must be an exact USB IIO URI")
     repository = Path(__file__).resolve().parents[1]
+    if args.protocol_v2:
+        if args.stimulus_qualification is None or args.stimulus_qualification_sha256 is None:
+            raise SystemExit(
+                "--protocol-v2 requires --stimulus-qualification and its reviewed SHA-256"
+            )
+        if args.center_frequency_hz != STIMULUS_CENTER_FREQUENCIES_HZ[0]:
+            raise SystemExit("hexcal-v2 timing is frozen at 2.400 GHz")
+        if args.allow_experimental_5g8:
+            raise SystemExit("hexcal-v2 timing does not permit the experimental 5.8 GHz band")
+        if args.receiver_gain_db is not None or args.tx_hardware_gain_db is not None:
+            raise SystemExit("hexcal-v2 derives RX and TX gains from its qualification ledger")
+    elif args.stimulus_qualification is not None or args.stimulus_qualification_sha256 is not None:
+        raise SystemExit("stimulus qualification arguments require --protocol-v2")
     try:
         policy = classify_fast20_center_frequency(
             args.center_frequency_hz,
@@ -787,10 +829,49 @@ def main() -> int:
             expected_source_commit=args.source_commit,
             expected_profile=profile,
         )
+        stimulus_qualification: HexcalStimulusQualification | None = None
+        if args.protocol_v2:
+            assert isinstance(args.stimulus_qualification, Path)
+            qualification_source_attestation = attest_source_files_at_commit(
+                repository,
+                expected_commit=args.source_commit,
+                relative_paths=QUALIFICATION_SOURCE_FILES,
+            )
+            stimulus_qualification = load_hexcal_stimulus_qualification(
+                args.stimulus_qualification,
+                expected_board_id=args.board_id,
+                expected_serial=args.serial,
+                expected_uri=args.uri,
+                expected_source_commit=args.source_commit,
+                expected_source_attestation=qualification_source_attestation,
+                expected_profile=profile,
+                expected_firmware_evidence_sha256=firmware.file_sha256,
+                expected_pluto_plus_utils_source_attestation_sha256=(dependency_attestation_sha256),
+            )
     except (RuntimeError, ValueError, subprocess.CalledProcessError) as error:
         raise SystemExit(str(error)) from error
     if firmware.file_sha256 != args.firmware_evidence_sha256:
         raise SystemExit("firmware evidence SHA-256 differs from the reviewed plan")
+    if (
+        stimulus_qualification is not None
+        and stimulus_qualification.file_sha256 != args.stimulus_qualification_sha256
+    ):
+        raise SystemExit("stimulus qualification SHA-256 differs from the reviewed plan")
+    receiver_gain_db = (
+        stimulus_qualification.fixed_receiver_gain_db
+        if stimulus_qualification is not None
+        else (0 if args.receiver_gain_db is None else args.receiver_gain_db)
+    )
+    tx_hardware_gain_db = (
+        stimulus_qualification.selected_tx_hardware_gain_db
+        if stimulus_qualification is not None
+        else (-40.0 if args.tx_hardware_gain_db is None else args.tx_hardware_gain_db)
+    )
+    dds_scale = (
+        stimulus_qualification.dds_scale if stimulus_qualification is not None else args.dds_scale
+    )
+    if stimulus_qualification is not None and args.dds_scale != stimulus_qualification.dds_scale:
+        raise SystemExit("hexcal-v2 DDS scale differs from the qualification ledger")
     capture_root = args.capture_root or (
         Path.home() / ".local/state/smateway/boards" / args.board_id / "pluto-usb-captures"
     )
@@ -799,7 +880,7 @@ def main() -> int:
         sample_rate_hz=SAMPLE_RATE_HZ,
         bandwidth_hz=BANDWIDTH_HZ,
         gain_mode=GainMode.MANUAL,
-        gain_db=args.receiver_gain_db,
+        gain_db=receiver_gain_db,
         channels=(0, 1),
     )
     plan = SafeDdsTonePlan(
@@ -810,9 +891,9 @@ def main() -> int:
         bandwidth_hz=BANDWIDTH_HZ,
         tone_frequency_hz=TONE_OFFSET_HZ,
         tx_channel=TX_CHANNEL,
-        tx_hardware_gain_db=args.tx_hardware_gain_db,
-        dds_scale=args.dds_scale,
-        receiver_gain_db=float(args.receiver_gain_db),
+        tx_hardware_gain_db=tx_hardware_gain_db,
+        dds_scale=dds_scale,
+        receiver_gain_db=float(receiver_gain_db),
         source_peak_output_bound_dbm=7.0,
         load_input_limit_dbm=0.0,
         path_attenuation_before_load_db=0.0,
@@ -835,13 +916,14 @@ def main() -> int:
         center_frequency_policy=policy,
         plan=plan,
         bench_lock_path=bench_lock_path,
+        stimulus_qualification=stimulus_qualification,
     )
     pair_contract_sha256 = _canonical_sha256(pair_contract)
     manifest_path = capture_root / "timing-runs" / f"{run_id}.json"
     results: list[dict[str, Any]] = []
     manifest: dict[str, Any] = {
         "schema": 1,
-        "run_kind": "hexcal_v1_rf_timing_two_replicates",
+        "run_kind": pair_contract["plan_kind"],
         "run_id": run_id,
         "status": "planned_no_rf_enabled",
         "accepted": False,
