@@ -1,0 +1,27 @@
+{
+  "figures": [
+    {
+      "byte_size": 230337,
+      "path": "docs/hexray_tx_in_middle_calibration/png/fig06_measured_complex_corrections.png",
+      "sha256": "bec5634f7669b2ef62d1977f65ab531e06b2ad3a76222d76039150f657df29ec"
+    },
+    {
+      "byte_size": 197739,
+      "path": "docs/hexray_tx_in_middle_calibration/png/fig07_raw_vs_heldout_calibration.png",
+      "sha256": "3d948f509321d8961e31f95b468a59f3b53eff2db54c4e93580ab65eacc5ce2d"
+    },
+    {
+      "byte_size": 182079,
+      "path": "docs/hexray_tx_in_middle_calibration/png/fig08_v22_qualification_evidence.png",
+      "sha256": "6f4ecee34696c993d67e602088ad3c3e6584d3ac0971b0a5b7a80b06f1ebffb2"
+    }
+  ],
+  "matplotlib_version": "3.11.1",
+  "renderer": "scripts/render_hexray_center_calibration_results.py",
+  "renderer_sha256": "073619a628caa087d2c6ce135021c032a54e8f63f38e17763937de1f4a0f7621",
+  "result_snapshot": {
+    "path": "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.2-results.json",
+    "sha256": "fcf164904f06bb4b6daacc2b5f3f07fbb958822876754390bed191c12eb22192"
+  },
+  "schema": 1
+}

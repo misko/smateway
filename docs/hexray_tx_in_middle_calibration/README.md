@@ -37,15 +37,15 @@ cable identities and the exact calibration reference plane.
 | REJECTED | Initial 2.4 GHz timing qualification: cycle timing improved to about `1494.7 us`, but RF observability/SNR gates failed. |
 | EXPLORATORY | RX `30 dB` / TX `-25 dB` timing run; useful diagnosis, not admissible calibration evidence. |
 | DONE | Harden and mechanically verify the GPIO edge path and watchdog half-range bound. |
-| DONE | Clean build and host/static verification of the reviewed 1,152-byte image (`381` tests). |
+| DONE | Clean build and host/static verification of the reviewed 1,152-byte image (`393` tests at the final v2.2 reporting gate). |
 | DONE | Deploy commit `67ba91d` and verify its exact 16 KiB flash, UID and option-byte readbacks. |
 | REJECTED | `hexcal-v2-2g4-stimulus`: four centres passed at TX `-10 dB`, but burst interference left only 8 valid cycles at 2.458 GHz. |
 | DONE | Qualify `hexcal-v2.1-2g4-stimulus`: RX `20 dB`, TX `-10 dB`, all five replacement centres passed. |
 | REJECTED | Two 5 MS/s timing pairs: the TX pilot was intermittently absent despite identical software readback; preserve both manifests. |
 | DONE | Freeze `hexcal-v2.2-2g4-stimulus` at the highest stable screened timing rate, 2 MS/s, and timing-only RX `30 dB`. |
-| IN PROGRESS | Implement, test, source-bind, and acquire the paired v2.2 timing evidence. |
-| PENDING | Capture the predeclared calibration matrix. |
-| PENDING | Aggregate, held-out validation, independent audit, findings/figures, commit/push, and a verified muted end state. |
+| DONE | Implement/test/source-bind v2.2 at `89f8ed3`; both independent timing captures passed all gates with 300/300 cycles. |
+| DONE | Capture all 15 predeclared calibration artifacts: 15 unique streams, zero retries or failures. |
+| DONE | Aggregate five per-frequency corrections, pass every held-out/leave-one-round-out gate, independently replay/audit all raw artifacts with zero issues, and verify final exact mute. |
 
 The reviewed build has ELF SHA-256
 `8e0cc535f98d30be02f7b9662938516d3d5d2a8bbc5d72440e1494617c7dc9c9`, raw BIN SHA-256
@@ -53,9 +53,9 @@ The reviewed build has ELF SHA-256
 full-flash SHA-256 `1ac75057a6dbb3235b6dfb07899a2ae5ef025d9b1d5c0dee37df4cdc72b2453e`.
 That image was programmed with OpenOCD verify+reset and independently read back in full on the
 target with UID `4c0055000950313950363920`; option bytes remained `aa fe ff ff`, the image prefix
-matched, and all `15,232` tail bytes were erased. The validated local evidence manifest is
-`hexcal-67ba91d/hexcal-firmware-evidence.json` with SHA-256
-`5411052707bca5fdc6b5401625633f95768dbed26b5623c11f324b84e29284aa`.
+matched, and all `15,232` tail bytes were erased. The source-bound v2.2 read-only evidence
+manifest is `hexcal-89f8ed3/hexcal-firmware-evidence.json` with SHA-256
+`fbb75d3e24e76a7594527e82c12a5a85cae347b488d7b6fa623a9776a4e2ab2c`.
 
 ![HexRay geometry and RF scale](png/fig01_geometry_and_wavelengths.png)
 
@@ -732,7 +732,57 @@ Interpret failures by layer:
 No gate may be lowered after seeing the data without retaining the original failed result and
 labelling the new analysis exploratory.
 
-## 12. Reproduction and provenance
+## 12. Verified v2.2 result
+
+The frozen v2.2 experiment passed end to end at source commit
+`89f8ed32f35a3c38e9c4df88e1a42e33d19805e4`. The stimulus screen tested all 30 planned
+gain/frequency conditions and selected fixed calibration RX `20 dB`, TX1 `-10 dB`, and DDS
+scale `0.125`. The separate timing pair used RX `30 dB` at 2 MS/s. Both fresh streams decoded
+all 300 cycles with zero continuity/headroom/mute failures. Their minimum transition SNRs were
+`20.60` and `20.89 dB`; minimum pilot/null SNRs were `18.10` and `18.65 dB`. The worst q40–q60
+edge span was `0.437 us`, the worst independent-estimator delta was `0.528 us`, and the cycle
+medians agreed within `0.039 us`.
+
+![Measured per-frequency complex correction coefficients](png/fig06_measured_complex_corrections.png)
+
+The calibration runner then accepted 15/15 independently streamed artifacts with zero retries,
+execution failures, quality rejections or post-mute failures. Every frequency passed its
+predeclared held-out round and all three leave-one-round-out folds. The independent audit replayed
+all raw CI16 analyses, rebuilt the aggregate payload, rechecked hashes/ABI-2 continuity/headroom,
+and reported zero issues.
+
+| Center | Raw gain span | Raw phase RMS | Held-out gain span | Held-out phase RMS | Held-out largest noncommon mode |
+|---:|---:|---:|---:|---:|---:|
+| 2.400 GHz | 6.474 dB | 25.50° | 0.0048 dB | 0.0102° | -74.87 dBc |
+| 2.423 GHz | 5.094 dB | 33.21° | 0.0083 dB | 0.0205° | -69.87 dBc |
+| 2.440 GHz | 3.951 dB | 41.01° | 0.0064 dB | 0.0179° | -71.85 dBc |
+| 2.472 GHz | 9.679 dB | 31.87° | 0.0112 dB | 0.0189° | -69.29 dBc |
+| 2.483 GHz | 9.408 dB | 24.66° | 0.0068 dB | 0.0210° | -69.75 dBc |
+
+![Raw versus independent held-out calibration behavior](png/fig07_raw_vs_heldout_calibration.png)
+
+The raw assembled array is therefore repeatable but not electrically symmetric. The largest
+round-order delta was only `0.0102 dB` and `0.0579°`, while the uncorrected response reached a
+`9.68 dB` gain span and `41.01°` phase RMS. At 2.400 GHz ANT5 required `+4.76 dB` correction;
+at 2.472 and 2.483 GHz ANT1 required about `-6.9 dB`. Even equal-length PCB-route pairs diverged
+in the end-to-end OTA result, confirming that cable, connector, switch, antenna, coupling and
+environmental terms cannot be inferred from PCB length alone.
+
+The correction table must be treated as **frequency-specific**. The non-gating
+leave-one-frequency-out diagnostic reached `3.14 dB` gain RMS and `18.19°` phase RMS error.
+Sparse interpolation is therefore explicitly forbidden; use a coefficient only at its measured
+center or acquire a denser, separately versioned frequency sweep. These are centered-TX1
+near-field, end-to-end coefficients—not a geometry-only direction-finding manifold, absolute
+phase reference, or 5.8 GHz calibration.
+
+![Qualification, evidence and audit chain](png/fig08_v22_qualification_evidence.png)
+
+The compact, committed [`v2.2 result snapshot`](data/hexcal-v2.2-results.json) records every
+coefficient, headline metric, immutable local-state relative path and SHA-256. Key durable hashes
+are timing analysis `64879770…0b141`, calibration `cac6f91b…b3194`, and independent audit
+`b15bd713…bd1cc`. The final exact-radio mute readback passed.
+
+## 13. Reproduction and provenance
 
 The compact, source-hashed design snapshot is
 [`data/design-snapshot.json`](data/design-snapshot.json). It records the confirmed geometry,
@@ -760,3 +810,14 @@ uv run --extra report pytest -q tests/test_render_hexray_center_calibration_desi
 [`data/figures-manifest.json`](data/figures-manifest.json) records the renderer and snapshot
 hashes, Matplotlib version, PNG byte sizes, dimensions and hashes. Generated PNGs are never
 manually edited.
+
+Generate and byte-check the three result PNGs:
+
+```bash
+uv run --extra report python scripts/render_hexray_center_calibration_results.py
+uv run --extra report python scripts/render_hexray_center_calibration_results.py --check
+uv run --extra report pytest -q tests/test_render_hexray_center_calibration_results.py
+```
+
+[`data/hexcal-v2.2-results-figures-manifest.json`](data/hexcal-v2.2-results-figures-manifest.json)
+binds the result renderer, result snapshot and all three committed PNG hashes.
