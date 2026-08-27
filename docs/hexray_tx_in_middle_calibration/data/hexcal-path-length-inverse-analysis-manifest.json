@@ -1,0 +1,15 @@
+{
+  "analysis": {
+    "path": "docs/hexray_tx_in_middle_calibration/data/hexcal-path-length-inverse-analysis.json",
+    "sha256": "ff3ff0dc20e929c77f82a007dee322769b620b1e94707ee0ca71abfbab8db76e"
+  },
+  "analysis_script": "scripts/analyze_hexcal_path_length_model.py",
+  "analysis_script_sha256": "ec02fa4f4e664916cfac581e949e4daba735da29ffedfe63a50658a0241c7cd6",
+  "figure": {
+    "byte_size": 419364,
+    "path": "docs/hexray_tx_in_middle_calibration/png/fig12_path_length_inverse_analysis.png",
+    "sha256": "9098ee59e1810b7e95a83fc3150445407f4e6bfa80cec152156b1b0556807800"
+  },
+  "matplotlib_version": "3.11.1",
+  "schema": 1
+}

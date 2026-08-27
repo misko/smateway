@@ -867,6 +867,11 @@ The separate
 artifact/metadata hash pairs and the two-screen phase distribution. The final exact-radio mute
 readback passed after the corrected rerun.
 
+The follow-up [`inverse path-length report`](path_length_inverse_report.md) works backward from
+the accepted 2.4 GHz phases and rejected-artifact 5.8 GHz diagnostic. It shows that no single
+fixed relative delay explains ANT2 through ANT6: best-fit residuals remain `12.29–18.91° RMS`,
+and all five nonreference paths share a curved phase excursion at 2.440 GHz.
+
 ## 14. Reproduction and provenance
 
 The compact, source-hashed design snapshot is

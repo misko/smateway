@@ -1,0 +1,335 @@
+{
+  "analysis_kind": "hexcal_single_fixed_relative_path_delay_test",
+  "analysis_script_sha256": "ec02fa4f4e664916cfac581e949e4daba735da29ffedfe63a50658a0241c7cd6",
+  "antennas": [
+    {
+      "diagnostic_5g8": {
+        "admissible_calibration": false,
+        "inferred_delay_ps": 0.0,
+        "measurement_count": 12,
+        "observed_phase_circular_std_deg": 0.0,
+        "observed_phase_mean_deg_relative_to_ant1": 0.0,
+        "phase_residual_from_2g4_fit_deg": 0.0,
+        "predicted_phase_from_2g4_fit_deg": 0.0
+      },
+      "fitted_delay_ps": 0.0,
+      "fixed_delay_model_within_diagnostic_tolerance": true,
+      "free_space_equivalent_length_mm": 0.0,
+      "inferred_delay_ps": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "inferred_delay_range_ps": 0.0,
+      "name": "ANT1",
+      "observed_phase_deg_relative_to_ant1_2g4": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "pcb_prior_delay_ps": 0.0,
+      "phase_residual_deg": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "phase_residual_rms_deg": 0.0,
+      "predicted_phase_deg_relative_to_ant1": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "diagnostic_5g8": {
+        "admissible_calibration": false,
+        "inferred_delay_ps": 143.65439039217873,
+        "measurement_count": 12,
+        "observed_phase_circular_std_deg": 1.2846117076574848,
+        "observed_phase_mean_deg_relative_to_ant1": 60.04963286113082,
+        "phase_residual_from_2g4_fit_deg": -138.17068599456536,
+        "predicted_phase_from_2g4_fit_deg": -161.77968114430385
+      },
+      "fitted_delay_ps": 77.48069020321066,
+      "fixed_delay_model_within_diagnostic_tolerance": false,
+      "free_space_equivalent_length_mm": 23.228126563557044,
+      "inferred_delay_ps": [
+        49.30093595457275,
+        71.86154060927208,
+        110.40518734473399,
+        89.04253614390663,
+        65.90520418980611
+      ],
+      "inferred_delay_range_ps": 61.10425139016124,
+      "name": "ANT2",
+      "observed_phase_deg_relative_to_ant1_2g4": [
+        -42.596008664750855,
+        -62.68338464265585,
+        -96.97991656361434,
+        -79.24073376518538,
+        -58.911343921183885
+      ],
+      "pcb_prior_delay_ps": 75.237784,
+      "phase_residual_deg": [
+        24.34730767082317,
+        4.901471807800732,
+        -28.920878289114114,
+        -10.289117939544155,
+        10.347095437662063
+      ],
+      "phase_residual_rms_deg": 18.254650638585655,
+      "predicted_phase_deg_relative_to_ant1": [
+        -66.94331633557401,
+        -67.58485645045658,
+        -68.05903827450024,
+        -68.95161582564123,
+        -69.25843935884593
+      ]
+    },
+    {
+      "diagnostic_5g8": {
+        "admissible_calibration": false,
+        "inferred_delay_ps": 106.34460864287837,
+        "measurement_count": 12,
+        "observed_phase_circular_std_deg": 11.708637572274128,
+        "observed_phase_mean_deg_relative_to_ant1": 137.95245715366997,
+        "phase_residual_from_2g4_fit_deg": -47.56735801024149,
+        "predicted_phase_from_2g4_fit_deg": -174.48018483608857
+      },
+      "fitted_delay_ps": 83.56330691383552,
+      "fixed_delay_model_within_diagnostic_tolerance": false,
+      "free_space_equivalent_length_mm": 25.05164917830714,
+      "inferred_delay_ps": [
+        75.87278875957544,
+        84.5762917531042,
+        108.16568678952463,
+        85.56864171333382,
+        64.0384031929872
+      ],
+      "inferred_delay_range_ps": 44.127283596537424,
+      "name": "ANT3",
+      "observed_phase_deg_relative_to_ant1_2g4": [
+        -65.55408948827318,
+        -73.77420777039774,
+        -95.01273927591843,
+        -76.14924563353003,
+        -57.242647846147406
+      ],
+      "pcb_prior_delay_ps": 54.97603,
+      "phase_residual_deg": [
+        6.644607685280704,
+        -0.8836064155972849,
+        -21.61073048280531,
+        -1.784587544769522,
+        17.452920937991877
+      ],
+      "phase_residual_rms_deg": 12.804252774466525,
+      "predicted_phase_deg_relative_to_ant1": [
+        -72.19869717355388,
+        -72.89060135480044,
+        -73.40200879311311,
+        -74.36465808876049,
+        -74.69556878413928
+      ]
+    },
+    {
+      "diagnostic_5g8": {
+        "admissible_calibration": false,
+        "inferred_delay_ps": 57.83056298556511,
+        "measurement_count": 12,
+        "observed_phase_circular_std_deg": 1.2769358093654997,
+        "observed_phase_mean_deg_relative_to_ant1": -120.75021551385994,
+        "phase_residual_from_2g4_fit_deg": 111.82378030378078,
+        "predicted_phase_from_2g4_fit_deg": 127.42600418235929
+      },
+      "fitted_delay_ps": 111.38601332262486,
+      "fixed_delay_model_within_diagnostic_tolerance": false,
+      "free_space_equivalent_length_mm": 33.39268672081046,
+      "inferred_delay_ps": [
+        92.65118166488229,
+        124.57645402370024,
+        145.1547350685777,
+        108.96081322313225,
+        86.12311026843666
+      ],
+      "inferred_delay_range_ps": 59.031624800141046,
+      "name": "ANT4",
+      "observed_phase_deg_relative_to_ant1_2g4": [
+        -80.0506209584583,
+        -108.66554931579324,
+        -127.50391928423865,
+        -96.96640690352984,
+        -76.98372580675016
+      ],
+      "pcb_prior_delay_ps": 84.846826,
+      "phase_residual_deg": [
+        16.186894552289573,
+        -11.505757614734023,
+        -29.662445181644955,
+        2.1582340725404663,
+        22.58200378207775
+      ],
+      "phase_residual_rms_deg": 18.914880580197657,
+      "predicted_phase_deg_relative_to_ant1": [
+        -96.23751551074788,
+        -97.15979170105922,
+        -97.84147410259368,
+        -99.12464097607031,
+        -99.5657295888279
+      ]
+    },
+    {
+      "diagnostic_5g8": {
+        "admissible_calibration": false,
+        "inferred_delay_ps": 17.477560958075227,
+        "measurement_count": 12,
+        "observed_phase_circular_std_deg": 10.528555953533122,
+        "observed_phase_mean_deg_relative_to_ant1": -36.49314728046107,
+        "phase_residual_from_2g4_fit_deg": 131.90681358240704,
+        "predicted_phase_from_2g4_fit_deg": -168.39996086286814
+      },
+      "fitted_delay_ps": 80.6513222523315,
+      "fixed_delay_model_within_diagnostic_tolerance": false,
+      "free_space_equivalent_length_mm": 24.178658138976555,
+      "inferred_delay_ps": [
+        67.30400153382496,
+        74.42313975930651,
+        104.03600889622717,
+        88.73200305810074,
+        68.4610452311069
+      ],
+      "inferred_delay_range_ps": 36.732007362402214,
+      "name": "ANT5",
+      "observed_phase_deg_relative_to_ant1_2g4": [
+        -58.150657325224756,
+        -64.91781634924789,
+        -91.38523021444594,
+        -78.964384161465,
+        -61.19595911118182
+      ],
+      "pcb_prior_delay_ps": 84.846826,
+      "phase_residual_deg": [
+        11.532085100789658,
+        5.432719025015842,
+        -20.541108747997953,
+        -7.191159462670157,
+        10.89664482373226
+      ],
+      "phase_residual_rms_deg": 12.2873122708412,
+      "predicted_phase_deg_relative_to_ant1": [
+        -69.68274242601441,
+        -70.35053537426371,
+        -70.84412146644799,
+        -71.77322469879485,
+        -72.09260393491408
+      ]
+    },
+    {
+      "diagnostic_5g8": {
+        "admissible_calibration": false,
+        "inferred_delay_ps": 101.33511786141247,
+        "measurement_count": 12,
+        "observed_phase_circular_std_deg": 3.1940450982694277,
+        "observed_phase_mean_deg_relative_to_ant1": 148.41227390537074,
+        "phase_residual_from_2g4_fit_deg": -18.915204495150988,
+        "predicted_phase_from_2g4_fit_deg": 167.32747840052173
+      },
+      "fitted_delay_ps": 92.27611187714477,
+      "fixed_delay_model_within_diagnostic_tolerance": false,
+      "free_space_equivalent_length_mm": 27.663682394332227,
+      "inferred_delay_ps": [
+        71.53561202181783,
+        97.10473726176653,
+        125.10524127284995,
+        95.2714273993808,
+        72.38434872175488
+      ],
+      "inferred_delay_range_ps": 53.569629251032126,
+      "name": "ANT6",
+      "observed_phase_deg_relative_to_ant1_2g4": [
+        -61.8067687868506,
+        -84.7025202186937,
+        -109.89244393407141,
+        -84.78394867125695,
+        -64.70292163540225
+      ],
+      "pcb_prior_delay_ps": 54.97603,
+      "phase_residual_deg": [
+        17.91979187500249,
+        -4.211913350497866,
+        -28.83710726118744,
+        -2.665591189548252,
+        17.780849249339923
+      ],
+      "phase_residual_rms_deg": 17.284107651402117,
+      "predicted_phase_deg_relative_to_ant1": [
+        -79.72656066185309,
+        -80.49060686819584,
+        -81.05533667288397,
+        -82.11835748170868,
+        -82.48377088474217
+      ]
+    }
+  ],
+  "common_frequency_structure": {
+    "frequency_hz": 2440000000,
+    "interpretation": "all five nonreference channels share their largest negative residual at 2.440 GHz; a static delay cannot create this common curved frequency response",
+    "median_phase_residual_deg": -28.83710726118744,
+    "nonreference_phase_residual_deg": [
+      -28.920878289114114,
+      -21.61073048280531,
+      -29.662445181644955,
+      -20.541108747997953,
+      -28.83710726118744
+    ]
+  },
+  "conclusions": [
+    "No nonreference antenna meets the 5 degree diagnostic fixed-delay tolerance.",
+    "The best nonreference RMS residual exceeds 12 degrees despite sub-degree repeatability.",
+    "The common 2.440 GHz excursion points to frequency-dependent end-to-end response, not only path length.",
+    "The 5.8 GHz point is retained only as a rejected-artifact diagnostic and cannot promote or rescue the model."
+  ],
+  "diagnostic_5g8_frequency_hz": 5800000000,
+  "inputs": {
+    "design_snapshot": {
+      "path": "docs/hexray_tx_in_middle_calibration/data/design-snapshot.json",
+      "sha256": "b77dbd0f7f2f2ce0be78e9a82dd6dccff0d2eb531203a0a16f0a10a454f75947"
+    },
+    "experimental_5g8_phase": {
+      "admissible_calibration": false,
+      "path": "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.4-5g8-phase-leakage-results.json",
+      "sha256": "13e47b803c3029704c83a30aac6cf37bf43881b688e1bb090f72bf6626f525bc"
+    },
+    "v2_2_result": {
+      "path": "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.2-results.json",
+      "sha256": "fcf164904f06bb4b6daacc2b5f3f07fbb958822876754390bed191c12eb22192"
+    }
+  },
+  "model": {
+    "diagnostic_phase_rms_tolerance_deg": 5.0,
+    "equation": "phase_i(f) = wrap(-360 * f * tau_i)",
+    "integer_cycle_policy": "choose k independently at each frequency so inferred delay is nearest the released PCB-route delay prior",
+    "inverse_equation": "tau_i = (-phase_i + 360*k) / (360*f)",
+    "path_length_interpretation": "reported c*tau is a free-space-equivalent electrical length; physical length equals propagation velocity times delay and depends on medium",
+    "tolerance_provenance": "diagnostic yardstick borrowed from the existing maximum 5 degree calibration phase-residual gate; not a predeclared model-selection gate"
+  },
+  "phase_convention": "measured response phase of ANTn relative to ANT1; negative means ANTn lags ANT1; wrapped to [-180, 180)",
+  "reference_antenna": "ANT1",
+  "schema": 1,
+  "status": "single_fixed_path_delay_rejected_for_ant2_through_ant6",
+  "verified_2g4_frequencies_hz": [
+    2400000000,
+    2423000000,
+    2440000000,
+    2472000000,
+    2483000000
+  ]
+}
