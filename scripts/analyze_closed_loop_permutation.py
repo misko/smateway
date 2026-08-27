@@ -69,6 +69,11 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--figure-directory", type=Path)
+    parser.add_argument(
+        "--manifest-snapshot",
+        type=Path,
+        help="write a normalized, repository-ready copy of the source run manifest",
+    )
     return parser
 
 
@@ -477,6 +482,8 @@ def _render_figures(document: Mapping[str, Any], directory: Path) -> tuple[Path,
     figure, axes = plt.subplots(2, 1, figsize=(10.5, 8.0), sharex=True, constrained_layout=True)
     for color, row in zip(colors, rows, strict=True):
         frequency_ghz = _integer(row.get("center_frequency_hz"), "frequency") / 1e9
+        quality_gate = _mapping(row.get("quality_gate"), "quality gate")
+        suffix = " (diagnostic)" if not quality_gate.get("may_be_used_as_board_calibration") else ""
         model = _mapping(row.get("separable_model"), "model")
         paths = tuple(
             _mapping(item, "board path")
@@ -487,7 +494,7 @@ def _render_figures(document: Mapping[str, Any], directory: Path) -> tuple[Path,
             [_number(item.get("correction_gain_db"), "correction gain") for item in paths],
             marker="o",
             color=color,
-            label=f"{frequency_ghz:.3f} GHz",
+            label=f"{frequency_ghz:.3f} GHz{suffix}",
         )
         axes[1].plot(
             antenna_index,
@@ -569,6 +576,13 @@ def main() -> int:
     else:
         artifact_root = args.artifact_root
     document = build_analysis(args.manifest, artifact_root)
+    if args.manifest_snapshot is not None:
+        _write_json_atomic(args.manifest_snapshot, manifest)
+        source_manifest = document.get("source_manifest")
+        if not isinstance(source_manifest, dict):
+            raise AnalysisInputError("generated source manifest record is not mutable")
+        source_manifest["committed_snapshot_path"] = str(args.manifest_snapshot)
+        source_manifest["committed_snapshot_sha256"] = _sha256(args.manifest_snapshot)
     _write_json_atomic(args.output, document)
     figures: Sequence[Path] = ()
     if args.figure_directory is not None:
