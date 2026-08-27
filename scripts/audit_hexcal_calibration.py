@@ -564,7 +564,7 @@ def audit_manifest(
     issues: list[str] = []
     supported_experiment_kinds = {
         "hexcal_v1_tx1_center_calibration",
-        "hexcal_v2_1_2g4_tx1_center_calibration",
+        "hexcal_v2_2_2g4_tx1_center_calibration",
     }
     if manifest.get("schema") != 1 or manifest.get("experiment_kind") not in (
         supported_experiment_kinds
@@ -573,7 +573,7 @@ def audit_manifest(
     configuration = _mapping(manifest.get("configuration"), "configuration")
     protocol_id = configuration.get("protocol_id", "hexcal-v1")
     expected_experiment_kind = (
-        "hexcal_v2_1_2g4_tx1_center_calibration"
+        "hexcal_v2_2_2g4_tx1_center_calibration"
         if protocol_id == STIMULUS_PROTOCOL_ID
         else "hexcal_v1_tx1_center_calibration"
     )
@@ -934,7 +934,7 @@ def audit_manifest(
                 relative_paths=HEXCAL_AGGREGATION_SOURCE_FILES,
             )
             expected_calibration_kind = (
-                "hexcal_v2_1_2g4_tx1_center_end_to_end_complex_correction"
+                "hexcal_v2_2_2g4_tx1_center_end_to_end_complex_correction"
                 if protocol_id == STIMULUS_PROTOCOL_ID
                 else "hexcal_v1_tx1_center_end_to_end_complex_correction"
             )
@@ -1030,7 +1030,7 @@ def audit_manifest(
     return {
         "schema": 1,
         "audit_kind": (
-            "hexcal_v2_1_2g4_independent_calibration_and_artifact_audit"
+            "hexcal_v2_2_2g4_independent_calibration_and_artifact_audit"
             if protocol_id == STIMULUS_PROTOCOL_ID
             else "hexcal_v1_independent_calibration_and_artifact_audit"
         ),

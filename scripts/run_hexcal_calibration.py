@@ -113,7 +113,7 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         help="passed hexcal-v2 ledger; its fixed RX gain and selected TX1 level are used",
     )
-    parser.add_argument("--protocol-v2", "--protocol-v21", action="store_true")
+    parser.add_argument("--protocol-v2", "--protocol-v21", "--protocol-v22", action="store_true")
     parser.add_argument("--allow-experimental-5g8", action="store_true")
     parser.add_argument("--rounds", type=int, default=DEFAULT_ROUNDS)
     parser.add_argument("--max-attempts-per-condition", type=int, default=DEFAULT_MAX_ATTEMPTS)
@@ -484,7 +484,7 @@ def _new_manifest(
     return {
         "schema": 1,
         "experiment_kind": (
-            "hexcal_v2_1_2g4_tx1_center_calibration"
+            "hexcal_v2_2_2g4_tx1_center_calibration"
             if configuration.get("protocol_id") == STIMULUS_PROTOCOL_ID
             else "hexcal_v1_tx1_center_calibration"
         ),
@@ -564,7 +564,7 @@ def _load_manifest(
     if not isinstance(document, dict) or document.get("schema") != 1:
         raise ExperimentError("resume manifest schema is unsupported")
     expected_experiment_kind = (
-        "hexcal_v2_1_2g4_tx1_center_calibration"
+        "hexcal_v2_2_2g4_tx1_center_calibration"
         if configuration.get("protocol_id") == STIMULUS_PROTOCOL_ID
         else "hexcal_v1_tx1_center_calibration"
     )
@@ -1341,11 +1341,11 @@ def main() -> int:
         raise SystemExit("Hexcal requires exactly three predeclared rounds")
     if args.protocol_v2:
         if args.stimulus_qualification is None or args.gain_qualification is not None:
-            raise SystemExit("--protocol-v2 requires only --stimulus-qualification")
+            raise SystemExit("--protocol-v22 requires only --stimulus-qualification")
         if args.tx_hardware_gain_db is not None:
-            raise SystemExit("hexcal-v2 derives TX1 gain from its qualification ledger")
+            raise SystemExit("hexcal-v2.2 derives TX1 gain from its qualification ledger")
         if args.allow_experimental_5g8:
-            raise SystemExit("hexcal-v2 does not permit the experimental 5.8 GHz band")
+            raise SystemExit("hexcal-v2.2 does not permit the experimental 5.8 GHz band")
     elif args.gain_qualification is None or args.stimulus_qualification is not None:
         raise SystemExit("legacy hexcal-v1 requires only --gain-qualification")
     if not 1 <= args.max_attempts_per_condition <= 10:
@@ -1362,7 +1362,7 @@ def main() -> int:
             ),
         )
         if args.protocol_v2 and frequencies != STIMULUS_CENTER_FREQUENCIES_HZ:
-            raise ValueError("hexcal-v2 requires the exact frozen five-frequency plan")
+            raise ValueError("hexcal-v2.2 requires the exact frozen five-frequency plan")
         board_id = _validate_identifier(args.board_id, "board ID")
         run_id = _validate_identifier(args.run_id or _new_run_id(), "run ID")
         profile = load_hexcal_profile(args.profile)

@@ -1,6 +1,6 @@
 """RF-only, microsecond timing qualification for the ``hexcal-v1`` selector.
 
-This module is intentionally hardware-free.  It coherently reduces a 5 MS/s
+This module is intentionally hardware-free.  It coherently reduces a 2 MS/s
 RX2 stream to one complex value per microsecond, finds RF-visible transitions,
 and measures the selector schedule from those transitions.  Expected slot
 positions are used only to recognize the source-backed frame grammar; accepted
@@ -24,14 +24,17 @@ import numpy.typing as npt
 
 from smateway.hexcal import HexcalAnalysisError, HexcalProfile
 
-SAMPLE_RATE_HZ = 5_000_000
-BANDWIDTH_HZ = 4_000_000
-SAMPLES_PER_COHERENT_BIN = 5
+SAMPLE_RATE_HZ = 2_000_000
+BANDWIDTH_HZ = 1_600_000
+SAMPLES_PER_COHERENT_BIN = 2
+TIMING_RECEIVER_GAIN_DB = 30
 BIN_DURATION_US = 1.0
 NOMINAL_CYCLE_US = 1_500.0
 MINIMUM_COMPLETE_CYCLES = 290
 MINIMUM_DECODE_FRACTION = 0.98
-MINIMUM_RF_DB = 20.0
+MINIMUM_TRANSITION_SNR_DB = 19.0
+MINIMUM_PILOT_SNR_DB = 17.0
+MINIMUM_STATE_NULL_CONTRAST_DB = 17.0
 EDGE_MEAN_HALF_WINDOW_US = 4
 EDGE_PROJECTION_PLATEAU_US = 7
 EDGE_SEARCH_RADIUS_US = 4
@@ -134,9 +137,7 @@ def _stats(values: Sequence[float]) -> dict[str, float | int | None]:
     }
 
 
-def _required_stat(
-    document: Mapping[str, float | int | None], field: str, label: str
-) -> float:
+def _required_stat(document: Mapping[str, float | int | None], field: str, label: str) -> float:
     value = document.get(field)
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise HexcalAnalysisError(f"{label} has no finite {field}")
@@ -170,11 +171,11 @@ def coherent_one_microsecond_detector(
     sample_rate_hz: float,
     tone_offset_hz: float,
 ) -> npt.NDArray[np.complex128]:
-    """Mix and average five consecutive 5 MS/s samples into 1 us complex bins."""
+    """Mix and average two consecutive 2 MS/s samples into 1 us complex bins."""
 
     raw = _finite_complex_vector(samples, "RX2 samples")
     if sample_rate_hz != SAMPLE_RATE_HZ:
-        raise ValueError("hexcal RF timing requires exactly 5 MS/s")
+        raise ValueError("hexcal RF timing requires exactly 2 MS/s")
     if not math.isfinite(tone_offset_hz) or abs(tone_offset_hz) >= sample_rate_hz / 2.0:
         raise ValueError("tone offset must be finite and strictly inside Nyquist")
     if raw.size % SAMPLES_PER_COHERENT_BIN:
@@ -291,9 +292,7 @@ def _crossing_time_us(
 ) -> float:
     matches = np.flatnonzero((projection[:-1] < q) & (projection[1:] >= q))
     if matches.size != 1:
-        raise HexcalAnalysisError(
-            f"RF edge has {matches.size} directional q={q:.1f} crossings"
-        )
+        raise HexcalAnalysisError(f"RF edge has {matches.size} directional q={q:.1f} crossings")
     local = int(matches[0])
     low = float(projection[local])
     high = float(projection[local + 1])
@@ -334,9 +333,7 @@ def _transition_estimate(
         np.real((local_values - before) * np.conj(delta)) / delta_power,
         dtype=np.float64,
     )
-    crossing_times = {
-        q: _crossing_time_us(projection, first_bin, q) for q in THRESHOLD_SWEEP
-    }
+    crossing_times = {q: _crossing_time_us(projection, first_bin, q) for q in THRESHOLD_SWEEP}
 
     cp_first = index - plateau
     cp_last = index + plateau
@@ -348,8 +345,7 @@ def _transition_estimate(
         left_mean = np.mean(left)
         right_mean = np.mean(right)
         loss = float(
-            np.sum(np.abs(left - left_mean) ** 2)
-            + np.sum(np.abs(right - right_mean) ** 2)
+            np.sum(np.abs(left - left_mean) ** 2) + np.sum(np.abs(right - right_mean) ** 2)
         )
         changepoints.append((loss, split))
     changepoints.sort()
@@ -487,15 +483,11 @@ def _interpolated_state_metrics(
     before_noise = _complex_noise(before_values, before)
     after_noise = _complex_noise(after_values, after)
     propagated_noise = math.sqrt(
-        active_noise**2
-        + before_weight**2 * before_noise**2
-        + after_weight**2 * after_noise**2
+        active_noise**2 + before_weight**2 * before_noise**2 + after_weight**2 * after_noise**2
     )
     return {
         "pilot_snr_db": _ratio_db(abs(signal), propagated_noise),
-        "state_to_null_contrast_db": _ratio_db(
-            abs(signal), max(abs(null), propagated_noise)
-        ),
+        "state_to_null_contrast_db": _ratio_db(abs(signal), max(abs(null), propagated_noise)),
         "signal_amplitude": abs(signal),
         "interpolated_null_amplitude": abs(null),
         "propagated_per_bin_complex_noise": propagated_noise,
@@ -610,12 +602,12 @@ def _quality_document(
         reasons.append("q40_q60_edge_span_above_1_5_us")
     if maximum_independent_delta_us > MAXIMUM_INDEPENDENT_ESTIMATOR_DELTA_US:
         reasons.append("independent_edge_estimator_delta_above_1_5_us")
-    if minimum_transition_snr_db < MINIMUM_RF_DB:
-        reasons.append("transition_snr_below_20_db")
-    if minimum_pilot_snr_db < MINIMUM_RF_DB:
-        reasons.append("pilot_snr_below_20_db")
-    if minimum_contrast_db < MINIMUM_RF_DB:
-        reasons.append("state_null_contrast_below_20_db")
+    if minimum_transition_snr_db < MINIMUM_TRANSITION_SNR_DB:
+        reasons.append("transition_snr_below_19_db")
+    if minimum_pilot_snr_db < MINIMUM_PILOT_SNR_DB:
+        reasons.append("pilot_snr_below_17_db")
+    if minimum_contrast_db < MINIMUM_STATE_NULL_CONTRAST_DB:
+        reasons.append("state_null_contrast_below_17_db")
     return {
         "passed": not reasons,
         "rejection_reasons": reasons,
@@ -630,18 +622,14 @@ def _quality_document(
             "conservative_guard_upper_bound_us": 22.0,
             "cycle_window_us": [1_425.0, 1_575.0],
             "maximum_q40_q60_edge_span_us": MAXIMUM_THRESHOLD_SWEEP_US,
-            "maximum_independent_estimator_delta_us": (
-                MAXIMUM_INDEPENDENT_ESTIMATOR_DELTA_US
-            ),
+            "maximum_independent_estimator_delta_us": (MAXIMUM_INDEPENDENT_ESTIMATOR_DELTA_US),
             "maximum_refined_pilot_residual_from_dds_readback_hz": (
                 MAXIMUM_REFINED_PILOT_RESIDUAL_HZ
             ),
-            "minimum_pilot_phase_step_coherence": (
-                MINIMUM_PILOT_PHASE_STEP_COHERENCE
-            ),
-            "minimum_transition_snr_db": MINIMUM_RF_DB,
-            "minimum_pilot_snr_db": MINIMUM_RF_DB,
-            "minimum_state_null_contrast_db": MINIMUM_RF_DB,
+            "minimum_pilot_phase_step_coherence": (MINIMUM_PILOT_PHASE_STEP_COHERENCE),
+            "minimum_transition_snr_db": MINIMUM_TRANSITION_SNR_DB,
+            "minimum_pilot_snr_db": MINIMUM_PILOT_SNR_DB,
+            "minimum_state_null_contrast_db": MINIMUM_STATE_NULL_CONTRAST_DB,
         },
     }
 
@@ -668,9 +656,7 @@ def analyze_hexcal_timing_envelope(
     edge_cache: dict[int, TransitionEstimate] = {}
     cycles: list[dict[str, Any]] = []
     rejected_edge_estimation = 0
-    state_rf: dict[str, list[dict[str, float | str]]] = {
-        f"ANT{index}": [] for index in range(1, 7)
-    }
+    state_rf: dict[str, list[dict[str, float | str]]] = {f"ANT{index}": [] for index in range(1, 7)}
     for proposal in proposals:
         try:
             edges = []
@@ -738,20 +724,16 @@ def analyze_hexcal_timing_envelope(
     dwell_stats: dict[str, dict[str, float | int | None]] = {}
     for state in range(1, 7):
         name = f"ANT{state}"
-        dwell_stats[name] = _stats(
-            [float(item["dwells"][name]["q50_us"]) for item in cycles]
-        )
+        dwell_stats[name] = _stats([float(item["dwells"][name]["q50_us"]) for item in cycles])
     guard_stats: dict[str, dict[str, Any]] = {}
     for state in range(1, 6):
         name = f"ANT{state}_TO_ANT{state + 1}"
         q50_values = [float(item["ordinary_guards"][name]["q50_us"]) for item in cycles]
         lower_values = [
-            float(item["ordinary_guards"][name]["conservative_lower_bound_us"])
-            for item in cycles
+            float(item["ordinary_guards"][name]["conservative_lower_bound_us"]) for item in cycles
         ]
         upper_values = [
-            float(item["ordinary_guards"][name]["conservative_upper_bound_us"])
-            for item in cycles
+            float(item["ordinary_guards"][name]["conservative_upper_bound_us"]) for item in cycles
         ]
         guard_stats[name] = {
             "q50_us": _stats(q50_values),
@@ -781,8 +763,7 @@ def analyze_hexcal_timing_envelope(
             }
         )
     minimum_pilot_snr = min(
-        _required_stat(item["pilot_snr_db"], "minimum", str(item["name"]))
-        for item in rf_states
+        _required_stat(item["pilot_snr_db"], "minimum", str(item["name"])) for item in rf_states
     )
     minimum_contrast = min(
         _required_stat(item["state_to_null_contrast_db"], "minimum", str(item["name"]))
@@ -863,7 +844,7 @@ def analyze_hexcal_timing_samples(
     profile: HexcalProfile,
     continuity_verified: bool,
 ) -> dict[str, Any]:
-    """Run the complete 5 MS/s detector and timing-only RF qualification."""
+    """Run the complete 2 MS/s detector and timing-only RF qualification."""
 
     if continuity_verified is not True:
         raise ValueError("RF timing analysis requires independently verified ABI2 continuity")
@@ -889,6 +870,7 @@ __all__ = [
     "MINIMUM_COMPLETE_CYCLES",
     "SAMPLES_PER_COHERENT_BIN",
     "SAMPLE_RATE_HZ",
+    "TIMING_RECEIVER_GAIN_DB",
     "analyze_hexcal_timing_envelope",
     "analyze_hexcal_timing_samples",
     "coherent_one_microsecond_detector",

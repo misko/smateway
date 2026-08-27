@@ -454,7 +454,7 @@ def test_stimulus_protocol_defaults_are_frozen() -> None:
 def test_machine_readable_stimulus_protocol_matches_implementation() -> None:
     document = json.loads(
         (
-            REPOSITORY / "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.1-2g4-stimulus.json"
+            REPOSITORY / "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.2-2g4-stimulus.json"
         ).read_text(encoding="utf-8")
     )
     screen = document["stimulus_screen"]
@@ -476,7 +476,8 @@ def test_machine_readable_stimulus_protocol_matches_implementation() -> None:
         "clipped_samples": 0,
     }
     assert timing["replicate_count"] == 2
-    assert timing["sample_rate_hz"] == 5_000_000
+    assert timing["sample_rate_hz"] == 2_000_000
+    assert timing["receiver_gain_db"] == 30
     assert timing["must_use_new_artifacts_after_stimulus_selection"] is True
     assert matrix["artifact_count"] == 15
     assert sum(len(order) for order in matrix["orders_hz"]) == 15

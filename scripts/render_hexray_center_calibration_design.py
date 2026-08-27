@@ -124,8 +124,7 @@ def load_snapshot(path: Path) -> Mapping[str, Any]:
 
     geometry = _mapping(root.get("geometry"), "geometry")
     antennas = [
-        _mapping(item, "antenna")
-        for item in _sequence(geometry.get("antennas"), "antennas")
+        _mapping(item, "antenna") for item in _sequence(geometry.get("antennas"), "antennas")
     ]
     if [item.get("name") for item in antennas] != [f"ANT{index}" for index in range(1, 7)]:
         raise DesignReportError("geometry must contain ordered ANT1 through ANT6")
@@ -179,16 +178,16 @@ def load_snapshot(path: Path) -> Mapping[str, Any]:
     if rounds * conditions != _integer(plan.get("planned_artifacts"), "planned artifacts"):
         raise DesignReportError("capture-plan artifact count is inconsistent")
     frequency = _mapping(root.get("frequency_plan"), "frequency plan")
-    centers = tuple(_integer(value, "center frequency") for value in _sequence(
-        frequency.get("center_frequencies_hz"), "center frequencies"
-    ))
+    centers = tuple(
+        _integer(value, "center frequency")
+        for value in _sequence(frequency.get("center_frequencies_hz"), "center frequencies")
+    )
     if 2_400_000_000 not in centers or 5_800_000_000 not in centers:
         raise DesignReportError("frequency plan must retain 2.4 and exact experimental 5.8 GHz")
 
     routes = _mapping(root.get("pcb_route_priors"), "PCB route priors")
     route_rows = [
-        _mapping(item, "route row")
-        for item in _sequence(routes.get("rows"), "route rows")
+        _mapping(item, "route row") for item in _sequence(routes.get("rows"), "route rows")
     ]
     if [item.get("name") for item in route_rows] != [f"ANT{index}" for index in range(1, 7)]:
         raise DesignReportError("route priors must contain ordered ANT1 through ANT6")
@@ -217,19 +216,19 @@ def load_snapshot(path: Path) -> Mapping[str, Any]:
     exact_integer_fields = {
         "captures_per_tested_band": 2,
         "duration_ms_per_capture": 450,
-        "sample_rate_hz": 5_000_000,
-        "rf_bandwidth_hz": 4_000_000,
+        "sample_rate_hz": 2_000_000,
+        "rf_bandwidth_hz": 1_600_000,
         "frames_per_capture": 9,
-        "samples_per_frame": 250_000,
-        "samples_per_capture": 2_250_000,
+        "samples_per_frame": 100_000,
+        "samples_per_capture": 900_000,
         "kernel_buffer_count": 8,
         "metadata_abi": 2,
     }
     for field, expected in exact_integer_fields.items():
         if _integer(timing_capture.get(field), f"RF timing {field}") != expected:
             raise DesignReportError(f"RF timing {field} changed from {expected}")
-    if not _close(_number(timing_capture.get("native_sample_period_us"), "sample period"), 0.2):
-        raise DesignReportError("5 MS/s timing capture must retain the 0.2 us sample period")
+    if not _close(_number(timing_capture.get("native_sample_period_us"), "sample period"), 0.5):
+        raise DesignReportError("2 MS/s timing capture must retain the 0.5 us sample period")
     expected_samples = int(
         _number(timing_capture["duration_ms_per_capture"], "duration")
         * _number(timing_capture["sample_rate_hz"], "sample rate")
@@ -237,16 +236,14 @@ def load_snapshot(path: Path) -> Mapping[str, Any]:
     )
     if expected_samples != timing_capture["samples_per_capture"]:
         raise DesignReportError("RF timing duration and sample count disagree")
-    framed_samples = (
-        timing_capture["frames_per_capture"] * timing_capture["samples_per_frame"]
-    )
+    framed_samples = timing_capture["frames_per_capture"] * timing_capture["samples_per_frame"]
     if framed_samples != timing_capture["samples_per_capture"]:
         raise DesignReportError("RF timing frame and sample counts disagree")
     if timing_capture.get("experimental_5g8_opt_in_required") is not True:
         raise DesignReportError("RF timing must retain explicit 5.8 GHz opt-in")
     timing_detector = _mapping(rf_timing.get("detector"), "RF timing detector")
-    if _integer(timing_detector.get("coherent_samples_per_bin"), "coherent bin") != 5:
-        raise DesignReportError("RF timing detector must coherently combine five samples")
+    if _integer(timing_detector.get("coherent_samples_per_bin"), "coherent bin") != 2:
+        raise DesignReportError("RF timing detector must coherently combine two samples")
     if not _close(_number(timing_detector.get("complex_bin_duration_us"), "bin duration"), 1.0):
         raise DesignReportError("RF timing detector must retain one-microsecond bins")
     thresholds = tuple(
@@ -279,9 +276,10 @@ def load_snapshot(path: Path) -> Mapping[str, Any]:
     if not any("not independently" in item for item in limitations):
         raise DesignReportError("RF timing must disclose its GPIO evidence boundary")
 
-    sources = [_mapping(item, "source") for item in _sequence(
-        root.get("source_documents"), "source documents"
-    )]
+    sources = [
+        _mapping(item, "source")
+        for item in _sequence(root.get("source_documents"), "source documents")
+    ]
     if len(sources) < 4:
         raise DesignReportError("snapshot must retain its source-hash inventory")
     for source in sources:
@@ -392,12 +390,11 @@ def _card(
 def _render_geometry(snapshot: Mapping[str, Any], path: Path) -> None:
     geometry = _mapping(snapshot["geometry"], "geometry")
     frequency = _mapping(snapshot["frequency_plan"], "frequency plan")
-    rows = [_mapping(item, "wavelength row") for item in _sequence(
-        frequency["wavelength_rows"], "wavelength rows"
-    )]
-    antennas = [_mapping(item, "antenna") for item in _sequence(
-        geometry["antennas"], "antennas"
-    )]
+    rows = [
+        _mapping(item, "wavelength row")
+        for item in _sequence(frequency["wavelength_rows"], "wavelength rows")
+    ]
+    antennas = [_mapping(item, "antenna") for item in _sequence(geometry["antennas"], "antennas")]
 
     fig = plt.figure(figsize=(14, 8.4), constrained_layout=False)
     _title(
@@ -516,8 +513,13 @@ def _render_geometry(snapshot: Mapping[str, Any], path: Path) -> None:
     ]
     for index, bullet in enumerate(bullets):
         y = 0.31 - index * 0.075
-        facts.scatter([0.018], [y + 0.012], s=32, color=[BLUE, PURPLE, TEAL, AMBER][index],
-                      transform=facts.transAxes)
+        facts.scatter(
+            [0.018],
+            [y + 0.012],
+            s=32,
+            color=[BLUE, PURPLE, TEAL, AMBER][index],
+            transform=facts.transAxes,
+        )
         facts.text(
             0.055,
             y,
@@ -543,7 +545,7 @@ def _render_timing(snapshot: Mapping[str, Any], path: Path) -> None:
         fig,
         "Selector frame and 1 MS/s complex-calibration matrix",
         f"{schedule['profile_id']}: the calibration decoder uses the marker and null grammar "
-        "for coarse alignment; a separate 5 MS/s pair qualifies microsecond timing.",
+        "for coarse alignment; a separate stable 2 MS/s pair qualifies microsecond timing.",
     )
     grid = fig.add_gridspec(
         3,
@@ -601,8 +603,16 @@ def _render_timing(snapshot: Mapping[str, Any], path: Path) -> None:
     for label, width, face, edge in segments:
         zoom.barh(0, width, left=position, height=0.52, color=face, edgecolor=edge)
         if width >= 10:
-            zoom.text(position + width / 2, 0, f"{label}\n{width} µs", ha="center", va="center",
-                      fontsize=8.3, color=edge, fontweight="bold")
+            zoom.text(
+                position + width / 2,
+                0,
+                f"{label}\n{width} µs",
+                ha="center",
+                va="center",
+                fontsize=8.3,
+                color=edge,
+                fontweight="bold",
+            )
         position += width
     settle = _number(schedule["switch_settling_max_us"], "settling")
     zoom.annotate(
@@ -624,9 +634,10 @@ def _render_timing(snapshot: Mapping[str, Any], path: Path) -> None:
 
     rounds = fig.add_subplot(grid[2, 0])
     rounds.set_axis_off()
-    orders = [_sequence(item, "round order") for item in _sequence(
-        frequency["round_orders_hz"], "round orders"
-    )]
+    orders = [
+        _sequence(item, "round order")
+        for item in _sequence(frequency["round_orders_hz"], "round orders")
+    ]
     rounds.text(
         0.0,
         1.02,
@@ -660,8 +671,16 @@ def _render_timing(snapshot: Mapping[str, Any], path: Path) -> None:
                 transform=rounds.transAxes,
             )
             rounds.add_patch(box)
-            rounds.text(x + 0.0525, y + 0.06, f"{ghz:.3f}", ha="center", va="center",
-                        transform=rounds.transAxes, fontsize=8.5, fontweight="bold")
+            rounds.text(
+                x + 0.0525,
+                y + 0.06,
+                f"{ghz:.3f}",
+                ha="center",
+                va="center",
+                transform=rounds.transAxes,
+                fontsize=8.5,
+                fontweight="bold",
+            )
             if index < len(order) - 1:
                 rounds.annotate(
                     "",
@@ -687,7 +706,7 @@ def _render_timing(snapshot: Mapping[str, Any], path: Path) -> None:
         0.105,
         -0.13,
         (
-            "Timing evidence is separate: two fresh 450 ms captures/band at 5 MS/s · "
+            "Timing evidence is separate: two fresh 450 ms captures at 2 MS/s · "
             "see Figure 5 · GPIO identity/order remain source + readback-hash backed"
         ),
         transform=rounds.transAxes,
@@ -713,7 +732,7 @@ def _render_rf_timing(snapshot: Mapping[str, Any], path: Path) -> None:
         fig,
         "Separate RF-only microsecond timing qualification",
         "Pre-execution contract: two independent 450 ms captures per claimed band measure "
-        "RF-visible edges at 5 MS/s without claiming GPIO or connector identity.",
+        "RF-visible edges at 2 MS/s without claiming GPIO or connector identity.",
     )
     grid = fig.add_gridspec(
         3,
@@ -741,7 +760,7 @@ def _render_rf_timing(snapshot: Mapping[str, Any], path: Path) -> None:
     )
     stages = [
         (0.01, "Fresh stream", "capture A or B\nnever split one stream", BLUE),
-        (0.21, "Continuous IQ", "450 ms · 5 MS/s\n4 MHz RF BW", TEAL),
+        (0.21, "Continuous IQ", "450 ms · 2 MS/s\n1.6 MHz RF BW", TEAL),
         (0.41, "RAM hold", "9 × 250k frames\n8 kernel buffers", PURPLE),
         (0.61, "Mute + verify", "both TX channels\nexact-radio readback", RED),
         (0.81, "Persist", "only after cleanup\nthen analyze", AMBER),
@@ -813,10 +832,12 @@ def _render_rf_timing(snapshot: Mapping[str, Any], path: Path) -> None:
         q_value = _number(threshold, "threshold")
         crossing = float(np.interp(q_value, q_curve, x))
         color = threshold_colors[q_value]
-        projection.axhline(q_value, color=color, linestyle=":" if q_value != 0.5 else "--",
-                           linewidth=1.2)
-        projection.axvline(crossing, color=color, linestyle=":" if q_value != 0.5 else "--",
-                           linewidth=1.2)
+        projection.axhline(
+            q_value, color=color, linestyle=":" if q_value != 0.5 else "--", linewidth=1.2
+        )
+        projection.axvline(
+            crossing, color=color, linestyle=":" if q_value != 0.5 else "--", linewidth=1.2
+        )
         projection.text(
             crossing + (0.10 if q_value >= 0.5 else -0.10),
             q_value + 0.035,
@@ -826,8 +847,9 @@ def _render_rf_timing(snapshot: Mapping[str, Any], path: Path) -> None:
             fontsize=8.5,
             fontweight="bold",
         )
-    projection.axvline(0.18, color=AMBER, linewidth=1.6, linestyle="-.",
-                       label="independent two-mean changepoint")
+    projection.axvline(
+        0.18, color=AMBER, linewidth=1.6, linestyle="-.", label="independent two-mean changepoint"
+    )
     projection.set_xlim(-4.0, 4.0)
     projection.set_ylim(-0.04, 1.08)
     projection.set_xlabel("time relative to schematic RF edge (µs)")
@@ -888,12 +910,20 @@ def _render_rf_timing(snapshot: Mapping[str, Any], path: Path) -> None:
         transform=resolution.transAxes,
     )
     resolution.add_patch(one_bin)
-    resolution.text(0.835, 0.735, "1 µs\ncomplex bin", transform=resolution.transAxes,
-                    ha="center", va="center", color=TEAL, fontweight="bold")
+    resolution.text(
+        0.835,
+        0.735,
+        "1 µs\ncomplex bin",
+        transform=resolution.transAxes,
+        ha="center",
+        va="center",
+        color=TEAL,
+        fontweight="bold",
+    )
     resolution.text(
         0.02,
         0.57,
-        "five native samples at 5 MS/s",
+        "two native samples at 2 MS/s",
         transform=resolution.transAxes,
         fontsize=8.8,
         color=MUTED,
@@ -932,7 +962,7 @@ def _render_rf_timing(snapshot: Mapping[str, Any], path: Path) -> None:
     resolution.text(
         0.02,
         0.09,
-        "Fractional interpolation is not an independent direct 0.2 µs edge fit.",
+        "Fractional interpolation is not an independent direct 0.5 µs edge fit.",
         transform=resolution.transAxes,
         fontsize=8.6,
         color=RED,
@@ -941,8 +971,15 @@ def _render_rf_timing(snapshot: Mapping[str, Any], path: Path) -> None:
 
     gate_ax = fig.add_subplot(grid[2, 0])
     gate_ax.set_axis_off()
-    gate_ax.text(0.0, 0.98, "Frozen per-artifact gates", fontsize=13,
-                 fontweight="bold", va="top", transform=gate_ax.transAxes)
+    gate_ax.text(
+        0.0,
+        0.98,
+        "Frozen per-artifact gates",
+        fontsize=13,
+        fontweight="bold",
+        va="top",
+        transform=gate_ax.transAxes,
+    )
     gate_rows = [
         ("Decode", "≥290 complete cycles · ≥98% · exactly 12 visible edges/cycle"),
         ("Marker + dwells", "every value 190–210 µs"),
@@ -956,18 +993,47 @@ def _render_rf_timing(snapshot: Mapping[str, Any], path: Path) -> None:
         y = 0.82 - index * 0.112
         face = "white" if index % 2 == 0 else PALE_BLUE
         gate_ax.add_patch(
-            Rectangle((0.0, y), 0.99, 0.092, transform=gate_ax.transAxes,
-                      facecolor=face, edgecolor=GRID, linewidth=0.8)
+            Rectangle(
+                (0.0, y),
+                0.99,
+                0.092,
+                transform=gate_ax.transAxes,
+                facecolor=face,
+                edgecolor=GRID,
+                linewidth=0.8,
+            )
         )
-        gate_ax.text(0.025, y + 0.046, label, transform=gate_ax.transAxes,
-                     va="center", fontsize=8.7, fontweight="bold", color=BLUE)
-        gate_ax.text(0.25, y + 0.046, value, transform=gate_ax.transAxes,
-                     va="center", fontsize=8.25, color=INK)
+        gate_ax.text(
+            0.025,
+            y + 0.046,
+            label,
+            transform=gate_ax.transAxes,
+            va="center",
+            fontsize=8.7,
+            fontweight="bold",
+            color=BLUE,
+        )
+        gate_ax.text(
+            0.25,
+            y + 0.046,
+            value,
+            transform=gate_ax.transAxes,
+            va="center",
+            fontsize=8.25,
+            color=INK,
+        )
 
     claim_ax = fig.add_subplot(grid[2, 1])
     claim_ax.set_axis_off()
-    claim_ax.text(0.0, 0.98, "What a passing pair can claim", fontsize=13,
-                  fontweight="bold", va="top", transform=claim_ax.transAxes)
+    claim_ax.text(
+        0.0,
+        0.98,
+        "What a passing pair can claim",
+        fontsize=13,
+        fontweight="bold",
+        va="top",
+        transform=claim_ax.transAxes,
+    )
     for index, (band, note, color) in enumerate(
         [
             ("2.4 GHz", "capture A pass  ∧  capture B pass", BLUE),
@@ -976,8 +1042,14 @@ def _render_rf_timing(snapshot: Mapping[str, Any], path: Path) -> None:
     ):
         y = 0.76 - index * 0.18
         _card(claim_ax, 0.0, y, 0.98, 0.15, band, note, color)
-    claim_ax.text(0.0, 0.49, "RF-only evidence boundary", fontsize=11.5,
-                  fontweight="bold", transform=claim_ax.transAxes)
+    claim_ax.text(
+        0.0,
+        0.49,
+        "RF-only evidence boundary",
+        fontsize=11.5,
+        fontweight="bold",
+        transform=claim_ax.transAxes,
+    )
     limits = [
         "Qualifies only the combined marker, ordinary guards, dwells and cycle.",
         "Cannot split the 180 µs marker body from its contiguous 20 µs pre-ANT1 guard.",
@@ -988,10 +1060,23 @@ def _render_rf_timing(snapshot: Mapping[str, Any], path: Path) -> None:
     ]
     for index, item in enumerate(limits):
         y = 0.40 - index * 0.095
-        claim_ax.scatter([0.015], [y + 0.01], s=22, color=RED if index < 3 else AMBER,
-                         transform=claim_ax.transAxes)
-        claim_ax.text(0.045, y, textwrap.fill(item, width=64), transform=claim_ax.transAxes,
-                      fontsize=7.8, va="top", color=INK, linespacing=1.12)
+        claim_ax.scatter(
+            [0.015],
+            [y + 0.01],
+            s=22,
+            color=RED if index < 3 else AMBER,
+            transform=claim_ax.transAxes,
+        )
+        claim_ax.text(
+            0.045,
+            y,
+            textwrap.fill(item, width=64),
+            transform=claim_ax.transAxes,
+            fontsize=7.8,
+            va="top",
+            color=INK,
+            linespacing=1.12,
+        )
 
     expected_cycles = (
         _number(contract["duration_ms_per_capture"], "duration")
@@ -1044,10 +1129,26 @@ def _chain_box(
         transform=ax.transAxes,
     )
     ax.add_patch(box)
-    ax.text(x + width / 2, y + 0.115, title, transform=ax.transAxes, ha="center",
-            fontweight="bold", color=color)
-    ax.text(x + width / 2, y + 0.055, subtitle, transform=ax.transAxes, ha="center",
-            va="center", fontsize=8.2, color=MUTED, linespacing=1.2)
+    ax.text(
+        x + width / 2,
+        y + 0.115,
+        title,
+        transform=ax.transAxes,
+        ha="center",
+        fontweight="bold",
+        color=color,
+    )
+    ax.text(
+        x + width / 2,
+        y + 0.055,
+        subtitle,
+        transform=ax.transAxes,
+        ha="center",
+        va="center",
+        fontsize=8.2,
+        color=MUTED,
+        linespacing=1.2,
+    )
 
 
 def _render_identifiability(snapshot: Mapping[str, Any], path: Path) -> None:
@@ -1109,8 +1210,14 @@ def _render_identifiability(snapshot: Mapping[str, Any], path: Path) -> None:
 
     stages = fig.add_subplot(grid[1, 0])
     stages.set_axis_off()
-    stages.text(0.0, 0.98, "How to establish separate reference planes", fontsize=13,
-                fontweight="bold", va="top")
+    stages.text(
+        0.0,
+        0.98,
+        "How to establish separate reference planes",
+        fontsize=13,
+        fontweight="bold",
+        va="top",
+    )
     stage_data = [
         (
             "1",
@@ -1139,11 +1246,20 @@ def _render_identifiability(snapshot: Mapping[str, Any], path: Path) -> None:
     ]
     for index, (number, heading, body, color) in enumerate(stage_data):
         x = 0.01 + index * 0.25
-        circle = Circle((x + 0.035, 0.67), 0.035, transform=stages.transAxes,
-                        facecolor=color, edgecolor="none")
+        circle = Circle(
+            (x + 0.035, 0.67), 0.035, transform=stages.transAxes, facecolor=color, edgecolor="none"
+        )
         stages.add_patch(circle)
-        stages.text(x + 0.035, 0.67, number, color="white", ha="center", va="center",
-                    transform=stages.transAxes, fontweight="bold")
+        stages.text(
+            x + 0.035,
+            0.67,
+            number,
+            color="white",
+            ha="center",
+            va="center",
+            transform=stages.transAxes,
+            fontweight="bold",
+        )
         _card(stages, x, 0.27, 0.22, 0.31, heading, body, color)
         if index < len(stage_data) - 1:
             _arrow(stages, (x + 0.23, 0.43), (x + 0.255, 0.43), MUTED)
@@ -1180,8 +1296,16 @@ def _phasor_panel(ax: Axes, phases_deg: np.ndarray, title: str) -> None:
             arrowprops={"arrowstyle": "-|>", "lw": 2.0, "color": color},
         )
         label = "/".join(str(index) for index in indices)
-        ax.text(phase, 1.09, label, color=color, ha="center", va="center",
-                fontweight="bold", fontsize=8.5)
+        ax.text(
+            phase,
+            1.09,
+            label,
+            color=color,
+            ha="center",
+            va="center",
+            fontweight="bold",
+            fontsize=8.5,
+        )
     ax.set_ylim(0, 1.16)
     ax.set_yticklabels([])
     ax.set_theta_zero_location("E")
@@ -1244,10 +1368,16 @@ def _render_phasors(snapshot: Mapping[str, Any], path: Path) -> None:
     minimum = _number(symmetry["minimum_maximum_noncommon_mode_dbc"], "minimum mode")
     target = _number(symmetry["target_maximum_noncommon_mode_dbc"], "target mode")
     modes.bar(mode_index, ideal, color=[TEAL, BLUE, BLUE, BLUE, BLUE, BLUE], width=0.62)
-    modes.axhline(minimum, color=RED, linestyle="--", linewidth=1.6,
-                  label=f"minimum non-common gate {minimum:.0f} dBc")
-    modes.axhline(target, color=AMBER, linestyle=":", linewidth=2.0,
-                  label=f"target {target:.0f} dBc")
+    modes.axhline(
+        minimum,
+        color=RED,
+        linestyle="--",
+        linewidth=1.6,
+        label=f"minimum non-common gate {minimum:.0f} dBc",
+    )
+    modes.axhline(
+        target, color=AMBER, linestyle=":", linewidth=2.0, label=f"target {target:.0f} dBc"
+    )
     modes.set_xticks(mode_index, [f"M{index}" for index in mode_index])
     modes.set_ylim(-65, 5)
     modes.set_ylabel("mode amplitude relative to M0 (dBc)")
@@ -1267,8 +1397,7 @@ def _render_phasors(snapshot: Mapping[str, Any], path: Path) -> None:
 
     acceptance = fig.add_subplot(grid[1, 2])
     acceptance.set_axis_off()
-    acceptance.text(0.0, 0.98, "Primary calibrated gates", fontsize=13,
-                    fontweight="bold", va="top")
+    acceptance.text(0.0, 0.98, "Primary calibrated gates", fontsize=13, fontweight="bold", va="top")
     amplitude_span = _number(symmetry["maximum_amplitude_span_db"], "amplitude span")
     phase_rms = _number(symmetry["maximum_circular_phase_rms_deg"], "phase RMS")
     resultant = _number(symmetry["minimum_phase_resultant_length"], "resultant")
@@ -1285,17 +1414,46 @@ def _render_phasors(snapshot: Mapping[str, Any], path: Path) -> None:
     for index, (label, value, color) in enumerate(gate_rows):
         y = 0.77 - index * 0.19
         acceptance.add_patch(
-            Rectangle((0.0, y), 0.98, 0.135, transform=acceptance.transAxes,
-                      facecolor="white", edgecolor=GRID, linewidth=1.0)
+            Rectangle(
+                (0.0, y),
+                0.98,
+                0.135,
+                transform=acceptance.transAxes,
+                facecolor="white",
+                edgecolor=GRID,
+                linewidth=1.0,
+            )
         )
         acceptance.add_patch(
-            Rectangle((0.0, y), 0.018, 0.135, transform=acceptance.transAxes,
-                      facecolor=color, edgecolor=color)
+            Rectangle(
+                (0.0, y),
+                0.018,
+                0.135,
+                transform=acceptance.transAxes,
+                facecolor=color,
+                edgecolor=color,
+            )
         )
-        acceptance.text(0.045, y + 0.087, label, transform=acceptance.transAxes,
-                        fontsize=8.8, color=MUTED, va="center")
-        acceptance.text(0.95, y + 0.05, value, transform=acceptance.transAxes,
-                        fontsize=12, fontweight="bold", color=color, ha="right", va="center")
+        acceptance.text(
+            0.045,
+            y + 0.087,
+            label,
+            transform=acceptance.transAxes,
+            fontsize=8.8,
+            color=MUTED,
+            va="center",
+        )
+        acceptance.text(
+            0.95,
+            y + 0.05,
+            value,
+            transform=acceptance.transAxes,
+            fontsize=12,
+            fontweight="bold",
+            color=color,
+            ha="right",
+            va="center",
+        )
     acceptance.text(
         0.0,
         0.005,

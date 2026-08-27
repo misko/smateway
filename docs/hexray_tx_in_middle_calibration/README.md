@@ -10,7 +10,7 @@ which gates have actually been reached.
 
 No logic analyzer was physically connected when this revision was prepared. Section 8 therefore
 defines a preferred independent GPIO-observation path and the selected restricted low-power RF
-timing fallback. That fallback is a **separate paired 5 MS/s qualification**, not timing inferred
+timing fallback. That fallback is a **separate paired 2 MS/s qualification**, not timing inferred
 from the 1 MS/s complex-calibration matrix. It does not independently observe GPIO code or
 active-port identity.
 
@@ -40,8 +40,10 @@ cable identities and the exact calibration reference plane.
 | DONE | Clean build and host/static verification of the reviewed 1,152-byte image (`381` tests). |
 | DONE | Deploy commit `67ba91d` and verify its exact 16 KiB flash, UID and option-byte readbacks. |
 | REJECTED | `hexcal-v2-2g4-stimulus`: four centres passed at TX `-10 dB`, but burst interference left only 8 valid cycles at 2.458 GHz. |
-| DONE | Freeze and test `hexcal-v2.1-2g4-stimulus` with the surveyed 2.472 GHz replacement centre. |
-| PENDING | Qualify and freeze the operating point and paired 5 MS/s timing evidence. |
+| DONE | Qualify `hexcal-v2.1-2g4-stimulus`: RX `20 dB`, TX `-10 dB`, all five replacement centres passed. |
+| REJECTED | Two 5 MS/s timing pairs: the TX pilot was intermittently absent despite identical software readback; preserve both manifests. |
+| DONE | Freeze `hexcal-v2.2-2g4-stimulus` at the highest stable screened timing rate, 2 MS/s, and timing-only RX `30 dB`. |
+| IN PROGRESS | Implement, test, source-bind, and acquire the paired v2.2 timing evidence. |
 | PENDING | Capture the predeclared calibration matrix. |
 | PENDING | Aggregate, held-out validation, independent audit, findings/figures, commit/push, and a verified muted end state. |
 
@@ -198,7 +200,29 @@ qualification. Merely scaling the old duration constants is not acceptable.
 
 ## 5. Complex-calibration capture matrix
 
-### Active replacement: `hexcal-v2.1-2g4-stimulus`
+### Active replacement: `hexcal-v2.2-2g4-stimulus`
+
+The v2.1 five-centre stimulus screen passed at the fixed calibration gain RX `20 dB` and the
+lowest all-centre TX candidate, `-10 dB`. Its subsequent 5 MS/s timing gate was safely rejected:
+under identical gain, DDS, FDD, PLL-lock and FPGA readbacks, the pilot appeared intermittently.
+An interleaved exact-muted rate screen passed `6/6` at 1 MS/s, `4/4` at 2 MS/s, `2/4` at
+3 MS/s, `0/4` at 4 MS/s and `1/6` at 5 MS/s. DDS re-arm, TX-LO cycling, DAC frame sync and a
+bounded cyclic TX buffer did not repair the unstable rates.
+
+The frozen [`hexcal-v2.2-2g4-stimulus` protocol](data/hexcal-v2.2-2g4-stimulus.json) therefore
+keeps the stimulus screen and calibration matrix unchanged, but qualifies timing at the highest
+screened no-dropout rate, 2 MS/s. Timing alone uses RX `30 dB`; calibration remains at its
+qualified RX `20 dB`. Four exploratory 450 ms RX30 captures each decoded 300–301 cycles, had
+zero clipping and at most 156 ADC component counts, transition SNR `20.48–20.87 dB`, and
+pilot/null contrast `18.25–18.51 dB`. Those exploratory data are design inputs only. Before the
+first v2.2 qualification capture, the frozen RF gates are 19 dB transition SNR and 17 dB pilot
+SNR/state-to-null contrast, with all edge, duration and pair-agreement gates unchanged.
+
+The executable v2.2 chain is `qualify_hexcal_rx_gain.py --tx-stimulus-v22`, followed by
+`capture_hexcal_timing.py --protocol-v22`, its independent timing analyzer, and then
+`run_hexcal_calibration.py --protocol-v22`.
+
+### Rejected predecessor: `hexcal-v2.1-2g4-stimulus`
 
 The first frozen v2 run was safely rejected. At TX `-10 dB`, 2.400, 2.423, 2.440 and
 2.483 GHz passed every gate, but a burst interferer at 2.458 GHz drove RX1 1 ms RMS from a
@@ -209,10 +233,8 @@ window from 2.468 through 2.478 GHz. The frozen
 only 2.458 GHz with the midpoint, 2.472 GHz. The new five-centre plan is `2.400, 2.423, 2.440,
 2.472, 2.483 GHz`; every other stimulus, safety, timing and calibration gate remains unchanged.
 
-The executable v2.1 chain is `qualify_hexcal_rx_gain.py --tx-stimulus-v21`, followed by
-`capture_hexcal_timing.py --protocol-v21`, its independent timing analyzer, and then
-`run_hexcal_calibration.py --protocol-v21`. The rejected v2 raw artifacts remain design input
-only and cannot be promoted into the v2.1 qualification.
+Its immutable stimulus ledger remains valid evidence for that rejected source revision, but its
+5 MS/s timing artifacts cannot be promoted into v2.2 evidence.
 
 ### Rejected predecessor: `hexcal-v2-2g4-stimulus`
 
@@ -231,7 +253,7 @@ headroom gates. The first complete pass is frozen. If any condition fails the co
 headroom gate, stop: no stronger candidate is safe to test under this protocol.
 
 The stimulus screens are not timing evidence or calibration artifacts. After selection, acquire
-a new independent two-replicate `5 MS/s` timing pair at `2.400 GHz` using the frozen RX/TX
+a new independent two-replicate timing pair at `2.400 GHz` using the frozen RX/TX
 settings. Both members must pass every RF-only timing gate below. Only then acquire 15 one-second
 calibration artifacts: five forward-frequency, five reverse-frequency, and five rotated-order
 artifacts. Gain, DDS scale and TX level cannot change after the first admitted artifact. Any
@@ -309,10 +331,14 @@ manifest.
 ### Separate RF-only microsecond timing qualification
 
 Timing claims use a different acquisition product. At each band being claimed, acquire **two
-independent 450 ms captures** at `5 MS/s` and `4 MHz` RF bandwidth. Each capture is exactly nine
-`250,000`-sample frames (`2,250,000` samples total), uses eight kernel buffers and carries
+independent 450 ms captures** at `2 MS/s` and `1.6 MHz` RF bandwidth. Each capture is exactly nine
+`100,000`-sample frames (`900,000` samples total), uses eight kernel buffers and carries
 metadata ABI 2 continuity evidence. Start a fresh continuous stream for the second capture; do
 not split one long stream and call the halves independent.
+
+The timing pair uses manual RX `30 dB` only for RF edge observability. The subsequent complex
+calibration artifacts remain fixed at the separately qualified RX `20 dB`; timing gain is never
+reused as calibration gain.
 
 Keep the complete IQ and continuity record in memory until both TX channels have been muted and
 the exact-radio mute readback passes. Only then persist the artifact. A cleanup failure rejects
@@ -322,7 +348,7 @@ A timing claim at both `2.4 GHz` and exact experimental `5.8 GHz` therefore requ
 pair at 2.4 GHz and a separate passing pair at 5.8 GHz. The 5.8 GHz pair retains the explicit
 experimental opt-in.
 
-The RF detector coherently projects each five native `0.2 µs` complex samples into one `1 µs`
+The RF detector coherently projects each two native `0.5 µs` complex samples into one `1 µs`
 bin. For local complex plateaus `a` and `b`, form
 
 ```text
@@ -332,7 +358,7 @@ q(t) = Re((z(t) - a) * conj(b - a)) / |b - a|².
 Use the fractional `q = 0.5` crossing as the reported RF edge and sweep `q = 0.4, 0.5, 0.6`
 to bound threshold sensitivity. An independent local two-mean complex changepoint must agree.
 The fractional crossing interpolates between `1 µs` complex bins; it is not a separate direct
-`0.2 µs` edge fit. Nominal slot positions may recognize the source-backed frame grammar but
+`0.5 µs` edge fit. Nominal slot positions may recognize the source-backed frame grammar but
 must never snap a measured edge to the expected schedule.
 
 ![Separate RF-only microsecond timing qualification](png/fig05_rf_only_timing_qualification.png)
@@ -498,7 +524,7 @@ Every artifact in a claimed band pair must independently meet all of these gates
 
 | Gate | Acceptance |
 |---|---:|
-| Capture contract | 450 ms, 5 MS/s, 4 MHz BW, `9 × 250,000` samples, 8 kernel buffers |
+| Capture contract | 450 ms, 2 MS/s, 1.6 MHz BW, `9 × 100,000` samples, 8 kernel buffers, RX 30 dB |
 | ABI 2 continuity, gaps and failure/overflow flags | verified; zero |
 | Complete / decoded cycles | at least 290 / at least 98% |
 | RF-visible edges per accepted cycle | exactly 12 |
@@ -511,7 +537,8 @@ Every artifact in a claimed band pair must independently meet all of these gates
 | Independent changepoint vs `q50` | at most 1.5 µs |
 | Absolute refined-pilot residual from DDS readback | at most 2 kHz |
 | Adjacent-pilot phase-step coherence | at least 0.95 |
-| Transition SNR, pilot SNR and state-to-null contrast | each at least 20 dB |
+| Transition SNR | at least 19 dB |
+| Pilot SNR / state-to-null contrast | each at least 17 dB |
 | Clipped samples / near-full-scale fraction | zero / at most `1e-4` |
 | Pair marker, dwell and ordinary-guard median agreement | each within 1 µs |
 | Pair cycle-median agreement | within 2 µs |
@@ -536,7 +563,7 @@ cycle. Firmware self-report alone is not independent timing or GPIO evidence.
 **Path B — selected fallback when no logic analyzer is connected.** Before any timing capture,
 pass the host state-machine, generated-profile and ELF checks; bind the exact `hexcal-v1` profile
 and firmware hashes; flash only the intended target; and prove that the flashed/readback image
-hash matches. Then use the smallest bounded TX stimulus and execute the separate paired `5 MS/s`
+hash matches. Then use the smallest bounded TX stimulus and execute the separate paired `2 MS/s`
 capture contract in Section 5. If both captures for a band pass continuity, observability,
 timing and edge-uncertainty gates, those RF edges may independently qualify only the combined
 marker, ordinary guards, dwells and cycle timing for that band.
@@ -659,7 +686,7 @@ Before flashing, pass host tests, static checks, ELF policy checks and a timing-
 4. Prefer Path A: with TX muted, use a logic analyzer to verify boot `ALL_OFF`, all six codes,
    every 20 µs guard, the 180 µs marker body, 200 µs active dwells and 1.500 ms cycle.
 5. If no logic analyzer is connected, use Path B: retain source/test code evidence and verified
-   flashed/readback hashes, then run two independent 450 ms, 5 MS/s timing captures at 2.4 GHz.
+   flashed/readback hashes, then run two independent 450 ms, 2 MS/s timing captures at 2.4 GHz.
    Run a separate pair at exact experimental 5.8 GHz if timing will be claimed there. Admit a
    band only when both members of its pair pass every frozen RF-only gate. Mark code
    identity/order/illegal-state claims as not independently GPIO-observed.

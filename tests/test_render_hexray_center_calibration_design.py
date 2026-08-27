@@ -8,10 +8,7 @@ import pytest
 
 pytest.importorskip("matplotlib")
 
-SCRIPT = (
-    Path(__file__).resolve().parents[1]
-    / "scripts/render_hexray_center_calibration_design.py"
-)
+SCRIPT = Path(__file__).resolve().parents[1] / "scripts/render_hexray_center_calibration_design.py"
 SPEC = importlib.util.spec_from_file_location("hexray_design_renderer", SCRIPT)
 assert SPEC is not None and SPEC.loader is not None
 MODULE = importlib.util.module_from_spec(SPEC)
@@ -58,18 +55,18 @@ def test_snapshot_locks_separate_rf_timing_pair_and_uncertainty_gates() -> None:
     assert qualification["status"].startswith("selected pre-execution")
     assert capture["captures_per_tested_band"] == 2
     assert capture["duration_ms_per_capture"] == 450
-    assert capture["sample_rate_hz"] == 5_000_000
-    assert capture["native_sample_period_us"] == 0.2
-    assert capture["rf_bandwidth_hz"] == 4_000_000
+    assert capture["sample_rate_hz"] == 2_000_000
+    assert capture["native_sample_period_us"] == 0.5
+    assert capture["rf_bandwidth_hz"] == 1_600_000
     assert capture["frames_per_capture"] == 9
-    assert capture["samples_per_frame"] == 250_000
-    assert capture["samples_per_capture"] == 2_250_000
+    assert capture["samples_per_frame"] == 100_000
+    assert capture["samples_per_capture"] == 900_000
     assert capture["kernel_buffer_count"] == 8
     assert capture["experimental_5g8_opt_in_required"] is True
     assert "in memory" in capture["retention_and_cleanup"]
 
     detector = qualification["detector"]
-    assert detector["coherent_samples_per_bin"] == 5
+    assert detector["coherent_samples_per_bin"] == 2
     assert detector["complex_bin_duration_us"] == 1.0
     assert detector["native_samples_used_directly_for_edge_fit"] is False
     assert detector["threshold_sweep_q"] == [0.4, 0.5, 0.6]
@@ -84,13 +81,14 @@ def test_snapshot_locks_separate_rf_timing_pair_and_uncertainty_gates() -> None:
     assert gates["conservative_guard_upper_bound_maximum_us"] == 22.0
     assert gates["maximum_q40_q60_edge_span_us"] == 1.5
     assert gates["maximum_independent_estimator_delta_us"] == 1.5
+    assert gates["minimum_transition_snr_db"] == 19.0
+    assert gates["minimum_pilot_snr_db"] == 17.0
+    assert gates["minimum_state_to_null_contrast_db"] == 17.0
 
 
 def test_snapshot_rejects_a_weakened_rf_timing_pair(tmp_path: Path) -> None:
     document = json.loads(MODULE.DEFAULT_SNAPSHOT.read_text(encoding="utf-8"))
-    document["rf_timing_qualification"]["capture_contract"][
-        "captures_per_tested_band"
-    ] = 1
+    document["rf_timing_qualification"]["capture_contract"]["captures_per_tested_band"] = 1
     malformed = tmp_path / "malformed.json"
     malformed.write_text(json.dumps(document), encoding="utf-8")
 
@@ -101,9 +99,7 @@ def test_snapshot_rejects_a_weakened_rf_timing_pair(tmp_path: Path) -> None:
 def test_snapshot_retains_gauge_ambiguity_and_experimental_5g8() -> None:
     document = MODULE.load_snapshot(MODULE.DEFAULT_SNAPSHOT)
 
-    assert document["calibration_model"]["measurement_equation"] == (
-        "H_i(f) = C_i(f) * A_i(f)"
-    )
+    assert document["calibration_model"]["measurement_equation"] == ("H_i(f) = C_i(f) * A_i(f)")
     assert "only the product" in document["calibration_model"]["identifiability"]
     assert document["frequency_plan"]["experimental_exact_center_hz"] == 5_800_000_000
 

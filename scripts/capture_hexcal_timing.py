@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Capture two independent, muted-between, 5 MS/s Hexcal timing artifacts."""
+"""Capture two independent, muted-between, 2 MS/s Hexcal timing artifacts."""
 
 from __future__ import annotations
 
@@ -77,13 +77,13 @@ from smateway.hexcal_gain import (
     HexcalStimulusQualification,
     load_hexcal_stimulus_qualification,
 )
-from smateway.hexcal_timing import BANDWIDTH_HZ, SAMPLE_RATE_HZ
+from smateway.hexcal_timing import BANDWIDTH_HZ, SAMPLE_RATE_HZ, TIMING_RECEIVER_GAIN_DB
 from smateway.rf_policy import classify_fast20_center_frequency
 
 DEFAULT_BOARD_ID = "stm32c011-4c0055000950313950363920"
 DEFAULT_PROFILE = Path("profiles/hexcal-v1/control_profile.json")
 TONE_OFFSET_HZ = 100_000
-SAMPLES_PER_FRAME = 250_000
+SAMPLES_PER_FRAME = 100_000
 FRAME_COUNT = 9
 TOTAL_SAMPLES = SAMPLES_PER_FRAME * FRAME_COUNT
 KERNEL_BUFFERS = 8
@@ -93,6 +93,7 @@ CAPTURE_RECORD_NAME = "hexcal-timing-capture.json"
 SOURCE_FILES = (
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2-2g4-stimulus.json",
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.1-2g4-stimulus.json",
+    "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.2-2g4-stimulus.json",
     "scripts/qualify_hexcal_rx_gain.py",
     "src/smateway/hexcal_timing.py",
     "src/smateway/hexcal_gain.py",
@@ -198,7 +199,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--source-commit", required=True)
     parser.add_argument("--firmware-evidence", type=Path, required=True)
     parser.add_argument("--firmware-evidence-sha256", required=True)
-    parser.add_argument("--protocol-v2", "--protocol-v21", action="store_true")
+    parser.add_argument("--protocol-v2", "--protocol-v21", "--protocol-v22", action="store_true")
     parser.add_argument("--stimulus-qualification", type=Path)
     parser.add_argument("--stimulus-qualification-sha256")
     parser.add_argument("--board-id", default=DEFAULT_BOARD_ID)
@@ -271,7 +272,7 @@ def _pair_plan_contract(
     contract = {
         "schema": 1,
         "plan_kind": (
-            "hexcal_v2_1_2g4_rf_timing_two_replicates"
+            "hexcal_v2_2_2g4_rf_timing_two_replicates"
             if protocol_v2
             else "hexcal_v1_rf_timing_two_replicates"
         ),
@@ -297,6 +298,7 @@ def _pair_plan_contract(
             "kernel_buffers": KERNEL_BUFFERS,
             "receiver_channels": [0, 1],
             "metadata_abi": 2,
+            "receiver_gain_scope": ("timing_qualification_only" if protocol_v2 else "legacy_v1"),
         },
         "stimulus": {
             "tx_channel": TX_CHANNEL,
@@ -307,6 +309,11 @@ def _pair_plan_contract(
             "tx_hardware_gain_db_requested": plan.tx_hardware_gain_db,
             "dds_scale_requested": plan.dds_scale,
             "receiver_gain_db": plan.receiver_gain_db,
+            "calibration_receiver_gain_db": (
+                stimulus_qualification.fixed_receiver_gain_db
+                if stimulus_qualification is not None
+                else plan.receiver_gain_db
+            ),
             "source_peak_output_bound_dbm": plan.source_peak_output_bound_dbm,
             "load_input_limit_dbm": plan.load_input_limit_dbm,
             "path_attenuation_before_load_db": plan.path_attenuation_before_load_db,
@@ -634,13 +641,13 @@ def _capture_one(
         if capture.settings != settings:
             raise RuntimeError("capture setting readback differs from the exact timing plan")
         if capture.sample_count != TOTAL_SAMPLES or len(capture.frames) != FRAME_COUNT:
-            raise RuntimeError("capture is not exactly nine 250k-sample frames")
+            raise RuntimeError("capture is not exactly nine 100k-sample frames")
         if capture.kernel_buffers != KERNEL_BUFFERS:
             raise RuntimeError("kernel buffer readback differs from the required value eight")
         if len(retained) != FRAME_COUNT:
             raise RuntimeError("not every validated frame was retained in memory")
         if any(block.samples.shape != (2, SAMPLES_PER_FRAME) for block in retained):
-            raise RuntimeError("retained capture is not canonical dual-RX 250k-frame data")
+            raise RuntimeError("retained capture is not canonical dual-RX 100k-frame data")
         headroom_monitor = AdcHeadroomMonitor(receiver_count=2)
         for block in retained:
             headroom_monitor.observe(block.samples)
@@ -657,7 +664,7 @@ def _capture_one(
             settings=settings,
             label=(
                 f"{pair_plan_contract['protocol_id']} RF timing replicate {replicate_index}/2 "
-                f"TX1 {plan.center_frequency_hz}Hz 5MS/s 450ms"
+                f"TX1 {plan.center_frequency_hz}Hz 2MS/s 450ms"
             ),
         )
         for block in retained:
@@ -678,9 +685,9 @@ def _capture_one(
         document = {
             "schema": 1,
             "capture_kind": (
-                "hexcal_v2_1_2g4_rf_timing_5msps_tx1"
+                "hexcal_v2_2_2g4_rf_timing_2msps_tx1"
                 if pair_plan_contract["protocol_id"] == STIMULUS_PROTOCOL_ID
-                else "hexcal_v1_rf_timing_5msps_tx1"
+                else "hexcal_v1_rf_timing_2msps_tx1"
             ),
             "run_id": run_id,
             "replicate_index": replicate_index,
@@ -806,14 +813,14 @@ def main() -> int:
     if args.protocol_v2:
         if args.stimulus_qualification is None or args.stimulus_qualification_sha256 is None:
             raise SystemExit(
-                "--protocol-v2 requires --stimulus-qualification and its reviewed SHA-256"
+                "--protocol-v22 requires --stimulus-qualification and its reviewed SHA-256"
             )
         if args.center_frequency_hz != STIMULUS_CENTER_FREQUENCIES_HZ[0]:
-            raise SystemExit("hexcal-v2 timing is frozen at 2.400 GHz")
+            raise SystemExit("hexcal-v2.2 timing is frozen at 2.400 GHz")
         if args.allow_experimental_5g8:
-            raise SystemExit("hexcal-v2 timing does not permit the experimental 5.8 GHz band")
+            raise SystemExit("hexcal-v2.2 timing does not permit the experimental 5.8 GHz band")
         if args.receiver_gain_db is not None or args.tx_hardware_gain_db is not None:
-            raise SystemExit("hexcal-v2 derives RX and TX gains from its qualification ledger")
+            raise SystemExit("hexcal-v2.2 derives TX gain from its qualification ledger")
     elif args.stimulus_qualification is not None or args.stimulus_qualification_sha256 is not None:
         raise SystemExit("stimulus qualification arguments require --protocol-v2")
     try:
@@ -860,7 +867,7 @@ def main() -> int:
     ):
         raise SystemExit("stimulus qualification SHA-256 differs from the reviewed plan")
     receiver_gain_db = (
-        stimulus_qualification.fixed_receiver_gain_db
+        TIMING_RECEIVER_GAIN_DB
         if stimulus_qualification is not None
         else (0 if args.receiver_gain_db is None else args.receiver_gain_db)
     )
@@ -873,7 +880,7 @@ def main() -> int:
         stimulus_qualification.dds_scale if stimulus_qualification is not None else args.dds_scale
     )
     if stimulus_qualification is not None and args.dds_scale != stimulus_qualification.dds_scale:
-        raise SystemExit("hexcal-v2 DDS scale differs from the qualification ledger")
+        raise SystemExit("hexcal-v2.2 DDS scale differs from the qualification ledger")
     capture_root = args.capture_root or (
         Path.home() / ".local/state/smateway/boards" / args.board_id / "pluto-usb-captures"
     )

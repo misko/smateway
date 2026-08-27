@@ -283,7 +283,7 @@ def test_v2_plan_is_exact_fifteen_artifact_five_frequency_matrix() -> None:
     assert {item["stimulus_qualification_sha256"] for item in plan} == {"7" * 64}
     assert all("--allow-experimental-5g8" not in item["capture_command"] for item in plan)
     manifest = runner._new_manifest("v2-run", configuration, REPOSITORY)
-    assert manifest["experiment_kind"] == "hexcal_v2_1_2g4_tx1_center_calibration"
+    assert manifest["experiment_kind"] == "hexcal_v2_2_2g4_tx1_center_calibration"
 
 
 def test_parser_requires_explicit_serial_and_uri() -> None:

@@ -9,6 +9,7 @@ import pytest
 from smateway.hexcal import HexcalAnalysisError, load_hexcal_profile
 from smateway.hexcal_timing import (
     SAMPLE_RATE_HZ,
+    SAMPLES_PER_COHERENT_BIN,
     _interpolated_state_metrics,
     analyze_hexcal_timing_samples,
     coherent_one_microsecond_detector,
@@ -41,8 +42,8 @@ def _synthetic_raw(
     seed: int = 4,
 ) -> np.ndarray:
     cycle_us = 1_380 + 6 * guard_us
-    sample_count = cycles * cycle_us * 5
-    time_us = np.arange(sample_count, dtype=np.float64) / 5.0
+    sample_count = cycles * cycle_us * SAMPLES_PER_COHERENT_BIN
+    time_us = np.arange(sample_count, dtype=np.float64) / SAMPLES_PER_COHERENT_BIN
     absolute_phase = time_us + start_phase_us
     cycle_id = np.floor(absolute_phase / cycle_us).astype(np.int64)
     phase_us = np.mod(absolute_phase, cycle_us)
@@ -58,11 +59,7 @@ def _synthetic_raw(
         cursor = stop + (guard_us if index < 5 else 0)
 
     if corrupt_extra_cycle is not None:
-        extra = (
-            (cycle_id == corrupt_extra_cycle)
-            & (phase_us >= 50.0)
-            & (phase_us < 56.0)
-        )
+        extra = (cycle_id == corrupt_extra_cycle) & (phase_us >= 50.0) & (phase_us < 56.0)
         envelope[extra] += 0.7 * np.exp(1.7j)
     if corrupt_missing_cycle is not None:
         # Remove both RF edges around the ANT3->ANT4 ordinary guard by making
@@ -77,17 +74,9 @@ def _synthetic_raw(
         envelope[missing] += LEVELS[2]
 
     rng = np.random.default_rng(seed)
-    noise = noise_sigma * (
-        rng.normal(size=sample_count) + 1j * rng.normal(size=sample_count)
-    )
+    noise = noise_sigma * (rng.normal(size=sample_count) + 1j * rng.normal(size=sample_count))
     sample_indices = np.arange(sample_count, dtype=np.float64)
-    carrier = np.exp(
-        2j
-        * np.pi
-        * (tone_offset_hz + residual_hz)
-        / SAMPLE_RATE_HZ
-        * sample_indices
-    )
+    carrier = np.exp(2j * np.pi * (tone_offset_hz + residual_hz) / SAMPLE_RATE_HZ * sample_indices)
     return np.asarray((envelope + noise) * carrier, dtype=np.complex64)
 
 
@@ -115,9 +104,7 @@ def test_full_450ms_detector_recovers_submicrosecond_edges_and_passes(
     assert quality["frozen_gates"][
         "maximum_refined_pilot_residual_from_dds_readback_hz"
     ] == pytest.approx(2_000.0)
-    assert quality["frozen_gates"][
-        "minimum_pilot_phase_step_coherence"
-    ] == pytest.approx(0.95)
+    assert quality["frozen_gates"]["minimum_pilot_phase_step_coherence"] == pytest.approx(0.95)
     assert isinstance(decode, dict) and decode["complete_cycle_count"] >= 290
     assert decode["decoded_cycle_fraction"] >= 0.98
     assert decode["visible_edges_per_accepted_cycle"] == 12
@@ -160,10 +147,7 @@ def test_guard_sweep_measures_17_through_23us_without_schedule_snapping(
     timing = result["timing"]
     quality = result["quality"]
     assert isinstance(timing, dict) and isinstance(quality, dict)
-    measured = [
-        document["q50_us"]["median"]
-        for document in timing["ordinary_guards_us"].values()
-    ]
+    measured = [document["q50_us"]["median"] for document in timing["ordinary_guards_us"].values()]
     assert measured == pytest.approx([float(guard_us)] * 5, abs=0.12)
     aggregate_reasons = [
         reason
@@ -197,9 +181,7 @@ def test_missing_and_extra_edges_are_rejected_then_decoder_resynchronizes() -> N
     assert decode["decoded_cycle_fraction"] < 0.98
     assert any(float(cycle["marker_start_us"]) > 26 * 1_500 for cycle in cycles)
     assert result["quality"]["passed"] is False
-    assert "decoded_cycle_fraction_below_98_percent" in result["quality"][
-        "rejection_reasons"
-    ]
+    assert "decoded_cycle_fraction_below_98_percent" in result["quality"]["rejection_reasons"]
 
 
 def test_detector_rejects_no_signal_and_unverified_continuity() -> None:
@@ -228,11 +210,9 @@ def test_coherent_detector_requires_exact_shape_and_rate() -> None:
     detected = coherent_one_microsecond_detector(
         values, sample_rate_hz=SAMPLE_RATE_HZ, tone_offset_hz=0.0
     )
-    assert detected.shape == (10,)
-    with pytest.raises(ValueError, match="exactly 5 MS/s"):
-        coherent_one_microsecond_detector(
-            values, sample_rate_hz=1_000_000, tone_offset_hz=0.0
-        )
+    assert detected.shape == (25,)
+    with pytest.raises(ValueError, match="exactly 2 MS/s"):
+        coherent_one_microsecond_detector(values, sample_rate_hz=1_000_000, tone_offset_hz=0.0)
     with pytest.raises(ValueError, match="divisible"):
         coherent_one_microsecond_detector(
             values[:-1], sample_rate_hz=SAMPLE_RATE_HZ, tone_offset_hz=0.0

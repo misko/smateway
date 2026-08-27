@@ -132,8 +132,8 @@ def _pair_plan_fixture(tmp_path: Path) -> tuple[dict[str, object], dict[str, obj
         uri="usb:1.2.3",
         serial="exact-serial",
         center_frequency_hz=2_400_000_000,
-        sample_rate_hz=5_000_000,
-        bandwidth_hz=4_000_000,
+        sample_rate_hz=2_000_000,
+        bandwidth_hz=1_600_000,
         tone_frequency_hz=100_000,
         tx_channel=0,
         tx_hardware_gain_db=-40.0,
@@ -280,10 +280,11 @@ def test_analyzer_binds_v2_timing_settings_to_stimulus_qualification(
     root, capture_document = _pair_plan_fixture(tmp_path)
     plan = root["pair_plan_contract"]
     assert isinstance(plan, dict)
-    plan["plan_kind"] = "hexcal_v2_1_2g4_rf_timing_two_replicates"
+    plan["plan_kind"] = "hexcal_v2_2_2g4_rf_timing_two_replicates"
     plan["protocol_id"] = analyze.STIMULUS_PROTOCOL_ID
-    plan["stimulus"]["receiver_gain_db"] = 20
-    capture_document["receiver_gain_db"] = 20
+    plan["stimulus"]["receiver_gain_db"] = 30
+    plan["stimulus"]["calibration_receiver_gain_db"] = 20
+    capture_document["receiver_gain_db"] = 30
     plan["stimulus_qualification"] = {
         "path": "/evidence/stimulus.json",
         "file_sha256": "f" * 64,
@@ -309,7 +310,7 @@ def test_capture_record_stream_identity_is_bound_to_replayed_abi2_ledger() -> No
         "first_buffer_sequence": 0,
         "last_buffer_sequence": 8,
         "first_sample_sequence": 900_000,
-        "last_sample_sequence_exclusive": 3_150_000,
+        "last_sample_sequence_exclusive": 1_800_000,
     }
     capture_record = {
         "metadata_abi": 2,
@@ -317,7 +318,7 @@ def test_capture_record_stream_identity_is_bound_to_replayed_abi2_ledger() -> No
         "first_buffer_sequence": 0,
         "last_buffer_sequence": 8,
         "first_sample_sequence": 900_000,
-        "last_sample_sequence_exclusive": 3_150_000,
+        "last_sample_sequence_exclusive": 1_800_000,
     }
     analyze._bind_capture_record_to_continuity(capture_record, continuity)
 

@@ -27,12 +27,13 @@ from smateway.hexcal import (
 )
 
 QUALIFICATION_KIND = "hexcal_v1_exploratory_rx_gain_qualification"
-STIMULUS_PROTOCOL_ID = "hexcal-v2.1-2g4-stimulus"
-STIMULUS_QUALIFICATION_KIND = "hexcal_v2_1_2g4_tx_stimulus_qualification"
+STIMULUS_PROTOCOL_ID = "hexcal-v2.2-2g4-stimulus"
+STIMULUS_QUALIFICATION_KIND = "hexcal_v2_2_2g4_tx_stimulus_qualification"
 QUALIFICATION_SOURCE_FILES = (
     "profiles/hexcal-v1/control_profile.json",
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2-2g4-stimulus.json",
     "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.1-2g4-stimulus.json",
+    "docs/hexray_tx_in_middle_calibration/data/hexcal-v2.2-2g4-stimulus.json",
     "scripts/qualify_hexcal_rx_gain.py",
     "src/smateway/capture_admission.py",
     "src/smateway/capture_continuity.py",
