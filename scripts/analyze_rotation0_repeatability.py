@@ -481,6 +481,113 @@ def _temporal_drift(repeat_runs: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _cohort_high_band_repeatability(
+    repeat_runs: Sequence[Mapping[str, Any]], label: str
+) -> dict[str, Any]:
+    phase_standard_deviations = []
+    amplitude_standard_deviations = []
+    fully_admitted_frequencies = []
+    for frequency_hz in FREQUENCIES_HZ:
+        if not HIGH_BAND_MIN_HZ <= frequency_hz <= HIGH_BAND_MAX_HZ:
+            continue
+        observations = [
+            _mapping(
+                _mapping(run.get("observations"), "observations").get(frequency_hz),
+                "frequency observation",
+            )
+            for run in repeat_runs
+        ]
+        if any(
+            _number(observation.get("alignment_score"), "alignment score")
+            < MINIMUM_UNAMBIGUOUS_ALIGNMENT_SCORE
+            for observation in observations
+        ):
+            continue
+        fully_admitted_frequencies.append(frequency_hz)
+        for antenna in ANTENNAS:
+            if antenna == REFERENCE_ANTENNA:
+                continue
+            measurements = [
+                _relative_measurement(
+                    _mapping(observation.get("states"), "frequency states"), antenna
+                )
+                for observation in observations
+            ]
+            phase_standard_deviations.append(
+                _circular_std_deg([measurement[0] for measurement in measurements])
+            )
+            amplitude_standard_deviations.append(
+                _sample_std([measurement[1] for measurement in measurements])
+            )
+    return {
+        "label": label,
+        "run_labels": [run["label"] for run in repeat_runs],
+        "pass_count": len(repeat_runs),
+        "fully_admitted_frequency_count": len(fully_admitted_frequencies),
+        "fully_admitted_frequencies_hz": fully_admitted_frequencies,
+        "relative_phase_std_median_deg": statistics.median(phase_standard_deviations),
+        "relative_phase_std_p95_deg": _percentile(phase_standard_deviations, 95.0),
+        "relative_phase_std_max_deg": max(phase_standard_deviations),
+        "relative_amplitude_std_median_db": statistics.median(
+            amplitude_standard_deviations
+        ),
+        "relative_amplitude_std_p95_db": _percentile(amplitude_standard_deviations, 95.0),
+        "relative_amplitude_std_max_db": max(amplitude_standard_deviations),
+    }
+
+
+def _cohort_comparison(repeat_runs: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    cohort_size = len(repeat_runs) // 2
+    first = repeat_runs[:cohort_size]
+    second = repeat_runs[-cohort_size:]
+    temporal = _temporal_drift(repeat_runs)
+    temporal_rows = [
+        _mapping(row, "temporal drift row")
+        for row in _sequence(temporal.get("rows"), "temporal drift rows")
+    ]
+
+    def shift_summary(key: str) -> dict[str, Any]:
+        values = [abs(_number(row.get(key), key)) for row in temporal_rows]
+        worst = max(temporal_rows, key=lambda row: abs(_number(row.get(key), key)))
+        return {
+            "median": statistics.median(values),
+            "p95": _percentile(values, 95.0),
+            "maximum": max(values),
+            "worst_case": {
+                "center_frequency_hz": worst["center_frequency_hz"],
+                "antenna": worst["antenna"],
+                "signed_value": worst[key],
+            },
+        }
+
+    return {
+        "cohort_size": cohort_size,
+        "middle_pass_excluded_for_odd_total": len(repeat_runs) % 2 == 1,
+        "first": _cohort_high_band_repeatability(first, "first_half"),
+        "second": _cohort_high_band_repeatability(second, "second_half"),
+        "second_minus_first_phase_deg": shift_summary(
+            "phase_second_half_minus_first_half_deg"
+        ),
+        "second_minus_first_amplitude_db": shift_summary(
+            "amplitude_second_half_minus_first_half_db"
+        ),
+        "rows": [
+            {
+                "center_frequency_hz": row["center_frequency_hz"],
+                "antenna": row["antenna"],
+                "reference_antenna": row["reference_antenna"],
+                "second_minus_first_phase_deg": row[
+                    "phase_second_half_minus_first_half_deg"
+                ],
+                "second_minus_first_amplitude_db": row[
+                    "amplitude_second_half_minus_first_half_db"
+                ],
+            }
+            for row in temporal_rows
+        ],
+    }
+
+
 def analyze(
     baseline_run: Mapping[str, Any], repeat_runs: Sequence[Mapping[str, Any]]
 ) -> dict[str, Any]:
@@ -1027,6 +1134,7 @@ def analyze(
             _delay_fit(repeat_runs, antenna) for antenna in ANTENNAS if antenna != REFERENCE_ANTENNA
         ],
         "temporal_drift": _temporal_drift(repeat_runs),
+        "cohort_comparison": _cohort_comparison(repeat_runs),
         "interpretation": {
             "repeatable_after_all_off_subtraction_band_hz": [
                 HIGH_BAND_MIN_HZ,
@@ -1349,7 +1457,7 @@ def _render_figures(document: Mapping[str, Any], directory: Path) -> None:
     )
     axes[0].axhline(1.0, color="black", linestyle="--", linewidth=0.9, label="1 degree")
     axes[0].set_ylabel("|First-to-last phase change| (degrees)")
-    axes[0].set_title("Ten-pass temporal drift remains small across the repeatable band")
+    axes[0].set_title("Full-window temporal drift exposes isolated threshold crossings")
     axes[0].grid(True, alpha=0.25)
     axes[0].legend()
 
@@ -1375,6 +1483,65 @@ def _render_figures(document: Mapping[str, Any], directory: Path) -> None:
     axes[1].grid(True, alpha=0.25)
     axes[1].legend()
     figure.savefig(directory / "fig05_temporal_drift.png", dpi=180)
+    plt.close(figure)
+
+    cohort = _mapping(document.get("cohort_comparison"), "cohort comparison")
+    cohort_rows = [
+        _mapping(row, "cohort comparison row")
+        for row in _sequence(cohort.get("rows"), "cohort comparison rows")
+    ]
+    cohort_frequencies = sorted(
+        {_integer(row.get("center_frequency_hz"), "cohort frequency") for row in cohort_rows}
+    )
+    cohort_antennas = [antenna for antenna in ANTENNAS if antenna != REFERENCE_ANTENNA]
+    phase_shift = np.zeros((len(cohort_antennas), len(cohort_frequencies)))
+    amplitude_shift = np.zeros_like(phase_shift)
+    row_by_key = {
+        (
+            _string(row.get("antenna"), "cohort antenna"),
+            _integer(row.get("center_frequency_hz"), "cohort frequency"),
+        ): row
+        for row in cohort_rows
+    }
+    for antenna_index, antenna in enumerate(cohort_antennas):
+        for frequency_index, frequency_hz in enumerate(cohort_frequencies):
+            row = row_by_key[(antenna, frequency_hz)]
+            phase_shift[antenna_index, frequency_index] = abs(
+                _number(row.get("second_minus_first_phase_deg"), "cohort phase shift")
+            )
+            amplitude_shift[antenna_index, frequency_index] = abs(
+                _number(row.get("second_minus_first_amplitude_db"), "cohort amplitude shift")
+            )
+
+    figure, axes = plt.subplots(2, 1, figsize=(13.0, 7.4), constrained_layout=True)
+    for axis, matrix, title, colorbar_label in (
+        (
+            axes[0],
+            phase_shift,
+            "Absolute phase shift: second ten-pass cohort minus first",
+            "|cohort mean shift| (degrees)",
+        ),
+        (
+            axes[1],
+            amplitude_shift,
+            "Absolute amplitude shift: second ten-pass cohort minus first",
+            "|cohort mean shift| (dB)",
+        ),
+    ):
+        image = axis.imshow(matrix, aspect="auto", interpolation="nearest", cmap="viridis")
+        axis.set_yticks(range(len(cohort_antennas)), cohort_antennas)
+        tick_indices = list(range(0, len(cohort_frequencies), 2))
+        axis.set_xticks(
+            tick_indices,
+            [f"{cohort_frequencies[index] / 1e9:.1f}" for index in tick_indices],
+            rotation=45,
+            ha="right",
+        )
+        axis.set_ylabel("Path relative to ANT8")
+        axis.set_title(title)
+        figure.colorbar(image, ax=axis, label=colorbar_label)
+    axes[1].set_xlabel("Centre frequency (GHz)")
+    figure.savefig(directory / "fig06_cohort_shift.png", dpi=180)
     plt.close(figure)
 
 

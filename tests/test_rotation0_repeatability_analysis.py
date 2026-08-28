@@ -147,6 +147,32 @@ def test_analysis_accepts_ten_complete_repeats(tmp_path: Path) -> None:
     assert result["temporal_drift"]["pass_count"] == 10
     assert result["temporal_drift"]["path_frequency_count"] == 23 * 7
     assert result["temporal_drift"]["phase_absolute_first_to_last_deg"]["maximum"] < 1e-6
+    assert result["cohort_comparison"]["cohort_size"] == 5
+    assert result["cohort_comparison"]["first"]["pass_count"] == 5
+    assert result["cohort_comparison"]["second"]["pass_count"] == 5
+    assert result["cohort_comparison"]["first"]["fully_admitted_frequency_count"] == 23
+    assert result["cohort_comparison"]["second_minus_first_phase_deg"]["maximum"] < 1e-6
+
+
+def test_analysis_accepts_twenty_complete_repeats(tmp_path: Path) -> None:
+    baseline = analysis._load_run("baseline", _manifest(tmp_path, "baseline"))
+    repeats = [
+        analysis._load_run(
+            f"repeat-{index}",
+            _manifest(tmp_path, f"repeat-{index}", run_offset_deg=index * 11.0),
+        )
+        for index in range(1, 21)
+    ]
+
+    result = analysis.analyze(baseline, repeats)
+
+    assert result["acquisition_integrity"]["repeat_capture_count"] == 760
+    assert result["pass_summary"]["repeat_condition_pass_counts"] == [38] * 20
+    assert result["high_band_repeatability"]["all_repeat_conditions_passed"] is True
+    assert result["cohort_comparison"]["cohort_size"] == 10
+    assert result["cohort_comparison"]["first"]["pass_count"] == 10
+    assert result["cohort_comparison"]["second"]["pass_count"] == 10
+    assert result["temporal_drift"]["pass_count"] == 20
 
 
 def test_analysis_quarantines_indeterminate_alignment_from_rf_statistics(tmp_path: Path) -> None:
