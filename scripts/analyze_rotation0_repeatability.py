@@ -28,7 +28,8 @@ PRECISION_PHASE_TARGET_DEG = 1.0
 MINIMUM_ONE_DEGREE_RAW_CONTRAST_DB = 20.0 * math.log10(
     1.0 / math.sin(math.radians(PRECISION_PHASE_TARGET_DEG))
 )
-MINIMUM_UNAMBIGUOUS_ALIGNMENT_SCORE = 0.85
+DIAGNOSTIC_ALIGNMENT_MODE_SEPARATOR = 0.85
+MINIMUM_UNAMBIGUOUS_ALIGNMENT_SCORE = 0.95
 
 
 class RepeatabilityAnalysisError(RuntimeError):
@@ -142,18 +143,49 @@ def _load_run(label: str, manifest_path: Path) -> dict[str, Any]:
     if final_mute.get("status") != "passed":
         raise RepeatabilityAnalysisError(f"{label} final mute did not pass")
 
+    raw_attempts = _sequence(manifest.get("attempts"), f"{label} attempts")
+    rotation0_attempts = []
+    failed_attempts = []
     attempts_by_frequency: dict[int, Mapping[str, Any]] = {}
-    for raw_attempt in _sequence(manifest.get("attempts"), f"{label} attempts"):
+    for raw_attempt in raw_attempts:
         attempt = _mapping(raw_attempt, f"{label} attempt")
-        if attempt.get("stage") != "rotation0" or attempt.get("status") != "complete":
+        if attempt.get("stage") != "rotation0":
+            continue
+        rotation0_attempts.append(attempt)
+        status = attempt.get("status")
+        if status not in {"complete", "failed"}:
+            raise RepeatabilityAnalysisError(f"{label} has an unfinished rotation-0 attempt")
+        post_mute = _mapping(attempt.get("post_mute"), "post mute")
+        if post_mute.get("status") != "passed":
+            raise RepeatabilityAnalysisError(f"{label} has a rotation-0 attempt without mute")
+        if status == "failed":
+            capture = _mapping(attempt.get("capture"), "failed capture")
+            stderr = str(capture.get("stderr", ""))
+            failed_attempts.append(
+                {
+                    "attempt_id": _integer(attempt.get("attempt_id"), "attempt ID"),
+                    "center_frequency_hz": _integer(
+                        attempt.get("center_frequency_hz"), "failed attempt frequency"
+                    ),
+                    "retry": _integer(attempt.get("retry"), "retry count"),
+                    "return_code": capture.get("return_code"),
+                    "artifact_id": attempt.get("artifact_id"),
+                    "post_mute_status": "passed",
+                    "error": str(attempt.get("error", "")),
+                    "failure_kind": (
+                        "libiio_buffer_refill_enodata"
+                        if "Errno 61" in stderr and "No data available" in stderr
+                        else "other_execution_failure"
+                    ),
+                    "stderr_tail": stderr.splitlines()[-1] if stderr else None,
+                }
+            )
             continue
         frequency_hz = _integer(attempt.get("center_frequency_hz"), "attempt frequency")
         if frequency_hz in attempts_by_frequency:
             raise RepeatabilityAnalysisError(f"{label} duplicates {frequency_hz} Hz")
         if attempt.get("mapping") != EXPECTED_MAPPING:
             raise RepeatabilityAnalysisError(f"{label} {frequency_hz} Hz mapping is not rotation 0")
-        if _mapping(attempt.get("post_mute"), "post mute").get("status") != "passed":
-            raise RepeatabilityAnalysisError(f"{label} {frequency_hz} Hz post mute did not pass")
         attempts_by_frequency[frequency_hz] = attempt
     if set(attempts_by_frequency) != set(FREQUENCIES_HZ):
         missing = sorted(set(FREQUENCIES_HZ) - set(attempts_by_frequency))
@@ -266,6 +298,8 @@ def _load_run(label: str, manifest_path: Path) -> dict[str, Any]:
             configuration.get("firmware_binary_sha256"), "firmware SHA-256"
         ),
         "final_mute": dict(final_mute),
+        "execution_attempt_count": len(rotation0_attempts),
+        "failed_attempts": failed_attempts,
         "source_analyses": source_analyses,
         "observations": observations,
     }
@@ -352,6 +386,101 @@ def _delay_fit(repeat_runs: Sequence[Mapping[str, Any]], antenna: str) -> dict[s
     }
 
 
+def _temporal_drift(repeat_runs: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    pass_axis = np.arange(len(repeat_runs), dtype=np.float64)
+    design = np.column_stack((np.ones(pass_axis.size), pass_axis))
+    rows = []
+    for frequency_hz in FREQUENCIES_HZ:
+        if not HIGH_BAND_MIN_HZ <= frequency_hz <= HIGH_BAND_MAX_HZ:
+            continue
+        observations = [
+            _mapping(
+                _mapping(run.get("observations"), "observations").get(frequency_hz),
+                "frequency observation",
+            )
+            for run in repeat_runs
+        ]
+        if any(
+            _number(observation.get("alignment_score"), "alignment score")
+            < MINIMUM_UNAMBIGUOUS_ALIGNMENT_SCORE
+            for observation in observations
+        ):
+            continue
+        for antenna in ANTENNAS:
+            if antenna == REFERENCE_ANTENNA:
+                continue
+            phases = []
+            amplitudes_db = []
+            for observation in observations:
+                phase, amplitude_db = _relative_measurement(
+                    _mapping(observation.get("states"), "frequency states"), antenna
+                )
+                phases.append(phase)
+                amplitudes_db.append(amplitude_db)
+            unwrapped_phase = np.rad2deg(
+                np.unwrap(np.deg2rad(np.asarray(phases, dtype=np.float64)))
+            )
+            amplitude = np.asarray(amplitudes_db, dtype=np.float64)
+            _, phase_slope = np.linalg.lstsq(design, unwrapped_phase, rcond=None)[0]
+            _, amplitude_slope = np.linalg.lstsq(design, amplitude, rcond=None)[0]
+            half = len(repeat_runs) // 2
+            rows.append(
+                {
+                    "center_frequency_hz": frequency_hz,
+                    "antenna": antenna,
+                    "reference_antenna": REFERENCE_ANTENNA,
+                    "phase_linear_drift_deg_per_pass": float(phase_slope),
+                    "phase_first_to_last_deg": float(unwrapped_phase[-1] - unwrapped_phase[0]),
+                    "phase_second_half_minus_first_half_deg": float(
+                        np.mean(unwrapped_phase[-half:]) - np.mean(unwrapped_phase[:half])
+                    ),
+                    "amplitude_linear_drift_db_per_pass": float(amplitude_slope),
+                    "amplitude_first_to_last_db": float(amplitude[-1] - amplitude[0]),
+                    "amplitude_second_half_minus_first_half_db": float(
+                        np.mean(amplitude[-half:]) - np.mean(amplitude[:half])
+                    ),
+                }
+            )
+
+    def absolute_summary(key: str) -> dict[str, Any]:
+        values = [abs(_number(row.get(key), key)) for row in rows]
+        worst = max(rows, key=lambda row: abs(_number(row.get(key), key)))
+        return {
+            "median": statistics.median(values),
+            "p95": _percentile(values, 95.0),
+            "maximum": max(values),
+            "worst_case": {
+                "center_frequency_hz": worst["center_frequency_hz"],
+                "antenna": worst["antenna"],
+                "signed_value": worst[key],
+            },
+        }
+
+    return {
+        "pass_count": len(repeat_runs),
+        "frequency_min_hz": HIGH_BAND_MIN_HZ,
+        "frequency_max_hz": HIGH_BAND_MAX_HZ,
+        "path_frequency_count": len(rows),
+        "phase_absolute_linear_drift_deg_per_pass": absolute_summary(
+            "phase_linear_drift_deg_per_pass"
+        ),
+        "phase_absolute_first_to_last_deg": absolute_summary("phase_first_to_last_deg"),
+        "phase_absolute_second_half_minus_first_half_deg": absolute_summary(
+            "phase_second_half_minus_first_half_deg"
+        ),
+        "amplitude_absolute_linear_drift_db_per_pass": absolute_summary(
+            "amplitude_linear_drift_db_per_pass"
+        ),
+        "amplitude_absolute_first_to_last_db": absolute_summary(
+            "amplitude_first_to_last_db"
+        ),
+        "amplitude_absolute_second_half_minus_first_half_db": absolute_summary(
+            "amplitude_second_half_minus_first_half_db"
+        ),
+        "rows": rows,
+    }
+
+
 def analyze(
     baseline_run: Mapping[str, Any], repeat_runs: Sequence[Mapping[str, Any]]
 ) -> dict[str, Any]:
@@ -360,6 +489,7 @@ def analyze(
     identity = _validate_common_identity((baseline_run, *repeat_runs))
     run_pass_counts = []
     run_unambiguous_counts = []
+    run_indeterminate_counts = []
     run_false_accept_counts = []
     repeat_run_results = []
     frequency_results = []
@@ -379,30 +509,42 @@ def analyze(
                 for antenna in ANTENNAS
             )
             alignment_unambiguous = alignment_score >= MINIMUM_UNAMBIGUOUS_ALIGNMENT_SCORE
+            alignment_indeterminate = (
+                DIAGNOSTIC_ALIGNMENT_MODE_SEPARATOR
+                <= alignment_score
+                < MINIMUM_UNAMBIGUOUS_ALIGNMENT_SCORE
+            )
             conditions.append(
                 {
                     "center_frequency_hz": frequency_hz,
                     "current_quality_gate_passed": quality_passed,
                     "alignment_score": alignment_score,
                     "alignment_unambiguous": alignment_unambiguous,
+                    "alignment_indeterminate": alignment_indeterminate,
                     "classification": (
                         "unambiguous_alignment"
                         if alignment_unambiguous
                         else (
-                            "ambiguous_alignment_false_accept"
-                            if quality_passed
-                            else "ambiguous_alignment_rejected"
+                            "indeterminate_alignment"
+                            if alignment_indeterminate
+                            else (
+                                "ambiguous_alignment_false_accept"
+                                if quality_passed
+                                else "ambiguous_alignment_rejected"
+                            )
                         )
                     ),
                 }
             )
         pass_count = sum(row["current_quality_gate_passed"] for row in conditions)
         unambiguous_count = sum(row["alignment_unambiguous"] for row in conditions)
+        indeterminate_count = sum(row["alignment_indeterminate"] for row in conditions)
         false_accept_count = sum(
             row["classification"] == "ambiguous_alignment_false_accept" for row in conditions
         )
         run_pass_counts.append(pass_count)
         run_unambiguous_counts.append(unambiguous_count)
+        run_indeterminate_counts.append(indeterminate_count)
         run_false_accept_counts.append(false_accept_count)
         repeat_run_results.append(
             {
@@ -410,8 +552,11 @@ def analyze(
                 "run_id": run["run_id"],
                 "condition_pass_count": pass_count,
                 "unambiguous_alignment_count": unambiguous_count,
+                "indeterminate_alignment_count": indeterminate_count,
                 "ambiguous_alignment_false_accept_count": false_accept_count,
                 "condition_count": len(FREQUENCIES_HZ),
+                "execution_attempt_count": run["execution_attempt_count"],
+                "failed_attempt_count": len(run["failed_attempts"]),
                 "conditions": conditions,
             }
         )
@@ -441,6 +586,7 @@ def analyze(
         condition_pass_count = 0
         state_pass_count = 0
         ambiguous_false_accept_count = 0
+        indeterminate_alignment_count = 0
         unambiguous_runs = []
         for run in repeat_runs:
             observations = _mapping(run.get("observations"), "observations")
@@ -458,6 +604,8 @@ def analyze(
             alignment_score = _number(observation.get("alignment_score"), "alignment score")
             if alignment_score >= MINIMUM_UNAMBIGUOUS_ALIGNMENT_SCORE:
                 unambiguous_runs.append(run)
+            elif alignment_score >= DIAGNOSTIC_ALIGNMENT_MODE_SEPARATOR:
+                indeterminate_alignment_count += 1
             elif condition_passed:
                 ambiguous_false_accept_count += 1
 
@@ -542,10 +690,18 @@ def analyze(
                 "baseline_alignment_unambiguous": (
                     baseline_alignment_score >= MINIMUM_UNAMBIGUOUS_ALIGNMENT_SCORE
                 ),
+                "baseline_alignment_indeterminate": (
+                    DIAGNOSTIC_ALIGNMENT_MODE_SEPARATOR
+                    <= baseline_alignment_score
+                    < MINIMUM_UNAMBIGUOUS_ALIGNMENT_SCORE
+                ),
                 "repeat_condition_pass_count": condition_pass_count,
                 "repeat_condition_count": len(repeat_runs),
                 "unambiguous_alignment_capture_count": len(unambiguous_runs),
-                "ambiguous_alignment_capture_count": len(repeat_runs) - len(unambiguous_runs),
+                "indeterminate_alignment_capture_count": indeterminate_alignment_count,
+                "ambiguous_alignment_capture_count": len(repeat_runs)
+                - len(unambiguous_runs)
+                - indeterminate_alignment_count,
                 "ambiguous_alignment_false_accept_count": ambiguous_false_accept_count,
                 "repeat_state_pass_count": state_pass_count,
                 "repeat_state_count": len(repeat_runs) * len(ANTENNAS),
@@ -693,7 +849,14 @@ def analyze(
         score for score in alignment_scores if score >= MINIMUM_UNAMBIGUOUS_ALIGNMENT_SCORE
     ]
     ambiguous_alignment_scores = [
-        score for score in alignment_scores if score < MINIMUM_UNAMBIGUOUS_ALIGNMENT_SCORE
+        score for score in alignment_scores if score < DIAGNOSTIC_ALIGNMENT_MODE_SEPARATOR
+    ]
+    indeterminate_alignment_scores = [
+        score
+        for score in alignment_scores
+        if DIAGNOSTIC_ALIGNMENT_MODE_SEPARATOR
+        <= score
+        < MINIMUM_UNAMBIGUOUS_ALIGNMENT_SCORE
     ]
     cycle_counts = [
         _integer(row.get("complete_cycle_count"), "complete cycle count")
@@ -715,6 +878,15 @@ def analyze(
         for run in repeat_runs
         for row in _mapping(run.get("observations"), "observations").values()
     ]
+    failed_attempts = [
+        {"run_label": run["label"], **dict(failure)}
+        for run in repeat_runs
+        for failure in _sequence(run.get("failed_attempts"), "failed attempts")
+    ]
+    execution_attempt_count = sum(
+        _integer(run.get("execution_attempt_count"), "execution attempt count")
+        for run in repeat_runs
+    )
     return {
         "schema": 1,
         "analysis_kind": "rotation0_broadband_repeatability",
@@ -739,6 +911,8 @@ def analyze(
                     "run_id",
                     "manifest_path",
                     "manifest_sha256",
+                    "execution_attempt_count",
+                    "failed_attempts",
                     "source_analyses",
                 )
             }
@@ -746,6 +920,16 @@ def analyze(
         ],
         "acquisition_integrity": {
             "repeat_capture_count": len(artifact_ids),
+            "repeat_execution_attempt_count": execution_attempt_count,
+            "repeat_failed_attempt_count": len(failed_attempts),
+            "repeat_failed_attempt_fraction": len(failed_attempts) / execution_attempt_count,
+            "repeat_failed_attempts": failed_attempts,
+            "all_failed_attempts_quarantined_without_artifact": all(
+                row["artifact_id"] is None for row in failed_attempts
+            ),
+            "all_failed_attempts_post_muted": all(
+                row["post_mute_status"] == "passed" for row in failed_attempts
+            ),
             "unique_repeat_artifact_count": len(set(artifact_ids)),
             "unique_repeat_artifact_sha256_count": len(set(artifact_hashes)),
             "minimum_complete_cycle_count": min(cycle_counts),
@@ -760,6 +944,7 @@ def analyze(
             "baseline_condition_count": len(FREQUENCIES_HZ),
             "repeat_condition_pass_counts": run_pass_counts,
             "repeat_unambiguous_alignment_counts": run_unambiguous_counts,
+            "repeat_indeterminate_alignment_counts": run_indeterminate_counts,
             "repeat_ambiguous_alignment_false_accept_counts": run_false_accept_counts,
             "repeat_run_results": repeat_run_results,
             "repeat_condition_pass_mean": statistics.mean(run_pass_counts),
@@ -774,26 +959,40 @@ def analyze(
         },
         "alignment_diagnostics": {
             "current_minimum_alignment_score": 0.75,
-            "diagnostic_minimum_unambiguous_alignment_score": (MINIMUM_UNAMBIGUOUS_ALIGNMENT_SCORE),
+            "diagnostic_alignment_mode_separator": DIAGNOSTIC_ALIGNMENT_MODE_SEPARATOR,
+            "minimum_unambiguous_alignment_score": MINIMUM_UNAMBIGUOUS_ALIGNMENT_SCORE,
             "capture_count": len(alignment_scores),
             "unambiguous_alignment_capture_count": len(unambiguous_alignment_scores),
+            "indeterminate_alignment_capture_count": len(indeterminate_alignment_scores),
             "ambiguous_alignment_capture_count": len(ambiguous_alignment_scores),
             "ambiguous_alignment_false_accept_count": sum(run_false_accept_counts),
             "ambiguous_alignment_quality_reject_count": len(ambiguous_alignment_scores)
             - sum(run_false_accept_counts),
+            "indeterminate_alignment_quality_pass_count": sum(
+                row["current_quality_gate_passed"]
+                for result in repeat_run_results
+                for row in result["conditions"]
+                if row["alignment_indeterminate"]
+            ),
             "minimum_unambiguous_alignment_score_observed": min(unambiguous_alignment_scores),
             "maximum_ambiguous_alignment_score_observed": (
                 max(ambiguous_alignment_scores) if ambiguous_alignment_scores else None
             ),
+            "minimum_indeterminate_alignment_score_observed": (
+                min(indeterminate_alignment_scores) if indeterminate_alignment_scores else None
+            ),
+            "maximum_indeterminate_alignment_score_observed": (
+                max(indeterminate_alignment_scores) if indeterminate_alignment_scores else None
+            ),
             "observed_score_gap": (
                 min(unambiguous_alignment_scores) - max(ambiguous_alignment_scores)
-                if ambiguous_alignment_scores
+                if ambiguous_alignment_scores and unambiguous_alignment_scores
                 else None
             ),
             "recommended_minimum_alignment_score": 0.95,
             "finding": (
-                "two disjoint alignment-score modes show that the 0.75 gate admits a "
-                "wrong dwell-lock solution"
+                "the 0.75 gate admits a wrong dwell-lock mode; scores in the gap are "
+                "retained as indeterminate rather than RF evidence"
             ),
         },
         "frequency_results": frequency_results,
@@ -827,6 +1026,7 @@ def analyze(
         "relative_delay_fits": [
             _delay_fit(repeat_runs, antenna) for antenna in ANTENNAS if antenna != REFERENCE_ANTENNA
         ],
+        "temporal_drift": _temporal_drift(repeat_runs),
         "interpretation": {
             "repeatable_after_all_off_subtraction_band_hz": [
                 HIGH_BAND_MIN_HZ,
@@ -873,9 +1073,17 @@ def _render_figures(document: Mapping[str, Any], directory: Path) -> None:
     matrix = np.zeros((len(run_labels), len(FREQUENCIES_HZ)), dtype=np.float64)
     matrix[0] = [
         (
-            2
+            3
             if bool(_mapping(row, "frequency row").get("baseline_alignment_unambiguous"))
-            else (1 if bool(_mapping(row, "frequency row").get("baseline_condition_passed")) else 0)
+            else (
+                2
+                if bool(_mapping(row, "frequency row").get("baseline_alignment_indeterminate"))
+                else (
+                    1
+                    if bool(_mapping(row, "frequency row").get("baseline_condition_passed"))
+                    else 0
+                )
+            )
         )
         for row in rows
     ]
@@ -886,7 +1094,8 @@ def _render_figures(document: Mapping[str, Any], directory: Path) -> None:
             {
                 "ambiguous_alignment_rejected": 0,
                 "ambiguous_alignment_false_accept": 1,
-                "unambiguous_alignment": 2,
+                "indeterminate_alignment": 2,
+                "unambiguous_alignment": 3,
             }[_string(_mapping(row, "repeat condition").get("classification"), "classification")]
             for row in conditions
         ]
@@ -897,9 +1106,9 @@ def _render_figures(document: Mapping[str, Any], directory: Path) -> None:
         matrix,
         aspect="auto",
         interpolation="nearest",
-        cmap=ListedColormap(["#c94b40", "#d99a31", "#2d8a57"]),
+        cmap=ListedColormap(["#c94b40", "#d99a31", "#765aa6", "#2d8a57"]),
         vmin=0,
-        vmax=2,
+        vmax=3,
     )
     axis.set_title("Rotation-0 dwell-alignment classification by run")
     axis.set_xlabel("Centre frequency (GHz)")
@@ -917,12 +1126,13 @@ def _render_figures(document: Mapping[str, Any], directory: Path) -> None:
     axis.legend(
         handles=[
             Patch(color="#2d8a57", label="Unambiguous alignment"),
+            Patch(color="#765aa6", label="Indeterminate alignment"),
             Patch(color="#d99a31", label="Ambiguous; current gate passed"),
             Patch(color="#c94b40", label="Ambiguous; current gate rejected"),
         ],
         loc="upper center",
         bbox_to_anchor=(0.5, -0.32),
-        ncol=3,
+        ncol=4,
     )
     figure.savefig(directory / "fig01_run_frequency_quality_matrix.png", dpi=180)
     plt.close(figure)
@@ -1043,16 +1253,23 @@ def _render_figures(document: Mapping[str, Any], directory: Path) -> None:
             label=f"Repeat {repeat_index}",
         )
     axis.axhline(
-        MINIMUM_UNAMBIGUOUS_ALIGNMENT_SCORE,
+        DIAGNOSTIC_ALIGNMENT_MODE_SEPARATOR,
         color="black",
         linestyle="--",
         linewidth=0.9,
-        label="0.85 diagnostic separator",
+        label="0.85 bad-mode separator",
+    )
+    axis.axhline(
+        MINIMUM_UNAMBIGUOUS_ALIGNMENT_SCORE,
+        color="black",
+        linestyle=":",
+        linewidth=0.9,
+        label="0.95 production admission",
     )
     axis.set_ylim(0.74, 1.02)
     axis.set_xlabel("Centre frequency (GHz)")
     axis.set_ylabel("Dwell-alignment score")
-    axis.set_title("Two disjoint alignment solutions explain the apparent RF instability")
+    axis.set_title("Alignment-score modes explain the apparent RF instability")
     axis.grid(True, alpha=0.25)
     axis.legend(ncol=3)
     figure.savefig(directory / "fig04_alignment_score_modes.png", dpi=180)
@@ -1079,6 +1296,85 @@ def _render_figures(document: Mapping[str, Any], directory: Path) -> None:
             va="bottom",
         )
     figure.savefig(directory / "fig03_path_reliability.png", dpi=180)
+    plt.close(figure)
+
+    temporal_drift = _mapping(document.get("temporal_drift"), "temporal drift")
+    temporal_rows = [
+        _mapping(row, "temporal drift row")
+        for row in _sequence(temporal_drift.get("rows"), "temporal drift rows")
+    ]
+    drift_frequencies = sorted(
+        {_integer(row.get("center_frequency_hz"), "drift frequency") for row in temporal_rows}
+    )
+    drift_frequencies_ghz = [frequency_hz / 1e9 for frequency_hz in drift_frequencies]
+    phase_medians = []
+    phase_maxima = []
+    amplitude_medians = []
+    amplitude_maxima = []
+    for frequency_hz in drift_frequencies:
+        frequency_rows = [
+            row
+            for row in temporal_rows
+            if _integer(row.get("center_frequency_hz"), "drift frequency") == frequency_hz
+        ]
+        phase_values = [
+            abs(_number(row.get("phase_first_to_last_deg"), "phase drift"))
+            for row in frequency_rows
+        ]
+        amplitude_values = [
+            abs(_number(row.get("amplitude_first_to_last_db"), "amplitude drift"))
+            for row in frequency_rows
+        ]
+        phase_medians.append(statistics.median(phase_values))
+        phase_maxima.append(max(phase_values))
+        amplitude_medians.append(statistics.median(amplitude_values))
+        amplitude_maxima.append(max(amplitude_values))
+
+    figure, axes = plt.subplots(2, 1, figsize=(12.0, 7.5), sharex=True, constrained_layout=True)
+    axes[0].plot(
+        drift_frequencies_ghz,
+        phase_medians,
+        marker="o",
+        markersize=3,
+        linewidth=1.0,
+        label="median path",
+    )
+    axes[0].plot(
+        drift_frequencies_ghz,
+        phase_maxima,
+        marker="o",
+        markersize=3,
+        linewidth=1.0,
+        label="worst path",
+    )
+    axes[0].axhline(1.0, color="black", linestyle="--", linewidth=0.9, label="1 degree")
+    axes[0].set_ylabel("|First-to-last phase change| (degrees)")
+    axes[0].set_title("Ten-pass temporal drift remains small across the repeatable band")
+    axes[0].grid(True, alpha=0.25)
+    axes[0].legend()
+
+    axes[1].plot(
+        drift_frequencies_ghz,
+        amplitude_medians,
+        marker="o",
+        markersize=3,
+        linewidth=1.0,
+        label="median path",
+    )
+    axes[1].plot(
+        drift_frequencies_ghz,
+        amplitude_maxima,
+        marker="o",
+        markersize=3,
+        linewidth=1.0,
+        label="worst path",
+    )
+    axes[1].axhline(0.2, color="black", linestyle="--", linewidth=0.9, label="0.2 dB")
+    axes[1].set_xlabel("Centre frequency (GHz)")
+    axes[1].set_ylabel("|First-to-last amplitude change| (dB)")
+    axes[1].grid(True, alpha=0.25)
+    axes[1].legend()
+    figure.savefig(directory / "fig05_temporal_drift.png", dpi=180)
     plt.close(figure)
 
 

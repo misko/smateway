@@ -144,6 +144,31 @@ def test_analysis_accepts_ten_complete_repeats(tmp_path: Path) -> None:
     assert result["acquisition_integrity"]["repeat_capture_count"] == 380
     assert result["pass_summary"]["repeat_condition_pass_counts"] == [38] * 10
     assert len(result["pass_summary"]["repeat_run_results"]) == 10
+    assert result["temporal_drift"]["pass_count"] == 10
+    assert result["temporal_drift"]["path_frequency_count"] == 23 * 7
+    assert result["temporal_drift"]["phase_absolute_first_to_last_deg"]["maximum"] < 1e-6
+
+
+def test_analysis_quarantines_indeterminate_alignment_from_rf_statistics(tmp_path: Path) -> None:
+    baseline = analysis._load_run("baseline", _manifest(tmp_path, "baseline"))
+    repeat_paths = [_manifest(tmp_path, f"repeat-{index}") for index in range(1, 3)]
+    manifest = json.loads(repeat_paths[0].read_text(encoding="utf-8"))
+    analysis_path = Path(manifest["attempts"][0]["quality_result"]["analysis_path"])
+    document = json.loads(analysis_path.read_text(encoding="utf-8"))
+    document["transfer"]["alignment_score"] = 0.90
+    analysis_path.write_text(json.dumps(document), encoding="utf-8")
+    repeats = [
+        analysis._load_run(f"repeat-{index}", path)
+        for index, path in enumerate(repeat_paths, start=1)
+    ]
+
+    result = analysis.analyze(baseline, repeats)
+
+    diagnostics = result["alignment_diagnostics"]
+    assert diagnostics["indeterminate_alignment_capture_count"] == 1
+    assert diagnostics["indeterminate_alignment_quality_pass_count"] == 1
+    assert result["frequency_results"][0]["unambiguous_alignment_capture_count"] == 1
+    assert result["frequency_results"][0]["indeterminate_alignment_capture_count"] == 1
 
 
 def test_loader_rejects_non_rotation0_mapping(tmp_path: Path) -> None:

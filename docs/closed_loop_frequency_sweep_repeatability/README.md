@@ -3,131 +3,159 @@
 Date: 2026-08-28  
 Board: `stm32c011-4c0055000950313950363920`  
 Fixture: conducted closed loop, rotation 0 (`F1→ANT1` … `F8→ANT8`)  
-Sweep: 2.1–5.8 GHz in 100 MHz steps, five repetitions
+Sweep: 2.1–5.8 GHz in 100 MHz steps, ten new repetitions
 
 ## Result
 
-The RF transfer is highly repeatable when the analysis locks to the correct
-20 ms dwell schedule. The dominant failure in the raw five-run result is not
-random board drift: it is a second, incorrect dwell-alignment solution that the
-existing `0.75` alignment gate admits.
+The rotation-0 transfer is extremely stable from 3.6 to 5.8 GHz after
+ALL_OFF subtraction. All 23 frequencies in this band produced unambiguous
+alignment in all ten passes. The full run also reproduced an incorrect
+dwell-alignment mode below 3.6 GHz, confirming that the low-band instability
+is primarily an analysis problem rather than random RF drift.
 
-Across 190 repeat captures:
+The ten passes ran for approximately 4 h 40 min and produced 380 accepted
+captures:
 
-- all 190 artifacts and SHA-256 values are unique;
-- every capture passed continuity, ADC-headroom, reference-validity, post-mute,
-  and final-mute checks;
-- 139 captures have an unambiguous alignment score of `0.9966–1.0000`;
-- 51 captures have a separate ambiguous mode at `0.7780–0.8235`;
-- 14 of those 51 ambiguous captures passed the existing downstream quality
-  gate, so they are false accepts;
-- there are no observed scores between `0.8235` and `0.9966`.
+- all 380 artifact IDs and SHA-256 values are unique;
+- every accepted capture passed continuity, ADC-headroom, reference-validity,
+  post-mute, and final-mute checks;
+- each accepted capture contains 24–26 complete switching cycles;
+- four of 384 execution attempts (`1.04%`) failed during a libiio buffer refill
+  with `ENODATA`;
+- all four failed attempts were muted, quarantined without an artifact, and
+  succeeded on retry.
 
-A diagnostic `0.85` separator therefore cleanly classifies this dataset. A
-production threshold of at least `0.95` is recommended, together with a fix to
-the alignment search itself. This threshold is a dataset-supported guard, not
-a substitute for correcting the search.
+The retry behavior protected the dataset, although the underlying USB/libiio
+transport fault remains open.
 
-![Dwell alignment by run](png/fig01_run_frequency_quality_matrix.png)
+## Dwell-alignment diagnosis
 
-![Two alignment-score modes](png/fig04_alignment_score_modes.png)
+The current `0.75` alignment gate is too permissive. Of the 380 accepted
+captures:
+
+| Alignment class | Score | Captures | Existing quality gate passed |
+|---|---:|---:|---:|
+| Unambiguous | ≥0.95 | 266 | 266 |
+| Indeterminate | 0.85–0.95 | 1 | 0 |
+| Wrong dwell-lock mode | <0.85 | 113 | 15 |
+
+The wrong mode reaches at most `0.8235`; the valid mode starts at `0.9548`.
+The single score of `0.9078` is conservatively retained as indeterminate and
+is not used as RF evidence. A production admission threshold of `0.95` is
+recommended, followed by a correction to the alignment search itself.
+
+![Dwell alignment by run](png/ten-pass/fig01_run_frequency_quality_matrix.png)
+
+![Alignment-score modes](png/ten-pass/fig04_alignment_score_modes.png)
 
 ## Repeatability after alignment admission
 
-Only captures in the unambiguous score mode are included in the phase and
-amplitude statistics below. Relative phase and amplitude use ANT8 as the
-reference and therefore reject capture-wide phase rotation.
+Relative measurements use ANT8 as the reference and include only captures
+with alignment score ≥0.95.
 
 | Frequency range | Valid repeats | Median phase σ | Phase σ p95 | Worst phase σ | Median amplitude σ | Amplitude σ p95 | Worst amplitude σ |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| 3.6–5.8 GHz | 5/5 at every point | 0.0358° | 0.1160° | 0.6815° | 0.00637 dB | 0.02142 dB | 0.14488 dB |
+| 3.6–5.8 GHz | 10/10 at every point | 0.0422° | 0.0937° | 0.1594° | 0.00678 dB | 0.01638 dB | 0.02132 dB |
 
-The few worst-path peaks remain below 1° and 0.2 dB. At 2.4 GHz, the two
-correctly aligned captures agree to a median `0.0554°` phase σ and `0.0095 dB`
-amplitude σ (worst paths `0.0784°` and `0.0154 dB`). The other three 2.4 GHz
-captures cannot be used until their dwell alignment is corrected.
+![Filtered phase, amplitude, and isolation](png/ten-pass/fig02_relative_phase_amplitude_repeatability.png)
 
-![Filtered phase, amplitude, and isolation](png/fig02_relative_phase_amplitude_repeatability.png)
-
-The number of usable repeats is:
+Usable low-band coverage is uneven because of the alignment search:
 
 | Usable repeats | Frequencies (GHz) |
 |---:|---|
-| 0/5 | 2.1, 2.2, 2.7–3.2 |
-| 1/5 | 2.3 |
-| 2/5 | 2.4 |
-| 3/5 | 2.5 |
-| 4/5 | 3.3, 3.5 |
-| 5/5 | 2.6, 3.4, 3.6–5.8 |
+| 0/10 | 2.1, 2.2, 2.8–3.2 |
+| 1/10 | 2.3, 2.4, 2.7 |
+| 2/10 | 2.5 |
+| 4/10 | 3.3 |
+| 7/10 | 3.5 |
+| 10/10 | 2.6, 3.4, 3.6–5.8 |
 
-No RF repeatability conclusion should be drawn at the eight frequencies with
-zero correctly aligned repeats. The immutable captures should be reanalysed
-after the alignment fix before deciding whether to reacquire them.
+One additional 2.5 GHz capture is indeterminate. No RF-repeatability failure
+should be inferred where valid coverage is sparse or zero. Reanalyse the
+immutable captures after fixing the dwell search before reacquiring data.
+
+## Temporal stability
+
+Across the 161 ANT1–ANT7/frequency pairs in the fully admitted 3.6–5.8 GHz
+band:
+
+| Change over ten passes | Median | p95 | Worst |
+|---|---:|---:|---:|
+| Absolute phase slope | 0.0081°/pass | 0.0262°/pass | 0.0449°/pass |
+| Absolute first-to-last phase | 0.0908° | 0.2736° | 0.4812° |
+| Absolute amplitude slope | 0.00138 dB/pass | 0.00429 dB/pass | 0.00568 dB/pass |
+| Absolute first-to-last amplitude | 0.0124 dB | 0.0502 dB | 0.0647 dB |
+
+The worst phase drift was ANT3 at 5.2 GHz; the worst first-to-last amplitude
+change was ANT6 at 4.9 GHz. Both remain small compared with practical
+calibration tolerances.
+
+![Temporal drift](png/ten-pass/fig05_temporal_drift.png)
 
 ## Raw isolation remains a separate limit
 
-Repeatable ALL_OFF-subtracted phase does not prove that a state has enough raw
-selected-to-ALL_OFF contrast for deployment. With all five repeats correctly
-aligned:
+Repeatable ALL_OFF-subtracted phase does not prove adequate raw
+selected-to-ALL_OFF contrast:
 
-- the 20 dB operational contrast criterion passes at 2.6, 3.4, 3.6–4.8, 5.0,
-  and 5.2 GHz;
-- the conservative 35.16 dB bound for a leakage contribution below 1° passes
-  at 4.0, 4.2–4.6, and 5.0 GHz;
-- 4.9 GHz is marginal at 19.83 dB worst-case contrast;
-- 5.8 GHz is correctly aligned and repeatable after subtraction, but its
-  worst-case raw contrast is only 1.54 dB.
+- the 20 dB operational criterion passes in all ten runs at 2.6, 3.4,
+  3.6–4.8, 5.0, and 5.2 GHz;
+- the conservative 35.16 dB bound for leakage contribution below 1° passes
+  in all ten runs at 4.0, 4.2, 4.4–4.6, and 5.0 GHz;
+- at 5.8 GHz, phase σ is only `0.0525°` median and `0.1243°` worst, but raw
+  contrast is `1.62 dB` minimum and `7.92 dB` median.
 
-The 5.8 GHz observation therefore confirms the earlier leakage/isolation
-finding; it is not an alignment artifact.
+Thus 5.8 GHz is repeatable after subtraction but genuinely leakage-limited.
+The result reinforces rather than contradicts the earlier isolation finding.
 
 ## Path-delay model
 
-A single relative path delay is very repeatable from run to run, but it does
-not explain the full frequency response. Across ANT1–ANT7 the fitted delay
-varies by only `0.039–0.195 ps` between repeats, while the residual phase ripple
-after the linear fit is `2.9–24.2° RMS`, depending on the path. Calibration must
-therefore retain a per-frequency complex correction table rather than replacing
-it with one path-length offset.
-
-Rotation 0 also combines the 8-way splitter arm, individual cable, and board
-path. Rotations 1 and 2 are still required to separate those terms after the
-alignment issue is fixed.
+The fitted relative delay is stable between runs (`0.032–0.068 ps` sample
+standard deviation), but a single delay does not explain the response. Linear
+delay-fit residuals span `2.90–24.09° RMS` across ANT1–ANT7. Calibration must
+retain a per-frequency complex correction table rather than collapse each path
+to one path-length offset.
 
 ## Diagnostic path acceptance
 
-The following chart records the old per-state gate result for traceability. It
-includes ambiguous dwell locks and must not be interpreted as intrinsic path
-reliability.
+This chart records the old downstream quality gate for traceability. It
+includes wrongly aligned captures and must not be interpreted as intrinsic
+path reliability.
 
-![Pre-correction path acceptance](png/fig03_path_reliability.png)
+![Pre-correction path acceptance](png/ten-pass/fig03_path_reliability.png)
 
 ## Reproduce
 
-The machine-readable result records every source manifest, artifact ID,
-artifact SHA-256, analysis SHA-256, and the exact derived statistics:
+The machine-readable result records source manifests and hashes, every failed
+attempt, alignment classifications, frequency/path statistics, delay fits,
+and temporal drift:
 
-- [rotation0-repeatability-results.json](data/rotation0-repeatability-results.json)
-- [analyze_rotation0_repeatability.py](../../scripts/analyze_rotation0_repeatability.py)
+- [ten-pass result](data/rotation0-repeatability-10pass-results.json)
+- [historical five-pass result](data/rotation0-repeatability-results.json)
+- [analysis program](../../scripts/analyze_rotation0_repeatability.py)
 
 ```bash
+state=/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/closed-loop-frequency-sweeps
 .venv/bin/python scripts/analyze_rotation0_repeatability.py \
-  --baseline-manifest /home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/closed-loop-frequency-sweeps/broadband-board-calibration-20260828-retry4/manifest.json \
-  --repeat-manifest /home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/closed-loop-frequency-sweeps/broadband-board-calibration-20260828-r0-repeat1/manifest.json \
-  --repeat-manifest /home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/closed-loop-frequency-sweeps/broadband-board-calibration-20260828-r0-repeat2/manifest.json \
-  --repeat-manifest /home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/closed-loop-frequency-sweeps/broadband-board-calibration-20260828-r0-repeat3/manifest.json \
-  --repeat-manifest /home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/closed-loop-frequency-sweeps/broadband-board-calibration-20260828-r0-repeat4/manifest.json \
-  --repeat-manifest /home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/closed-loop-frequency-sweeps/broadband-board-calibration-20260828-r0-repeat5/manifest.json \
-  --output docs/closed_loop_frequency_sweep_repeatability/data/rotation0-repeatability-results.json \
-  --figure-directory docs/closed_loop_frequency_sweep_repeatability/png
+  --baseline-manifest "$state/broadband-board-calibration-20260828-retry4/manifest.json" \
+  --repeat-manifest "$state/broadband-board-calibration-20260828-r0-repeat6/manifest.json" \
+  --repeat-manifest "$state/broadband-board-calibration-20260828-r0-repeat7/manifest.json" \
+  --repeat-manifest "$state/broadband-board-calibration-20260828-r0-repeat8/manifest.json" \
+  --repeat-manifest "$state/broadband-board-calibration-20260828-r0-repeat9/manifest.json" \
+  --repeat-manifest "$state/broadband-board-calibration-20260828-r0-repeat10/manifest.json" \
+  --repeat-manifest "$state/broadband-board-calibration-20260828-r0-repeat11/manifest.json" \
+  --repeat-manifest "$state/broadband-board-calibration-20260828-r0-repeat12/manifest.json" \
+  --repeat-manifest "$state/broadband-board-calibration-20260828-r0-repeat13/manifest.json" \
+  --repeat-manifest "$state/broadband-board-calibration-20260828-r0-repeat14/manifest.json" \
+  --repeat-manifest "$state/broadband-board-calibration-20260828-r0-repeat15/manifest.json" \
+  --output docs/closed_loop_frequency_sweep_repeatability/data/rotation0-repeatability-10pass-results.json \
+  --figure-directory docs/closed_loop_frequency_sweep_repeatability/png/ten-pass
 ```
 
 ## Next action
 
-1. Raise alignment admission to at least `0.95` and fix the alignment search so
-   it selects the physical dwell schedule rather than merely rejecting a bad
-   solution.
-2. Reanalyse all six existing sweeps without modifying the source artifacts.
-3. Reacquire only frequencies that still lack valid coverage.
-4. Complete rotations 1 and 2, then solve the per-frequency fixture/board
-   de-embedding model.
+1. Raise production alignment admission to `0.95` and correct the dwell search.
+2. Reanalyse the stored low-band captures; reacquire only if coverage remains
+   insufficient.
+3. Preserve the per-frequency complex calibration table and its temperature/
+   time provenance.
+4. Use rotations 1 and 2 only when fixture/board de-embedding is required.
