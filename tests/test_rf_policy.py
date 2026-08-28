@@ -1,9 +1,12 @@
 import pytest
 
 from smateway.rf_policy import (
+    CONDUCTED_SWEEP_MAXIMUM_HZ,
+    CONDUCTED_SWEEP_MINIMUM_HZ,
     EXPERIMENTAL_5G8_CENTER_HZ,
     QUALIFIED_2G4_MAXIMUM_HZ,
     QUALIFIED_2G4_MINIMUM_HZ,
+    classify_conducted_calibration_center_frequency,
     classify_fast20_center_frequency,
 )
 
@@ -55,3 +58,22 @@ def test_unreviewed_frequency_gap_and_nearby_5g8_values_are_rejected(
 def test_non_integer_center_is_rejected() -> None:
     with pytest.raises(ValueError, match="integer"):
         classify_fast20_center_frequency(2_400_000_000.0, allow_experimental_5g8=False)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    "frequency_hz",
+    (CONDUCTED_SWEEP_MINIMUM_HZ, 2_400_000_000, 4_100_000_000, CONDUCTED_SWEEP_MAXIMUM_HZ),
+)
+def test_conducted_sweep_accepts_only_predeclared_grid(frequency_hz: int) -> None:
+    assert classify_conducted_calibration_center_frequency(frequency_hz) == (
+        "experimental_fully_conducted_2g1_to_5g8_100mhz_sweep"
+    )
+
+
+@pytest.mark.parametrize(
+    "frequency_hz",
+    (2_000_000_000, 2_150_000_000, 5_850_000_000, 5_900_000_000),
+)
+def test_conducted_sweep_rejects_out_of_range_or_off_grid(frequency_hz: int) -> None:
+    with pytest.raises(ValueError, match="100 MHz grid"):
+        classify_conducted_calibration_center_frequency(frequency_hz)

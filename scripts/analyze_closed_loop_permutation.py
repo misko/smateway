@@ -267,7 +267,11 @@ def build_analysis(manifest_path: Path, artifact_root: Path) -> dict[str, Any]:
     frequency_results = []
     closure_results = []
     for frequency_hz in frequencies:
-        fitting_rounds = (closure, rounds[1], rounds[2])
+        closure_artifacts = _mapping(
+            closure.get("artifacts_by_frequency_hz"), "closure artifacts"
+        )
+        fitting_rotation_zero = closure if str(frequency_hz) in closure_artifacts else rounds[0]
+        fitting_rounds = (fitting_rotation_zero, rounds[1], rounds[2])
         observations = []
         fit_captures = []
         for round_document in fitting_rounds:
@@ -306,7 +310,7 @@ def build_analysis(manifest_path: Path, artifact_root: Path) -> dict[str, Any]:
         initial_artifacts = _mapping(
             rounds[0].get("artifacts_by_frequency_hz"), "initial rotation-0 artifacts"
         )
-        if str(frequency_hz) in initial_artifacts:
+        if str(frequency_hz) in initial_artifacts and str(frequency_hz) in closure_artifacts:
             initial = capture(rounds[0], frequency_hz)
             current = capture(closure, frequency_hz)
             closure_result = {
@@ -418,8 +422,9 @@ def build_analysis(manifest_path: Path, artifact_root: Path) -> dict[str, Any]:
             ("git", "rev-parse", "HEAD"), check=True, capture_output=True, text=True
         ).stdout.strip(),
         "fit_input_policy": (
-            "use the final rotation-0 closure plus accepted rotations 1 and 2; retain the "
-            "initial rotation-0 captures only for reconnect closure validation"
+            "use the final rotation-0 closure where one was captured, otherwise the initial "
+            "rotation-0 capture, plus accepted rotations 1 and 2; compare initial and closure "
+            "rotation-0 captures at closure-sentinel frequencies"
         ),
         "thresholds": {
             "maximum_model_amplitude_residual_rms_db": MAXIMUM_MODEL_AMPLITUDE_RMS_DB,

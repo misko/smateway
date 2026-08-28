@@ -215,3 +215,22 @@ def test_capture_parser_accepts_and_bounds_common_receiver_gain() -> None:
     assert selected.receiver_gain_db == 20
     with pytest.raises(SystemExit):
         capture_script._parser().parse_args(("--tx-channel", "0", "--receiver-gain-db", "63"))
+
+
+def test_capture_parser_exposes_separate_conducted_sweep_confirmation() -> None:
+    args = capture_script._parser().parse_args(
+        (
+            "--tx-channel",
+            "0",
+            "--center-frequency-hz",
+            "2100000000",
+            "--allow-conducted-calibration-sweep",
+            "--conducted-fixture-id",
+            capture_script.CONDUCTED_FIXTURE_ID,
+            "--confirm-fully-conducted",
+        )
+    )
+
+    assert args.allow_conducted_calibration_sweep is True
+    assert args.conducted_fixture_id == capture_script.CONDUCTED_FIXTURE_ID
+    assert args.confirm_fully_conducted is True

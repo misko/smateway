@@ -169,3 +169,16 @@ def test_failed_reference_transfer_document_is_rejected(tmp_path: Path) -> None:
 
     with pytest.raises(analysis.AnalysisInputError, match="did not pass"):
         analysis.build_analysis(manifest, root)
+
+
+def test_initial_rotation_zero_is_used_when_frequency_has_no_closure(tmp_path: Path) -> None:
+    manifest_path, root = _write_fixture(tmp_path)
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["closure"]["artifacts_by_frequency_hz"] = {}
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    result = analysis.build_analysis(manifest_path, root)
+
+    row = result["frequency_results"][0]
+    assert row["fit_artifact_ids_by_rotation"]["0"] == ARTIFACT_IDS["initial"]
+    assert row["closure"] is None

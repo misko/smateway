@@ -29,7 +29,10 @@ from smateway.ota_analysis import (
     estimate_coherent_pilot_offset,
 )
 from smateway.profile import load_profile
-from smateway.rf_policy import classify_fast20_center_frequency
+from smateway.rf_policy import (
+    classify_conducted_calibration_center_frequency,
+    classify_fast20_center_frequency,
+)
 
 DEFAULT_BOARD_ID = "stm32c011-4c0055000950313950363920"
 DEFAULT_SERIAL = "104000b29905000e17000800065934759d"
@@ -40,6 +43,7 @@ TONE_OFFSET_HZ = 100_000
 DDS_PHASE_ACCUMULATOR_STEPS = 1 << 16
 KERNEL_BUFFERS = 8
 MINIMUM_COMPLETE_FRAMES = 20
+CONDUCTED_FIXTURE_ID = "tx1-2way-rx1-and-8way-board-rx2-v1"
 
 
 def _write_json_atomic(path: Path, document: dict[str, Any]) -> None:
@@ -67,6 +71,21 @@ def _parser() -> argparse.ArgumentParser:
             "allow only the exact 5.8000 GHz user-requested experiment; this is "
             "not an antenna, path-calibration, or official-band claim"
         ),
+    )
+    parser.add_argument(
+        "--allow-conducted-calibration-sweep",
+        action="store_true",
+        help="allow only the antenna-free 2.1–5.8 GHz/100 MHz conducted calibration grid",
+    )
+    parser.add_argument(
+        "--conducted-fixture-id",
+        choices=(CONDUCTED_FIXTURE_ID,),
+        help="exact fully conducted fixture identity required by the broad sweep",
+    )
+    parser.add_argument(
+        "--confirm-fully-conducted",
+        action="store_true",
+        help="record that no RF output in the requested broad sweep is connected to an antenna",
     )
     parser.add_argument(
         "--sample-rate-hz",
@@ -147,10 +166,23 @@ def main() -> int:
     if profile.profile_id != "fast20-v1" or profile.nominal_cycle_ms != 386:
         raise SystemExit("capture requires the exact generated fast20-v1 profile")
     try:
-        frequency_policy = classify_fast20_center_frequency(
-            args.center_frequency_hz,
-            allow_experimental_5g8=args.allow_experimental_5g8,
-        )
+        if args.allow_conducted_calibration_sweep:
+            if args.allow_experimental_5g8:
+                raise ValueError("conducted-sweep and OTA 5.8 GHz opt-ins are mutually exclusive")
+            if args.conducted_fixture_id != CONDUCTED_FIXTURE_ID:
+                raise ValueError("conducted sweep requires the exact --conducted-fixture-id")
+            if not args.confirm_fully_conducted:
+                raise ValueError("conducted sweep requires --confirm-fully-conducted")
+            frequency_policy = classify_conducted_calibration_center_frequency(
+                args.center_frequency_hz
+            )
+        else:
+            if args.conducted_fixture_id is not None or args.confirm_fully_conducted:
+                raise ValueError("conducted fixture options require the conducted-sweep opt-in")
+            frequency_policy = classify_fast20_center_frequency(
+                args.center_frequency_hz,
+                allow_experimental_5g8=args.allow_experimental_5g8,
+            )
     except ValueError as error:
         raise SystemExit(str(error)) from error
     sample_rate_hz = args.sample_rate_hz
@@ -259,6 +291,8 @@ def main() -> int:
             "stimulus": args.stimulus,
             "center_frequency_hz": args.center_frequency_hz,
             "center_frequency_policy": frequency_policy,
+            "conducted_fixture_id": args.conducted_fixture_id,
+            "fully_conducted_user_confirmation": args.confirm_fully_conducted,
             "sample_rate_hz": sample_rate_hz,
             "receiver_gain_db": args.receiver_gain_db,
             "samples_per_frame": samples_per_frame,
