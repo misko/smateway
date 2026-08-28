@@ -53,6 +53,46 @@ def test_frequency_grid_and_stage_plan_are_exact() -> None:
     assert [item["plan_index"] for item in plan] == list(range(120))
 
 
+def test_frequency_subset_preserves_grid_and_filters_closure() -> None:
+    frequencies_hz = runner._frequency_grid(2_100_000_000, 2_500_000_000)
+    configuration = runner._configuration(
+        board_id="board-a",
+        serial="serial-a",
+        uri="usb:1.2.3",
+        python=Path("/opt/pluto-python"),
+        receiver_gain_db=40,
+        timeout_s=180,
+        frequencies_hz=frequencies_hz,
+    )
+
+    assert frequencies_hz == (
+        2_100_000_000,
+        2_200_000_000,
+        2_300_000_000,
+        2_400_000_000,
+        2_500_000_000,
+    )
+    assert configuration["closure_frequencies_hz"] == [2_100_000_000, 2_400_000_000]
+    assert configuration["planned_capture_count"] == 17
+    assert configuration["estimated_raw_iq_bytes"] == 1_360_000_000
+
+    plan = runner._execution_plan(configuration, Path("/repo"))
+    assert len(plan) == 17
+    assert [item["stage"] for item in plan].count("rotation0") == 5
+    assert [item["stage"] for item in plan].count("rotation1") == 5
+    assert [item["stage"] for item in plan].count("rotation2") == 5
+    assert [item["stage"] for item in plan].count("closure0") == 2
+
+
+def test_frequency_subset_rejects_off_grid_bounds() -> None:
+    try:
+        runner._frequency_grid(2_150_000_000, 2_500_000_000)
+    except ValueError as error:
+        assert "100 MHz" in str(error)
+    else:
+        raise AssertionError("off-grid frequency bound was accepted")
+
+
 def test_configuration_records_pi_local_storage_and_excludes_pluto_storage() -> None:
     configuration = _configuration()
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the predeclared 2.1–5.8 GHz conducted board-path permutation sweep."""
+"""Run a bounded subset of the predeclared conducted board-path sweep."""
 
 from __future__ import annotations
 
@@ -64,6 +64,18 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--python", type=Path, default=DEFAULT_PYTHON)
     parser.add_argument("--receiver-gain-db", type=int, default=DEFAULT_RECEIVER_GAIN_DB)
     parser.add_argument("--timeout-s", type=int, default=DEFAULT_TIMEOUT_S)
+    parser.add_argument(
+        "--frequency-min-hz",
+        type=int,
+        default=CONDUCTED_SWEEP_MINIMUM_HZ,
+        help="inclusive lower edge on the fixed 100 MHz conducted sweep grid",
+    )
+    parser.add_argument(
+        "--frequency-max-hz",
+        type=int,
+        default=CONDUCTED_SWEEP_MAXIMUM_HZ,
+        help="inclusive upper edge on the fixed 100 MHz conducted sweep grid",
+    )
     action = parser.add_mutually_exclusive_group(required=True)
     action.add_argument("--prepare-only", action="store_true")
     action.add_argument("--execute-stage", choices=STAGES)
@@ -82,6 +94,20 @@ def _parser() -> argparse.ArgumentParser:
 
 def _mapping(rotation: int) -> dict[str, str]:
     return {f"F{index + 1}": f"ANT{(index + rotation) % 8 + 1}" for index in range(8)}
+
+
+def _frequency_grid(minimum_hz: int, maximum_hz: int) -> tuple[int, ...]:
+    if minimum_hz > maximum_hz:
+        raise ValueError("frequency minimum must not exceed frequency maximum")
+    if minimum_hz not in FREQUENCIES_HZ or maximum_hz not in FREQUENCIES_HZ:
+        raise ValueError(
+            "frequency bounds must lie on the 2.1–5.8 GHz conducted 100 MHz grid"
+        )
+    return tuple(
+        frequency_hz
+        for frequency_hz in FREQUENCIES_HZ
+        if minimum_hz <= frequency_hz <= maximum_hz
+    )
 
 
 def _capture_command(
@@ -124,18 +150,31 @@ def _configuration(
     python: Path,
     receiver_gain_db: int,
     timeout_s: int,
+    frequencies_hz: tuple[int, ...] = FREQUENCIES_HZ,
 ) -> dict[str, Any]:
     if not 0 <= receiver_gain_db <= 62:
         raise ValueError("receiver gain must be within 0..62 dB")
     if not 30 <= timeout_s <= 600:
         raise ValueError("timeout must be within 30..600 seconds")
-    for frequency_hz in FREQUENCIES_HZ:
+    if not frequencies_hz:
+        raise ValueError("frequency grid must not be empty")
+    if tuple(sorted(set(frequencies_hz))) != frequencies_hz:
+        raise ValueError("frequencies must be unique and increasing")
+    if any(frequency_hz not in FREQUENCIES_HZ for frequency_hz in frequencies_hz):
+        raise ValueError("frequencies must use the conducted 100 MHz grid")
+    for frequency_hz in frequencies_hz:
         classify_conducted_calibration_center_frequency(frequency_hz)
+    closure_frequencies_hz = tuple(
+        frequency_hz
+        for frequency_hz in CLOSURE_FREQUENCIES_HZ
+        if frequency_hz in frequencies_hz
+    )
+    planned_capture_count = 3 * len(frequencies_hz) + len(closure_frequencies_hz)
     board_root = base._board_root(board_id)
     return {
         "experiment_kind": "fast20_fully_conducted_broadband_board_calibration",
-        "frequencies_hz": list(FREQUENCIES_HZ),
-        "closure_frequencies_hz": list(CLOSURE_FREQUENCIES_HZ),
+        "frequencies_hz": list(frequencies_hz),
+        "closure_frequencies_hz": list(closure_frequencies_hz),
         "stages": list(STAGES),
         "mappings": {stage: _mapping(ROTATION_BY_STAGE[stage]) for stage in STAGES},
         "fixture_id": CONDUCTED_FIXTURE_ID,
@@ -146,10 +185,8 @@ def _configuration(
         "sample_rate_hz": 1_000_000,
         "duration_s": 10,
         "kernel_buffers": 8,
-        "planned_capture_count": 3 * len(FREQUENCIES_HZ) + len(CLOSURE_FREQUENCIES_HZ),
-        "estimated_raw_iq_bytes": (
-            (3 * len(FREQUENCIES_HZ) + len(CLOSURE_FREQUENCIES_HZ)) * 10 * 1_000_000 * 2 * 4
-        ),
+        "planned_capture_count": planned_capture_count,
+        "estimated_raw_iq_bytes": planned_capture_count * 10 * 1_000_000 * 2 * 4,
         "profile_id": PROFILE_ID,
         "profile_contract_sha256": PROFILE_CONTRACT_SHA256,
         "firmware_binary_sha256": FIRMWARE_BINARY_SHA256,
@@ -169,7 +206,11 @@ def _execution_plan(configuration: Mapping[str, Any], repository: Path) -> list[
     python = Path(str(configuration["python"]))
     plan = []
     for stage in STAGES:
-        frequencies = CLOSURE_FREQUENCIES_HZ if stage == "closure0" else FREQUENCIES_HZ
+        frequencies = (
+            configuration["closure_frequencies_hz"]
+            if stage == "closure0"
+            else configuration["frequencies_hz"]
+        )
         rotation = ROTATION_BY_STAGE[stage]
         for order_index, frequency_hz in enumerate(frequencies):
             condition: dict[str, Any] = {
@@ -363,6 +404,7 @@ def main() -> int:
     if not python.is_file() or not os.access(python, os.X_OK):
         raise SystemExit(f"capture Python is not executable: {python}")
     try:
+        frequencies_hz = _frequency_grid(args.frequency_min_hz, args.frequency_max_hz)
         configuration = _configuration(
             board_id=board_id,
             serial=args.serial,
@@ -370,6 +412,7 @@ def main() -> int:
             python=python,
             receiver_gain_db=args.receiver_gain_db,
             timeout_s=args.timeout_s,
+            frequencies_hz=frequencies_hz,
         )
     except ValueError as error:
         raise SystemExit(str(error)) from error
