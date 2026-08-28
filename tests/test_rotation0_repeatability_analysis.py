@@ -205,3 +205,17 @@ def test_loader_rejects_non_rotation0_mapping(tmp_path: Path) -> None:
 
     with pytest.raises(analysis.RepeatabilityAnalysisError, match="mapping"):
         analysis._load_run("bad-mapping", path)
+
+
+def test_loader_accepts_an_explicit_low_band_subset(tmp_path: Path) -> None:
+    path = _manifest(tmp_path, "low-band")
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    subset = analysis.FREQUENCIES_HZ[:5]
+    manifest["configuration"]["frequencies_hz"] = list(subset)
+    manifest["attempts"] = manifest["attempts"][:5]
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    run = analysis._load_run("low-band", path, subset)
+
+    assert tuple(run["observations"]) == subset
+    assert run["execution_attempt_count"] == 5

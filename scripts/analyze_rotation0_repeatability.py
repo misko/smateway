@@ -126,15 +126,24 @@ def _percentile(values: Sequence[float], percentile: float) -> float:
     return float(np.percentile(np.asarray(values, dtype=np.float64), percentile))
 
 
-def _load_run(label: str, manifest_path: Path) -> dict[str, Any]:
+def _load_run(
+    label: str,
+    manifest_path: Path,
+    expected_frequencies_hz: tuple[int, ...] = FREQUENCIES_HZ,
+) -> dict[str, Any]:
+    if not expected_frequencies_hz:
+        raise RepeatabilityAnalysisError("expected frequency grid must not be empty")
     manifest = _read_json(manifest_path, f"{label} manifest")
     if manifest.get("schema") != 1:
         raise RepeatabilityAnalysisError(f"{label} manifest schema must be 1")
     if manifest.get("experiment_kind") != "fast20_fully_conducted_broadband_board_calibration":
         raise RepeatabilityAnalysisError(f"{label} is not a broadband conducted sweep")
     configuration = _mapping(manifest.get("configuration"), f"{label} configuration")
-    if tuple(_sequence(configuration.get("frequencies_hz"), "frequency grid")) != FREQUENCIES_HZ:
-        raise RepeatabilityAnalysisError(f"{label} does not use the exact 2.1-5.8 GHz grid")
+    if (
+        tuple(_sequence(configuration.get("frequencies_hz"), "frequency grid"))
+        != expected_frequencies_hz
+    ):
+        raise RepeatabilityAnalysisError(f"{label} does not use the expected frequency grid")
     if configuration.get("storage_medium") != "raspberry_pi_local_filesystem":
         raise RepeatabilityAnalysisError(f"{label} does not attest local Raspberry Pi storage")
     if configuration.get("pluto_onboard_storage_used") is not False:
@@ -187,13 +196,13 @@ def _load_run(label: str, manifest_path: Path) -> dict[str, Any]:
         if attempt.get("mapping") != EXPECTED_MAPPING:
             raise RepeatabilityAnalysisError(f"{label} {frequency_hz} Hz mapping is not rotation 0")
         attempts_by_frequency[frequency_hz] = attempt
-    if set(attempts_by_frequency) != set(FREQUENCIES_HZ):
-        missing = sorted(set(FREQUENCIES_HZ) - set(attempts_by_frequency))
+    if set(attempts_by_frequency) != set(expected_frequencies_hz):
+        missing = sorted(set(expected_frequencies_hz) - set(attempts_by_frequency))
         raise RepeatabilityAnalysisError(f"{label} lacks complete rotation-0 captures: {missing}")
 
     observations: dict[int, dict[str, Any]] = {}
     source_analyses = []
-    for frequency_hz in FREQUENCIES_HZ:
+    for frequency_hz in expected_frequencies_hz:
         attempt = attempts_by_frequency[frequency_hz]
         quality = _mapping(attempt.get("quality_result"), "quality result")
         analysis_path = Path(_string(quality.get("analysis_path"), "analysis path"))

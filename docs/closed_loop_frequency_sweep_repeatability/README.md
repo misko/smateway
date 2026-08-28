@@ -3,7 +3,8 @@
 Date: 2026-08-28  
 Board: `stm32c011-4c0055000950313950363920`  
 Fixture: conducted closed loop, rotation 0 (`F1→ANT1` … `F8→ANT8`)  
-Sweep: 2.1–5.8 GHz in 100 MHz steps, twenty repetitions
+Sweep: 2.1–5.8 GHz in 100 MHz steps, twenty repetitions, plus five focused
+2.1–2.5 GHz repetitions
 
 ## Result
 
@@ -85,6 +86,101 @@ Usable low-band coverage remains controlled by the alignment search:
 There are six additional indeterminate captures at 2.5 GHz, one at 2.6 GHz,
 and two at 2.9 GHz. No low-band RF failure should be inferred until the stored
 captures are reanalysed with a corrected dwell search.
+
+## Five-pass focused 2.1–2.5 GHz extension
+
+Five further rotation-0 sweeps used the same fixture, firmware, `fast20-v1`
+profile, 10 s duration, 1 MS/s sample rate, 20 ms dwell, eight kernel buffers,
+and 40 dB receiver gain. Only the frequency grid was bounded to 2.1–2.5 GHz.
+All 25 requested captures were accepted on their first attempt; all continuity,
+headroom, reference-validity, post-mute, and final-mute checks passed. The 25
+artifact IDs and hashes are unique.
+
+Combining these captures with the same five frequencies from the twenty
+broadband passes gives 125 traceable low-band observations:
+
+| Frequency | Historical unambiguous | New unambiguous | Combined unambiguous | Combined indeterminate | Combined wrong mode | New legacy-gate pass |
+|---:|---:|---:|---:|---:|---:|---:|
+| 2.1 GHz | 0/20 | 2/5 | 2/25 | 0/25 | 23/25 | 5/5 |
+| 2.2 GHz | 2/20 | 2/5 | 4/25 | 0/25 | 21/25 | 2/5 |
+| 2.3 GHz | 4/20 | 1/5 | 5/25 | 0/25 | 20/25 | 1/5 |
+| 2.4 GHz | 3/20 | 3/5 | 6/25 | 0/25 | 19/25 | 3/5 |
+| 2.5 GHz | 6/20 | 3/5 | 9/25 | 8/25 | 8/25 | 2/5 |
+
+The focused cohort contributes 11 unambiguous and two indeterminate captures;
+12 select the wrong dwell-lock mode. Its pattern is consistent with the
+historical cohort. The result also makes the old quality-gate defect concrete:
+at 2.1 GHz all five focused captures pass the legacy gate, but only two have
+the validated alignment score of at least `0.95`. Conversely, one unambiguous
+2.5 GHz capture fails a per-state legacy criterion. Alignment admission and
+per-path RF quality must remain separate decisions.
+
+![Low-band alignment matrix](png/low-band-extension/fig01_low_band_alignment_matrix.png)
+
+![Historical and focused valid coverage](png/low-band-extension/fig02_low_band_valid_coverage.png)
+
+![Low-band alignment distributions](png/low-band-extension/fig03_low_band_alignment_distributions.png)
+
+Once the wrong and indeterminate modes are excluded, the admitted transfer is
+repeatable despite the limited sample count:
+
+| Frequency | Admitted captures | Median phase σ | Worst phase σ | Median amplitude σ | Worst amplitude σ |
+|---:|---:|---:|---:|---:|---:|
+| 2.1 GHz | 2/25 | 0.0341° | 0.1066° | 0.00511 dB | 0.01212 dB |
+| 2.2 GHz | 4/25 | 0.1250° | 0.1577° | 0.03641 dB | 0.07038 dB |
+| 2.3 GHz | 5/25 | 0.0547° | 0.1401° | 0.01494 dB | 0.03039 dB |
+| 2.4 GHz | 6/25 | 0.1535° | 0.2452° | 0.00833 dB | 0.03645 dB |
+| 2.5 GHz | 9/25 | 0.0859° | 0.0960° | 0.01806 dB | 0.02806 dB |
+
+These conditional statistics show a stable RF transfer when alignment is
+known, not production-ready low-band availability. No frequency is
+unambiguous in all 25 passes, so fixing the alignment search remains the
+blocking item.
+
+![Admitted low-band phase repeatability](png/low-band-extension/fig04_low_band_phase_repeatability.png)
+
+## Relation to the original permutation calibration
+
+This result does **not** invalidate the earlier
+[conducted permutation calibration](../closed_loop_permutation_calibration/README.md).
+That experiment and this one answer different questions:
+
+- the permutation experiment used rotations 0, 1, 2 and a rotation-0 closure
+  to separate splitter-feed terms from board-path terms and fit coefficients;
+- the repeatability experiment leaves the fixture in rotation 0 and repeatedly
+  tests whether an independently started capture is aligned and repeatable;
+- the earlier 2.4 GHz grid was 2.400–2.480 GHz in 20 MHz steps, while the
+  broadband repeat grid uses 100 MHz steps.
+
+All four 2.400 GHz source captures used by the original calibration have
+alignment score `0.999975–1.000000`, so they also pass the newer `0.95`
+admission rule. The six correctly aligned 2.400 GHz captures among the present
+25 passes reproduce their raw transfer:
+
+| 2.400 GHz metric | Original calibration, N=4 | Current correct mode, N=6 |
+|---|---:|---:|
+| Median ALL_OFF raw RX2/RX1 amplitude | 0.012962 | 0.012808 |
+| Median selected-path raw RX2/RX1 amplitude | 0.634825 | 0.636650 |
+| Median of minimum path contrast | 32.392 dB | 32.590 dB |
+| Median path contrast | 33.762 dB | 33.843 dB |
+
+The 19 current wrong-mode captures instead report apparent ALL_OFF amplitude
+`0.425–0.460` and a path near `-30 dB` contrast because the search has shifted
+the state labels: an active antenna dwell is called ALL_OFF and the real
+ALL_OFF interval is called an antenna. This is analysis mislabelling, not a
+30 dB physical isolation change. The reference-transfer and alignment
+algorithms are unchanged from the original source commit; the broader repeated
+campaign exposed a latent alternate optimum that four successful calibration
+captures did not sample.
+
+Comparing the old rotation-0 closure with the mean of the six current valid
+captures, both relative to ANT8, gives `0.0747 dB RMS` amplitude-shape change
+and `1.305° RMS` phase-shape change; the largest path change is ANT4 at
+`2.679°` and `0.176 dB`. Because a rotation-0 measurement combines feed-arm,
+reconnect, and board response, it cannot assign that day-to-day change to the
+PCB alone. The original board calibration remains useful, but a sub-degree
+deployment should refresh or verify it after cable reconnection and should not
+admit any capture until the alignment search is fixed.
 
 ## First-ten versus second-ten cohorts
 
@@ -169,9 +265,11 @@ attempt, alignment classifications, frequency/path statistics, delay fits,
 temporal drift, and cohort comparison:
 
 - [twenty-pass aggregate](data/rotation0-repeatability-20pass-results.json)
+- [five-pass low-band extension and 25-pass low-band aggregate](data/rotation0-low-band-extension-5pass-results.json)
 - [historical ten-pass aggregate](data/rotation0-repeatability-10pass-results.json)
 - [historical five-pass aggregate](data/rotation0-repeatability-results.json)
 - [analysis program](../../scripts/analyze_rotation0_repeatability.py)
+- [focused low-band analysis program](../../scripts/analyze_rotation0_low_band_extension.py)
 
 ```bash
 state=/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/closed-loop-frequency-sweeps
@@ -186,10 +284,29 @@ done
   --figure-directory docs/closed_loop_frequency_sweep_repeatability/png/twenty-pass
 ```
 
+The focused extension is reproduced from the twenty broadband manifests and
+five bounded manifests:
+
+```bash
+state=/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/closed-loop-frequency-sweeps
+args=()
+for repeat_index in {6..25}; do
+  args+=(--historical-manifest "$state/broadband-board-calibration-20260828-r0-repeat${repeat_index}/manifest.json")
+done
+for repeat_index in {1..5}; do
+  args+=(--focused-manifest "$state/broadband-board-calibration-20260828-r0-lowband-repeat${repeat_index}/manifest.json")
+done
+.venv/bin/python scripts/analyze_rotation0_low_band_extension.py \
+  "${args[@]}" \
+  --output docs/closed_loop_frequency_sweep_repeatability/data/rotation0-low-band-extension-5pass-results.json \
+  --figure-directory docs/closed_loop_frequency_sweep_repeatability/png/low-band-extension
+```
+
 ## Next action
 
 1. Raise production alignment admission to `0.95` and correct the dwell search.
-2. Reanalyse the stored low-band captures before considering reacquisition.
+2. Correct the dwell search and reanalyse all 125 stored low-band captures
+   before considering reacquisition.
 3. Inspect/reseat ANT6 and repeat a shorter stability control with temperature
    recorded.
 4. Give deployed calibration tables acquisition time, temperature, and maximum
