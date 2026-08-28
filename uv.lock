@@ -1018,7 +1018,7 @@ wheels = [
 [[package]]
 name = "pluto-plus-utils"
 version = "0.1.0"
-source = { git = "https://github.com/misko/pluto-plus-utils.git?rev=5551d29bc6c326f26285670efd20fc149caef474#5551d29bc6c326f26285670efd20fc149caef474" }
+source = { git = "https://github.com/misko/pluto-plus-utils.git?rev=379b0f2cee391b450764601e8536fa6d348b0e56#379b0f2cee391b450764601e8536fa6d348b0e56" }
 dependencies = [
     { name = "fastapi" },
     { name = "httpx" },
@@ -1321,7 +1321,7 @@ report = [
 requires-dist = [
     { name = "matplotlib", marker = "extra == 'report'", specifier = ">=3.9" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.13" },
-    { name = "pluto-plus-utils", extras = ["hardware"], git = "https://github.com/misko/pluto-plus-utils.git?rev=5551d29bc6c326f26285670efd20fc149caef474" },
+    { name = "pluto-plus-utils", extras = ["hardware"], git = "https://github.com/misko/pluto-plus-utils.git?rev=379b0f2cee391b450764601e8536fa6d348b0e56" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8" },
 ]
