@@ -60,7 +60,7 @@ def _parser() -> argparse.ArgumentParser:
         required=True,
         help=(
             "reference-transfer JSON or directory; repeat as needed (directories are "
-            "searched recursively for fast20-reference-transfer.json)"
+            "searched recursively for versioned or legacy reference-transfer JSON)"
         ),
     )
     parser.add_argument(
@@ -237,12 +237,17 @@ def _input_paths(inputs: Sequence[Path]) -> tuple[Path, ...]:
         if path.is_file():
             found[path] = None
         elif path.is_dir():
+            versioned = tuple(sorted(path.rglob("fast20-reference-transfer-v2.json")))
+            for candidate in versioned:
+                found[candidate.resolve()] = None
             for candidate in sorted(path.rglob("fast20-reference-transfer.json")):
+                if (candidate.parent / "fast20-reference-transfer-v2.json").is_file():
+                    continue
                 found[candidate.resolve()] = None
         else:
             raise DocumentError(f"input path does not exist: {path}")
     if not found:
-        raise DocumentError("no fast20-reference-transfer.json inputs were found")
+        raise DocumentError("no reference-transfer analysis inputs were found")
     return tuple(found)
 
 

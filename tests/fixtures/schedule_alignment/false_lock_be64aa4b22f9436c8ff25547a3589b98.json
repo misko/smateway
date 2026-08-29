@@ -1,0 +1,202 @@
+{
+  "schema": 1,
+  "fixture_kind": "fast20_coherent_transfer_bins",
+  "description": "Compact reduction of the real 2.4 GHz capture that exposed the coupled coarse-cycle/marker-phase false lock. The full dual-RX IQ is intentionally not copied into the repository.",
+  "source": {
+    "artifact_id": "be64aa4b22f9436c8ff25547a3589b98",
+    "artifact_directory": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/pluto-usb-captures/be64aa4b22f9436c8ff25547a3589b98",
+    "sigmf_data_filename": "be64aa4b22f9436c8ff25547a3589b98.sigmf-data",
+    "sigmf_data_size_bytes": 80000000,
+    "sigmf_data_sha256": "98375f8cea872b1a5627477a7f1d5cf086022e8f15b7ad5d0766273dd4d84b3b",
+    "sigmf_meta_filename": "be64aa4b22f9436c8ff25547a3589b98.sigmf-meta",
+    "sigmf_meta_sha256": "b90cce0348e3896742b93a772487ebc9fb675e943869f9125580c6127fc4d204",
+    "dwell_analysis_filename": "fast20-dwell-isolation.json",
+    "dwell_analysis_sha256": "60ec7968316b5d3d62fe1750a48e93a15298fee4dd77b74c354043de3d95db3b",
+    "reference_transfer_analysis_filename": "fast20-reference-transfer.json",
+    "reference_transfer_analysis_sha256": "de1f1174df88fe1712b582d3358c542d7b358d2340b25dc2d4cd11d13df2a44d",
+    "capture_source_commit": "d96879eaf9b981f6caed2fea198305b1bbf17474",
+    "board_id": "stm32c011-4c0055000950313950363920",
+    "radio_serial": "104000b29905000e17000800065934759d",
+    "center_frequency_hz": 2400000000,
+    "sample_rate_hz": 1000000,
+    "sample_count": 10000000,
+    "receiver_count": 2,
+    "receiver_gain_db": 40,
+    "tx_channel": 0,
+    "conducted_fixture_id": "tx1-2way-rx1-and-8way-board-rx2-v1",
+    "continuity_block_count": 100,
+    "continuity_verified": true,
+    "sweep_manifest_path": "/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/closed-loop-frequency-sweeps/broadband-board-calibration-20260828-r0-lowband-repeat1/manifest.json",
+    "sweep_manifest_sha256": "3d89328db5422403b13222e05112b66f83c84ce49adba1095fcffca7fd2d00c8"
+  },
+  "profile": {
+    "path": "profiles/fast20-v1/control_profile.json",
+    "file_sha256": "c8f3de200573d90d1b87b623770cd9253649c634a22cea1a9ca980042ae40f11",
+    "contract_sha256": "25b2bd0769687cc255d5e6926312e7e827672dc4567d64aecd85e8078acb4258",
+    "nominal_cycle_ms": 386.0,
+    "cycle_search_range_ms": [
+      382.0,
+      390.0
+    ]
+  },
+  "reduction": {
+    "algorithm": "Decode canonical dual-RX ci16_le; estimate the RX1 pilot; coherently demodulate both receivers into 1 ms bins; mark RX1 bins valid at or above 0.2 times its median coherent amplitude; store RX2/RX1 only for valid bins.",
+    "nominal_tone_offset_hz": 100006.103515625,
+    "estimated_tone_offset_hz": 99990.84472405385,
+    "pilot_confidence": 0.9988571530143302,
+    "bin_duration_ms": 1.0,
+    "duration_ms": 10000.0,
+    "edge_exclusion_ms": 2.0,
+    "fixture_filename": "false_lock_be64aa4b22f9436c8ff25547a3589b98.npz",
+    "fixture_size_bytes": 141940,
+    "fixture_sha256": "60ec9c7dc8b13310431639a98789fecdeb19892943ae7d5bf38d145457e60a68",
+    "full_iq_is_present": false,
+    "arrays": {
+      "transfer_bins": {
+        "shape": [
+          10000
+        ],
+        "dtype": "complex128",
+        "uncompressed_size_bytes": 160000,
+        "data_sha256": "f5246f78223553bb254fd1ed0a695eb2a1a8c39318c4c7602e11047e486a6111"
+      },
+      "reference_valid": {
+        "shape": [
+          10000
+        ],
+        "dtype": "bool",
+        "uncompressed_size_bytes": 10000,
+        "data_sha256": "684ad25fdc2bbb80cbc910dd1bde6d5499ccf860ca6ee44704b77ec445271353",
+        "valid_fraction": 1.0
+      }
+    }
+  },
+  "decoded_timing": {
+    "bin_duration_ms": 0.1,
+    "threshold_margin_db": 4.0,
+    "threshold_stable": true,
+    "marker_count": 26,
+    "complete_frame_count": 25,
+    "strict_frame_count": 25,
+    "edge_truncated_marker_count": 1,
+    "rejected_marker_count": 0,
+    "median_cycle_ms": 384.6,
+    "cycle_jitter_ms": 0.0,
+    "marker_phase_ms": 149.68800114930067,
+    "marker_start_times_ms": [
+      150.0,
+      534.6,
+      919.2,
+      1303.8,
+      1688.4,
+      2073.0,
+      2457.6,
+      2842.2,
+      3226.8,
+      3611.4,
+      3995.9,
+      4380.4,
+      4765.0,
+      5149.5,
+      5534.1,
+      5918.7,
+      6303.2,
+      6687.7,
+      7072.2,
+      7456.8,
+      7841.3,
+      8225.8,
+      8610.3,
+      8994.9,
+      9379.4
+    ],
+    "cycle_durations_ms": [
+      384.6,
+      384.6,
+      384.6,
+      384.6,
+      384.6,
+      384.6,
+      384.6,
+      384.6,
+      384.6,
+      384.5,
+      384.5,
+      384.6,
+      384.6,
+      384.6,
+      384.6,
+      384.5,
+      384.6,
+      384.5,
+      384.6,
+      384.5,
+      384.5,
+      384.5,
+      384.6,
+      384.5,
+      384.6
+    ]
+  },
+  "known_failure": {
+    "legacy_greedy_result": {
+      "cycle_ms": 384.6,
+      "marker_phase_ms": 47.0,
+      "combined_score": 0.7970354076085541,
+      "explained_fraction": 0.7984374156515002,
+      "even_odd_agreement": 0.9999844785755395,
+      "cycle_coherence": 0.9982595546015085,
+      "complete_cycle_count": 25
+    },
+    "transition_aligned_candidate": {
+      "cycle_ms": 384.6,
+      "marker_phase_ms": 149.8,
+      "combined_score": 0.9999996417425758,
+      "explained_fraction": 0.9999999487968378,
+      "residual_fraction": 5.120316212625718e-08,
+      "even_odd_agreement": 0.999999996457617,
+      "cycle_coherence": 0.9999996964881042,
+      "complete_cycle_count": 25
+    },
+    "cause": "The legacy coarse search retained one best joint candidate. A coarse cycle error accumulated across 25 frames, selected the wrong marker basin, and the fine pass searched only plus or minus 2 ms around that basin. The correct cycle/marker combination was never evaluated."
+  },
+  "verification": {
+    "host": "devpi",
+    "verified_at": "2026-08-29",
+    "fine_cycle_step_ms": 0.2,
+    "fine_phase_step_ms": 0.2,
+    "exhaustive_fine": {
+      "candidate_count": 79130,
+      "elapsed_s": 713.8492725309916,
+      "cycle_ms": 384.6,
+      "marker_phase_ms": 148.6,
+      "combined_score": 0.9999996480552272,
+      "explained_fraction": 0.9999999486238316,
+      "residual_fraction": 5.1376168423414006e-08
+    },
+    "global_refined": {
+      "candidate_count": 8075,
+      "elapsed_s": 78.02919211499102,
+      "cycle_ms": 384.6,
+      "marker_phase_ms": 148.6,
+      "combined_score": 0.9999996480552272,
+      "explained_fraction": 0.9999999486238316
+    },
+    "transition_seeded": {
+      "candidate_count": 231,
+      "elapsed_s": 1.9126690150005743,
+      "cycle_ms": 384.6,
+      "marker_phase_ms": 148.68800114930067,
+      "combined_score": 0.9999996479874971,
+      "explained_fraction": 0.9999999485652061,
+      "decoder_agrees": true
+    }
+  },
+  "acceptance": {
+    "maximum_cycle_error_ms": 0.2,
+    "maximum_marker_error_from_decoder_ms": 1.2,
+    "minimum_combined_score": 0.999999,
+    "minimum_explained_fraction": 0.9999999,
+    "minimum_complete_cycle_count": 25
+  }
+}

@@ -16,7 +16,10 @@ from capture_fast20_dwell import _continuity_ledger, _load_channel, _write_json_
 from pluto_plus.artifacts import load_metadata, verify_artifact
 from pluto_plus.models import ArtifactSummary
 
-from smateway.ota_analysis import estimate_coherent_pilot_offset
+from smateway.ota_analysis import (
+    analyze_fast20_dwell_isolation,
+    estimate_coherent_pilot_offset,
+)
 from smateway.profile import load_profile
 from smateway.reference_transfer import (
     CyclePhasorSummary,
@@ -24,11 +27,17 @@ from smateway.reference_transfer import (
     ReferenceTransferStateEstimate,
     analyze_fast20_reference_transfer,
 )
+from smateway.schedule_alignment import (
+    AlignmentCandidate,
+    AlignmentSearchMode,
+    ScheduleAlignmentResult,
+)
 
 DEFAULT_BOARD_ID = "stm32c011-4c0055000950313950363920"
 MINIMUM_COMPLETE_CYCLES = 20
 MINIMUM_ALIGNMENT_SCORE = 0.75
 MINIMUM_ALIGNMENT_EVEN_ODD_AGREEMENT = 0.75
+MINIMUM_ALIGNMENT_EXPLAINED_FRACTION = 0.90
 MINIMUM_REFERENCE_VALID_BIN_FRACTION = 0.95
 MINIMUM_RX1_CYCLE_COHERENCE = 0.90
 MINIMUM_TRANSFER_DETECTION_SNR_DB = 15.0
@@ -37,6 +46,8 @@ MINIMUM_TRANSFER_EVEN_ODD_AGREEMENT = 0.75
 MAXIMUM_TRANSFER_CYCLE_PHASE_STD_DEG = 30.0
 DDS_PHASE_ACCUMULATOR_STEPS = 1 << 16
 TONE_OFFSET_HZ = 100_000
+VERSIONED_OUTPUT_FILENAME = "fast20-reference-transfer-v2.json"
+CANONICAL_OUTPUT_FILENAME = "fast20-reference-transfer.json"
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -48,11 +59,65 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         default=Path("profiles/fast20-v1/control_profile.json"),
     )
+    parser.add_argument(
+        "--alignment-search-mode",
+        type=AlignmentSearchMode,
+        choices=tuple(AlignmentSearchMode),
+        default=AlignmentSearchMode.TRANSITION_SEEDED,
+        help=(
+            "transition_seeded is the fail-closed production path; global_refined "
+            "and exhaustive_fine are offline cross-checks"
+        ),
+    )
+    parser.add_argument(
+        "--output-filename",
+        default=VERSIONED_OUTPUT_FILENAME,
+        help="write a versioned sidecar by default, preserving historical analysis",
+    )
+    parser.add_argument(
+        "--promote-canonical",
+        action="store_true",
+        help="also publish this result as the canonical analysis after validation",
+    )
     return parser
 
 
 def _complex_document(value: complex) -> dict[str, float]:
     return {"real": value.real, "imag": value.imag}
+
+
+def _alignment_candidate_document(candidate: AlignmentCandidate) -> dict[str, Any]:
+    return {
+        "cycle_ms": candidate.cycle_ms,
+        "marker_phase_ms": candidate.marker_phase_ms,
+        "complete_cycle_count": candidate.complete_cycle_count,
+        "fit": asdict(candidate.quality),
+    }
+
+
+def _schedule_alignment_document(
+    alignment: ScheduleAlignmentResult | None,
+) -> dict[str, Any] | None:
+    if alignment is None:
+        return None
+    provenance = asdict(alignment.provenance)
+    provenance["mode"] = alignment.provenance.mode.value
+    return {
+        "method": alignment.provenance.method_version,
+        "selected": _alignment_candidate_document(alignment.selected),
+        "distinct_runner_up": (
+            None
+            if alignment.distinct_runner_up is None
+            else _alignment_candidate_document(alignment.distinct_runner_up)
+        ),
+        "score_margin": alignment.score_margin,
+        "search": provenance,
+        "decoder_agreement": (
+            None
+            if alignment.decoded_timing_agreement is None
+            else asdict(alignment.decoded_timing_agreement)
+        ),
+    }
 
 
 def _configured_tone_offset_hz(capture: dict[str, Any]) -> float:
@@ -182,6 +247,15 @@ def _analysis_document(
         global_reasons.append("schedule_alignment_score_below_minimum")
     if analysis.alignment_even_odd_agreement < MINIMUM_ALIGNMENT_EVEN_ODD_AGREEMENT:
         global_reasons.append("schedule_even_odd_agreement_below_minimum")
+    alignment = analysis.schedule_alignment
+    if alignment is None:
+        global_reasons.append("schedule_alignment_diagnostics_missing")
+    else:
+        if alignment.quality.explained_fraction < MINIMUM_ALIGNMENT_EXPLAINED_FRACTION:
+            global_reasons.append("schedule_explained_fraction_below_minimum")
+        agreement = alignment.decoded_timing_agreement
+        if agreement is not None and not agreement.agrees:
+            global_reasons.append("schedule_phase_and_transition_decoders_disagree")
     if analysis.reference_valid_bin_fraction < MINIMUM_REFERENCE_VALID_BIN_FRACTION:
         global_reasons.append("rx1_reference_coverage_below_minimum")
     quality_passed = not global_reasons and all(value[0] for value in state_quality.values())
@@ -254,6 +328,7 @@ def _analysis_document(
             "minimum_complete_cycles": MINIMUM_COMPLETE_CYCLES,
             "minimum_alignment_score": MINIMUM_ALIGNMENT_SCORE,
             "minimum_alignment_even_odd_agreement": (MINIMUM_ALIGNMENT_EVEN_ODD_AGREEMENT),
+            "minimum_alignment_explained_fraction": (MINIMUM_ALIGNMENT_EXPLAINED_FRACTION),
             "minimum_reference_valid_bin_fraction": MINIMUM_REFERENCE_VALID_BIN_FRACTION,
             "minimum_rx1_cycle_coherence": MINIMUM_RX1_CYCLE_COHERENCE,
             "minimum_transfer_detection_snr_db": MINIMUM_TRANSFER_DETECTION_SNR_DB,
@@ -270,6 +345,7 @@ def _analysis_document(
             "edge_exclusion_ms": analysis.edge_exclusion_ms,
             "alignment_score": analysis.alignment_score,
             "alignment_even_odd_agreement": analysis.alignment_even_odd_agreement,
+            "schedule_alignment": _schedule_alignment_document(analysis.schedule_alignment),
             "reference_valid_bin_fraction": analysis.reference_valid_bin_fraction,
             "continuity_verified": analysis.continuity_verified,
             "continuity_block_count": analysis.continuity_block_count,
@@ -298,6 +374,8 @@ def _analysis_document(
 
 def main() -> int:
     args = _parser().parse_args()
+    if Path(args.output_filename).name != args.output_filename:
+        raise ValueError("output filename must be a basename")
     artifact_root = (
         Path.home()
         / ".local/state/smateway/boards"
@@ -322,6 +400,7 @@ def main() -> int:
         / DDS_PHASE_ACCUMULATOR_STEPS
     )
     ledger = _continuity_ledger(load_metadata(artifact))
+    profile = load_profile(args.profile)
     rx1 = _load_channel(artifact, 0)
     try:
         pilot_estimate = estimate_coherent_pilot_offset(
@@ -332,14 +411,31 @@ def main() -> int:
         pilot = asdict(pilot_estimate)
         rx2 = _load_channel(artifact, 1)
         try:
+            dwell = analyze_fast20_dwell_isolation(
+                rx2,
+                sample_rate_hz=sample_rate_hz,
+                tone_offset_hz=pilot_estimate.estimated_offset_hz,
+                profile=profile,
+                continuity_ledger=ledger,
+                minimum_complete_frames=MINIMUM_COMPLETE_CYCLES,
+            )
+            if (
+                args.alignment_search_mode is AlignmentSearchMode.TRANSITION_SEEDED
+                and not dwell.isolation_verified
+            ):
+                raise RuntimeError(
+                    "transition-seeded alignment requires strict, stable dwell decoding"
+                )
             analysis = analyze_fast20_reference_transfer(
                 rx1,
                 rx2,
                 sample_rate_hz=sample_rate_hz,
                 tone_offset_hz=pilot_estimate.estimated_offset_hz,
-                profile=load_profile(args.profile),
+                profile=profile,
                 continuity_ledger=ledger,
                 edge_exclusion_bins=2,
+                alignment_search_mode=args.alignment_search_mode,
+                decoded_timing=dwell.schedule_timing,
             )
         finally:
             del rx2
@@ -360,13 +456,18 @@ def main() -> int:
         analysis=analysis,
         source_commit=source_commit,
     )
-    output_path = artifact_root / "fast20-reference-transfer.json"
+    output_path = artifact_root / args.output_filename
     _write_json_atomic(output_path, document)
+    canonical_path = artifact_root / CANONICAL_OUTPUT_FILENAME
+    canonical_promoted = bool(args.promote_canonical and document["quality_gate"]["passed"])
+    if canonical_promoted:
+        _write_json_atomic(canonical_path, document)
     print(
         json.dumps(
             {
                 "artifact_id": artifact.artifact_id,
                 "analysis": str(output_path),
+                "canonical_analysis": (str(canonical_path) if canonical_promoted else None),
                 "quality_passed": document["quality_gate"]["passed"],
                 "complete_cycle_count": analysis.complete_cycle_count,
             },

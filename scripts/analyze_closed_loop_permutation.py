@@ -137,7 +137,13 @@ def _complex(value: object, label: str) -> complex:
 
 
 def _load_capture(artifact_root: Path, artifact_id: str, frequency_hz: int) -> LoadedCapture:
-    path = artifact_root / artifact_id / "fast20-reference-transfer.json"
+    artifact_directory = artifact_root / artifact_id
+    versioned_path = artifact_directory / "fast20-reference-transfer-v2.json"
+    path = (
+        versioned_path
+        if versioned_path.is_file()
+        else artifact_directory / "fast20-reference-transfer.json"
+    )
     document = _read_json(path, f"artifact {artifact_id}")
     if document.get("schema") != 1:
         raise AnalysisInputError(f"artifact {artifact_id} analysis schema is not 1")

@@ -3,9 +3,11 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from smateway.decoder import DecodedScheduleTiming
 from smateway.ota_analysis import ALL_OFF, ContinuityBlock
 from smateway.profile import ControlProfile, load_profile
 from smateway.reference_transfer import analyze_fast20_reference_transfer
+from smateway.schedule_alignment import AlignmentSearchMode
 
 SAMPLE_RATE_HZ = 10_000
 TONE_OFFSET_HZ = 1_000
@@ -78,6 +80,23 @@ def _ledger(sample_count: int) -> tuple[ContinuityBlock, ...]:
     return tuple(blocks)
 
 
+def _decoded_timing(profile: ControlProfile) -> DecodedScheduleTiming:
+    marker_starts = tuple(117.0 + index * profile.nominal_cycle_ms for index in range(7))
+    return DecodedScheduleTiming(
+        marker_indices=tuple(range(len(marker_starts))),
+        marker_start_times_ms=marker_starts,
+        cycle_durations_ms=(profile.nominal_cycle_ms,) * len(marker_starts),
+        median_cycle_ms=profile.nominal_cycle_ms,
+        cycle_jitter_ms=0.0,
+        marker_phase_ms=117.0,
+        marker_count=len(marker_starts),
+        complete_frame_count=len(marker_starts),
+        strict_frame_count=len(marker_starts),
+        edge_truncated_marker_count=0,
+        rejected_marker_count=0,
+    )
+
+
 def test_recovers_ota_reference_and_all_off_subtracted_transfer() -> None:
     profile = load_profile(Path("profiles/fast20-v1/control_profile.json"))
     rx1, rx2, expected = _capture(profile)
@@ -89,12 +108,20 @@ def test_recovers_ota_reference_and_all_off_subtracted_transfer() -> None:
         tone_offset_hz=TONE_OFFSET_HZ,
         profile=profile,
         continuity_ledger=_ledger(rx1.size),
+        alignment_search_mode=AlignmentSearchMode.TRANSITION_SEEDED,
+        decoded_timing=_decoded_timing(profile),
     )
 
     assert analysis.continuity_verified
     assert analysis.complete_cycle_count >= 7
     assert analysis.reference_valid_bin_fraction > 0.99
     assert analysis.alignment_score > 0.8
+    assert analysis.schedule_alignment is not None
+    assert analysis.schedule_alignment.provenance.transition_seed_used
+    assert analysis.schedule_alignment.decoded_timing_agreement is not None
+    assert analysis.schedule_alignment.decoded_timing_agreement.agrees
+    assert analysis.schedule_alignment.quality.explained_fraction > 0.99
+    assert analysis.schedule_alignment.quality.residual_fraction < 0.01
     assert analysis.all_off_anchor_count > analysis.complete_cycle_count
     assert analysis.all_off_rx1.amplitude > 0.8
     assert analysis.all_off_rx1.cycle_coherence > 0.99

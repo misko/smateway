@@ -9,17 +9,22 @@ from math import atan2, log10, pi, sqrt
 import numpy as np
 import numpy.typing as npt
 
+from .decoder import DecodedScheduleTiming
 from .ota_analysis import (
     ContinuityBlock,
     _coherent_pair_bins,
-    _complete_cycle_ids,
-    _labels_and_interior,
     _local_all_off_baseline,
-    _search_phase_alignment,
     _validate_complex_pair,
     _validate_continuity_ledger,
 )
 from .profile import ControlProfile
+from .schedule_alignment import (
+    AlignmentSearchMode,
+    ScheduleAlignmentResult,
+    complete_cycle_ids,
+    labels_and_interior,
+    search_phase_alignment,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,6 +72,7 @@ class Fast20ReferenceTransferAnalysis:
     all_off_rx1: CyclePhasorSummary
     all_off_raw_rx2_over_rx1: CyclePhasorSummary
     states: tuple[ReferenceTransferStateEstimate, ...]
+    schedule_alignment: ScheduleAlignmentResult | None = None
 
     @property
     def all_off_transfer_phasor(self) -> complex:
@@ -92,7 +98,7 @@ def _group_cycle_means(
     marker_phase_ms: float,
     group_count: int,
 ) -> tuple[npt.NDArray[np.complex128], npt.NDArray[np.int64]]:
-    raw_cycle_ids, complete_ids = _complete_cycle_ids(
+    raw_cycle_ids, complete_ids = complete_cycle_ids(
         times_ms,
         duration_ms=duration_ms,
         cycle_ms=cycle_ms,
@@ -173,6 +179,8 @@ def analyze_fast20_reference_transfer(
     bin_ms: float = 1.0,
     edge_exclusion_bins: int = 2,
     cycle_search_ms: tuple[float, float] | None = None,
+    alignment_search_mode: AlignmentSearchMode = AlignmentSearchMode.GLOBAL_REFINED,
+    decoded_timing: DecodedScheduleTiming | None = None,
 ) -> Fast20ReferenceTransferAnalysis:
     """Measure switched RX2 relative to a continuously illuminated RX1 antenna.
 
@@ -232,7 +240,7 @@ def analyze_fast20_reference_transfer(
     transfer[reference_valid] = measurement_bins[reference_valid] / reference_bins[reference_valid]
     times_ms = (np.arange(transfer.size, dtype=np.float64) + 0.5) * bin_duration_ms
     edge_exclusion_ms = edge_exclusion_bins * bin_duration_ms
-    alignment = _search_phase_alignment(
+    alignment = search_phase_alignment(
         transfer,
         reference_valid,
         times_ms,
@@ -241,8 +249,10 @@ def analyze_fast20_reference_transfer(
         bin_duration_ms=bin_duration_ms,
         edge_exclusion_ms=edge_exclusion_ms,
         profile=profile,
+        mode=alignment_search_mode,
+        decoded_timing=decoded_timing,
     )
-    labels, interior = _labels_and_interior(
+    labels, interior = labels_and_interior(
         times_ms,
         cycle_ms=alignment.cycle_ms,
         marker_phase_ms=alignment.marker_phase_ms,
@@ -332,4 +342,5 @@ def analyze_fast20_reference_transfer(
         all_off_rx1=all_off_rx1,
         all_off_raw_rx2_over_rx1=all_off_raw_transfer,
         states=tuple(estimates),
+        schedule_alignment=alignment,
     )

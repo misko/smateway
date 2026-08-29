@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import math
 from collections.abc import Sequence
 from dataclasses import dataclass
+from statistics import median
 from typing import Literal
 
 from .profile import ControlProfile, ControlState
@@ -45,6 +47,32 @@ class DecodedFrame:
     states: tuple[str, ...]
     dwell_durations_ms: tuple[float, ...]
     guard_durations_ms: tuple[float, ...]
+    marker_start_ms: float | None = None
+    cycle_duration_ms: float | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class DecodedScheduleTiming:
+    """Absolute and aggregate timing for strictly decoded complete frames.
+
+    ``marker_start_times_ms`` are measured from the beginning of the observed
+    interval stream. ``cycle_jitter_ms`` is the median absolute deviation of
+    the measured complete-frame durations from ``median_cycle_ms``. The marker
+    phase is a circular mean modulo that median cycle, also referenced to the
+    beginning of the observation.
+    """
+
+    marker_indices: tuple[int, ...]
+    marker_start_times_ms: tuple[float, ...]
+    cycle_durations_ms: tuple[float, ...]
+    median_cycle_ms: float | None
+    cycle_jitter_ms: float | None
+    marker_phase_ms: float | None
+    marker_count: int
+    complete_frame_count: int
+    strict_frame_count: int
+    edge_truncated_marker_count: int
+    rejected_marker_count: int
 
 
 @dataclass(frozen=True, slots=True)
@@ -54,6 +82,66 @@ class FrameScanResult:
     frames: tuple[DecodedFrame, ...]
     marker_count: int
     failures: tuple[DecodeResult, ...]
+
+    @property
+    def schedule_timing(self) -> DecodedScheduleTiming:
+        """Return absolute timing and robust aggregate statistics."""
+
+        return summarize_schedule_timing(self)
+
+
+def _marker_phase_ms(
+    marker_start_times_ms: tuple[float, ...], median_cycle_ms: float | None
+) -> float | None:
+    if not marker_start_times_ms or median_cycle_ms is None or median_cycle_ms <= 0:
+        return None
+    angles = tuple(
+        math.tau * ((start_ms % median_cycle_ms) / median_cycle_ms)
+        for start_ms in marker_start_times_ms
+    )
+    mean_sine = math.fsum(math.sin(angle) for angle in angles) / len(angles)
+    mean_cosine = math.fsum(math.cos(angle) for angle in angles) / len(angles)
+    phase_angle = math.atan2(mean_sine, mean_cosine) % math.tau
+    phase_ms = phase_angle * median_cycle_ms / math.tau
+    if math.isclose(phase_ms, median_cycle_ms, rel_tol=0.0, abs_tol=1e-12):
+        return 0.0
+    return phase_ms
+
+
+def summarize_schedule_timing(scan: FrameScanResult) -> DecodedScheduleTiming:
+    """Summarize decoded frame timing without weakening fail-closed decoding."""
+
+    marker_indices = tuple(frame.marker_index for frame in scan.frames)
+    marker_start_times_ms = tuple(
+        frame.marker_start_ms for frame in scan.frames if frame.marker_start_ms is not None
+    )
+    cycle_durations_ms = tuple(
+        frame.cycle_duration_ms for frame in scan.frames if frame.cycle_duration_ms is not None
+    )
+    if cycle_durations_ms:
+        median_cycle_ms = float(median(cycle_durations_ms))
+        cycle_jitter_ms = float(
+            median(abs(duration_ms - median_cycle_ms) for duration_ms in cycle_durations_ms)
+        )
+    else:
+        median_cycle_ms = None
+        cycle_jitter_ms = None
+    edge_truncated_marker_count = sum(
+        failure.reason == "truncated_capture" for failure in scan.failures
+    )
+    return DecodedScheduleTiming(
+        marker_indices=marker_indices,
+        marker_start_times_ms=marker_start_times_ms,
+        cycle_durations_ms=cycle_durations_ms,
+        median_cycle_ms=median_cycle_ms,
+        cycle_jitter_ms=cycle_jitter_ms,
+        marker_phase_ms=_marker_phase_ms(marker_start_times_ms, median_cycle_ms),
+        marker_count=scan.marker_count,
+        complete_frame_count=len(scan.frames),
+        strict_frame_count=len(scan.frames),
+        edge_truncated_marker_count=edge_truncated_marker_count,
+        rejected_marker_count=len(scan.failures) - edge_truncated_marker_count,
+    )
 
 
 def intervals_from_presence(
@@ -76,9 +164,7 @@ def intervals_from_presence(
         )
         current = value
         bins = 1
-    intervals.append(
-        ObservedInterval(signal_present=current, duration_ms=bins * bin_duration_ms)
-    )
+    intervals.append(ObservedInterval(signal_present=current, duration_ms=bins * bin_duration_ms))
     return tuple(intervals)
 
 
@@ -98,9 +184,7 @@ def _normalized(intervals: tuple[ObservedInterval, ...]) -> tuple[ObservedInterv
 
 def _duration_state(duration_ms: float, profile: ControlProfile) -> ControlState | None:
     matches = [
-        state
-        for state in profile.states
-        if state.window_ms[0] <= duration_ms <= state.window_ms[1]
+        state for state in profile.states if state.window_ms[0] <= duration_ms <= state.window_ms[1]
     ]
     return matches[0] if len(matches) == 1 else None
 
@@ -149,7 +233,11 @@ def _candidate(
 
 
 def _decoded_frame(
-    intervals: tuple[ObservedInterval, ...], marker_index: int, profile: ControlProfile
+    intervals: tuple[ObservedInterval, ...],
+    marker_index: int,
+    profile: ControlProfile,
+    *,
+    marker_start_ms: float,
 ) -> DecodedFrame | DecodeResult:
     result = _candidate(intervals, marker_index, profile)
     if result.status != "decoded":
@@ -170,6 +258,14 @@ def _decoded_frame(
         states=result.states,
         dwell_durations_ms=tuple(dwell_durations_ms),
         guard_durations_ms=tuple(guard_durations_ms),
+        marker_start_ms=marker_start_ms,
+        cycle_duration_ms=math.fsum(
+            (
+                intervals[marker_index].duration_ms,
+                *dwell_durations_ms,
+                *guard_durations_ms,
+            )
+        ),
     )
 
 
@@ -183,23 +279,32 @@ def decode_complete_frames(
     """
 
     normalized = _normalized(intervals)
+    interval_start_times_ms: list[float] = []
+    elapsed_ms = 0.0
+    for interval in normalized:
+        interval_start_times_ms.append(elapsed_ms)
+        elapsed_ms = math.fsum((elapsed_ms, interval.duration_ms))
     markers = [
         index
         for index, interval in enumerate(normalized)
-        if not interval.signal_present
-        and interval.duration_ms >= profile.marker_decoder_min_ms
+        if not interval.signal_present and interval.duration_ms >= profile.marker_decoder_min_ms
     ]
     frames: list[DecodedFrame] = []
     failures: list[DecodeResult] = []
     for marker_index in markers:
-        result = _decoded_frame(normalized, marker_index, profile)
+        result = _decoded_frame(
+            normalized,
+            marker_index,
+            profile,
+            marker_start_ms=interval_start_times_ms[marker_index],
+        )
         if isinstance(result, DecodedFrame):
             frames.append(result)
         else:
             guard_tolerance = profile.guard_ms * profile.decoder_window_pct / 100.0
-            minimum_after_marker_ms = sum(
-                state.window_ms[0] for state in profile.states
-            ) + (len(profile.states) - 1) * (profile.guard_ms - guard_tolerance)
+            minimum_after_marker_ms = sum(state.window_ms[0] for state in profile.states) + (
+                len(profile.states) - 1
+            ) * (profile.guard_ms - guard_tolerance)
             observed_after_marker_ms = sum(
                 interval.duration_ms for interval in normalized[marker_index + 1 :]
             )
@@ -222,8 +327,7 @@ def decode_intervals(
     markers = [
         index
         for index, interval in enumerate(normalized)
-        if not interval.signal_present
-        and interval.duration_ms >= profile.marker_decoder_min_ms
+        if not interval.signal_present and interval.duration_ms >= profile.marker_decoder_min_ms
     ]
     if not markers:
         return DecodeResult(status="unknown", reason="no_valid_marker")

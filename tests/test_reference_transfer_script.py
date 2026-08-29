@@ -1,6 +1,7 @@
 import importlib.util
 import json
 import sys
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -11,6 +12,14 @@ from smateway.reference_transfer import (
     CyclePhasorSummary,
     Fast20ReferenceTransferAnalysis,
     ReferenceTransferStateEstimate,
+)
+from smateway.schedule_alignment import (
+    AlignmentCandidate,
+    AlignmentFitQuality,
+    AlignmentSearchMode,
+    AlignmentSearchProvenance,
+    DecodedTimingAgreement,
+    ScheduleAlignmentResult,
 )
 
 SCRIPT_DIRECTORY = Path(__file__).resolve().parents[1] / "scripts"
@@ -48,6 +57,74 @@ def _summary(value: complex, *, cycle_count: int = 20) -> CyclePhasorSummary:
     )
 
 
+def _alignment() -> ScheduleAlignmentResult:
+    quality = AlignmentFitQuality(
+        explained_fraction=0.999,
+        residual_fraction=0.001,
+        residual_energy=0.01,
+        null_energy=10.0,
+        coherent_energy=8.0,
+        cycle_deviation_energy=0.01,
+        detection_ratio=800.0,
+        detection_strength=1.0,
+        even_odd_agreement=0.99,
+        cycle_coherence=0.995,
+        combined_score=0.99,
+        selected_bin_count=8_000,
+    )
+    selected = AlignmentCandidate(
+        cycle_ms=386.0,
+        marker_phase_ms=117.0,
+        quality=quality,
+        complete_cycle_count=20,
+    )
+    runner_up = AlignmentCandidate(
+        cycle_ms=386.0,
+        marker_phase_ms=47.0,
+        quality=AlignmentFitQuality(
+            explained_fraction=0.80,
+            residual_fraction=0.20,
+            residual_energy=2.0,
+            null_energy=10.0,
+            coherent_energy=6.0,
+            cycle_deviation_energy=0.5,
+            detection_ratio=12.0,
+            detection_strength=0.78,
+            even_odd_agreement=0.95,
+            cycle_coherence=0.90,
+            combined_score=0.60,
+            selected_bin_count=8_000,
+        ),
+        complete_cycle_count=20,
+    )
+    return ScheduleAlignmentResult(
+        selected=selected,
+        distinct_runner_up=runner_up,
+        score_margin=0.39,
+        provenance=AlignmentSearchProvenance(
+            method_version="schedule_alignment_v1",
+            mode=AlignmentSearchMode.TRANSITION_SEEDED,
+            cycle_range_ms=(382.0, 390.0),
+            fine_cycle_step_ms=0.2,
+            fine_phase_step_ms=0.2,
+            coarse_phase_step_ms=2.0,
+            candidate_count=231,
+            valid_candidate_count=231,
+            coarse_candidate_count=0,
+            fine_candidate_count=231,
+            refinement_basin_count=8,
+            transition_seed_used=True,
+        ),
+        decoded_timing_agreement=DecodedTimingAgreement(
+            cycle_error_ms=0.0,
+            marker_error_ms=0.1,
+            cycle_tolerance_ms=0.2,
+            marker_tolerance_ms=1.2,
+            agrees=True,
+        ),
+    )
+
+
 def _analysis() -> Fast20ReferenceTransferAnalysis:
     states = tuple(
         ReferenceTransferStateEstimate(
@@ -77,6 +154,7 @@ def _analysis() -> Fast20ReferenceTransferAnalysis:
         all_off_rx1=_summary(0.9 + 0.1j),
         all_off_raw_rx2_over_rx1=_summary(0.04 + 0.02j),
         states=states,
+        schedule_alignment=_alignment(),
     )
 
 
@@ -141,6 +219,13 @@ def test_document_retains_reference_transfer_cycles_and_aggregation_identity() -
     assert document["reference_model"]["terminated_rx1_leakage_interpretation"] is False
     assert document["quality_gate"]["passed"] is True
     assert document["quality_gate"]["capture_headroom_admission_passed"] is True
+    schedule = document["transfer"]["schedule_alignment"]
+    assert schedule["method"] == "schedule_alignment_v1"
+    assert schedule["selected"]["fit"]["explained_fraction"] == 0.999
+    assert schedule["search"]["mode"] == "transition_seeded"
+    assert schedule["decoder_agreement"]["agrees"] is True
+    assert schedule["distinct_runner_up"]["marker_phase_ms"] == 47.0
+    assert schedule["score_margin"] == 0.39
     assert document["aggregation_key"] == {
         "artifact_id": "a" * 32,
         "stream_id": 1234,
@@ -203,6 +288,56 @@ def test_document_checks_each_receiver_headroom_record() -> None:
 
     assert document["quality_gate"]["capture_headroom_admission_passed"] is False
     assert document["quality_gate"]["passed"] is False
+
+
+def test_document_fails_closed_without_alignment_diagnostics() -> None:
+    document = analyzer_script._analysis_document(
+        artifact=_artifact(),
+        capture=_capture(),
+        pilot={"estimated_offset_hz": 100_000.0},
+        analysis=replace(_analysis(), schedule_alignment=None),
+        source_commit="c" * 40,
+    )
+
+    assert document["quality_gate"]["passed"] is False
+    assert "schedule_alignment_diagnostics_missing" in document["quality_gate"][
+        "global_rejection_reasons"
+    ]
+    assert document["transfer"]["schedule_alignment"] is None
+
+
+def test_document_rejects_weak_fit_and_decoder_disagreement() -> None:
+    analysis = _analysis()
+    assert analysis.schedule_alignment is not None
+    alignment = analysis.schedule_alignment
+    weak_quality = replace(alignment.quality, explained_fraction=0.80)
+    disagreement = replace(alignment.decoded_timing_agreement, agrees=False)
+    weak_alignment = replace(
+        alignment,
+        selected=replace(alignment.selected, quality=weak_quality),
+        decoded_timing_agreement=disagreement,
+    )
+    document = analyzer_script._analysis_document(
+        artifact=_artifact(),
+        capture=_capture(),
+        pilot={"estimated_offset_hz": 100_000.0},
+        analysis=replace(analysis, schedule_alignment=weak_alignment),
+        source_commit="c" * 40,
+    )
+
+    assert document["quality_gate"]["passed"] is False
+    assert document["quality_gate"]["global_rejection_reasons"] == [
+        "schedule_explained_fraction_below_minimum",
+        "schedule_phase_and_transition_decoders_disagree",
+    ]
+
+
+def test_reference_reanalysis_defaults_to_transition_seed_and_versioned_output() -> None:
+    args = analyzer_script._parser().parse_args(("a" * 32,))
+
+    assert args.alignment_search_mode is AlignmentSearchMode.TRANSITION_SEEDED
+    assert args.output_filename == analyzer_script.VERSIONED_OUTPUT_FILENAME
+    assert args.promote_canonical is False
 
 
 def test_capture_parser_accepts_and_bounds_common_receiver_gain() -> None:

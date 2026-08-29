@@ -9,10 +9,28 @@ from math import atan2, exp, log10, pi, sqrt
 import numpy as np
 import numpy.typing as npt
 
-from .decoder import FrameScanResult, decode_complete_frames, intervals_from_presence
+from .decoder import (
+    DecodedScheduleTiming,
+    FrameScanResult,
+    decode_complete_frames,
+    intervals_from_presence,
+)
 from .profile import ControlProfile
+from .schedule_alignment import (
+    AlignmentSearchMode,
+    ScheduleAlignmentResult,
+    complete_cycle_ids,
+    labels_and_interior,
+    search_phase_alignment,
+)
 
 ALL_OFF = "ALL_OFF"
+
+# Private aliases preserve the existing internal/test import surface while the
+# implementation now lives in the public schedule-alignment module.
+_complete_cycle_ids = complete_cycle_ids
+_labels_and_interior = labels_and_interior
+_search_phase_alignment = search_phase_alignment
 
 
 @dataclass(frozen=True, slots=True)
@@ -101,6 +119,7 @@ class Fast20PhaseAnalysis:
     continuity_verified: bool
     continuity_block_count: int
     states: tuple[PhaseStateEstimate, ...]
+    schedule_alignment: ScheduleAlignmentResult | None = None
 
     def estimate(self, name: str) -> PhaseStateEstimate:
         """Return one named ANT estimate."""
@@ -162,6 +181,7 @@ class Fast20DwellIsolation:
     minimum_complete_frames: int
     isolation_verified: bool
     states: tuple[DwellStateMeasurement, ...]
+    schedule_timing: DecodedScheduleTiming | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -217,63 +237,12 @@ class _Alignment:
     loss: float
 
 
-@dataclass(frozen=True, slots=True)
-class _PhaseAlignment:
-    cycle_ms: float
-    marker_phase_ms: float
-    score: float
-    even_odd_agreement: float
-    cycle_coherence: float
-    complete_cycle_count: int
-
-
 def _grid(low: float, high: float, step: float) -> npt.NDArray[np.float64]:
     count = max(1, int(np.floor((high - low) / step)) + 1)
     values = low + np.arange(count, dtype=np.float64) * step
     if values[-1] < high - step * 0.25:
         values = np.append(values, high)
     return values
-
-
-def _labels_and_interior(
-    times_ms: npt.NDArray[np.float64],
-    *,
-    cycle_ms: float,
-    marker_phase_ms: float,
-    edge_exclusion_ms: float,
-    profile: ControlProfile,
-) -> tuple[npt.NDArray[np.int16], npt.NDArray[np.bool_]]:
-    """Assign bins to the scaled profile and remove transition-adjacent bins."""
-
-    scale = cycle_ms / profile.nominal_cycle_ms
-    all_off_index = len(profile.states)
-    boundaries = [0.0]
-    segment_labels = [all_off_index]
-
-    cursor = (profile.marker_body_ms + profile.guard_ms) * scale
-    for index, state in enumerate(profile.states):
-        start = cursor
-        end = start + state.dwell_ms * scale
-        boundaries.extend((start, end))
-        segment_labels.extend((index, all_off_index))
-        cursor = end
-        if index + 1 < len(profile.states):
-            cursor += profile.guard_ms * scale
-    boundaries[-1] = cycle_ms
-    boundary_array = np.asarray(boundaries, dtype=np.float64)
-    position = np.mod(times_ms - marker_phase_ms, cycle_ms)
-    # NumPy can round a tiny negative dividend modulo ``cycle_ms`` to exactly
-    # ``cycle_ms``. That value is the cycle boundary (position zero), not a
-    # seventeenth schedule segment.
-    position[position >= cycle_ms] = 0.0
-    segment_index = np.searchsorted(boundary_array, position, side="right") - 1
-    label_lookup = np.asarray(segment_labels[:-1], dtype=np.int16)
-    segment_index = np.clip(segment_index, 0, label_lookup.size - 1)
-    labels = label_lookup[segment_index]
-    distance_from_previous = position - boundary_array[segment_index]
-    distance_to_next = boundary_array[segment_index + 1] - position
-    interior = np.minimum(distance_from_previous, distance_to_next) >= edge_exclusion_ms
-    return labels, interior
 
 
 def _clipped_group_loss(
@@ -779,9 +748,7 @@ def analyze_fast20_dwell_isolation(
 
     def scan(margin_db: float) -> FrameScanResult:
         presence = power_db >= baseline_db + margin_db
-        intervals = intervals_from_presence(
-            presence.tolist(), bin_duration_ms=actual_bin_ms
-        )
+        intervals = intervals_from_presence(presence.tolist(), bin_duration_ms=actual_bin_ms)
         return decode_complete_frames(intervals, profile)
 
     primary = scan(threshold_margin_db)
@@ -791,9 +758,7 @@ def analyze_fast20_dwell_isolation(
 
     measurements: list[DwellStateMeasurement] = []
     for state_index, state in enumerate(profile.states):
-        durations = tuple(
-            frame.dwell_durations_ms[state_index] for frame in primary.frames
-        )
+        durations = tuple(frame.dwell_durations_ms[state_index] for frame in primary.frames)
         if durations:
             values = np.asarray(durations, dtype=np.float64)
             minimum_ms = float(np.min(values))
@@ -818,8 +783,7 @@ def analyze_fast20_dwell_isolation(
     )
     rejected_marker_count = len(primary.failures) - edge_truncated_marker_count
     state_counts_match = all(
-        len(measurement.durations_ms) == len(primary.frames)
-        for measurement in measurements
+        len(measurement.durations_ms) == len(primary.frames) for measurement in measurements
     )
     windows_hold = all(
         measurement.durations_ms
@@ -853,6 +817,7 @@ def analyze_fast20_dwell_isolation(
         minimum_complete_frames=minimum_complete_frames,
         isolation_verified=isolation_verified,
         states=tuple(measurements),
+        schedule_timing=primary.schedule_timing,
     )
 
 
@@ -1004,220 +969,6 @@ def estimate_coherent_pilot_offset(
     )
 
 
-def _complete_cycle_ids(
-    times_ms: npt.NDArray[np.float64],
-    *,
-    duration_ms: float,
-    cycle_ms: float,
-    marker_phase_ms: float,
-) -> tuple[npt.NDArray[np.int64], npt.NDArray[np.int64]]:
-    raw_cycle_ids = np.floor((times_ms - marker_phase_ms) / cycle_ms).astype(np.int64)
-    unique_ids = np.unique(raw_cycle_ids)
-    starts = marker_phase_ms + unique_ids * cycle_ms
-    tolerance = np.finfo(np.float64).eps * max(duration_ms, cycle_ms) * 8.0
-    complete_ids = unique_ids[
-        (starts >= -tolerance) & (starts + cycle_ms <= duration_ms + tolerance)
-    ]
-    return raw_cycle_ids, complete_ids
-
-
-def _linear_cancelled_cycle_deltas(
-    transfer: npt.NDArray[np.complex128],
-    reference_valid: npt.NDArray[np.bool_],
-    times_ms: npt.NDArray[np.float64],
-    *,
-    duration_ms: float,
-    cycle_ms: float,
-    marker_phase_ms: float,
-    edge_exclusion_ms: float,
-    profile: ControlProfile,
-) -> tuple[npt.NDArray[np.complex128], npt.NDArray[np.int64], float] | None:
-    labels, interior = _labels_and_interior(
-        times_ms,
-        cycle_ms=cycle_ms,
-        marker_phase_ms=marker_phase_ms,
-        edge_exclusion_ms=edge_exclusion_ms,
-        profile=profile,
-    )
-    raw_cycle_ids, complete_ids = _complete_cycle_ids(
-        times_ms,
-        duration_ms=duration_ms,
-        cycle_ms=cycle_ms,
-        marker_phase_ms=marker_phase_ms,
-    )
-    if complete_ids.size < 4:
-        return None
-    selected = interior & reference_valid & np.isin(raw_cycle_ids, complete_ids)
-    local_cycles = np.searchsorted(complete_ids, raw_cycle_ids[selected])
-    selected_labels = labels[selected]
-    selected_times = times_ms[selected]
-    selected_transfer = transfer[selected]
-    group_count = len(profile.states) + 1
-    combined = local_cycles * group_count + selected_labels
-    counts = np.bincount(combined, minlength=complete_ids.size * group_count).reshape(
-        complete_ids.size, group_count
-    )
-    if np.any(counts < 3):
-        return None
-
-    all_off_index = len(profile.states)
-    off = selected_labels == all_off_index
-    off_cycles = local_cycles[off]
-    off_times = selected_times[off]
-    off_transfer = selected_transfer[off]
-    off_counts = counts[:, all_off_index].astype(np.float64)
-    sum_time = np.bincount(off_cycles, weights=off_times, minlength=complete_ids.size)
-    sum_time_squared = np.bincount(off_cycles, weights=off_times**2, minlength=complete_ids.size)
-    sum_transfer = np.bincount(
-        off_cycles, weights=off_transfer.real, minlength=complete_ids.size
-    ) + 1j * np.bincount(off_cycles, weights=off_transfer.imag, minlength=complete_ids.size)
-    sum_time_transfer = np.bincount(
-        off_cycles,
-        weights=off_times * off_transfer.real,
-        minlength=complete_ids.size,
-    ) + 1j * np.bincount(
-        off_cycles,
-        weights=off_times * off_transfer.imag,
-        minlength=complete_ids.size,
-    )
-    mean_time = sum_time / off_counts
-    mean_transfer = sum_transfer / off_counts
-    denominator = sum_time_squared - sum_time**2 / off_counts
-    if np.any(denominator <= 0):
-        return None
-    slope = (sum_time_transfer - sum_time * sum_transfer / off_counts) / denominator
-    baseline = mean_transfer[local_cycles] + slope[local_cycles] * (
-        selected_times - mean_time[local_cycles]
-    )
-    cancelled = selected_transfer - baseline
-    sums = np.bincount(
-        combined, weights=cancelled.real, minlength=complete_ids.size * group_count
-    ) + 1j * np.bincount(
-        combined, weights=cancelled.imag, minlength=complete_ids.size * group_count
-    )
-    means = sums.reshape(complete_ids.size, group_count) / counts
-    null_energy = float(np.sum(np.abs(cancelled) ** 2))
-    fitted = means[local_cycles, selected_labels]
-    residual_energy = float(np.sum(np.abs(cancelled - fitted) ** 2))
-    fit_score = float(
-        np.clip(
-            1.0 - residual_energy / max(null_energy, np.finfo(np.float64).tiny),
-            0.0,
-            1.0,
-        )
-    )
-    deltas = (means[:, :all_off_index] - means[:, all_off_index, None]).astype(np.complex128)
-    return deltas, counts.astype(np.int64), fit_score
-
-
-def _phase_candidate(
-    transfer: npt.NDArray[np.complex128],
-    reference_valid: npt.NDArray[np.bool_],
-    times_ms: npt.NDArray[np.float64],
-    *,
-    duration_ms: float,
-    cycle_ms: float,
-    marker_phase_ms: float,
-    edge_exclusion_ms: float,
-    profile: ControlProfile,
-) -> _PhaseAlignment | None:
-    result = _linear_cancelled_cycle_deltas(
-        transfer,
-        reference_valid,
-        times_ms,
-        duration_ms=duration_ms,
-        cycle_ms=cycle_ms,
-        marker_phase_ms=marker_phase_ms,
-        edge_exclusion_ms=edge_exclusion_ms,
-        profile=profile,
-    )
-    if result is None:
-        return None
-    deltas, _, fit_score = result
-    even = np.mean(deltas[::2], axis=0)
-    odd = np.mean(deltas[1::2], axis=0)
-    norm_product = sqrt(float(np.vdot(even, even).real * np.vdot(odd, odd).real))
-    if norm_product <= np.finfo(np.float64).tiny:
-        agreement = 0.0
-    else:
-        agreement = float(np.clip(np.vdot(even, odd).real / norm_product, -1.0, 1.0))
-    mean_delta = np.mean(deltas, axis=0)
-    coherent_energy = float(np.sum(np.abs(mean_delta) ** 2))
-    total_energy = float(np.sum(np.mean(np.abs(deltas) ** 2, axis=0)))
-    coherence = coherent_energy / max(total_energy, np.finfo(np.float64).tiny)
-    deviation_energy = float(np.sum(np.mean(np.abs(deltas - mean_delta) ** 2, axis=0)))
-    detection_ratio = coherent_energy / max(
-        deviation_energy / deltas.shape[0], np.finfo(np.float64).tiny
-    )
-    strength = 1.0 - exp(-detection_ratio / 8.0)
-    score = max(agreement, 0.0) * coherence * strength * fit_score
-    return _PhaseAlignment(
-        cycle_ms=cycle_ms,
-        marker_phase_ms=marker_phase_ms,
-        score=float(np.clip(score, 0.0, 1.0)),
-        even_odd_agreement=agreement,
-        cycle_coherence=float(np.clip(coherence, 0.0, 1.0)),
-        complete_cycle_count=deltas.shape[0],
-    )
-
-
-def _search_phase_alignment(
-    transfer: npt.NDArray[np.complex128],
-    reference_valid: npt.NDArray[np.bool_],
-    times_ms: npt.NDArray[np.float64],
-    *,
-    duration_ms: float,
-    cycle_range_ms: tuple[float, float],
-    bin_duration_ms: float,
-    edge_exclusion_ms: float,
-    profile: ControlProfile,
-) -> _PhaseAlignment:
-    low, high = cycle_range_ms
-    coarse_cycle_step = max(0.5, bin_duration_ms)
-    coarse_phase_step = max(1.0, 2.0 * bin_duration_ms)
-    best: _PhaseAlignment | None = None
-    for cycle_ms in _grid(low, high, coarse_cycle_step):
-        for marker_phase_ms in np.arange(0.0, cycle_ms, coarse_phase_step):
-            candidate = _phase_candidate(
-                transfer,
-                reference_valid,
-                times_ms,
-                duration_ms=duration_ms,
-                cycle_ms=float(cycle_ms),
-                marker_phase_ms=float(marker_phase_ms),
-                edge_exclusion_ms=edge_exclusion_ms,
-                profile=profile,
-            )
-            if candidate is not None and (best is None or candidate.score > best.score):
-                best = candidate
-    if best is None:
-        raise ValueError("capture does not contain four complete candidate cycles")
-
-    fine_step = max(0.1, bin_duration_ms / 5.0)
-    fine_cycles = _grid(
-        max(low, best.cycle_ms - coarse_cycle_step),
-        min(high, best.cycle_ms + coarse_cycle_step),
-        fine_step,
-    )
-    phase_offsets = _grid(-coarse_phase_step, coarse_phase_step, fine_step)
-    for cycle_ms in fine_cycles:
-        for offset_ms in phase_offsets:
-            marker_phase_ms = float((best.marker_phase_ms + offset_ms) % cycle_ms)
-            candidate = _phase_candidate(
-                transfer,
-                reference_valid,
-                times_ms,
-                duration_ms=duration_ms,
-                cycle_ms=float(cycle_ms),
-                marker_phase_ms=marker_phase_ms,
-                edge_exclusion_ms=edge_exclusion_ms,
-                profile=profile,
-            )
-            if candidate is not None and candidate.score > best.score:
-                best = candidate
-    return best
-
-
 def _local_all_off_baseline(
     transfer: npt.NDArray[np.complex128],
     times_ms: npt.NDArray[np.float64],
@@ -1265,7 +1016,7 @@ def _group_cycle_deltas(
     usable: npt.NDArray[np.bool_],
     *,
     duration_ms: float,
-    alignment: _PhaseAlignment,
+    alignment: ScheduleAlignmentResult,
     profile: ControlProfile,
 ) -> tuple[
     npt.NDArray[np.complex128],
@@ -1326,6 +1077,8 @@ def analyze_fast20_phase_sensitive(
     bin_ms: float = 1.0,
     edge_exclusion_bins: int = 1,
     cycle_search_ms: tuple[float, float] | None = None,
+    alignment_search_mode: AlignmentSearchMode = AlignmentSearchMode.GLOBAL_REFINED,
+    decoded_timing: DecodedScheduleTiming | None = None,
 ) -> Fast20PhaseAnalysis:
     """Cancel coherent RX leakage and measure the complex fast20 state phasors.
 
@@ -1409,6 +1162,8 @@ def analyze_fast20_phase_sensitive(
         bin_duration_ms=actual_bin_ms,
         edge_exclusion_ms=edge_exclusion_ms,
         profile=profile,
+        mode=alignment_search_mode,
+        decoded_timing=decoded_timing,
     )
     labels, interior = _labels_and_interior(
         times_ms,
@@ -1507,6 +1262,7 @@ def analyze_fast20_phase_sensitive(
         continuity_verified=continuity_verified,
         continuity_block_count=continuity_block_count,
         states=tuple(state_estimates),
+        schedule_alignment=alignment,
     )
 
 
@@ -1523,9 +1279,9 @@ def _fft_transfer_at_center(
     stop = start + fft_size
     if start < 0 or stop > reference.size:
         raise ValueError("FFT window falls outside the complete capture")
-    reference_fft = np.fft.fft(
-        reference[start:stop].astype(np.complex128, copy=False) * window
-    )[fft_bin_index]
+    reference_fft = np.fft.fft(reference[start:stop].astype(np.complex128, copy=False) * window)[
+        fft_bin_index
+    ]
     measurement_fft = np.fft.fft(
         measurement[start:stop].astype(np.complex128, copy=False) * window
     )[fft_bin_index]
@@ -1550,22 +1306,14 @@ def _fft_tone_at_center(
     stop = start + fft_size
     if start < 0 or stop > samples.size:
         raise ValueError("FFT window falls outside the complete capture")
-    fft_value = np.fft.fft(
-        samples[start:stop].astype(np.complex128, copy=False) * window
-    )[fft_bin_index]
-    bin_frequency_hz = float(
-        np.fft.fftfreq(fft_size, d=1.0 / sample_rate_hz)[fft_bin_index]
-    )
+    fft_value = np.fft.fft(samples[start:stop].astype(np.complex128, copy=False) * window)[
+        fft_bin_index
+    ]
+    bin_frequency_hz = float(np.fft.fftfreq(fft_size, d=1.0 / sample_rate_hz)[fft_bin_index])
     local_index = np.arange(fft_size, dtype=np.float64)
     response = np.sum(
         window
-        * np.exp(
-            2j
-            * pi
-            * (tone_offset_hz - bin_frequency_hz)
-            * local_index
-            / sample_rate_hz
-        )
+        * np.exp(2j * pi * (tone_offset_hz - bin_frequency_hz) * local_index / sample_rate_hz)
     )
     if abs(response) <= np.finfo(np.float64).tiny:
         raise ValueError("selected FFT bin has a zero window response at the coherent tone")
@@ -1721,9 +1469,7 @@ def analyze_guarded_fft_phase(
     if np.count_nonzero(reference_valid) < 128:
         raise ValueError("RX1 reference has fewer than 128 usable coherent bins")
     transfer = np.zeros(reference_bins.size, dtype=np.complex128)
-    transfer[reference_valid] = (
-        measurement_bins[reference_valid] / reference_bins[reference_valid]
-    )
+    transfer[reference_valid] = measurement_bins[reference_valid] / reference_bins[reference_valid]
     transfer_center = complex(
         float(np.median(transfer[reference_valid].real)),
         float(np.median(transfer[reference_valid].imag)),
@@ -1776,10 +1522,7 @@ def analyze_guarded_fft_phase(
     duration_ms = reference.size * 1000.0 / sample_rate_hz
     first_cycle = int(np.ceil(-aligned.marker_phase_ms / aligned.cycle_ms))
     final_cycle = int(
-        np.floor(
-            (duration_ms - aligned.marker_phase_ms - aligned.cycle_ms)
-            / aligned.cycle_ms
-        )
+        np.floor((duration_ms - aligned.marker_phase_ms - aligned.cycle_ms) / aligned.cycle_ms)
     )
     if final_cycle < first_cycle:
         raise ValueError("capture contains no complete FFT-analysis cycle")
@@ -1791,9 +1534,7 @@ def analyze_guarded_fft_phase(
 
     for cycle_id in range(first_cycle, final_cycle + 1):
         cycle_start_ms = aligned.marker_phase_ms + cycle_id * aligned.cycle_ms
-        cursor_ms = cycle_start_ms + (
-            profile.marker_body_ms + profile.guard_ms
-        ) * schedule_scale
+        cursor_ms = cycle_start_ms + (profile.marker_body_ms + profile.guard_ms) * schedule_scale
         deltas = []
         for state in profile.states:
             center_ms = cursor_ms + state.dwell_ms * schedule_scale / 2.0
@@ -1833,9 +1574,7 @@ def analyze_guarded_fft_phase(
             coherence = 0.0
             phase_std_deg = 180.0
         else:
-            unit = state_values / np.maximum(
-                np.abs(state_values), np.finfo(np.float64).tiny
-            )
+            unit = state_values / np.maximum(np.abs(state_values), np.finfo(np.float64).tiny)
             coherence = float(np.clip(abs(np.mean(unit)), 0.0, 1.0))
             residual = np.angle(state_values * np.conj(state_center))
             phase_std_deg = float(np.sqrt(np.mean(residual**2)) * 180.0 / pi)
@@ -1983,25 +1722,18 @@ def analyze_guarded_single_fft_phase(
     duration_ms = raw.size * 1000.0 / sample_rate_hz
     first_cycle = int(np.ceil(-aligned.marker_phase_ms / aligned.cycle_ms))
     final_cycle = int(
-        np.floor(
-            (duration_ms - aligned.marker_phase_ms - aligned.cycle_ms)
-            / aligned.cycle_ms
-        )
+        np.floor((duration_ms - aligned.marker_phase_ms - aligned.cycle_ms) / aligned.cycle_ms)
     )
     if final_cycle < first_cycle:
         raise ValueError("capture contains no complete FFT-analysis cycle")
     fft_bin_index = int(round(tone_offset_hz * fft_size / sample_rate_hz)) % fft_size
-    bin_frequency_hz = float(
-        np.fft.fftfreq(fft_size, d=1.0 / sample_rate_hz)[fft_bin_index]
-    )
+    bin_frequency_hz = float(np.fft.fftfreq(fft_size, d=1.0 / sample_rate_hz)[fft_bin_index])
     window = np.hanning(fft_size).astype(np.float64)
     schedule_scale = aligned.cycle_ms / profile.nominal_cycle_ms
     cycle_deltas: list[list[complex]] = []
     for cycle_id in range(first_cycle, final_cycle + 1):
         cycle_start_ms = aligned.marker_phase_ms + cycle_id * aligned.cycle_ms
-        cursor_ms = cycle_start_ms + (
-            profile.marker_body_ms + profile.guard_ms
-        ) * schedule_scale
+        cursor_ms = cycle_start_ms + (profile.marker_body_ms + profile.guard_ms) * schedule_scale
         deltas = []
         for state in profile.states:
             center_ms = cursor_ms + state.dwell_ms * schedule_scale / 2.0
@@ -2024,9 +1756,7 @@ def analyze_guarded_single_fft_phase(
         cycle_deltas.append(deltas)
 
     cycle_values = np.asarray(cycle_deltas, dtype=np.complex128)
-    robust = np.median(cycle_values.real, axis=0) + 1j * np.median(
-        cycle_values.imag, axis=0
-    )
+    robust = np.median(cycle_values.real, axis=0) + 1j * np.median(cycle_values.imag, axis=0)
     amplitudes = np.abs(robust)
     strongest = max(float(np.max(amplitudes)), np.finfo(np.float64).tiny)
     reference_index = next(
@@ -2044,9 +1774,7 @@ def analyze_guarded_single_fft_phase(
             coherence = 0.0
             phase_std_deg = 180.0
         else:
-            unit = state_values / np.maximum(
-                np.abs(state_values), np.finfo(np.float64).tiny
-            )
+            unit = state_values / np.maximum(np.abs(state_values), np.finfo(np.float64).tiny)
             coherence = float(np.clip(abs(np.mean(unit)), 0.0, 1.0))
             residual = np.angle(state_values * np.conj(state_center))
             phase_std_deg = float(np.sqrt(np.mean(residual**2)) * 180.0 / pi)
