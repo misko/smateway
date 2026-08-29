@@ -75,3 +75,29 @@ The test suite includes:
 Machine-readable benchmark evidence is in
 [`data/false-lock-verification.json`](data/false-lock-verification.json).
 
+## Captured validation
+
+Reanalysis from commit `f81a758c297d22bea53422ab18e9c91ac50ffc4d`
+preserved all historical canonical files and wrote v2 sidecars.
+
+- The focused five-pass 2.1–2.5 GHz set passed 25/25.
+- Its 200 antenna-state estimates had at least 63.00 dB detection SNR,
+  coherence of at least 0.99999485, and no more than 0.2001° cycle phase
+  spread.
+- Across 25 full rotation-0 repeats, 120/125 low-band captures passed strict
+  transition-seeded admission.
+- The remaining five each had 25 complete frames and stable threshold sweeps,
+  but also one rejected marker candidate. They were quarantined.
+- Global-refined fallback produced near-perfect fits for all five quarantines
+  and agreed with their decoded timing, but the quality gate remained red due
+  solely to the retained rejected-marker evidence.
+
+The 120 admitted historical captures had a minimum combined alignment score of
+0.99992367, minimum explained fraction of 0.99999791, maximum residual fraction
+of 2.09×10⁻⁶, and zero cycle error relative to the independent decoder.
+Across their 960 state estimates, minimum detection SNR was 49.20 dB and the
+maximum cycle phase spread was 0.972°.
+
+Machine-readable captured validation is in
+[`data/captured-validation.json`](data/captured-validation.json).
+
