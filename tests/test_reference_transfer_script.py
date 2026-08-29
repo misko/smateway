@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 from pluto_plus.models import ArtifactSummary
 
+from smateway.decoder import DecodedScheduleTiming
 from smateway.reference_transfer import (
     CyclePhasorSummary,
     Fast20ReferenceTransferAnalysis,
@@ -97,6 +98,19 @@ def _alignment() -> ScheduleAlignmentResult:
         ),
         complete_cycle_count=20,
     )
+    timing = DecodedScheduleTiming(
+        marker_indices=tuple(range(20)),
+        marker_start_times_ms=tuple(117.0 + index * 386.0 for index in range(20)),
+        cycle_durations_ms=(386.0,) * 20,
+        median_cycle_ms=386.0,
+        cycle_jitter_ms=0.0,
+        marker_phase_ms=117.0,
+        marker_count=20,
+        complete_frame_count=20,
+        strict_frame_count=20,
+        edge_truncated_marker_count=0,
+        rejected_marker_count=0,
+    )
     return ScheduleAlignmentResult(
         selected=selected,
         distinct_runner_up=runner_up,
@@ -122,6 +136,7 @@ def _alignment() -> ScheduleAlignmentResult:
             marker_tolerance_ms=1.2,
             agrees=True,
         ),
+        decoded_timing=timing,
     )
 
 
@@ -330,6 +345,35 @@ def test_document_rejects_weak_fit_and_decoder_disagreement() -> None:
         "schedule_explained_fraction_below_minimum",
         "schedule_phase_and_transition_decoders_disagree",
     ]
+
+
+def test_document_quarantines_rejected_transition_markers_in_global_fallback() -> None:
+    analysis = _analysis()
+    assert analysis.schedule_alignment is not None
+    alignment = analysis.schedule_alignment
+    assert alignment.decoded_timing is not None
+    rejected_timing = replace(
+        alignment.decoded_timing,
+        marker_count=21,
+        rejected_marker_count=1,
+    )
+    document = analyzer_script._analysis_document(
+        artifact=_artifact(),
+        capture=_capture(),
+        pilot={"estimated_offset_hz": 100_000.0},
+        analysis=replace(
+            analysis,
+            schedule_alignment=replace(alignment, decoded_timing=rejected_timing),
+        ),
+        source_commit="c" * 40,
+    )
+
+    assert document["quality_gate"]["passed"] is False
+    assert "schedule_transition_decoder_rejected_markers" in document["quality_gate"][
+        "global_rejection_reasons"
+    ]
+    timing = document["transfer"]["schedule_alignment"]["decoded_timing"]
+    assert timing["rejected_marker_count"] == 1
 
 
 def test_reference_reanalysis_defaults_to_transition_seed_and_versioned_output() -> None:

@@ -117,6 +117,9 @@ def _schedule_alignment_document(
             if alignment.decoded_timing_agreement is None
             else asdict(alignment.decoded_timing_agreement)
         ),
+        "decoded_timing": (
+            None if alignment.decoded_timing is None else asdict(alignment.decoded_timing)
+        ),
     }
 
 
@@ -253,6 +256,14 @@ def _analysis_document(
     else:
         if alignment.quality.explained_fraction < MINIMUM_ALIGNMENT_EXPLAINED_FRACTION:
             global_reasons.append("schedule_explained_fraction_below_minimum")
+        timing = alignment.decoded_timing
+        if timing is None:
+            global_reasons.append("schedule_transition_timing_missing")
+        else:
+            if timing.strict_frame_count < MINIMUM_COMPLETE_CYCLES:
+                global_reasons.append("schedule_transition_frame_count_below_minimum")
+            if timing.rejected_marker_count:
+                global_reasons.append("schedule_transition_decoder_rejected_markers")
         agreement = alignment.decoded_timing_agreement
         if agreement is not None and not agreement.agrees:
             global_reasons.append("schedule_phase_and_transition_decoders_disagree")

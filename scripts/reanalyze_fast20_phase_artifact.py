@@ -149,16 +149,20 @@ def main() -> int:
         )
         for estimate in analysis.states
     }
+    alignment = analysis.schedule_alignment
+    decoded_timing = None if alignment is None else alignment.decoded_timing
     quality_passed = (
         analysis.continuity_verified
         and analysis.complete_cycle_count >= MINIMUM_COMPLETE_CYCLES
         and analysis.confidence >= MINIMUM_OVERALL_CONFIDENCE
-        and analysis.schedule_alignment is not None
-        and analysis.schedule_alignment.quality.explained_fraction
-        >= MINIMUM_ALIGNMENT_EXPLAINED_FRACTION
+        and alignment is not None
+        and alignment.quality.explained_fraction >= MINIMUM_ALIGNMENT_EXPLAINED_FRACTION
+        and decoded_timing is not None
+        and decoded_timing.strict_frame_count >= MINIMUM_COMPLETE_CYCLES
+        and decoded_timing.rejected_marker_count == 0
         and (
-            analysis.schedule_alignment.decoded_timing_agreement is None
-            or analysis.schedule_alignment.decoded_timing_agreement.agrees
+            alignment.decoded_timing_agreement is None
+            or alignment.decoded_timing_agreement.agrees
         )
         and all(state_quality.values())
     )

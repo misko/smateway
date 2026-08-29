@@ -205,6 +205,7 @@ class ScheduleAlignmentResult:
     score_margin: float | None
     provenance: AlignmentSearchProvenance
     decoded_timing_agreement: DecodedTimingAgreement | None
+    decoded_timing: DecodedScheduleTiming | None = None
 
     @property
     def cycle_ms(self) -> float:
@@ -764,6 +765,7 @@ def search_schedule_alignment(
         score_margin=None if score_margin is None else float(score_margin),
         provenance=provenance,
         decoded_timing_agreement=_decoded_agreement(selected, decoded_timing, config),
+        decoded_timing=decoded_timing,
     )
 
 
