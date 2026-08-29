@@ -111,9 +111,10 @@ must describe RX1 as the attenuated conducted reference branch.
 
 ### Evidence packages
 
-The first five packages below are committed public evidence. The compact offline-RCA package is
-present and hash-bound in the working tree, pending the next commit. Their capture populations
-overlap and must not be added without raw-hash deduplication.
+The six historical packages below are committed evidence. The compact offline-RCA package was
+published in Smateway commit `2b551fa60500c54e71ccc963b17d283e9a1396ce`. This report revision
+also adds a deterministic raw-capture inventory and a source-bound paired-TX OTA control. Their
+capture populations overlap and must not be added without raw-hash deduplication.
 
 | Package | Durable evidence | Relevant use |
 |---|---|---|
@@ -122,10 +123,11 @@ overlap and must not be added without raw-hash deduplication.
 | [HexRay centered calibration](../hexray_tx_in_middle_calibration/README.md) | [Rejected 5.8 GHz summary](../hexray_tx_in_middle_calibration/data/hexcal-v2.4-5g8-experiment-summary.json) | RX- and TX-gain screens, safety evidence, and TX2-antenna removal control |
 | HexRay phase diagnostic | [Exploratory phase result](../hexray_tx_in_middle_calibration/data/hexcal-v2.4-5g8-phase-leakage-results.json) | Repeated leakage-subtracted fingerprint; explicitly not a calibration |
 | [Current system status](../current_calibration_and_df_status/README.md) | Evidence synthesis at Smateway commit `2aa04d348caafa9478c04ef5e0ff66be2e9e0091` | Present qualification boundary and cross-report interpretation |
-| 5.8 GHz offline RCA | [Frozen observations](data/frequency-domain-observations.json) and [analysis result](data/frequency-domain-analysis.json) | Source-bound 23-frequency × 20-repeat replay, model rejection, paired uncertainty, permutation phases, and selector bound |
+| 5.8 GHz offline RCA | [Frozen observations](data/frequency-domain-observations.json) and [analysis result](data/frequency-domain-analysis.json), committed at `2b551fa` | Source-bound 23-frequency × 20-repeat replay, model rejection, paired uncertainty, permutation phases, and selector bound |
+| Exact-5.8 raw inventory | [Evidence inventory](data/evidence-inventory.json) | Hash-, size-, format-, and continuity-verified index of all 130 retained exact-5.8 captures |
+| Paired-TX OTA control | [ALL_OFF control](data/paired-tx-ota-all-off-control.json) | Ten retained TX1/TX2 OTA captures reprojected from raw IQ; diagnostic only, not conducted-path attribution |
 
-The key evidence file hashes at this snapshot are; the two offline-RCA files remain pending in
-the working tree until the next commit:
+The key evidence file hashes at Smateway commit `2b551fa` are:
 
 | File | SHA-256 |
 |---|---|
@@ -153,10 +155,13 @@ captures with `130` unique artifact identities and raw-data SHA-256 values, tota
 | Earlier unreferenced phase trial | 1 |
 | **Total** | **130** |
 
-This is local audit evidence, not yet a release-reproducible inventory of all 130 captures. The
-20-repeat frequency-domain replay used below is now frozen in compact observations and analysis
-JSON, with source hashes and overlap policy. The final report must still bind the remaining raw
-paths, artifact IDs, roles, and overlap policy in the planned `data/evidence-inventory.json`.
+The repository-normalized [evidence inventory](data/evidence-inventory.json) makes that audit
+reproducible. It records all 130 artifact IDs, computed and declared raw SHA-256 values, relative
+source paths, family/source classification, companion sidecar hashes for all 43 long captures,
+and ABI-2 continuity summaries without embedding the local storage root. All 130 raw identities
+are unique; all format, byte-size, path-identity, declared-hash, and gap-free continuity checks
+passed. The earliest phase trial has no external manifest and is explicitly classified from its
+SigMF description only, rather than assigned stronger provenance.
 
 ## Quantitative findings
 
@@ -315,6 +320,45 @@ attached mean of `383` counts to `389`, or `+1.57%`. It changed the local RF env
 not reduce the response blocking RX2 state discrimination. TX1-to-TX2-antenna reradiation is
 therefore not supported as the dominant path.
 
+### Paired OTA transmitter-localization observation
+
+A deterministic read-only replay of a separate retained OTA localization set contains five TX1
+repeats and five TX2 repeats. The replay validates every raw-data hash and ABI-2 continuity
+ledger, projects both receivers at the retained refined pilot, and measures the coherent raw
+RX2/RX1 transfer only inside complete-cycle `ALL_OFF` dwell interiors:
+
+| Active transmit configuration | Repeats | Original full-state phase gate passed | Median raw `ALL_OFF` RX2/RX1 | Cross-repeat phase coherence |
+|---|---:|---:|---:|---:|
+| TX1 | 5 | 5/5 | -8.091 dB | 0.9999996 |
+| TX2 | 5 | 2/5 | +9.681 dB | 0.9999994 |
+
+The durable result is
+[paired-tx-ota-all-off-control.json](data/paired-tx-ota-all-off-control.json), SHA-256
+`67d21f17f1558beaf1958b2d3cc28d3a03e839e31b89ca4e448a791bc6f80207`. It binds the ten
+artifact IDs, their raw and sidecar hashes, the source manifest hash, the Fast20 profile hash,
+generated header hash, and every behavior-bearing local analysis-module hash without embedding a
+host-specific storage path. The source manifest is
+`phase-distributions/dualband-phase-20260825-a/manifest.json`, SHA-256
+`5bc8711d295eb28d2a8e0c52d1114d1c61f8e3ce226bc12d6e78894280f331f6`.
+
+Three TX2 captures failed the original whole-cycle, all-selected-state phase-quality gate. They
+are admitted for this narrower diagnostic by a separate contract: the computation does not reuse
+the rejected selected-state estimates; it fail-closes on sidecar/raw/profile identity mismatch;
+it independently verifies gap-free raw continuity, timing confidence, even/odd agreement,
+jackknife stability, and recomputed cycle count; and it repeats the result at marker-phase offsets
+of `-2`, `0`, and `+2 ms`. Across all ten captures the perturbation changes amplitude by at most
+`0.0651 dB` for TX1 and `0.0522 dB` for TX2, and phase by at most `0.1787 degrees` and
+`0.2182 degrees`, respectively. Within-capture `ALL_OFF` cycle phase coherence is at least
+`0.9999953` and cycle phase RMS is at most `0.177 degrees`. This admits the descriptive
+`ALL_OFF` control only; it does not overturn the failed full-state phase decisions.
+
+The observation establishes that both transmit configurations produced a stable coherent
+`ALL_OFF` component at RX2 in that OTA setup. It is not a controlled TX-port comparison: the TX
+antennas and source geometry differed, and the active transmitter changed illumination of the
+RX1 normalization antenna. The approximately `17.772 dB` difference therefore cannot be assigned
+to Pluto-internal TX1/TX2 isolation, selector leakage, or any single physical path. It does not
+localize the later conducted closed-loop fault and is not merged numerically with that corpus.
+
 ## Device, fixture, and board expectations
 
 ### Physical AD9363 operating boundary
@@ -376,22 +420,71 @@ termination can create or rephase a bypass path.
 
 ### Selector PCB evidence and remaining physical risks
 
-The reviewed v0.2.1 board is a disciplined RF layout: branch-free top-layer CPWG routes, a
-continuous adjacent reference plane, no RF vias, dense return fencing, and a nine-via exposed
-pad. This makes a gross routing error less likely. It does not measure fabricated S-parameters.
+The following are retained CAD facts, not RF measurements:
 
-One concrete high-band risk remains testable. PE42482 pin 1, `LS`, is an RF ground that affects
-performance. In the released PCB it does not have the explicit solid zone-connect override used
-on several other U1 ground pads, leaving a thermal-style top connection and nearby rather than
-at-pad return vias. Exposed-pad voiding, package solder, and SMA ground joints are also
-unmeasured. These are ranked assembly/layout hypotheses, not established causes. A VNA matrix,
-near-field scan, inspection, or controlled rework is required before assigning blame to them.
+- The mutable source and sealed v0.2.1 PCB are byte-identical, with SHA-256
+  `e2d1deaf4052b18b84df02d1b5cab48e131c6debbd70a03678c3ed918b24c2d5`.
+- The routes are branch-free top-layer CPWG over an adjacent continuous ground plane, with no RF
+  vias or stubs, passing return-via fences, and a nine-via filled/capped U1 exposed pad.
+- The retained field solver uses effective permittivity `3.13660852672` and a modeled delay of
+  approximately `5.90758 ps/mm`. This is a layout model, not measured group delay.
+- The authoritative realized lengths are `14.503822 mm` for `RF_COMMON` and `36.557345 mm` for
+  either `RF_ANT4` or `RF_ANT5`. The corresponding connector-to-connector CAD path is
+  `51.061167 mm`. The older routing journal contains stale nominal lengths and is not used here.
+
+The [sealed realized-length report](https://github.com/misko/circuits/blob/main/projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/verification/rf/realized/report.json)
+and [RF geometry contract](https://github.com/misko/circuits/blob/main/projects/pluto-rx2-8way-v5/03_src/rules/rf.yaml)
+are the sources for those values.
+
+The following wavelength coincidences are calculations from those CAD values:
+
+| Modeled copper path | Length | Derived coincidence | Modeled phase at 5.8 GHz, wrapped modulo 360° |
+|---|---:|---:|---:|
+| `RF_COMMON` | 14.503822 mm | `lambda_g/2` at 5.835500 GHz | 178.905 degrees |
+| `RF_ANT4/5 + RF_COMMON` | 51.061167 mm | `3 lambda_g/4` at 2.486343 GHz; `7 lambda_g/4` at 5.801467 GHz | 269.841 degrees |
+
+The second coincidence is close to the observed approximately 2.480 GHz middle-path feature
+and the 5.800 GHz leakage failure. It is a useful falsifiable lead, not evidence that the PCB is
+a resonator. These pad-centre lengths omit connector electrical length, package delay, launch
+discontinuities, dielectric dispersion, and the external fixture. Most importantly, a matched
+line does not resonate or generate leakage solely because its length is an odd quarter-wave or
+half-wave. A reflection, coupling path, or other discontinuity is required.
+
+There is also an important countercheck. The same simple odd-quarter-wave series for the
+`51.061167 mm` model path predicts approximately `0.8288`, `2.4863`, `4.1439`, and
+`5.8015 GHz`. The frozen broadband observations nearest the third prediction have `ALL_OFF`
+levels of only `-50.505 dB` at 4.1 GHz and `-49.871 dB` at 4.2 GHz, versus `-24.545 dB` at
+5.8 GHz. The low-band evidence has median raw contrast `27.861 dB` at 2.5 GHz, not a
+5.8-GHz-like collapse. Those retained observations do not support a simple isolated
+quarter-wave resonator. They still permit a narrow feature missed by 100 MHz samples or a
+multi-path, reflection, and cancellation mechanism. The terminated VNA micro-sweeps at no more
+than 1 MHz spacing are the falsifier.
+
+Two implementation details deserve targeted tests:
+
+- PE42482 pin 1, `LS`, affects RF isolation. U1 pad 1, UUID
+  `5430d7b4-cda1-4a51-aa8a-57bedb0e10aa`, is grounded by a `1.015 mm` top-copper run to via
+  UUID `84cf13a3-dbed-4747-8956-4fe14b39eee0`. It has no explicit solid zone-connect override,
+  unlike several other U1 RF-ground pads. This is a testable risk, not proof of a bad ground.
+  The exposed pad itself has a dense 3-by-3 filled/capped-via array.
+- Each SMA signal launch uses a `2.4 mm` all-layer land with a `1.5 mm` drill feeding a
+  `0.295 mm` trace, an `8.14:1` width transition, plus four ground posts on a `5.08 mm` square.
+  No explicit launch taper or tuned plane cutout is present. Launch and solder discontinuities
+  are omitted from the realized-length model.
+
+Exposed-pad voiding, LS/package solder, SMA ground joints, and U1 supply/control coupling remain
+unmeasured. The local U1 bypass is one `100 nF` 0402 capacitor, and no retained impedance model
+establishes its behavior at 5.8 GHz. These are ranked assembly/layout hypotheses, not
+established causes. Board-only VNA data, near-field scanning, inspection, or controlled rework
+is required before assigning blame.
 
 The detailed cross-project design review is
 [RF isolation, leakage paths, and a v6 mitigation strategy](https://github.com/misko/circuits/blob/main/projects/pluto-rx2-8way-v5/01_docs/reports/2026-08-27-rf-isolation-and-v6-mitigation.md).
 The reviewed report exists at Circuits `origin/main` commit
 `8b2f02bdd987685fc1a3a3cf9d4646249f398784`; it explicitly records that a fabricated-board VNA
-matrix is still owed.
+matrix is still owed. A repository-history audit found no implemented v6 schematic or KiCad
+board: v6A, v6B, and v6C in that report are proposals only, so no v5-to-v6 measured or geometric
+improvement may be claimed.
 
 ## Competing hypotheses and falsifiers
 
@@ -400,7 +493,7 @@ matrix is still owed.
 | 1 | Common TX1→RX2 path in Pluto, RX2 cable, or selector common launch | Stable mapping-independent phasor; ideal-selector bound leaves at least `0.028764` unexplained if its conditions hold | No terminated Stage A/B/C boundary capture exists | Stages A–C localize no repeatable increment capable of supplying the excess |
 | 2 | Degraded selector or PCB assembly | Observed baseline is `5.77 dB` above the ideal conditioned switch bound; LS ground, exposed pad, SMA and solder are unmeasured | CAD routing review is otherwise strong; no fabricated-board VNA matrix exists | One-hot and VNA cells meet the datasheet-conditioned bounds, and controlled inspection/rework produces no delta |
 | 3 | Common-path pickup plus finite selector leakage | Multiple deterministic frequency terms and stable `ALL_OFF` behavior allow coherent contributors to coexist | Contributions have not been measured separately | Complex increments from A–D fail to close to the simultaneous fixture within uncertainty |
-| 4 | Splitter/load mismatch or standing wave | Comb-like response; splitter and load S-parameters are unknown | No controlled cable-phase or termination comparison | Characterized alternative fixture leaves the phasor invariant and one-hot closure succeeds |
+| 4 | Splitter/load mismatch or standing wave | Comb-like response; splitter and load S-parameters are unknown; the ANT4/5-plus-common CAD length has derived odd-quarter-wave coincidences near both observed features | A matched line cannot create a resonance from length alone; connector, switch, and fixture electrical lengths are unmeasured | Matched pads, known cable-length changes, and changed terminations neither move nor suppress the feature; a deliberately changed path length on a coupon leaves it stationary |
 | 5 | One cable or connector defect | High-frequency faults can be strongly configuration-dependent | Physical permutations did not isolate a single arm | Known-good cable/load substitutions produce no repeatable complex change |
 | 6 | TX2-antenna reradiation | It was a physically plausible nearby radiator | Removal changed strongest RX2 result by only `+1.57%` | Already disfavored as dominant by the removal control |
 | 7 | External Wi-Fi | 5.8 GHz is an occupied external band | Exact offset and TX-gain tracking are inconsistent with unrelated Wi-Fi | A TX-muted or shielded control retains the same coherent component |
@@ -418,6 +511,25 @@ uncertainty, and counterfactual total magnitude with each term removed.
 All stages retain the same bounded TX1 tone and conducted RX1 reference. TX2 stays exactly
 muted and 50-ohm terminated. No antennas are present in Stages A through E. Every unused RF port
 uses a termination specified through 5.8 GHz.
+
+### Implementation status — not physical results
+
+| Item | Current retained status |
+|---|---|
+| Offline RCA package | Committed in Smateway `2b551fa`; the observations, analysis, figures, committed ladder runner, and tests are no longer working-tree-only artifacts. |
+| Stage A immutable plan | A six-condition `direct_rx2_termination` plan was prepared under baseline commit `2b551fa`; no capture was executed or accepted. A fresh plan bound to the final clean tooling revision is required before execution. `selector_calibration_claim` is false. |
+| Dedicated one-hot runner | Implemented and independently safety/provenance-reviewed as `scripts/run_5g8_one_hot_path_ladder.py` plus `src/smateway/one_hot_ladder.py`; 31 focused and 65 compatibility tests pass. It remains unexecuted and is tooling, not physical evidence. |
+
+The historical Stage A plan is local machine state and planning provenance, not current execution
+authority or a committed/accepted result:
+
+```text
+/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/
+  5g8-leakage-ladder/5g8-rca-stage-a-20260829-a/plan.json
+plan_contract_sha256 = 7b11cde871e15361370b3739465ebdbe2cac50a445cb96f58925f00e0089c134
+plan_file_sha256     = 8cfba82ddef766d1afc489a872dd48c0dc2a17918d2ff081ca3ee8832007882e
+manifest             = same directory, manifest.json
+```
 
 ### Stage A — direct Pluto boundary
 
@@ -470,7 +582,11 @@ The minimum useful matrix is eight inputs by two selector states:
 
 The exhaustive matrix is eight driven inputs by nine selector states: `ALL_OFF` plus ANT1–ANT8.
 It maps 8 `ALL_OFF` cells, 8 intended through cells, and 56 wrong-state cells. Repeat the
-attribution gain at least three times without moving the cables.
+attribution gain at least three times without moving the cables. The implemented immutable plan
+uses six TX gains for every state plus two additional fresh-stream repeats at `-20 dB`, giving
+72 captures per manually confirmed driven-input row and 576 captures (approximately `1.38 GB`)
+for all eight rows. Cross-row aggregation fails unless the board, Pluto, source/dependency,
+selector firmware/profile, OpenOCD, fixture, reference-plane, and acquisition identities match.
 
 ### Stage E — simultaneous eight-way feed
 
@@ -485,8 +601,9 @@ Agreement between `H_E,pred` and measured `H_E` identifies coherent summation of
 measured input leakages. Failure of closure points to splitter output interactions, changed
 loads, common-mode pickup, or a non-linear/configuration-dependent path.
 
-The current in-progress runner covers A, B, C, and E. Stage D is mandatory before a full-fixture
-rise can be attributed uniquely to the selector rather than the multiport fixture.
+The committed general ladder runner covers A, B, C, and E. The separate Stage D one-hot runner
+has been implemented and reviewed but not executed. Stage D remains mandatory before a
+full-fixture rise can be attributed uniquely to the selector rather than the multiport fixture.
 
 ### Stage F — installed array
 
@@ -553,11 +670,31 @@ applied by a separate source-bound attribution analysis.
 - Retain exact 5.8 GHz as experimental even after empirical success because it remains outside
   the physical AD9363's official range.
 
-The selector first-article VNA plan remains the fastest board-only authority: calibrate at the
-SMA mating planes, terminate all unused ports, measure 56 wrong-state paths, eight `ALL_OFF`
-paths, insertion loss, and return loss through at least 6 GHz. The existing project criterion is
-at least 25 dB isolation near 5.9 GHz; that board criterion and the stricter system contrast
-needed for phase metrology must be reported separately.
+The selector first-article VNA plan remains the fastest board-only authority. Calibrate at the
+SMA mating planes and terminate every unused port in a characterized 50-ohm load. Use dense
+sweeps over `2.35–2.55 GHz` and `5.4–6.2 GHz` at no more than `1 MHz` spacing. Preserve exact
+samples at the observed and CAD-derived targets:
+
+- `2.480000 GHz`, the observed low-band feature;
+- `2.486343 GHz`, the modeled ANT4/5-plus-common `3 lambda_g/4` coincidence;
+- `5.800000 GHz`, the observed system failure;
+- `5.801467 GHz`, the modeled ANT4/5-plus-common `7 lambda_g/4` coincidence; and
+- `5.835500 GHz`, the modeled common-route `lambda_g/2` coincidence.
+
+Measure S11 and S22 alongside the eight intended S21 paths, eight `ALL_OFF` paths, 56
+wrong-state paths, and useful input-to-input cells. Retain complex data and apply time-domain
+gating to distinguish launch-, switch-, and fixture-distance features. The existing project
+criterion is at least 25 dB isolation near 5.9 GHz; that board criterion and the stricter system
+contrast needed for phase metrology must be reported separately.
+
+The dimensional hypothesis has specific perturbation falsifiers. Add a characterized matched
+pad at J2, change one external cable by a known electrical length, and repeat with deliberately
+changed source/load return loss. A mismatch-supported mode should change amplitude, phase, or
+frequency; a Pluto-internal additive term should not follow a passive board resonance. On a
+coupon or future layout, change only the ANT4/5 path length: a geometric mode should move by
+approximately `delta_f/f = -delta_L/L`, whereas an external/common leak should remain fixed.
+A controlled LS solid-ground rework is meaningful only after the VNA matrix implicates U1; it
+must be compared blind before/after with every other variable held fixed.
 
 ## Decision logic and corrective action
 
@@ -577,18 +714,27 @@ total amplitude rise through reduced cancellation.
 
 ## Offline analysis package and pending physical artifacts
 
-The compact, hash-bound offline package is present in the working tree. It is the source for the
-quantitative analytical conclusions above; publication in the next repository commit is still
-pending.
+The compact, hash-bound offline package is committed at Smateway
+`2b551fa60500c54e71ccc963b17d283e9a1396ce`. It is the source for the quantitative analytical
+conclusions above. This publication status does not imply that any topology-ladder or one-hot
+physical result exists.
 
 | Data artifact | SHA-256 | Purpose |
 |---|---|---|
 | [Frozen frequency-domain observations](data/frequency-domain-observations.json) | `6eccec0b01808a0724520d303392bdc56e56d04106f116d4c8775f8792f73f51` | Portable 23-frequency × 20-repeat observations and permutation inputs |
 | [Frequency-domain analysis](data/frequency-domain-analysis.json) | `f401854e01b9f4395f1fe56c7bbe6ec96abf9ea1f6356145c0d376bf8b7cb841` | Fits, uncertainties, bounds, rejections, and source identities |
+| [Exact-5.8 evidence inventory](data/evidence-inventory.json) | `486468af1b85e1d3c4897584d9b3316639eb0ec78bab1f2496e833475ed3d319` | Exhaustive index of 130 retained raw captures with source classification and integrity/continuity checks |
+| [Paired-TX OTA ALL_OFF control](data/paired-tx-ota-all-off-control.json) | `67d21f17f1558beaf1958b2d3cc28d3a03e839e31b89ca4e448a791bc6f80207` | Raw-IQ replay of five TX1 and five TX2 OTA controls; diagnostic only |
 
 The analysis generator is
 [`scripts/analyze_5g8_frequency_domain.py`](../../scripts/analyze_5g8_frequency_domain.py),
 SHA-256 `eb523b7c4d7d346c91dc67b32b4008dd16f2082e3a4ca79e4117a384b4da6bed`.
+The exhaustive inventory generator is
+[`scripts/generate_5g8_evidence_inventory.py`](../../scripts/generate_5g8_evidence_inventory.py),
+SHA-256 `0ad31e8b8a13fa7506bf78a6c606606f675f76b3d2a9b66a36f48e33b13e8017`. The paired-TX
+control generator is
+[`scripts/analyze_5g8_paired_tx_ota_control.py`](../../scripts/analyze_5g8_paired_tx_ota_control.py),
+SHA-256 `2db4872fb8418d54082aa4bda61c742d6949096c1a0a53a389c2380d7c12c62b`.
 
 | Generated figure | SHA-256 |
 |---|---|
@@ -599,10 +745,11 @@ SHA-256 `eb523b7c4d7d346c91dc67b32b4008dd16f2082e3a4ca79e4117a384b4da6bed`.
 | [Figure 5 — selector conditioned bound](png/fig05_selector_datasheet_conditioned_bound.png) | `54ad32974bf1b4f7c26279a6845df7a4c9e293a0626e4791486f1125e5dfe4ab` |
 | [Figure 6 — permutation invariance](png/fig06_permutation_invariance.png) | `bafb2f36c7bf8ad01eae55aa13c38165af6641c8be571c0c48862dbad62e4395` |
 
-The following physical-attribution artifacts remain planned and do not yet carry results:
+The following repository-normalized physical-attribution artifacts remain planned and do not
+yet carry results. The prepared local Stage A plan described above has not yet been promoted into
+this package:
 
 ```text
-docs/5g8_root_cause_analysis/data/evidence-inventory.json
 docs/5g8_root_cause_analysis/data/topology-ladder-plan.json
 docs/5g8_root_cause_analysis/data/topology-ladder-results.json
 docs/5g8_root_cause_analysis/data/hypothesis-disposition.json
@@ -610,11 +757,18 @@ docs/5g8_root_cause_analysis/data/figures-manifest.json
 docs/5g8_root_cause_analysis/png/fig07_physical_stage_attribution_and_disposition.png
 ```
 
-The in-progress physical runner is
+The committed general physical runner is
 [`scripts/run_5g8_leakage_ladder.py`](../../scripts/run_5g8_leakage_ladder.py) with the pure
-analyzer [`src/smateway/leakage_ladder.py`](../../src/smateway/leakage_ladder.py). Neither file
-is provenance for a live result until reviewed, committed in a clean tree, and recorded by an
-immutable acquisition plan.
+analyzer [`src/smateway/leakage_ladder.py`](../../src/smateway/leakage_ladder.py). The historical
+Stage A plan is identified above, but it was not executed; a fresh clean-revision plan and accepted
+physical artifact are still required. The dedicated one-hot runner and its analyzer/tests have not been
+executed; passing software gates do not constitute an RF result.
+
+The Stage D sources are
+[`scripts/run_5g8_one_hot_path_ladder.py`](../../scripts/run_5g8_one_hot_path_ladder.py),
+SHA-256 `2e749034e06567de35457d548f25f1aedc69a15a67e47f677875a65d1e29512b`, and
+[`src/smateway/one_hot_ladder.py`](../../src/smateway/one_hot_ladder.py), SHA-256
+`d5b4b2214936b27dc5eab0bec7e183f245a14f3d83aa97f272f8b348a4e998ef`.
 
 ## Limitations
 
