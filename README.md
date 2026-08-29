@@ -41,6 +41,15 @@ tests/                host-only and explicitly selected hardware tests
 Build outputs are ignored under `build/`. Per-board dumps, logs and RF captures
 belong outside Git under `~/.local/state/smateway/boards/<board-id>/`.
 
+## Current calibration and direction-finding status
+
+The present-state summary of firmware, acquisition, timing, conducted
+calibration, six-element HexRay calibration, known limitations, and prioritized
+direction-finding work is in
+[`docs/current_calibration_and_df_status/`](docs/current_calibration_and_df_status/README.md).
+It is the best starting point for deciding what is usable now and which evidence
+still needs to be acquired.
+
 ## Conducted closed-loop calibration
 
 The completed three-permutation splitter calibration, reconnect closure, released 2.4 GHz
