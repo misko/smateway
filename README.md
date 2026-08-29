@@ -148,10 +148,12 @@ metadata counter discontinuity is rejected rather than analyzed.
 ## Continuous phase-sensitive OTA qualification
 
 The development dependency pins `pluto-plus-utils` at commit
-`5551d29bc6c326f26285670efd20fc149caef474`. That revision adds a bounded
-dual-RX DDS capture using the exact tandem-V7 metadata runtime, more than two
-kernel buffers, a fresh buffer generation, and a persisted continuity ledger.
-At 1 MS/s, 100 refills of 100,000 samples form one 10-second capture.
+`dd48f2a76d4b01152ca13ad0612d4b21f0bfd15a`. This dependency line includes the
+bounded dual-RX DDS capture introduced at `5551d29…`, fail-safe mute-context
+cleanup, and bounded LO-synthesizer readback tolerance. The capture uses the
+exact tandem-V7 metadata runtime, more than two kernel buffers, a fresh buffer
+generation, and a persisted continuity ledger. At 1 MS/s, 100 refills of
+100,000 samples form one 10-second capture.
 
 Use `estimate_coherent_pilot_offset()` followed by
 `analyze_fast20_phase_sensitive()` to refine the coherent pilot, align the

@@ -736,7 +736,7 @@ def test_local_dependency_attestation_runs_under_exact_pinned_interpreter() -> N
         text=True,
     )
     evidence = json.loads(completed.stdout)
-    assert evidence["commit"] == "5551d29bc6c326f26285670efd20fc149caef474"
+    assert evidence["commit"] == "dd48f2a76d4b01152ca13ad0612d4b21f0bfd15a"
     assert evidence["clean_worktree_verified"] is True
     assert evidence["python_executable"] == str(python)
     assert evidence["python_prefix"] == "/home/pi/pluto-plus-utils/.venv"

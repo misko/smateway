@@ -650,6 +650,15 @@ RF was present.
 
 ## 10. Implementation, deployment and rollback gates
 
+> **Runtime revision boundary (2026-08-29):** The `5551d29…` requirement below
+> is the frozen provenance contract for the Hexcal v2.1–v2.4 evidence documented
+> in this report. Current smateway code, lockfiles, tests, and the clean local
+> runtime now attest `pluto-plus-utils` at `dd48f2a…`, which retains the bounded
+> stimulus while adding mute cleanup and bounded LO-readback tolerance. Reproduce
+> a historical artifact from its recorded smateway source commit with
+> `5551d29…`; run current code with `dd48f2a…`. Never mix either code revision
+> with the other dependency checkout.
+
 The implementation should remain split into independently reviewable components:
 
 1. A generated microsecond profile containing the authoritative GPIO codes and schedule.

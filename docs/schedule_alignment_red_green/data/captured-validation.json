@@ -1,150 +1,184 @@
 {
-  "schema": 1,
-  "verified_at": "2026-08-29",
-  "host": "devpi",
-  "source_commit": "f81a758c297d22bea53422ab18e9c91ac50ffc4d",
   "focused_low_band_5pass": {
-    "requested_capture_count": 25,
-    "strict_pass_count": 25,
-    "frequency_range_hz": [2100000000, 2500000000],
     "combined_score": {
-      "minimum": 0.999990426831233,
+      "maximum": 0.9999999171141175,
       "median": 0.9999997925324587,
-      "maximum": 0.9999999171141175
-    },
-    "explained_fraction": {
-      "minimum": 0.999999869393354,
-      "median": 0.9999999422496814,
-      "maximum": 0.999999953711694
-    },
-    "residual_fraction": {
-      "minimum": 4.6288305988504395e-08,
-      "median": 5.775031866040579e-08,
-      "maximum": 1.306066460562458e-07
+      "minimum": 0.999990426831233
     },
     "decoder_marker_error_ms": {
-      "minimum": 0.0,
+      "maximum": 1.4000000000000021,
       "median": 0.5999999999999943,
-      "maximum": 1.4000000000000021
+      "minimum": 0.0
+    },
+    "explained_fraction": {
+      "maximum": 0.999999953711694,
+      "median": 0.9999999422496814,
+      "minimum": 0.999999869393354
+    },
+    "frequency_range_hz": [
+      2100000000,
+      2500000000
+    ],
+    "quarantined_count": 0,
+    "requested_capture_count": 25,
+    "residual_fraction": {
+      "maximum": 1.306066460562458e-07,
+      "median": 5.775031866040579e-08,
+      "minimum": 4.6288305988504395e-08
+    },
+    "state_cycle_coherence": {
+      "maximum": 0.999999996814296,
+      "median": 0.9999999695920518,
+      "minimum": 0.9999948486119646
+    },
+    "state_cycle_phase_std_deg": {
+      "maximum": 0.2000459414346503,
+      "median": 0.014637136573200031,
+      "minimum": 0.004732786944082248
+    },
+    "state_detection_snr_db": {
+      "maximum": 90.86612924398048,
+      "median": 82.56841713388016,
+      "minimum": 63.0026323649105
     },
     "state_estimate_count": 200,
-    "state_detection_snr_db": {
-      "minimum": 63.0026323649105,
-      "median": 82.56841713388016,
-      "maximum": 90.86612924398048
-    },
-    "state_cycle_coherence": {
-      "minimum": 0.9999948486119646,
-      "median": 0.9999999695920518,
-      "maximum": 0.999999996814296
-    },
-    "state_cycle_phase_std_deg": {
-      "minimum": 0.004732786944082248,
-      "median": 0.014637136573200031,
-      "maximum": 0.2000459414346503
-    }
+    "strict_pass_count": 25
   },
+  "generated_from": "data/capture-evidence.json",
   "historical_low_band_25pass": {
-    "requested_capture_count": 125,
-    "strict_pass_count": 120,
-    "quarantined_count": 5,
     "combined_score": {
-      "minimum": 0.9999236710304406,
+      "maximum": 0.9999999138556045,
       "median": 0.9999996167015962,
-      "maximum": 0.9999999138556045
-    },
-    "explained_fraction": {
-      "minimum": 0.9999979121681605,
-      "median": 0.9999999391172092,
-      "maximum": 0.9999999529960624
-    },
-    "residual_fraction": {
-      "minimum": 4.7003937656752354e-08,
-      "median": 6.088279081472993e-08,
-      "maximum": 2.087831839534859e-06
+      "minimum": 0.9999236710304406
     },
     "decoder_cycle_error_ms": {
-      "minimum": 0.0,
+      "maximum": 0.0,
       "median": 0.0,
-      "maximum": 0.0
+      "minimum": 0.0
     },
     "decoder_marker_error_ms": {
-      "minimum": 0.0,
+      "maximum": 1.4000000000000057,
       "median": 0.8000000000000114,
-      "maximum": 1.4000000000000057
+      "minimum": 0.0
     },
-    "state_estimate_count": 960,
-    "state_detection_snr_db": {
-      "minimum": 49.19704236642456,
-      "median": 79.2044682947352,
-      "maximum": 91.42086571858533
+    "explained_fraction": {
+      "maximum": 0.9999999529960624,
+      "median": 0.9999999391172092,
+      "minimum": 0.9999979121681605
+    },
+    "frequency_range_hz": [
+      2100000000,
+      2500000000
+    ],
+    "quarantined_count": 5,
+    "requested_capture_count": 125,
+    "residual_fraction": {
+      "maximum": 2.087831839534859e-06,
+      "median": 6.088279081472993e-08,
+      "minimum": 4.7003937656752354e-08
     },
     "state_cycle_coherence": {
-      "minimum": 0.9998788496467556,
+      "maximum": 0.9999999983876752,
       "median": 0.9999998981181554,
-      "maximum": 0.9999999983876752
+      "minimum": 0.9998788496467556
     },
     "state_cycle_phase_std_deg": {
-      "minimum": 0.0032954416115848826,
+      "maximum": 0.971626336556258,
       "median": 0.027132046828426886,
-      "maximum": 0.971626336556258
-    }
+      "minimum": 0.0032954416115848826
+    },
+    "state_detection_snr_db": {
+      "maximum": 91.42086571858533,
+      "median": 79.2044682947352,
+      "minimum": 49.19704236642456
+    },
+    "state_estimate_count": 960,
+    "strict_pass_count": 120
   },
+  "host": "devpi",
   "quarantined_global_fallbacks": [
     {
-      "artifact_id": "94cb97f0c729457ab97e702571f4bedb",
-      "frequency_hz": 2400000000,
-      "tx_channel": 0,
-      "complete_frame_count": 25,
-      "rejected_marker_count": 1,
-      "combined_score": 0.9999992662751277,
-      "explained_fraction": 0.9999999470660641,
-      "decoder_agrees": true,
-      "quality_passed": false
-    },
-    {
       "artifact_id": "1fa1f1c12b5744d1a1496cf13242f59b",
-      "frequency_hz": 2200000000,
-      "tx_channel": 0,
-      "complete_frame_count": 25,
-      "rejected_marker_count": 1,
       "combined_score": 0.9999989799601682,
-      "explained_fraction": 0.9999998948887228,
-      "decoder_agrees": true,
-      "quality_passed": false
-    },
-    {
-      "artifact_id": "573d17b596ad422794a1ced00299c51d",
-      "frequency_hz": 2100000000,
-      "tx_channel": 0,
       "complete_frame_count": 25,
-      "rejected_marker_count": 1,
-      "combined_score": 0.9999916376952389,
-      "explained_fraction": 0.9999998725749626,
       "decoder_agrees": true,
-      "quality_passed": false
+      "explained_fraction": 0.9999998948887228,
+      "frequency_hz": 2200000000,
+      "global_rejection_reasons": [
+        "schedule_transition_decoder_rejected_markers"
+      ],
+      "quality_passed": false,
+      "rejected_marker_count": 1,
+      "repeat_index": 3,
+      "residual_fraction": 1.0511127721711428e-07,
+      "tx_channel": 0
     },
     {
       "artifact_id": "236b4d3d35c44da59a683486af03dc83",
-      "frequency_hz": 2100000000,
-      "tx_channel": 0,
-      "complete_frame_count": 25,
-      "rejected_marker_count": 1,
       "combined_score": 0.9999850287874855,
-      "explained_fraction": 0.9999998790397763,
+      "complete_frame_count": 25,
       "decoder_agrees": true,
-      "quality_passed": false
+      "explained_fraction": 0.9999998790397763,
+      "frequency_hz": 2100000000,
+      "global_rejection_reasons": [
+        "schedule_transition_decoder_rejected_markers"
+      ],
+      "quality_passed": false,
+      "rejected_marker_count": 1,
+      "repeat_index": 11,
+      "residual_fraction": 1.2096022369376682e-07,
+      "tx_channel": 0
     },
     {
       "artifact_id": "d70decd2dbc549c78d7b4e0d8e9e6ac6",
-      "frequency_hz": 2500000000,
-      "tx_channel": 0,
-      "complete_frame_count": 25,
-      "rejected_marker_count": 1,
       "combined_score": 0.9999998782016711,
-      "explained_fraction": 0.9999999429923547,
+      "complete_frame_count": 25,
       "decoder_agrees": true,
-      "quality_passed": false
+      "explained_fraction": 0.9999999429923547,
+      "frequency_hz": 2500000000,
+      "global_rejection_reasons": [
+        "schedule_transition_decoder_rejected_markers"
+      ],
+      "quality_passed": false,
+      "rejected_marker_count": 1,
+      "repeat_index": 11,
+      "residual_fraction": 5.7007645300008415e-08,
+      "tx_channel": 0
+    },
+    {
+      "artifact_id": "573d17b596ad422794a1ced00299c51d",
+      "combined_score": 0.9999916376952389,
+      "complete_frame_count": 25,
+      "decoder_agrees": true,
+      "explained_fraction": 0.9999998725749626,
+      "frequency_hz": 2100000000,
+      "global_rejection_reasons": [
+        "schedule_transition_decoder_rejected_markers"
+      ],
+      "quality_passed": false,
+      "rejected_marker_count": 1,
+      "repeat_index": 16,
+      "residual_fraction": 1.2742503736792662e-07,
+      "tx_channel": 0
+    },
+    {
+      "artifact_id": "94cb97f0c729457ab97e702571f4bedb",
+      "combined_score": 0.9999992662751277,
+      "complete_frame_count": 25,
+      "decoder_agrees": true,
+      "explained_fraction": 0.9999999470660641,
+      "frequency_hz": 2400000000,
+      "global_rejection_reasons": [
+        "schedule_transition_decoder_rejected_markers"
+      ],
+      "quality_passed": false,
+      "rejected_marker_count": 1,
+      "repeat_index": 19,
+      "residual_fraction": 5.29339359143378e-08,
+      "tx_channel": 0
     }
-  ]
+  ],
+  "schema": 2,
+  "source_commit": "f81a758c297d22bea53422ab18e9c91ac50ffc4d",
+  "verified_at": "2026-08-29"
 }

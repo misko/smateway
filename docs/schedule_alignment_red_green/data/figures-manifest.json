@@ -1,0 +1,36 @@
+{
+  "captured_evidence": {
+    "path": "docs/schedule_alignment_red_green/data/capture-evidence.json",
+    "sha256": "c062074f9fc731c822108363ccdd8ca75f59b6f281311d5346449728c0b8241d"
+  },
+  "false_lock_benchmark": {
+    "path": "docs/schedule_alignment_red_green/data/false-lock-verification.json",
+    "sha256": "d28c741e77999113102874d4463e5a452ce1d119c93a58acb633dc70f0855ad7"
+  },
+  "figures": [
+    {
+      "byte_size": 156254,
+      "path": "docs/schedule_alignment_red_green/png/fig01_false_lock_recovery_and_cost.png",
+      "sha256": "045de98633a364ca9221a57d7fcacec5529a5f2298262a3d3987fe53749e7e3a"
+    },
+    {
+      "byte_size": 128505,
+      "path": "docs/schedule_alignment_red_green/png/fig02_v2_frequency_repeat_matrix.png",
+      "sha256": "0ddd1ed5bf9b08e04447d91b2cf3207fc9d17f46a26579ca1e7a8f610acd30ac"
+    },
+    {
+      "byte_size": 102850,
+      "path": "docs/schedule_alignment_red_green/png/fig03_legacy_vs_v2_decisions.png",
+      "sha256": "c74d8b6a5831b160d20ea55216148648e28d02dbfd935221a4e7b6e1873cfd6b"
+    },
+    {
+      "byte_size": 223430,
+      "path": "docs/schedule_alignment_red_green/png/fig04_exact_tone_quality_distributions.png",
+      "sha256": "07877c2a8a282232c16367f64818eea49d12e4ad7c0a1ef65b7abd60515bd39e"
+    }
+  ],
+  "matplotlib_version": "3.11.1",
+  "renderer": "scripts/render_schedule_alignment_report.py",
+  "renderer_sha256": "ea1c64ddf29dd4dc86d91cec5a229de5644c50dc544e5a763484d4c51d5d1f6a",
+  "schema": 1
+}
