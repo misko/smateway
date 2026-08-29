@@ -1,0 +1,1260 @@
+{
+  "adjacent_frequency_diagnostics": [
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": -3.982828680693715,
+        "sample_standard_deviation": 0.007770643331889991
+      },
+      "from_hz": 3600000000,
+      "gain_change_db": {
+        "mean": -5.0556549922322604,
+        "sample_standard_deviation": 0.06448959472707434
+      },
+      "to_hz": 3700000000
+    },
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": -4.0347335034076535,
+        "sample_standard_deviation": 0.009430247108077218
+      },
+      "from_hz": 3700000000,
+      "gain_change_db": {
+        "mean": -2.6568581073785364,
+        "sample_standard_deviation": 0.07306082748101225
+      },
+      "to_hz": 3800000000
+    },
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": -3.717910207714033,
+        "sample_standard_deviation": 0.005520497150877939
+      },
+      "from_hz": 3800000000,
+      "gain_change_db": {
+        "mean": 1.9754792077033216,
+        "sample_standard_deviation": 0.06450339562315874
+      },
+      "to_hz": 3900000000
+    },
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": 4.946731660950133,
+        "sample_standard_deviation": 0.015331917871466495
+      },
+      "from_hz": 3900000000,
+      "gain_change_db": {
+        "mean": -2.5155062769695884,
+        "sample_standard_deviation": 0.13289375846825863
+      },
+      "to_hz": 4000000000
+    },
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": -3.434542020788092,
+        "sample_standard_deviation": 0.007446672009636885
+      },
+      "from_hz": 4000000000,
+      "gain_change_db": {
+        "mean": -6.1213043759674495,
+        "sample_standard_deviation": 0.09131876060525336
+      },
+      "to_hz": 4100000000
+    },
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": 4.241223935121347,
+        "sample_standard_deviation": 0.020945366824185848
+      },
+      "from_hz": 4100000000,
+      "gain_change_db": {
+        "mean": 0.6350542629393432,
+        "sample_standard_deviation": 0.06294030081889074
+      },
+      "to_hz": 4200000000
+    },
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": 3.9407845390251155,
+        "sample_standard_deviation": 0.009898992928531731
+      },
+      "from_hz": 4200000000,
+      "gain_change_db": {
+        "mean": -0.7836970626825471,
+        "sample_standard_deviation": 0.13104527977717545
+      },
+      "to_hz": 4300000000
+    },
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": -3.486524740976075,
+        "sample_standard_deviation": 0.02309320149901175
+      },
+      "from_hz": 4300000000,
+      "gain_change_db": {
+        "mean": -2.6752772245918788,
+        "sample_standard_deviation": 0.09903198459921217
+      },
+      "to_hz": 4400000000
+    },
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": -3.5669921867896974,
+        "sample_standard_deviation": 0.2433413826654771
+      },
+      "from_hz": 4400000000,
+      "gain_change_db": {
+        "mean": -7.559671453481613,
+        "sample_standard_deviation": 1.551942415761934
+      },
+      "to_hz": 4500000000
+    },
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": 4.50320992577081,
+        "sample_standard_deviation": 0.26839126417114567
+      },
+      "from_hz": 4500000000,
+      "gain_change_db": {
+        "mean": 12.904737077347544,
+        "sample_standard_deviation": 1.59748502299251
+      },
+      "to_hz": 4600000000
+    },
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": -2.68910574837541,
+        "sample_standard_deviation": 0.06386662567528621
+      },
+      "from_hz": 4600000000,
+      "gain_change_db": {
+        "mean": 1.6843875164757278,
+        "sample_standard_deviation": 0.16363319858308567
+      },
+      "to_hz": 4700000000
+    },
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": 3.1255173856210687,
+        "sample_standard_deviation": 0.13161758706729795
+      },
+      "from_hz": 4700000000,
+      "gain_change_db": {
+        "mean": -2.435077196804428,
+        "sample_standard_deviation": 0.1181103058365262
+      },
+      "to_hz": 4800000000
+    },
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": 0.5752498959975608,
+        "sample_standard_deviation": 0.11946385806243864
+      },
+      "from_hz": 4800000000,
+      "gain_change_db": {
+        "mean": 10.074843523182858,
+        "sample_standard_deviation": 0.09648445808846565
+      },
+      "to_hz": 4900000000
+    },
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": -4.714086768404181,
+        "sample_standard_deviation": 0.07358271577621732
+      },
+      "from_hz": 4900000000,
+      "gain_change_db": {
+        "mean": -13.284046353728803,
+        "sample_standard_deviation": 0.17371341573689225
+      },
+      "to_hz": 5000000000
+    },
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": 3.9571998273963858,
+        "sample_standard_deviation": 0.03997276200593023
+      },
+      "from_hz": 5000000000,
+      "gain_change_db": {
+        "mean": 10.036624061809588,
+        "sample_standard_deviation": 0.2763697215667203
+      },
+      "to_hz": 5100000000
+    },
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": 1.311040333310809,
+        "sample_standard_deviation": 0.04876968999915911
+      },
+      "from_hz": 5100000000,
+      "gain_change_db": {
+        "mean": 0.7047327552383748,
+        "sample_standard_deviation": 0.10245311142463562
+      },
+      "to_hz": 5200000000
+    },
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": -4.5235523912050875,
+        "sample_standard_deviation": 0.04904056412883455
+      },
+      "from_hz": 5200000000,
+      "gain_change_db": {
+        "mean": 1.5642861510532557,
+        "sample_standard_deviation": 0.336158806328842
+      },
+      "to_hz": 5300000000
+    },
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": 3.992443383127724,
+        "sample_standard_deviation": 0.021045147325501883
+      },
+      "from_hz": 5300000000,
+      "gain_change_db": {
+        "mean": 0.21048444916286785,
+        "sample_standard_deviation": 0.3295971411349439
+      },
+      "to_hz": 5400000000
+    },
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": 1.631605751422495,
+        "sample_standard_deviation": 0.03185642716297092
+      },
+      "from_hz": 5400000000,
+      "gain_change_db": {
+        "mean": -1.0479267408338793,
+        "sample_standard_deviation": 0.04748798847287224
+      },
+      "to_hz": 5500000000
+    },
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": 2.5837867788333413,
+        "sample_standard_deviation": 0.02278936378556497
+      },
+      "from_hz": 5500000000,
+      "gain_change_db": {
+        "mean": 4.12287470383824,
+        "sample_standard_deviation": 0.07594188225653895
+      },
+      "to_hz": 5600000000
+    },
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": 3.0767792764456288,
+        "sample_standard_deviation": 0.019302726596087068
+      },
+      "from_hz": 5600000000,
+      "gain_change_db": {
+        "mean": 4.25185186018882,
+        "sample_standard_deviation": 0.06368888195870133
+      },
+      "to_hz": 5700000000
+    },
+    {
+      "apparent_group_delay_ns_modulo_alias_period": {
+        "mean": 4.427608529700878,
+        "sample_standard_deviation": 0.0027325522485249134
+      },
+      "from_hz": 5700000000,
+      "gain_change_db": {
+        "mean": 7.557049824873275,
+        "sample_standard_deviation": 0.025286285275468973
+      },
+      "to_hz": 5800000000
+    }
+  ],
+  "analysis_kind": "five_point_eight_ghz_frequency_domain_root_cause_analysis",
+  "conclusions": {
+    "coherent_deterministic_frequency_selective_baseline": true,
+    "physical_root_cause_uniquely_identified": false,
+    "rank_one_frequency_response_rejected": true,
+    "remaining_physical_candidates": [
+      "Pluto internal TX1-to-RX2 coupling in the extended 5.8 GHz profile",
+      "RX2 cable or common-launch coupling",
+      "degraded selector or PCB common-output isolation",
+      "coherent combination of a common path and finite selector leakage"
+    ],
+    "required_disambiguation": "termination/cable/selector topology ladder and a board VNA isolation matrix",
+    "single_constant_gain_delay_rejected": true
+  },
+  "figures": [
+    {
+      "path": "docs/5g8_root_cause_analysis/png/fig01_all_off_selected_contrast.png",
+      "sha256": "bc255a41127a2b4424a157bb53b87a059a064c4a94c794d056252d3b3e9abf85"
+    },
+    {
+      "path": "docs/5g8_root_cause_analysis/png/fig02_complex_locus_single_delay_fit.png",
+      "sha256": "3f5e325a803d8996098b0eddfc972b669f35a081953257c8bbccdb2a5502e6c6"
+    },
+    {
+      "path": "docs/5g8_root_cause_analysis/png/fig03_step_gain_and_group_delay.png",
+      "sha256": "352e8f25edc636934695a8d853a57ec3cb97a4adfbc2c2ae6cc97ac243766372"
+    },
+    {
+      "path": "docs/5g8_root_cause_analysis/png/fig04_hankel_rank_delay_spectrum.png",
+      "sha256": "ea626cc77174bc9c63675e234053c84fcf9908c96bf22fc3f2e9bb6b19b24113"
+    },
+    {
+      "path": "docs/5g8_root_cause_analysis/png/fig05_selector_datasheet_conditioned_bound.png",
+      "sha256": "54ad32974bf1b4f7c26279a6845df7a4c9e293a0626e4791486f1125e5dfe4ab"
+    },
+    {
+      "path": "docs/5g8_root_cause_analysis/png/fig06_permutation_invariance.png",
+      "sha256": "bafb2f36c7bf8ad01eae55aa13c38165af6641c8be571c0c48862dbad62e4395"
+    }
+  ],
+  "frequency_results": [
+    {
+      "all_off_amplitude_sample_standard_deviation": 5.0537869680636494e-05,
+      "all_off_mean": {
+        "imag": 0.0013669186094562513,
+        "real": -0.01555124687224348
+      },
+      "all_off_mean_amplitude": 0.015611205775542786,
+      "all_off_mean_amplitude_db": -36.13127103363841,
+      "all_off_phase_deg": 174.97674360121758,
+      "all_off_phase_sample_standard_deviation_deg": 0.4257114008391047,
+      "center_frequency_hz": 3600000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 29.912544074211365,
+      "selected_subtracted_median_amplitude_mean": 0.4989776415361352,
+      "selected_subtracted_median_amplitude_mean_db": -6.038378280920021
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 5.9594196786581976e-05,
+      "all_off_mean": {
+        "imag": -0.005795924533084653,
+        "real": 0.006518596689832178
+      },
+      "all_off_mean_amplitude": 0.008722662666749391,
+      "all_off_mean_amplitude_db": -41.187018455108245,
+      "all_off_phase_deg": -41.641474782315846,
+      "all_off_phase_sample_standard_deviation_deg": 0.6113589241783539,
+      "center_frequency_hz": 3700000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 33.93068568581919,
+      "selected_subtracted_median_amplitude_mean": 0.4359768951247146,
+      "selected_subtracted_median_amplitude_mean_db": -7.21073051672573
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 3.0276454223737727e-05,
+      "all_off_mean": {
+        "imag": 0.006243361067436409,
+        "real": -0.001511886100448274
+      },
+      "all_off_mean_amplitude": 0.0064238117188402544,
+      "all_off_mean_amplitude_db": -43.84414393325201,
+      "all_off_phase_deg": 103.61264051784167,
+      "all_off_phase_sample_standard_deviation_deg": 0.7117506559366954,
+      "center_frequency_hz": 3800000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 34.343292000540046,
+      "selected_subtracted_median_amplitude_mean": 0.3362908853039624,
+      "selected_subtracted_median_amplitude_mean_db": -9.465698069457343
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 5.229056585944683e-05,
+      "all_off_mean": {
+        "imag": -0.006798017041526253,
+        "real": -0.00433834652821105
+      },
+      "all_off_mean_amplitude": 0.008064383813765452,
+      "all_off_mean_amplitude_db": -41.86857621461361,
+      "all_off_phase_deg": -122.54513289756464,
+      "all_off_phase_sample_standard_deviation_deg": 0.7074908190050381,
+      "center_frequency_hz": 3900000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 32.878886461337295,
+      "selected_subtracted_median_amplitude_mean": 0.36359122602500016,
+      "selected_subtracted_median_amplitude_mean_db": -8.78773210938109
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 7.797430525605957e-05,
+      "all_off_mean": {
+        "imag": 0.005195032125981117,
+        "real": 0.0030759881386831847
+      },
+      "all_off_mean_amplitude": 0.006037388658956414,
+      "all_off_mean_amplitude_db": -44.383017307820516,
+      "all_off_phase_deg": 59.37014626152821,
+      "all_off_phase_sample_standard_deviation_deg": 0.25574810953917726,
+      "center_frequency_hz": 4000000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 35.95392859737337,
+      "selected_subtracted_median_amplitude_mean": 0.3822116401287212,
+      "selected_subtracted_median_amplitude_mean_db": -8.35392181570418
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 1.5665448898612208e-05,
+      "all_off_mean": {
+        "imag": -0.00015697608414373237,
+        "real": -0.0029795804936840146
+      },
+      "all_off_mean_amplitude": 0.0029837126888049015,
+      "all_off_mean_amplitude_db": -50.50485997569011,
+      "all_off_phase_deg": -176.98421987680817,
+      "all_off_phase_sample_standard_deviation_deg": 0.18411827447177628,
+      "center_frequency_hz": 4100000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 36.19720037541664,
+      "selected_subtracted_median_amplitude_mean": 0.19637570515572983,
+      "selected_subtracted_median_amplitude_mean_db": -14.138244849255317
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 9.615227821450363e-06,
+      "all_off_mean": {
+        "imag": 0.0016210547088774169,
+        "real": 0.002770343821651816
+      },
+      "all_off_mean_amplitude": 0.0032097699698480004,
+      "all_off_mean_amplitude_db": -49.870521809256616,
+      "all_off_phase_deg": 30.333852229015303,
+      "all_off_phase_sample_standard_deviation_deg": 0.736602638285672,
+      "center_frequency_hz": 4200000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 37.491027957916636,
+      "selected_subtracted_median_amplitude_mean": 0.24340317712271306,
+      "selected_subtracted_median_amplitude_mean_db": -12.273475145138196
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 5.085380186320989e-05,
+      "all_off_mean": {
+        "imag": -0.0027286768455223234,
+        "real": -0.0010763126366198725
+      },
+      "all_off_mean_amplitude": 0.002933279089864665,
+      "all_off_mean_amplitude_db": -50.65293227314173,
+      "all_off_phase_deg": -111.52650189598164,
+      "all_off_phase_sample_standard_deviation_deg": 0.6928016305482865,
+      "center_frequency_hz": 4300000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 36.67014595115823,
+      "selected_subtracted_median_amplitude_mean": 0.20121767833929924,
+      "selected_subtracted_median_amplitude_mean_db": -13.926677324416428
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 5.2101826747169546e-05,
+      "all_off_mean": {
+        "imag": 0.0005218187632713415,
+        "real": 0.0020914489494985172
+      },
+      "all_off_mean_amplitude": 0.0021555633904064347,
+      "all_off_mean_amplitude_db": -53.328784019422315,
+      "all_off_phase_deg": 14.009335614377212,
+      "all_off_phase_sample_standard_deviation_deg": 1.3762500054026165,
+      "center_frequency_hz": 4400000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 41.803372808502836,
+      "selected_subtracted_median_amplitude_mean": 0.26718611896912986,
+      "selected_subtracted_median_amplitude_mean_db": -11.463722167320892
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 0.00017694694532236575,
+      "all_off_mean": {
+        "imag": 0.0005315256873657574,
+        "real": -0.0007340241848767764
+      },
+      "all_off_mean_amplitude": 0.0009062621366435084,
+      "all_off_mean_amplitude_db": -60.85492328638842,
+      "all_off_phase_deg": 144.09074121793844,
+      "all_off_phase_sample_standard_deviation_deg": 9.356326304546126,
+      "center_frequency_hz": 4500000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 47.4794748039086,
+      "selected_subtracted_median_amplitude_mean": 0.21400492795411852,
+      "selected_subtracted_median_amplitude_mean_db": -13.391524518190085
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 3.7170511855316824e-05,
+      "all_off_mean": {
+        "imag": -0.001346355826567112,
+        "real": 0.003754352767712443
+      },
+      "all_off_mean_amplitude": 0.003988463202307537,
+      "all_off_mean_amplitude_db": -47.98388820818836,
+      "all_off_phase_deg": -19.72844110856155,
+      "all_off_phase_sample_standard_deviation_deg": 0.6062140131422786,
+      "center_frequency_hz": 4600000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 38.551821269419676,
+      "selected_subtracted_median_amplitude_mean": 0.3409147501776097,
+      "selected_subtracted_median_amplitude_mean_db": -9.347084159513688
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 9.990535311401867e-05,
+      "all_off_mean": {
+        "imag": 0.004718825215592976,
+        "real": 0.00107976331886733
+      },
+      "all_off_mean_amplitude": 0.004840785085095959,
+      "all_off_mean_amplitude_db": -46.30168396349614,
+      "all_off_phase_deg": 77.11144421481681,
+      "all_off_phase_sample_standard_deviation_deg": 1.7854577775508595,
+      "center_frequency_hz": 4700000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 37.386566510168294,
+      "selected_subtracted_median_amplitude_mean": 0.3622951773702485,
+      "selected_subtracted_median_amplitude_mean_db": -8.81874893926119
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 6.580687347750408e-05,
+      "all_off_mean": {
+        "imag": -0.0021206999438157944,
+        "real": 0.0029755590582055368
+      },
+      "all_off_mean_amplitude": 0.0036539458070104615,
+      "all_off_mean_amplitude_db": -48.74475796227962,
+      "all_off_phase_deg": -35.477714747461626,
+      "all_off_phase_sample_standard_deviation_deg": 3.033697072132641,
+      "center_frequency_hz": 4800000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 34.818916345397305,
+      "selected_subtracted_median_amplitude_mean": 0.20974850811321916,
+      "selected_subtracted_median_amplitude_mean_db": -13.566022390247534
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 0.00012381506592189906,
+      "all_off_mean": {
+        "imag": -0.009686510543004144,
+        "real": 0.006501239159359868
+      },
+      "all_off_mean_amplitude": 0.01166595890216165,
+      "all_off_mean_amplitude_db": -38.661591157461494,
+      "all_off_phase_deg": -56.13190180993662,
+      "all_off_phase_sample_standard_deviation_deg": 1.3848349504537436,
+      "center_frequency_hz": 4900000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 23.30868527982429,
+      "selected_subtracted_median_amplitude_mean": 0.17199825387364184,
+      "selected_subtracted_median_amplitude_mean_db": -15.289519240557317
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 7.230495409430018e-05,
+      "all_off_mean": {
+        "imag": 0.002317623196192633,
+        "real": -0.0010092334512928063
+      },
+      "all_off_mean_amplitude": 0.002527830975112566,
+      "all_off_mean_amplitude_db": -51.94503937543584,
+      "all_off_phase_deg": 113.53122494187079,
+      "all_off_phase_sample_standard_deviation_deg": 1.950676080234027,
+      "center_frequency_hz": 5000000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 39.45209460638732,
+      "selected_subtracted_median_amplitude_mean": 0.237434166809454,
+      "selected_subtracted_median_amplitude_mean_db": -12.489135716968828
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 4.399747781915587e-05,
+      "all_off_mean": {
+        "imag": -0.003879391351948933,
+        "real": 0.00702897819517137
+      },
+      "all_off_mean_amplitude": 0.008028462600633494,
+      "all_off_mean_amplitude_db": -41.90735222764155,
+      "all_off_phase_deg": -28.89492004532376,
+      "all_off_phase_sample_standard_deviation_deg": 0.5772955960866938,
+      "center_frequency_hz": 5100000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 19.130717131932684,
+      "selected_subtracted_median_amplitude_mean": 0.07259804223166909,
+      "selected_subtracted_median_amplitude_mean_db": -22.781501817250817
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 7.378049460597822e-05,
+      "all_off_mean": {
+        "imag": -0.008448861531931962,
+        "real": 0.002092517862543531
+      },
+      "all_off_mean_amplitude": 0.008704130754465,
+      "all_off_mean_amplitude_db": -41.205491871493024,
+      "all_off_phase_deg": -76.08954611156729,
+      "all_off_phase_sample_standard_deviation_deg": 1.6489391942673095,
+      "center_frequency_hz": 5200000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 26.84258555721309,
+      "selected_subtracted_median_amplitude_mean": 0.18906089889615346,
+      "selected_subtracted_median_amplitude_mean_db": -14.467965631405983
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 0.0004383463974815434,
+      "all_off_mean": {
+        "imag": 0.010415807439340107,
+        "real": 0.0005945596787312928
+      },
+      "all_off_mean_amplitude": 0.010432763096370288,
+      "all_off_mean_amplitude_db": -39.6320130863417,
+      "all_off_phase_deg": 86.73296260363588,
+      "all_off_phase_sample_standard_deviation_deg": 0.9598869422254732,
+      "center_frequency_hz": 5300000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 18.411888230404028,
+      "selected_subtracted_median_amplitude_mean": 0.07979360640252577,
+      "selected_subtracted_median_amplitude_mean_db": -21.960638116680563
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 7.377918118907492e-05,
+      "all_off_mean": {
+        "imag": -0.008955631380085106,
+        "real": 0.005821262571924601
+      },
+      "all_off_mean_amplitude": 0.010681312248373572,
+      "all_off_mean_amplitude_db": -39.42750777907333,
+      "all_off_phase_deg": -56.97567291197558,
+      "all_off_phase_sample_standard_deviation_deg": 0.34959341411116757,
+      "center_frequency_hz": 5400000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 16.8593870869961,
+      "selected_subtracted_median_amplitude_mean": 0.07175971574855375,
+      "selected_subtracted_median_amplitude_mean_db": -22.882385805377137
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 6.299400943809993e-05,
+      "all_off_mean": {
+        "imag": -0.008527325032544842,
+        "real": -0.004107598503730299
+      },
+      "all_off_mean_amplitude": 0.009465074626146024,
+      "all_off_mean_amplitude_db": -40.47751915097007,
+      "all_off_phase_deg": -115.72004069498914,
+      "all_off_phase_sample_standard_deviation_deg": 1.3298620172979352,
+      "center_frequency_hz": 5500000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 22.531115808761047,
+      "selected_subtracted_median_amplitude_mean": 0.12771095015573364,
+      "selected_subtracted_median_amplitude_mean_db": -17.875437279738904
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 5.9256947266843636e-05,
+      "all_off_mean": {
+        "imag": 0.007314519840144116,
+        "real": -0.013344739293784392
+      },
+      "all_off_mean_amplitude": 0.015217892998406023,
+      "all_off_mean_amplitude_db": -36.35290947760354,
+      "all_off_phase_deg": 151.27196695874673,
+      "all_off_phase_sample_standard_deviation_deg": 0.5418446221828084,
+      "center_frequency_hz": 5600000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 14.295160956218869,
+      "selected_subtracted_median_amplitude_mean": 0.07721669545298065,
+      "selected_subtracted_median_amplitude_mean_db": -22.245775765517386
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 0.00022368670760729783,
+      "all_off_mean": {
+        "imag": 0.016128108865716126,
+        "real": 0.01887205824626031
+      },
+      "all_off_mean_amplitude": 0.024824795629262146,
+      "all_off_mean_amplitude_db": -32.1022863631564,
+      "all_off_phase_deg": 40.51728419472789,
+      "all_off_phase_sample_standard_deviation_deg": 1.2197416452409588,
+      "center_frequency_hz": 5700000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 14.498088224613088,
+      "selected_subtracted_median_amplitude_mean": 0.1320738735764936,
+      "selected_subtracted_median_amplitude_mean_db": -17.583661692184343
+    },
+    {
+      "all_off_amplitude_sample_standard_deviation": 0.00038637390236747113,
+      "all_off_mean": {
+        "imag": -0.05188754439997065,
+        "real": -0.028619361229637232
+      },
+      "all_off_mean_amplitude": 0.05925694137441949,
+      "all_off_mean_amplitude_db": -24.545215379256838,
+      "all_off_phase_deg": -118.87959776525167,
+      "all_off_phase_sample_standard_deviation_deg": 1.1588097178421681,
+      "center_frequency_hz": 5800000000,
+      "raw_selected_to_all_off_median_contrast_mean_db": 7.9109938369701025,
+      "selected_subtracted_median_amplitude_mean": 0.11917932871289968,
+      "selected_subtracted_median_amplitude_mean_db": -18.475981302054898
+    }
+  ],
+  "hankel_model_order_diagnostics": {
+    "energy_fractions": [
+      0.6313263808950138,
+      0.11425241280832599,
+      0.08554716167694976,
+      0.06299080578654019,
+      0.05558053079387819,
+      0.023363411058685758,
+      0.012248176302094913,
+      0.006977095482312913,
+      0.0049841903320215755,
+      0.0015486870056136384,
+      0.0011050861587872526,
+      7.606169977605508e-05
+    ],
+    "rank_one_explained_energy_fraction": 0.6313263808950138,
+    "rank_one_relative_frobenius_residual": 0.6071849957838107,
+    "run_complex_vector_relative_l2_deviation": {
+      "maximum": 0.03853779257431467,
+      "mean": 0.019484844512370033,
+      "minimum": 0.006971296274827572,
+      "sample_standard_deviation": 0.008633565916070065
+    },
+    "run_to_run_singular_value_ratios": [
+      {
+        "maximum": 0.43141104862351376,
+        "mean": 0.42554774054515543,
+        "minimum": 0.4216702584180275,
+        "sample_standard_deviation": 0.0033320778230188633,
+        "singular_value_index_one_based": 2
+      },
+      {
+        "maximum": 0.3729885349374986,
+        "mean": 0.3682747933469749,
+        "minimum": 0.36440176146236425,
+        "sample_standard_deviation": 0.003165782191060316,
+        "singular_value_index_one_based": 3
+      },
+      {
+        "maximum": 0.32410908252051485,
+        "mean": 0.31620938477185545,
+        "minimum": 0.3105672599012286,
+        "sample_standard_deviation": 0.004836731233206754,
+        "singular_value_index_one_based": 4
+      },
+      {
+        "maximum": 0.3020211091839726,
+        "mean": 0.2961239564361999,
+        "minimum": 0.28834774523517764,
+        "sample_standard_deviation": 0.004635044219780622,
+        "singular_value_index_one_based": 5
+      },
+      {
+        "maximum": 0.19778680110445948,
+        "mean": 0.192438249171449,
+        "minimum": 0.18776374041401067,
+        "sample_standard_deviation": 0.00310160764338396,
+        "singular_value_index_one_based": 6
+      }
+    ],
+    "shape": [
+      12,
+      12
+    ],
+    "singular_values": [
+      0.08444232565922688,
+      0.03592244656132519,
+      0.03108393696996779,
+      0.02667299595940202,
+      0.025055008948762832,
+      0.01624431274708509,
+      0.011761668418193554,
+      0.008877088516486801,
+      0.007502923638729463,
+      0.004182298675672219,
+      0.003532899529489622,
+      0.0009268644615262703
+    ],
+    "singular_values_relative_to_first": [
+      1.0,
+      0.4254080673511152,
+      0.3681084897567751,
+      0.3158723513495214,
+      0.29671149809248665,
+      0.19237168825311834,
+      0.1392864102968767,
+      0.10512605434756658,
+      0.08885264090200518,
+      0.04952846387189983,
+      0.04183801786496139,
+      0.010976301923122048
+    ]
+  },
+  "paired_five_point_seven_to_five_point_eight": {
+    "all_off_amplitude_change_db": {
+      "count": 20,
+      "maximum": 7.598641225684139,
+      "mean": 7.5570498248732765,
+      "mean_95_percent_confidence_interval": [
+        7.545215479081822,
+        7.568884170664731
+      ],
+      "minimum": 7.5246075145605165,
+      "sample_standard_deviation": 0.025286285275468584
+    },
+    "raw_median_contrast_change_db": {
+      "count": 20,
+      "maximum": -6.269234079981519,
+      "mean": -6.58709438764298,
+      "mean_95_percent_confidence_interval": [
+        -6.681775985760988,
+        -6.492412789524972
+      ],
+      "minimum": -6.90681617376782,
+      "sample_standard_deviation": 0.2023048795885289
+    },
+    "selected_subtracted_median_amplitude_change_db": {
+      "count": 20,
+      "maximum": -0.5932007582701259,
+      "mean": -0.8918908087936904,
+      "mean_95_percent_confidence_interval": [
+        -0.9742466914376686,
+        -0.8095349261497122
+      ],
+      "minimum": -1.174420618933827,
+      "sample_standard_deviation": 0.17596869141278434
+    }
+  },
+  "permutation_invariance": {
+    "finding": "the selected coherent-sum phase changes much more than ALL_OFF phase; this rejects a uniform frequency-independent scaled-sum model but does not identify arbitrary per-port leakage coefficients",
+    "rows": [
+      {
+        "all_off": {
+          "imag": 0.03346386729348834,
+          "real": 0.05051640760263505
+        },
+        "all_off_amplitude": 0.060594866542569126,
+        "all_off_phase_deg": 33.52190923491423,
+        "artifact_id": "bcd1bcc3d46742c289b77487598ebdd6",
+        "created_at": "2026-08-27T20:26:52.779018Z",
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.022949990057039578,
+        "label": "rotation_1",
+        "observed_over_bound_db": 8.433066631592077,
+        "selected_coherent_sum": {
+          "imag": 0.13555542307478105,
+          "real": 0.07160080583675647
+        },
+        "selected_coherent_sum_amplitude": 0.1533034511074548,
+        "selected_coherent_sum_phase_deg": 62.15684326518883
+      },
+      {
+        "all_off": {
+          "imag": 0.03774222969003355,
+          "real": 0.05028962920188767
+        },
+        "all_off_amplitude": 0.06287704435832367,
+        "all_off_phase_deg": 36.88812802905054,
+        "artifact_id": "3f9d9dbb249041e18906273c88c7b879",
+        "created_at": "2026-08-27T20:49:44.655790Z",
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.023203008106447442,
+        "label": "rotation_2",
+        "observed_over_bound_db": 8.6589565401253,
+        "selected_coherent_sum": {
+          "imag": 0.07640689038189369,
+          "real": 0.13240596517364142
+        },
+        "selected_coherent_sum_amplitude": 0.15287037813583854,
+        "selected_coherent_sum_phase_deg": 29.987753608499656
+      },
+      {
+        "all_off": {
+          "imag": 0.04032046758615386,
+          "real": 0.049701318896577376
+        },
+        "all_off_amplitude": 0.06399969692448053,
+        "all_off_phase_deg": 39.05088167954372,
+        "artifact_id": "089c96119d6b4daeb3a0004de7796c62",
+        "created_at": "2026-08-27T21:20:08.168808Z",
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.02429395790159762,
+        "label": "rotation_0_restored",
+        "observed_over_bound_db": 8.413592855582745,
+        "selected_coherent_sum": {
+          "imag": -0.09261730966203,
+          "real": -0.05225390025797569
+        },
+        "selected_coherent_sum_amplitude": 0.10634113099456309,
+        "selected_coherent_sum_phase_deg": -119.43132248919161
+      }
+    ]
+  },
+  "schema": 1,
+  "scope": {
+    "delay_alias_period_ns": 10.0,
+    "delay_interpretation": "all delays are modulo 10 ns because the retained grid spacing is 100 MHz",
+    "frequency_count": 23,
+    "frequency_max_hz": 5800000000,
+    "frequency_min_hz": 3600000000,
+    "frequency_step_hz": 100000000,
+    "repeat_count": 20
+  },
+  "selector_bound": {
+    "conditions": "table-3 band-specific minimum isolation and maximum insertion loss; 50-ohm datasheet conditions; eight leakage voltages assumed perfectly phase aligned; for the sweep boundary, the 4-6 GHz row applies from exactly 4.0 GHz through 5.8 GHz",
+    "datasheet": "DOC-75785-4 (09/2023)",
+    "datasheet_page": 5,
+    "five_point_eight": {
+      "additional_common_path_amplitude_lower_bound": 0.028764369600001234,
+      "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.4854177237777323,
+      "center_frequency_hz": 5800000000,
+      "datasheet_conditioned_perfect_coherent_sum_bound": 0.030492571774418255,
+      "datasheet_specification_band": "4-6 GHz",
+      "observed_all_off_amplitude": 0.05925694137441949,
+      "observed_over_bound_db": 5.770903525802443
+    },
+    "frequency_results": [
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 3600000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.0632499855419825,
+        "datasheet_specification_band": "2-4 GHz",
+        "observed_all_off_amplitude": 0.015611205775542786,
+        "observed_over_bound_db": -12.152479645128981
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 3700000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.05515484564984469,
+        "datasheet_specification_band": "2-4 GHz",
+        "observed_all_off_amplitude": 0.008722662666749391,
+        "observed_over_bound_db": -16.018691926278102
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 3800000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.04324593088216405,
+        "datasheet_specification_band": "2-4 GHz",
+        "observed_all_off_amplitude": 0.0064238117188402544,
+        "observed_over_bound_db": -16.563048930628362
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 3900000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.04566509213877962,
+        "datasheet_specification_band": "2-4 GHz",
+        "observed_all_off_amplitude": 0.008064383813765452,
+        "observed_over_bound_db": -15.060262979890844
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 4000000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.11492596361955745,
+        "datasheet_specification_band": "4-6 GHz",
+        "observed_all_off_amplitude": 0.006037388658956414,
+        "observed_over_bound_db": -25.59138038513881
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 4100000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.05729033510189613,
+        "datasheet_specification_band": "4-6 GHz",
+        "observed_all_off_amplitude": 0.0029837126888049015,
+        "observed_over_bound_db": -25.666487226225637
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 4200000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.07646764153385875,
+        "datasheet_specification_band": "4-6 GHz",
+        "observed_all_off_amplitude": 0.0032097699698480004,
+        "observed_over_bound_db": -27.540075721149165
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 4300000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.05809464002894857,
+        "datasheet_specification_band": "4-6 GHz",
+        "observed_all_off_amplitude": 0.002933279089864665,
+        "observed_over_bound_db": -25.93565357388041
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 4400000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.07409734369064785,
+        "datasheet_specification_band": "4-6 GHz",
+        "observed_all_off_amplitude": 0.0021555633904064347,
+        "observed_over_bound_db": -30.72483680487348
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 4500000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.05181435764595574,
+        "datasheet_specification_band": "4-6 GHz",
+        "observed_all_off_amplitude": 0.0009062621366435084,
+        "observed_over_bound_db": -35.14392565597167
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 4600000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.09447634266637474,
+        "datasheet_specification_band": "4-6 GHz",
+        "observed_all_off_amplitude": 0.003988463202307537,
+        "observed_over_bound_db": -27.49034966182261
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 4700000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.09690178634943519,
+        "datasheet_specification_band": "4-6 GHz",
+        "observed_all_off_amplitude": 0.004840785085095959,
+        "observed_over_bound_db": -26.028319627225912
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 4800000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.05694217463361687,
+        "datasheet_specification_band": "4-6 GHz",
+        "observed_all_off_amplitude": 0.0036539458070104615,
+        "observed_over_bound_db": -23.853438940783462
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 4900000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.04826664022794129,
+        "datasheet_specification_band": "4-6 GHz",
+        "observed_all_off_amplitude": 0.01166595890216165,
+        "observed_over_bound_db": -12.334532542474914
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 5000000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.06529553307913427,
+        "datasheet_specification_band": "4-6 GHz",
+        "observed_all_off_amplitude": 0.002527830975112566,
+        "observed_over_bound_db": -28.242708812441563
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 5100000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.020198015330547554,
+        "datasheet_specification_band": "4-6 GHz",
+        "observed_all_off_amplitude": 0.008028462600633494,
+        "observed_over_bound_db": -8.013526177626362
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 5200000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.050077811954122156,
+        "datasheet_specification_band": "4-6 GHz",
+        "observed_all_off_amplitude": 0.008704130754465,
+        "observed_over_bound_db": -15.198398771942115
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 5300000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.02147271908881493,
+        "datasheet_specification_band": "4-6 GHz",
+        "observed_all_off_amplitude": 0.010432763096370288,
+        "observed_over_bound_db": -6.2697539382685985
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 5400000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.018110062952820433,
+        "datasheet_specification_band": "4-6 GHz",
+        "observed_all_off_amplitude": 0.010681312248373572,
+        "observed_over_bound_db": -4.5859069786344735
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 5500000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.0326725985591452,
+        "datasheet_specification_band": "4-6 GHz",
+        "observed_all_off_amplitude": 0.009465074626146024,
+        "observed_over_bound_db": -10.761192685301735
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 5600000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.02109180709115458,
+        "datasheet_specification_band": "4-6 GHz",
+        "observed_all_off_amplitude": 0.015217892998406023,
+        "observed_over_bound_db": -2.8351852887000915
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.0,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.0,
+        "center_frequency_hz": 5700000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.032604320939838075,
+        "datasheet_specification_band": "4-6 GHz",
+        "observed_all_off_amplitude": 0.024824795629262146,
+        "observed_over_bound_db": -2.3677895522303603
+      },
+      {
+        "additional_common_path_amplitude_lower_bound": 0.028764369600001234,
+        "additional_common_path_lower_bound_fraction_of_observed_voltage": 0.4854177237777323,
+        "center_frequency_hz": 5800000000,
+        "datasheet_conditioned_perfect_coherent_sum_bound": 0.030492571774418255,
+        "datasheet_specification_band": "4-6 GHz",
+        "observed_all_off_amplitude": 0.05925694137441949,
+        "observed_over_bound_db": 5.770903525802443
+      }
+    ],
+    "limitation": "a fabricated selector with degraded RF grounding, mismatch, launch coupling, or performance near the weaker project-level 25 dB target can exceed this bound",
+    "specifications": {
+      "2-4 GHz": {
+        "maximum_insertion_loss_db_by_path": [
+          1.5,
+          1.6,
+          1.7,
+          1.9,
+          1.9,
+          1.7,
+          1.6,
+          1.5
+        ],
+        "minimum_isolation_db_by_path": [
+          34.0,
+          38.0,
+          38.0,
+          45.0,
+          45.0,
+          38.0,
+          38.0,
+          34.0
+        ]
+      },
+      "4-6 GHz": {
+        "maximum_insertion_loss_db_by_path": [
+          1.9,
+          2.3,
+          2.2,
+          2.2,
+          2.2,
+          2.2,
+          2.3,
+          1.9
+        ],
+        "minimum_isolation_db_by_path": [
+          29.0,
+          30.0,
+          33.0,
+          38.0,
+          38.0,
+          33.0,
+          30.0,
+          29.0
+        ]
+      }
+    },
+    "status": "datasheet_conditioned_planning_bound_not_board_measurement"
+  },
+  "single_delay_rejection": {
+    "complex_amplitude": {
+      "imag": 0.005162991701249476,
+      "real": -0.003852451773353744
+    },
+    "complex_amplitude_magnitude": 0.006441883883864049,
+    "complex_amplitude_phase_deg": 126.72906935667915,
+    "complex_nrmse": 0.9091519865850964,
+    "delay_alias_period_ns": 10.0,
+    "delay_grid_step_ps": 0.2,
+    "delay_ns_modulo_alias_period": 3.4972000000000003,
+    "five_point_eight_prediction_error_db": -19.274526774409026,
+    "magnitude_error_rms_db": 7.639191512100841,
+    "model": "constant_complex_amplitude_times_single_delay",
+    "phase_error_rms_deg": 74.97919257352513,
+    "prediction": [
+      {
+        "imag": 0.005162991701249476,
+        "real": -0.003852451773353744
+      },
+      {
+        "imag": 9.330067879848619e-05,
+        "real": 0.006441208190745204
+      },
+      {
+        "imag": -0.005272407468542917,
+        "real": -0.0037012953757894307
+      },
+      {
+        "imag": 0.0060897680414224034,
+        "real": -0.0021006173318474037
+      },
+      {
+        "imag": -0.0018691980532180136,
+        "real": 0.006164735729212839
+      },
+      {
+        "imag": -0.0038977181887307,
+        "real": -0.0051289044536260596
+      },
+      {
+        "imag": 0.006440138284367695,
+        "real": -0.00014995616495792693
+      },
+      {
+        "imag": -0.0036547742575664104,
+        "real": 0.005304761361212892
+      },
+      {
+        "imag": -0.002154103768588416,
+        "real": -0.006071054679982757
+      },
+      {
+        "imag": 0.006180939337017257,
+        "real": 0.001814898588158588
+      },
+      {
+        "imag": -0.005094420345739194,
+        "real": 0.003942683009589525
+      },
+      {
+        "imag": -0.00020660004792927712,
+        "real": -0.006438570058124939
+      },
+      {
+        "imag": 0.00533670478630437,
+        "real": 0.003607970343146322
+      },
+      {
+        "imag": -0.006051871557333583,
+        "real": 0.0022074235268122297
+      },
+      {
+        "imag": 0.001760458691328897,
+        "real": -0.006196664681045111
+      },
+      {
+        "imag": 0.0039873427566783195,
+        "real": 0.005059542045872561
+      },
+      {
+        "imag": -0.006436503633361892,
+        "real": 0.0002632279447675009
+      },
+      {
+        "imag": 0.0035608872540849627,
+        "real": -0.005368235272124594
+      },
+      {
+        "imag": 0.0022605724807852885,
+        "real": 0.006032220157811186
+      },
+      {
+        "imag": -0.006211910544513294,
+        "real": -0.0017058825751357898
+      },
+      {
+        "imag": 0.005024272252811374,
+        "real": -0.004031693974350866
+      },
+      {
+        "imag": 0.0003198354737644654,
+        "real": 0.006433939169972718
+      },
+      {
+        "imag": -0.005399350378932876,
+        "real": -0.003513528633539902
+      }
+    ],
+    "run_to_run": {
+      "complex_nrmse_mean": 0.9091577078316142,
+      "complex_nrmse_sample_standard_deviation": 0.0004989441475742853,
+      "delay_ns_modulo_alias_period_mean": 3.49725,
+      "delay_ns_modulo_alias_period_sample_standard_deviation": 0.0017129537431921017
+    }
+  },
+  "sources": {
+    "analysis_script": {
+      "path": "scripts/analyze_5g8_frequency_domain.py",
+      "sha256": "eb523b7c4d7d346c91dc67b32b4008dd16f2082e3a4ca79e4117a384b4da6bed"
+    },
+    "compact_observation_snapshot": {
+      "path": "docs/5g8_root_cause_analysis/data/frequency-domain-observations.json",
+      "sha256": "6eccec0b01808a0724520d303392bdc56e56d04106f116d4c8775f8792f73f51"
+    },
+    "permutation": {
+      "path": "docs/closed_loop_permutation_calibration/data/closed-loop-calibration-results.json",
+      "sha256": "1b5fb00488085a634b7ed89d27f901b320d36bcb6a571fe901825c89e2822c55"
+    },
+    "repeatability": {
+      "path": "docs/closed_loop_frequency_sweep_repeatability/data/rotation0-repeatability-20pass-results.json",
+      "sha256": "359f22070647ac8201b7d62845a175931c1eabfa18f075620282b69c01adf64b"
+    }
+  }
+}
