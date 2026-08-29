@@ -227,6 +227,44 @@ def test_transition_seeded_search_matches_oracle_and_reports_agreement(
     assert result.decoded_timing_agreement.marker_error_ms <= 0.3
 
 
+def test_decoder_agreement_accepts_one_bin_quantized_fit_plateau(
+    profile: ControlProfile,
+    exact_capture: tuple[np.ndarray, np.ndarray, np.ndarray],
+) -> None:
+    transfer, reference_valid, times_ms = exact_capture
+    decoder_phase_ms = TRUE_MARKER_PHASE_MS + 0.6
+    timing = DecodedScheduleTiming(
+        marker_indices=tuple(range(11)),
+        marker_start_times_ms=tuple(
+            decoder_phase_ms + index * TRUE_CYCLE_MS for index in range(11)
+        ),
+        cycle_durations_ms=(TRUE_CYCLE_MS,) * 11,
+        median_cycle_ms=TRUE_CYCLE_MS,
+        cycle_jitter_ms=0.0,
+        marker_phase_ms=decoder_phase_ms,
+        marker_count=11,
+        complete_frame_count=11,
+        strict_frame_count=11,
+        edge_truncated_marker_count=0,
+        rejected_marker_count=0,
+    )
+
+    result = search_schedule_alignment(
+        transfer,
+        reference_valid,
+        times_ms,
+        duration_ms=DURATION_MS,
+        profile=profile,
+        config=_config(AlignmentSearchMode.TRANSITION_SEEDED),
+        decoded_timing=timing,
+    )
+
+    assert result.decoded_timing_agreement is not None
+    assert result.decoded_timing_agreement.marker_error_ms == pytest.approx(0.6, abs=0.2)
+    assert result.decoded_timing_agreement.marker_tolerance_ms == pytest.approx(0.65)
+    assert result.decoded_timing_agreement.agrees
+
+
 def test_transition_seeded_search_rejects_non_strict_decoder_timing(
     profile: ControlProfile,
     exact_capture: tuple[np.ndarray, np.ndarray, np.ndarray],

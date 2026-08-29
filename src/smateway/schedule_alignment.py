@@ -602,7 +602,7 @@ def _decoded_agreement(
         3.0 * cycle_jitter_ms,
     )
     marker_tolerance = max(
-        config.bin_duration_ms + config.resolved_fine_phase_step_ms,
+        config.bin_duration_ms + 2.0 * config.resolved_fine_phase_step_ms,
         3.0 * marker_jitter_ms,
     )
     tolerance_epsilon = np.finfo(np.float64).eps * max(period, 1.0) * 8.0
