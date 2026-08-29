@@ -1,0 +1,234 @@
+{
+  "schema": 2,
+  "fixture_kind": "5g8_general_topology_stage_fixture",
+  "campaign_id": "REPLACE_CAMPAIGN_ID",
+  "comparable_fixture_group_id": "REPLACE_COMPARABLE_FIXTURE_GROUP_ID",
+  "stage": "direct_rx2_termination",
+  "board_id": "REPLACE_BOARD_ID",
+  "shared_fixture": {
+    "pluto": {
+      "id": "REPLACE_PLUTO_FIXTURE_ID",
+      "serial": "REPLACE_EXACT_PLUTO_SERIAL",
+      "port_map": {
+        "tx1": "TX1",
+        "tx2": "TX2",
+        "rx1": "RX1",
+        "rx2": "RX2"
+      }
+    },
+    "reference_planes": {
+      "tx1": "REPLACE_TX1_SMA_REFERENCE_PLANE_ID",
+      "rx1": "REPLACE_RX1_SMA_REFERENCE_PLANE_ID",
+      "rx2": "REPLACE_RX2_SMA_REFERENCE_PLANE_ID"
+    },
+    "tx1_reference_splitter": {
+      "id": "REPLACE_TWO_WAY_SPLITTER_ID",
+      "rated_min_frequency_hz": 2000000000,
+      "rated_max_frequency_hz": 8000000000,
+      "maximum_input_power_dbm": 20.0,
+      "port_map": {
+        "input": "IN",
+        "rx1_branch": "OUT1",
+        "stimulus_branch": "OUT2"
+      },
+      "characterization": {
+        "status": "uncharacterized",
+        "evidence_path": null,
+        "evidence_sha256": null,
+        "s_parameter_sha256": null,
+        "return_loss_db_at_5g8": null
+      }
+    },
+    "rx1_attenuator": {
+      "id": "REPLACE_RX1_ATTENUATOR_ID",
+      "rated_min_frequency_hz": 2000000000,
+      "rated_max_frequency_hz": 8000000000,
+      "maximum_input_power_dbm": 20.0,
+      "port_map": {
+        "input": "IN",
+        "output": "OUT"
+      },
+      "characterization": {
+        "status": "uncharacterized",
+        "evidence_path": null,
+        "evidence_sha256": null,
+        "s_parameter_sha256": null,
+        "return_loss_db_at_5g8": null
+      },
+      "attenuation_db": 30.0
+    },
+    "tx2_termination": {
+      "id": "REPLACE_TX2_TERMINATION_ID",
+      "rated_min_frequency_hz": 2000000000,
+      "rated_max_frequency_hz": 8000000000,
+      "maximum_input_power_dbm": 20.0,
+      "port_map": {"load": "LOAD"},
+      "characterization": {
+        "status": "uncharacterized",
+        "evidence_path": null,
+        "evidence_sha256": null,
+        "s_parameter_sha256": null,
+        "return_loss_db_at_5g8": null
+      },
+      "impedance_ohm": 50.0
+    },
+    "connections": {
+      "tx1_to_splitter": {
+        "id": "REPLACE_TX1_TO_SPLITTER_CONNECTION_ID",
+        "from": {"component_id": "REPLACE_PLUTO_FIXTURE_ID", "port_id": "TX1"},
+        "to": {"component_id": "REPLACE_TWO_WAY_SPLITTER_ID", "port_id": "IN"},
+        "interconnect": {
+          "id": "REPLACE_TX1_TO_SPLITTER_CABLE_ID",
+          "kind": "coaxial_cable",
+          "rated_min_frequency_hz": 2000000000,
+          "rated_max_frequency_hz": 8000000000,
+          "maximum_input_power_dbm": 20.0,
+          "characterization": {
+            "status": "uncharacterized",
+            "evidence_path": null,
+            "evidence_sha256": null,
+            "s_parameter_sha256": null,
+            "return_loss_db_at_5g8": null
+          }
+        }
+      },
+      "splitter_to_rx1_attenuator": {
+        "id": "REPLACE_SPLITTER_TO_ATTENUATOR_CONNECTION_ID",
+        "from": {"component_id": "REPLACE_TWO_WAY_SPLITTER_ID", "port_id": "OUT1"},
+        "to": {"component_id": "REPLACE_RX1_ATTENUATOR_ID", "port_id": "IN"},
+        "interconnect": {
+          "id": "REPLACE_SPLITTER_TO_ATTENUATOR_CABLE_ID",
+          "kind": "coaxial_cable",
+          "rated_min_frequency_hz": 2000000000,
+          "rated_max_frequency_hz": 8000000000,
+          "maximum_input_power_dbm": 20.0,
+          "characterization": {
+            "status": "uncharacterized",
+            "evidence_path": null,
+            "evidence_sha256": null,
+            "s_parameter_sha256": null,
+            "return_loss_db_at_5g8": null
+          }
+        }
+      },
+      "rx1_attenuator_to_rx1": {
+        "id": "REPLACE_ATTENUATOR_TO_RX1_CONNECTION_ID",
+        "from": {"component_id": "REPLACE_RX1_ATTENUATOR_ID", "port_id": "OUT"},
+        "to": {"component_id": "REPLACE_PLUTO_FIXTURE_ID", "port_id": "RX1"},
+        "interconnect": {
+          "id": "REPLACE_ATTENUATOR_TO_RX1_CABLE_ID",
+          "kind": "coaxial_cable",
+          "rated_min_frequency_hz": 2000000000,
+          "rated_max_frequency_hz": 8000000000,
+          "maximum_input_power_dbm": 20.0,
+          "characterization": {
+            "status": "uncharacterized",
+            "evidence_path": null,
+            "evidence_sha256": null,
+            "s_parameter_sha256": null,
+            "return_loss_db_at_5g8": null
+          }
+        }
+      },
+      "tx2_to_termination": {
+        "id": "REPLACE_TX2_TO_TERMINATION_CONNECTION_ID",
+        "from": {"component_id": "REPLACE_PLUTO_FIXTURE_ID", "port_id": "TX2"},
+        "to": {"component_id": "REPLACE_TX2_TERMINATION_ID", "port_id": "LOAD"},
+        "interconnect": {
+          "id": "REPLACE_TX2_TERMINATION_ADAPTER_ID",
+          "kind": "direct_adapter",
+          "rated_min_frequency_hz": 2000000000,
+          "rated_max_frequency_hz": 8000000000,
+          "maximum_input_power_dbm": 20.0,
+          "characterization": {
+            "status": "uncharacterized",
+            "evidence_path": null,
+            "evidence_sha256": null,
+            "s_parameter_sha256": null,
+            "return_loss_db_at_5g8": null
+          }
+        }
+      }
+    }
+  },
+  "stage_delta": {
+    "schema": 1,
+    "delta_id": "REPLACE_STAGE_A_DELTA_ID",
+    "selector_rf_state": "rf_disconnected",
+    "selector_power_state": "bench_power_off",
+    "selector_control_harness_state": "disconnected",
+    "components": {
+      "tx1_stimulus_termination": {
+        "id": "REPLACE_TX1_STIMULUS_TERMINATION_ID",
+        "rated_min_frequency_hz": 2000000000,
+        "rated_max_frequency_hz": 8000000000,
+        "maximum_input_power_dbm": 20.0,
+        "port_map": {"load": "LOAD"},
+        "characterization": {
+          "status": "uncharacterized",
+          "evidence_path": null,
+          "evidence_sha256": null,
+          "s_parameter_sha256": null,
+          "return_loss_db_at_5g8": null
+        },
+        "impedance_ohm": 50.0
+      },
+      "rx2_termination": {
+        "id": "REPLACE_DIRECT_RX2_TERMINATION_ID",
+        "rated_min_frequency_hz": 2000000000,
+        "rated_max_frequency_hz": 8000000000,
+        "maximum_input_power_dbm": 20.0,
+        "port_map": {"load": "LOAD"},
+        "characterization": {
+          "status": "uncharacterized",
+          "evidence_path": null,
+          "evidence_sha256": null,
+          "s_parameter_sha256": null,
+          "return_loss_db_at_5g8": null
+        },
+        "impedance_ohm": 50.0
+      }
+    },
+    "connections": {
+      "splitter_stimulus_to_termination": {
+        "id": "REPLACE_STIMULUS_TERMINATION_CONNECTION_ID",
+        "from": {"component_id": "REPLACE_TWO_WAY_SPLITTER_ID", "port_id": "OUT2"},
+        "to": {"component_id": "REPLACE_TX1_STIMULUS_TERMINATION_ID", "port_id": "LOAD"},
+        "interconnect": {
+          "id": "REPLACE_STIMULUS_TERMINATION_ADAPTER_ID",
+          "kind": "direct_adapter",
+          "rated_min_frequency_hz": 2000000000,
+          "rated_max_frequency_hz": 8000000000,
+          "maximum_input_power_dbm": 20.0,
+          "characterization": {
+            "status": "uncharacterized",
+            "evidence_path": null,
+            "evidence_sha256": null,
+            "s_parameter_sha256": null,
+            "return_loss_db_at_5g8": null
+          }
+        }
+      },
+      "rx2_to_direct_termination": {
+        "id": "REPLACE_DIRECT_RX2_TERMINATION_CONNECTION_ID",
+        "from": {"component_id": "REPLACE_PLUTO_FIXTURE_ID", "port_id": "RX2"},
+        "to": {"component_id": "REPLACE_DIRECT_RX2_TERMINATION_ID", "port_id": "LOAD"},
+        "interconnect": {
+          "id": "REPLACE_DIRECT_RX2_TERMINATION_ADAPTER_ID",
+          "kind": "direct_adapter",
+          "rated_min_frequency_hz": 2000000000,
+          "rated_max_frequency_hz": 8000000000,
+          "maximum_input_power_dbm": 20.0,
+          "characterization": {
+            "status": "uncharacterized",
+            "evidence_path": null,
+            "evidence_sha256": null,
+            "s_parameter_sha256": null,
+            "return_loss_db_at_5g8": null
+          }
+        }
+      }
+    }
+  },
+  "prior_stage_binding": null
+}

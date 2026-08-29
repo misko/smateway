@@ -66,6 +66,7 @@ def _matrix_identity() -> dict[str, Any]:
         "pluto_serial": "pluto-a",
         "smateway_commit": "1" * 40,
         "pluto_plus_utils_source_attestation_sha256": _digest(1),
+        "native_libiio_runtime_attestation_sha256": _digest(12),
         "bench_manifest_sha256": _digest(2),
         "bench_elf_sha256": _digest(3),
         "bench_bin_sha256": _digest(4),
@@ -289,8 +290,7 @@ def test_raw_detection_without_amplitude_or_phase_is_rejected() -> None:
     intended = next(
         result
         for result in results
-        if result["selector_state_name"] == "ANT3"
-        and result["tx_hardware_gain_db"] == -10.0
+        if result["selector_state_name"] == "ANT3" and result["tx_hardware_gain_db"] == -10.0
     )
     intended["rx2_over_rx1"]["phase_deg"] = None
 
@@ -303,8 +303,7 @@ def test_absent_tone_requires_consistent_finite_bound_and_measurement_flags() ->
     absent = next(
         result
         for result in results
-        if result["selector_state_name"] == "ANT2"
-        and result["tx_hardware_gain_db"] == -10.0
+        if result["selector_state_name"] == "ANT2" and result["tx_hardware_gain_db"] == -10.0
     )
     absent["rx2_over_rx1"]["amplitude_upper_bound_ratio"] = None
     absent["rx2_over_rx1"]["amplitude_upper_bound_db"] = None
@@ -329,9 +328,7 @@ def test_absent_tone_requires_consistent_finite_bound_and_measurement_flags() ->
 
     inconsistent_phasor = _row("ANT3")
     detected = next(
-        result
-        for result in inconsistent_phasor
-        if result["selector_state_name"] == "ANT3"
+        result for result in inconsistent_phasor if result["selector_state_name"] == "ANT3"
     )
     detected["rx2_over_rx1"]["phase_deg"] += 1.0
     with pytest.raises(ValueError, match="phase contradicts"):
@@ -405,9 +402,7 @@ def test_matrix_rejects_bare_results_and_cross_row_artifact_reuse() -> None:
             attribution_gain_db=ATTRIBUTION_GAIN,
         )
 
-    rows[1]["results"][0]["artifact_data_sha256"] = rows[0]["results"][0][
-        "artifact_data_sha256"
-    ]
+    rows[1]["results"][0]["artifact_data_sha256"] = rows[0]["results"][0]["artifact_data_sha256"]
     with pytest.raises(ValueError, match="reuses a raw artifact"):
         summarize_complete_one_hot_matrix(
             [_seal_verified_one_hot_row_bundle(row) for row in rows],

@@ -25,8 +25,15 @@ _PINNED_PYTHON = Path("/home/pi/pluto-plus-utils/.venv/bin/python")
 _PINNED_PREFIX = Path("/home/pi/pluto-plus-utils/.venv")
 _REPOSITORY = Path(__file__).resolve().parents[1]
 _SMATEWAY_SOURCE = _REPOSITORY / "src"
+_REQUIRED_LIBIIO_BOOTSTRAP_DIRECTORY = Path("/usr/local/lib")
+_loader_directories = tuple(
+    Path(item).resolve() for item in os.environ.get("LD_LIBRARY_PATH", "").split(os.pathsep) if item
+)
 if __name__ == "__main__" and (
-    Path(sys.prefix).resolve() != _PINNED_PREFIX or str(_SMATEWAY_SOURCE) not in sys.path
+    Path(sys.prefix).resolve() != _PINNED_PREFIX
+    or str(_SMATEWAY_SOURCE) not in sys.path
+    or not _loader_directories
+    or _loader_directories[0] != _REQUIRED_LIBIIO_BOOTSTRAP_DIRECTORY
 ):
     if not _PINNED_PYTHON.is_file() or not os.access(_PINNED_PYTHON, os.X_OK):
         raise SystemExit(f"pinned capture Python is not executable: {_PINNED_PYTHON}")
@@ -36,6 +43,15 @@ if __name__ == "__main__" and (
         str(_SMATEWAY_SOURCE)
         if not prior_pythonpath
         else f"{_SMATEWAY_SOURCE}{os.pathsep}{prior_pythonpath}"
+    )
+    prior_loader_path = environment.get("LD_LIBRARY_PATH", "")
+    loader_entries = [
+        item
+        for item in prior_loader_path.split(os.pathsep)
+        if item and Path(item).resolve() != _REQUIRED_LIBIIO_BOOTSTRAP_DIRECTORY
+    ]
+    environment["LD_LIBRARY_PATH"] = os.pathsep.join(
+        (str(_REQUIRED_LIBIIO_BOOTSTRAP_DIRECTORY), *loader_entries)
     )
     os.execve(
         str(_PINNED_PYTHON),
@@ -62,6 +78,19 @@ from smateway.hexcal import (
     write_json_atomic,
 )
 from smateway.leakage_ladder import analyze_coherent_leakage
+from smateway.native_iio_attestation import (
+    REQUIRED_LIBIIO_DIRECTORY,
+    REQUIRED_LIBIIO_PATH as REQUIRED_LIBIIO_PATH,
+    REQUIRED_LIBIIO_SHA256 as REQUIRED_LIBIIO_SHA256,
+    REQUIRED_LIBIIO_SYMBOLS as REQUIRED_LIBIIO_SYMBOLS,
+    REQUIRED_LIBIIO_VERSION as REQUIRED_LIBIIO_VERSION,
+    RuntimeAttestationBoundary,
+    attest_runtime,
+    attestation_sha256,
+    call_runtime_preflight,
+    runtime_preflight_passed,
+    validate_runtime_attestation,
+)
 from smateway.one_hot_ladder import (
     ALL_OFF_STATE,
     ANTENNA_STATES,
@@ -82,6 +111,9 @@ from smateway.one_hot_ladder import (
 from smateway.ota_analysis import estimate_coherent_pilot_offset
 from smateway.profile import load_profile
 
+if REQUIRED_LIBIIO_DIRECTORY != _REQUIRED_LIBIIO_BOOTSTRAP_DIRECTORY:
+    raise RuntimeError("native libiio bootstrap and attestation paths differ")
+
 DEFAULT_BOARD_ID = leakage.DEFAULT_BOARD_ID
 SELECTED_STATE_LEASE_MS = 5_000
 ATTRIBUTION_TX_HARDWARE_GAIN_DB = -20.0
@@ -89,11 +121,25 @@ ATTRIBUTION_REPEAT_COUNT = 3
 MINIMUM_DETECTED_ATTRIBUTION_REPEATS = 3
 PLAN_FILENAME = "plan.json"
 MANIFEST_FILENAME = "manifest.json"
+RUN_STATE_DIRECTORY = ".run-state"
+RUN_STATE_EVENT_KIND = "5g8_one_hot_run_state_event"
+RUN_STATE_EVENT_PATTERN = re.compile(r"(?P<revision>[0-9]{20})\.json")
+RUN_STARTED_TOMBSTONE = "execution-started.json"
+RUN_FAILED_TOMBSTONE = "failed.json"
 CONDITION_RECORD_NAME = "5g8-one-hot-path-condition.json"
 BASE_TEMPLATE_STAGE = "powered_selector_all_inputs_terminated"
 BENCH_FLASH_BASE_ADDRESS = 0x08000000
 GPIOA_ODR_ADDRESS = 0x50000014
 SELECTOR_GPIO_MASK = 0xF
+ALL_OFF_CLEANUP_PURPOSES = frozenset(
+    {
+        "cleanup_all_off",
+        "final_cleanup_all_off",
+        "preflight_cleanup_all_off",
+        "resume_cleanup_all_off",
+        "identity_failure_cleanup_all_off",
+    }
+)
 MINIMUM_SELECTED_HOLD_LEASE_DECREMENT_MS = int(
     0.5 * 1_000 * leakage.TOTAL_SAMPLES / leakage.SAMPLE_RATE_HZ
 )
@@ -125,6 +171,24 @@ def _now() -> str:
     return leakage._now()
 
 
+def _native_runtime_from_contract(
+    contract: Mapping[str, Any],
+) -> tuple[dict[str, Any], str]:
+    source = contract.get("source")
+    if not isinstance(source, Mapping):
+        raise OneHotLadderError("immutable one-hot plan lacks source identity")
+    try:
+        runtime = validate_runtime_attestation(source.get("native_libiio_runtime_attestation"))
+        runtime_sha256 = attestation_sha256(runtime)
+    except (TypeError, ValueError) as error:
+        raise OneHotLadderError(
+            "immutable one-hot plan lacks exact native libiio attestation"
+        ) from error
+    if source.get("native_libiio_runtime_attestation_sha256") != runtime_sha256:
+        raise OneHotLadderError("immutable one-hot native libiio attestation hash differs")
+    return runtime, runtime_sha256
+
+
 def _fixture_identity_contract(value: Mapping[str, Any]) -> dict[str, Any]:
     shared = value.get("shared_hardware")
     evidence = value.get("setup_evidence")
@@ -140,8 +204,7 @@ def _fixture_identity_contract(value: Mapping[str, Any]) -> dict[str, Any]:
     if set(shared) != required_shared:
         raise ValueError("one-hot shared fixture identifiers are incomplete")
     normalized_shared = {
-        key: leakage._validate_identifier(str(shared[key]), key)
-        for key in sorted(required_shared)
+        key: leakage._validate_identifier(str(shared[key]), key) for key in sorted(required_shared)
     }
     evidence_path = evidence.get("path")
     if not isinstance(evidence_path, str) or not evidence_path:
@@ -199,10 +262,7 @@ def _matrix_identity_from_contract(contract: Mapping[str, Any]) -> dict[str, Any
     bench_manifest = selector.get("bench_manifest")
     openocd = selector.get("openocd_config")
     profile = selector.get("control_profile")
-    if not all(
-        isinstance(item, Mapping)
-        for item in (binding, bench_manifest, openocd, profile)
-    ):
+    if not all(isinstance(item, Mapping) for item in (binding, bench_manifest, openocd, profile)):
         raise ValueError("one-hot selector identity is incomplete")
     assert isinstance(binding, Mapping)
     assert isinstance(bench_manifest, Mapping)
@@ -213,14 +273,14 @@ def _matrix_identity_from_contract(contract: Mapping[str, Any]) -> dict[str, Any
     reproducible = binding.get("reproducible_source_build")
     provenance = binding.get("profile_provenance")
     if not all(
-        isinstance(item, Mapping)
-        for item in (bench_elf, bench_bin, reproducible, provenance)
+        isinstance(item, Mapping) for item in (bench_elf, bench_bin, reproducible, provenance)
     ):
         raise ValueError("one-hot bench/profile identity is incomplete")
     assert isinstance(bench_elf, Mapping)
     assert isinstance(bench_bin, Mapping)
     assert isinstance(reproducible, Mapping)
     assert isinstance(provenance, Mapping)
+    _, native_runtime_sha256 = _native_runtime_from_contract(contract)
     acquisition = {
         key: value
         for key, value in configuration.items()
@@ -248,12 +308,11 @@ def _matrix_identity_from_contract(contract: Mapping[str, Any]) -> dict[str, Any
             "pluto_plus_utils_source_attestation_sha256": source.get(
                 "pluto_plus_utils_source_attestation_sha256"
             ),
+            "native_libiio_runtime_attestation_sha256": native_runtime_sha256,
             "bench_manifest_sha256": bench_manifest.get("file_sha256"),
             "bench_elf_sha256": bench_elf.get("file_sha256"),
             "bench_bin_sha256": bench_bin.get("file_sha256"),
-            "bench_protocol_sha256": reproducible.get(
-                "tracked_bench_protocol_sha256"
-            ),
+            "bench_protocol_sha256": reproducible.get("tracked_bench_protocol_sha256"),
             "bench_verifier_sha256": reproducible.get("verifier_sha256"),
             "openocd_config_sha256": openocd.get("file_sha256"),
             "control_profile_contract_sha256": profile.get("contract_sha256"),
@@ -294,9 +353,7 @@ def _selector_states_from_control(
 
 def _sha256_contract(value: object, label: str) -> str:
     digest = str(value)
-    if len(digest) != 64 or any(
-        character not in "0123456789abcdef" for character in digest
-    ):
+    if len(digest) != 64 or any(character not in "0123456789abcdef" for character in digest):
         raise ValueError(f"{label} SHA-256 is malformed")
     return digest
 
@@ -388,9 +445,9 @@ def _bench_profile_binding_contract(
     elf_sha256 = sha256_path(elf_path)
     if elf_sha256 != manifest.elf_sha256:
         raise ValueError("bench ELF does not match the bench manifest ELF SHA-256")
-    protocol_path = (
-        _REPOSITORY / "firmware/stm32c011/apps/bench/bench_protocol.h"
-    ).resolve(strict=True)
+    protocol_path = (_REPOSITORY / "firmware/stm32c011/apps/bench/bench_protocol.h").resolve(
+        strict=True
+    )
     protocol_sha256 = sha256_path(protocol_path)
     if manifest_json.get("protocol_sha256") != protocol_sha256:
         raise ValueError("bench manifest protocol hash differs from tracked source")
@@ -419,9 +476,7 @@ def _bench_profile_binding_contract(
     with tempfile.TemporaryDirectory(prefix="one-hot-reproducible-bench-") as temporary:
         rebuild_root = Path(temporary) / "build"
         rebuild_bin = rebuild_root / "STM32C011F4P6/bench/pluto_bench.bin"
-        rebuild_manifest = (
-            rebuild_root / "STM32C011F4P6/bench/pluto_bench.manifest.json"
-        )
+        rebuild_manifest = rebuild_root / "STM32C011F4P6/bench/pluto_bench.manifest.json"
         subprocess.run(
             (
                 "make",
@@ -437,12 +492,9 @@ def _bench_profile_binding_contract(
         )
         rebuilt_bin_sha256 = sha256_path(rebuild_bin)
         if rebuild_bin.read_bytes() != bin_path.read_bytes():
-            raise ValueError(
-                "supplied bench BIN differs from an independent clean-source rebuild"
-            )
+            raise ValueError("supplied bench BIN differs from an independent clean-source rebuild")
     expected_schedule = b"".join(
-        bytes((state.gpio_code, 0)) + struct.pack("<H", state.dwell_ms)
-        for state in profile.states
+        bytes((state.gpio_code, 0)) + struct.pack("<H", state.dwell_ms) for state in profile.states
     )
     observed_schedule = _extract_control_schedule(elf_path)
     if (
@@ -582,8 +634,7 @@ def _validate_one_hot_selector_control(value: Mapping[str, Any]) -> dict[str, An
     schedule = binding.get("control_schedule")
     if (
         binding.get("schema") != 1
-        or binding.get("binding_kind")
-        != "profile_json_header_provenance_to_bench_elf_schedule"
+        or binding.get("binding_kind") != "profile_json_header_provenance_to_bench_elf_schedule"
         or not all(
             isinstance(item, Mapping)
             for item in (elf, bench_bin, provenance, reproducible, schedule)
@@ -623,8 +674,7 @@ def _validate_one_hot_selector_control(value: Mapping[str, Any]) -> dict[str, An
         or schedule.get("size_bytes") != 32
         or schedule.get("bytes_hex") != schedule.get("expected_bytes_hex")
         or schedule.get("state_names") != list(ANTENNA_STATES)
-        or schedule.get("gpio_codes")
-        != [int(state["gpio_code"]) for state in states[1:]]
+        or schedule.get("gpio_codes") != [int(state["gpio_code"]) for state in states[1:]]
         or not isinstance(schedule.get("dwell_ms"), list)
         or len(schedule["dwell_ms"]) != 8
     ):
@@ -642,6 +692,7 @@ def _build_plan_contract(
     driven_input: str,
     source_commit: str,
     pluto_plus_utils_source_attestation: Mapping[str, Any],
+    native_libiio_runtime_attestation: Mapping[str, Any],
     selector_control: Mapping[str, Any],
     fixture_identity: Mapping[str, Any],
 ) -> dict[str, Any]:
@@ -651,6 +702,7 @@ def _build_plan_contract(
     if not isinstance(reproducible, Mapping) or reproducible.get("source_commit") != source_commit:
         raise ValueError("bench reproducible build is not bound to the plan source commit")
     fixture = _fixture_identity_contract(fixture_identity)
+    native_runtime = validate_runtime_attestation(native_libiio_runtime_attestation)
     base = leakage._build_plan_contract(
         run_id=run_id,
         board_id=board_id,
@@ -659,7 +711,9 @@ def _build_plan_contract(
         stage=BASE_TEMPLATE_STAGE,
         source_commit=source_commit,
         pluto_plus_utils_source_attestation=pluto_plus_utils_source_attestation,
+        native_libiio_runtime_attestation=native_runtime,
         selector_control=control,
+        freeze_attribution_repeats=False,
     )
     templates = {
         float(condition["tx_hardware_gain_db"]): condition for condition in base["conditions"]
@@ -673,9 +727,7 @@ def _build_plan_contract(
             state_name = str(state["name"])
             state_code = int(state["gpio_code"])
             repeat_count = (
-                ATTRIBUTION_REPEAT_COUNT
-                if gain_db == ATTRIBUTION_TX_HARDWARE_GAIN_DB
-                else 1
+                ATTRIBUTION_REPEAT_COUNT if gain_db == ATTRIBUTION_TX_HARDWARE_GAIN_DB else 1
             )
             for repeat_index in range(repeat_count):
                 condition = dict(template)
@@ -701,9 +753,7 @@ def _build_plan_contract(
                         "repeat_index": repeat_index,
                         "repeat_count_at_gain": repeat_count,
                         "independent_fresh_stream_repeat": True,
-                        "attribution_gain_condition": (
-                            gain_db == ATTRIBUTION_TX_HARDWARE_GAIN_DB
-                        ),
+                        "attribution_gain_condition": (gain_db == ATTRIBUTION_TX_HARDWARE_GAIN_DB),
                         "selector_state_hold_mode": "static_mailbox_lease",
                         "selector_selected_state_lease_ms": (
                             0 if state_name == ALL_OFF_STATE else SELECTED_STATE_LEASE_MS
@@ -763,19 +813,13 @@ def _build_plan_contract(
             "selector_state_order": list(ONE_HOT_STATE_ORDER),
             "selector_state_count": len(ONE_HOT_STATE_ORDER),
             "selected_state_lease_ms": SELECTED_STATE_LEASE_MS,
-            "minimum_selected_hold_lease_decrement_ms": (
-                MINIMUM_SELECTED_HOLD_LEASE_DECREMENT_MS
-            ),
+            "minimum_selected_hold_lease_decrement_ms": (MINIMUM_SELECTED_HOLD_LEASE_DECREMENT_MS),
             "conditions_per_non_attribution_gain": len(ONE_HOT_STATE_ORDER),
-            "conditions_at_attribution_gain": (
-                len(ONE_HOT_STATE_ORDER) * ATTRIBUTION_REPEAT_COUNT
-            ),
+            "conditions_at_attribution_gain": (len(ONE_HOT_STATE_ORDER) * ATTRIBUTION_REPEAT_COUNT),
             "condition_count": len(conditions),
             "attribution_tx_hardware_gain_db": ATTRIBUTION_TX_HARDWARE_GAIN_DB,
             "attribution_repeat_count": ATTRIBUTION_REPEAT_COUNT,
-            "minimum_detected_attribution_repeats": (
-                MINIMUM_DETECTED_ATTRIBUTION_REPEATS
-            ),
+            "minimum_detected_attribution_repeats": (MINIMUM_DETECTED_ATTRIBUTION_REPEATS),
             "minimum_intended_through_contrast_over_all_off_db": (
                 DEFAULT_MINIMUM_INTENDED_THROUGH_CONTRAST_OVER_ALL_OFF_DB
             ),
@@ -890,9 +934,7 @@ def _validate_confirmations(
         "--confirm-single-driven-input": single_driven_input,
         "--confirm-other-seven-terminated": other_seven_terminated,
         "--confirm-no-simultaneous-eight-way-feed": no_simultaneous_eight_way_feed,
-        "--confirm-attribution-repeats-no-cable-movement": (
-            attribution_repeats_no_cable_movement
-        ),
+        "--confirm-attribution-repeats-no-cable-movement": (attribution_repeats_no_cable_movement),
     }
     missing = [flag for flag, passed in required.items() if not passed]
     if missing:
@@ -996,9 +1038,7 @@ def _live_target_image_attestation(
     with tempfile.TemporaryDirectory(prefix="one-hot-target-flash-") as temporary:
         target_dump = Path(temporary) / "target-flash.bin"
         command = (
-            "init; reset halt; "
-            f"dump_image {target_dump} 0x{flash_address:x} {byte_count}; "
-            "shutdown"
+            f"init; reset halt; dump_image {target_dump} 0x{flash_address:x} {byte_count}; shutdown"
         )
         try:
             subprocess.run(
@@ -1055,9 +1095,7 @@ def _live_target_image_attestation(
         "started_at": started_at,
         "completed_at": _now(),
         "error": (
-            None
-            if passed
-            else {"type": "TargetImageMismatch", "message": "target flash differs"}
+            None if passed else {"type": "TargetImageMismatch", "message": "target flash differs"}
         ),
     }
 
@@ -1076,13 +1114,17 @@ def _call_target_image_attestation(
             "completed_at": _now(),
             "error": leakage._error_document(error),
         }
-    return result if isinstance(result, dict) else {
-        "schema": 1,
-        "evidence_kind": "exact_target_flash_readback_against_elf_bound_bench_bin",
-        "status": "failed",
-        "completed_at": _now(),
-        "error": {"type": "InvalidTargetImageAttestation", "message": "not an object"},
-    }
+    return (
+        result
+        if isinstance(result, dict)
+        else {
+            "schema": 1,
+            "evidence_kind": "exact_target_flash_readback_against_elf_bound_bench_bin",
+            "status": "failed",
+            "completed_at": _now(),
+            "error": {"type": "InvalidTargetImageAttestation", "message": "not an object"},
+        }
+    )
 
 
 def _target_image_passed(
@@ -1098,8 +1140,7 @@ def _target_image_passed(
     return (
         isinstance(value, Mapping)
         and value.get("schema") == 1
-        and value.get("evidence_kind")
-        == "exact_target_flash_readback_against_elf_bound_bench_bin"
+        and value.get("evidence_kind") == "exact_target_flash_readback_against_elf_bound_bench_bin"
         and value.get("status") == "passed"
         and value.get("flash_base_address") == bench_bin.get("flash_base_address")
         and value.get("byte_count") == bench_bin.get("size_bytes")
@@ -1152,12 +1193,7 @@ def _live_selector_boundary(
         expected_code = state_code
         command_lease_ms = 0 if state_name == ALL_OFF_STATE else selected_lease_ms
         readback = controller.status()
-    elif purpose in {
-        "cleanup_all_off",
-        "final_cleanup_all_off",
-        "resume_cleanup_all_off",
-        "identity_failure_cleanup_all_off",
-    }:
+    elif purpose in ALL_OFF_CLEANUP_PURPOSES:
         expected_name = ALL_OFF_STATE
         expected_code = all_off_code
         command_lease_ms = 0
@@ -1291,12 +1327,7 @@ def _selector_passed(
     purpose: str,
 ) -> bool:
     states = _state_map(selector_control)
-    cleanup = purpose in {
-        "cleanup_all_off",
-        "final_cleanup_all_off",
-        "resume_cleanup_all_off",
-        "identity_failure_cleanup_all_off",
-    }
+    cleanup = purpose in ALL_OFF_CLEANUP_PURPOSES
     expected_name = ALL_OFF_STATE if cleanup else state_name
     expected_code = states[ALL_OFF_STATE] if cleanup else state_code
     if not (
@@ -1373,9 +1404,7 @@ def _selector_hold_command_unchanged(
 ) -> bool:
     """Prove no mailbox command replaced the selected hold during RF capture."""
 
-    if not isinstance(before_condition, Mapping) or not isinstance(
-        after_pluto_mute, Mapping
-    ):
+    if not isinstance(before_condition, Mapping) or not isinstance(after_pluto_mute, Mapping):
         return False
     before = before_condition.get("readback")
     after = after_pluto_mute.get("readback")
@@ -1406,8 +1435,42 @@ def _selector_hold_command_unchanged(
         isinstance(lease_ms, int)
         and lease_ms > 0
         and after_remaining >= 0
-        and before_remaining - after_remaining
-        >= MINIMUM_SELECTED_HOLD_LEASE_DECREMENT_MS
+        and before_remaining - after_remaining >= MINIMUM_SELECTED_HOLD_LEASE_DECREMENT_MS
+    )
+
+
+def _move_and_seal_one_hot_artifact(
+    source: Path,
+    *,
+    capture_root: Path,
+    destination_name: str,
+    artifact_id: str,
+    error: BaseException,
+    context: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Move one direct run artifact into the verified quarantine root and seal it."""
+
+    _assert_path_chain_has_no_symlink(source, label="failed one-hot artifact path")
+    exact_capture_root, exact_failed_root = _safe_quarantine_parent(capture_root)
+    exact_source = _assert_tree_has_no_symlink(
+        source,
+        label="failed one-hot artifact tree",
+    )
+    if exact_source.parent != exact_capture_root:
+        raise OneHotLadderError("failed one-hot artifact resolves outside its immutable run root")
+    destination = exact_failed_root / destination_name
+    if _path_lexists(destination):
+        raise OneHotLadderError("failed one-hot artifact destination already exists")
+    os.replace(exact_source, destination)
+    _require_safe_quarantine_tree(
+        destination,
+        expected_parent=exact_failed_root,
+    )
+    return leakage._seal_failed_directory(
+        destination,
+        artifact_id=artifact_id,
+        error=error,
+        context=context,
     )
 
 
@@ -1422,6 +1485,7 @@ def _capture_condition(
     mute_boundary: leakage.MuteBoundary = leakage._strict_mute,
     selector_boundary: OneHotSelectorBoundary = _live_selector_boundary,
 ) -> dict[str, Any]:
+    native_runtime, native_runtime_sha256 = _native_runtime_from_contract(contract)
     selector_control = contract.get("selector_control")
     if not isinstance(selector_control, Mapping):
         raise OneHotLadderError("one-hot condition lacks selector control")
@@ -1432,8 +1496,7 @@ def _capture_condition(
     if (
         condition.get("driven_input") != driven_input
         or condition.get("topology_identity") != TOPOLOGY_IDENTITY
-        or condition.get("physical_cell_role")
-        != one_hot_cell_role(driven_input, state_name)
+        or condition.get("physical_cell_role") != one_hot_cell_role(driven_input, state_name)
         or condition.get("fixture_identity") != fixture
     ):
         raise OneHotLadderError("condition driven input differs from immutable contract")
@@ -1460,6 +1523,8 @@ def _capture_condition(
         "driven_input": driven_input,
         "fixture_identity": fixture,
         "immutable_plan": dict(plan_evidence),
+        "native_libiio_runtime_attestation": native_runtime,
+        "native_libiio_runtime_attestation_sha256": native_runtime_sha256,
         "selector_calibration_claim": False,
     }
     selector_before = _call_selector(
@@ -1670,6 +1735,8 @@ def _capture_condition(
             "causal_attribution_claim": False,
             "operational_switching_claim": False,
             "immutable_plan": dict(plan_evidence),
+            "native_libiio_runtime_attestation": native_runtime,
+            "native_libiio_runtime_attestation_sha256": native_runtime_sha256,
             "condition": dict(condition),
             "topology": {
                 "identity": contract["topology_identity"],
@@ -1737,6 +1804,8 @@ def _capture_condition(
             "driven_input": driven_input,
             "fixture_identity": fixture,
             "immutable_plan": dict(plan_evidence),
+            "native_libiio_runtime_attestation": native_runtime,
+            "native_libiio_runtime_attestation_sha256": native_runtime_sha256,
             "physical_cell_role": one_hot_cell_role(driven_input, state_name),
             "selector_state_name": state_name,
             "selector_gpio_code": state_code,
@@ -1776,33 +1845,74 @@ def _capture_condition(
     except BaseException as error:
         context["post_capture_error"] = leakage._error_document(error)
         if artifact is not None:
-            source = Path(artifact.path)
-            failed_root = capture_root / ".failed"
-            failed_root.mkdir(parents=True, exist_ok=True)
-            destination = failed_root / f"{artifact.artifact_id}.failed"
-            if source.exists():
-                os.replace(source, destination)
-            quarantine = leakage._seal_failed_directory(
-                destination,
+            quarantine = _move_and_seal_one_hot_artifact(
+                Path(artifact.path),
+                capture_root=capture_root,
+                destination_name=f"{artifact.artifact_id}.failed",
                 artifact_id=artifact.artifact_id,
                 error=error,
                 context=context,
             )
         elif writer is not None:
             finalized_candidate = capture_root / writer.artifact_id
-            if finalized_candidate.exists():
-                failed_root = capture_root / ".failed"
-                failed_root.mkdir(parents=True, exist_ok=True)
-                destination = failed_root / f"{writer.artifact_id}.failed"
-                os.replace(finalized_candidate, destination)
+            if _path_lexists(finalized_candidate):
+                quarantine = _move_and_seal_one_hot_artifact(
+                    finalized_candidate,
+                    capture_root=capture_root,
+                    destination_name=f"{writer.artifact_id}.failed",
+                    artifact_id=writer.artifact_id,
+                    error=error,
+                    context=context,
+                )
             else:
+                exact_capture_root, exact_failed_root = _safe_quarantine_parent(capture_root)
+                raw_partial_root = capture_root / ".partial"
+                _assert_path_chain_has_no_symlink(
+                    raw_partial_root,
+                    label="one-hot partial-artifact root",
+                )
+                exact_partial_root = raw_partial_root.resolve(strict=True)
+                if (
+                    not exact_partial_root.is_dir()
+                    or exact_partial_root.parent != exact_capture_root
+                ):
+                    raise OneHotLadderError(
+                        "one-hot partial-artifact root resolves outside the capture root"
+                    ) from error
+                partial_candidate = raw_partial_root / writer.artifact_id
+                if _path_lexists(partial_candidate):
+                    exact_partial_candidate = _assert_tree_has_no_symlink(
+                        partial_candidate,
+                        label="one-hot partial artifact tree",
+                    )
+                    if exact_partial_candidate.parent != exact_partial_root:
+                        raise OneHotLadderError(
+                            "one-hot partial artifact resolves outside its partial root"
+                        ) from error
+                destination = exact_failed_root / writer.artifact_id
+                if _path_lexists(destination):
+                    raise OneHotLadderError(
+                        "failed one-hot artifact destination already exists"
+                    ) from error
                 destination = writer.fail(error)
-            quarantine = leakage._seal_failed_directory(
-                destination,
-                artifact_id=writer.artifact_id,
-                error=error,
-                context=context,
-            )
+                _assert_path_chain_has_no_symlink(
+                    destination,
+                    label="writer failed-artifact path",
+                )
+                exact_destination = _assert_tree_has_no_symlink(
+                    destination,
+                    label="writer failed-artifact tree",
+                )
+                if exact_destination.parent != exact_failed_root:
+                    raise OneHotLadderError(
+                        "writer failed artifact resolves outside the quarantine root"
+                    ) from error
+                quarantine = leakage._seal_failed_directory(
+                    exact_destination,
+                    artifact_id=writer.artifact_id,
+                    error=error,
+                    context=context,
+                )
         else:
             quarantine = leakage._persist_memory_quarantine(
                 capture_root,
@@ -1829,18 +1939,23 @@ def _new_manifest(plan_path: Path, envelope: Mapping[str, Any]) -> dict[str, Any
         "topology_identity": contract["topology_identity"],
         "driven_input": contract["driven_input"],
         "fixture_identity": contract["fixture_identity"],
-        "physical_confirmation_token": contract["stage_contract"][
-            "confirmation_token"
-        ],
+        "physical_confirmation_token": contract["stage_contract"]["confirmation_token"],
+        "state_revision": 0,
+        "execution_started": False,
         "status": "prepared",
         "created_at": _now(),
         "updated_at": _now(),
         "completed_at": None,
         "immutable_plan": leakage._plan_file_evidence(plan_path, envelope),
         "confirmations": [],
+        "native_runtime_preflight_attempts": [],
+        "native_runtime_preflight": None,
         "identity_preflight_attempts": [],
         "identity_preflight": None,
         "preflight_mute_attempts": [],
+        "preflight_mute": None,
+        "preflight_selector_cleanup_attempts": [],
+        "preflight_selector_cleanup": None,
         "target_image_preflight_attempts": [],
         "target_image_preflight": None,
         "attempts": [],
@@ -1887,15 +2002,522 @@ def _manifest_summary(manifest: Mapping[str, Any], condition_count: int) -> dict
     }
 
 
+_RUN_STATE_EVENT_FIELDS = {
+    "schema",
+    "event_kind",
+    "run_id",
+    "immutable_plan",
+    "state_revision",
+    "previous_event_sha256",
+    "transition_kind",
+    "manifest_file_sha256",
+    "manifest_size_bytes",
+    "manifest_status",
+    "execution_started",
+    "run_id_burned",
+    "attempt_count",
+    "created_at",
+}
+_RUN_TOMBSTONE_FIELDS = {
+    "schema",
+    "tombstone_kind",
+    "run_id",
+    "immutable_plan",
+    "created_at",
+}
+_MANIFEST_IDENTITY_FIELDS = (
+    "schema",
+    "run_kind",
+    "run_id",
+    "topology_identity",
+    "driven_input",
+    "fixture_identity",
+    "physical_confirmation_token",
+    "immutable_plan",
+    "selector_calibration_claim",
+    "causal_attribution_claim",
+    "operational_switching_claim",
+)
+_MANIFEST_STATUSES = {"prepared", "running", "conditions_complete", "complete", "failed"}
+
+
+def _path_lexists(path: Path) -> bool:
+    return os.path.lexists(path)
+
+
+def _assert_path_chain_has_no_symlink(path: Path, *, label: str) -> None:
+    """Reject a symlink in the raw path before resolving its provenance away."""
+
+    try:
+        leakage._assert_path_chain_has_no_symlink(path, label=label)
+    except leakage.LeakageLadderError as error:
+        raise OneHotLadderError(str(error)) from error
+
+
+def _assert_tree_has_no_symlink(root: Path, *, label: str) -> Path:
+    """Return an exact directory only after its raw chain and tree are symlink-free."""
+
+    try:
+        return leakage._assert_tree_has_no_symlink(root, label=label)
+    except leakage.LeakageLadderError as error:
+        raise OneHotLadderError(str(error)) from error
+
+
+def _safe_quarantine_parent(capture_root: Path) -> tuple[Path, Path]:
+    """Create or validate the capture and quarantine roots without following symlinks."""
+
+    try:
+        return leakage._safe_quarantine_parent(capture_root)
+    except leakage.LeakageLadderError as error:
+        raise OneHotLadderError(str(error)) from error
+
+
+def _require_real_directory(
+    path: Path,
+    *,
+    label: str,
+    expected_parent: Path | None = None,
+    create: bool = False,
+) -> Path:
+    if path.is_symlink():
+        raise OneHotLadderError(f"{label} must not be a symlink")
+    if not path.exists():
+        if not create:
+            raise OneHotLadderError(f"{label} does not exist")
+        path.mkdir(mode=0o700)
+        leakage._fsync_directory(path.parent)
+    if path.is_symlink() or not path.is_dir():
+        raise OneHotLadderError(f"{label} must be a real directory")
+    exact = path.resolve(strict=True)
+    if expected_parent is not None and exact.parent != expected_parent:
+        raise OneHotLadderError(f"{label} resolves outside its immutable parent")
+    return exact
+
+
+def _run_state_path(manifest_path: Path) -> Path:
+    run_root = manifest_path.parent
+    return run_root.parent / RUN_STATE_DIRECTORY / run_root.name
+
+
+def _run_state_is_present(manifest_path: Path) -> bool:
+    return _path_lexists(_run_state_path(manifest_path))
+
+
+def _state_transition_kind(
+    previous: Mapping[str, Any] | None,
+    current: Mapping[str, Any],
+) -> str:
+    status = current["manifest_status"]
+    started = current["execution_started"]
+    attempts = current["attempt_count"]
+    if previous is None:
+        if attempts != 0:
+            raise OneHotLadderError("one-hot run-state genesis cannot contain attempts")
+        if status == "prepared" and started is False:
+            return "genesis_prepared"
+        if status == "prepared" and started is True:
+            return "genesis_execution_started"
+        if status == "failed" and started is True:
+            return "genesis_execution_failed"
+        raise OneHotLadderError("one-hot run-state genesis is invalid")
+
+    previous_status = previous["manifest_status"]
+    previous_started = previous["execution_started"]
+    allowed = {
+        "prepared": {"prepared", "running", "failed"},
+        "running": {"running", "conditions_complete", "complete", "failed"},
+        "conditions_complete": {"conditions_complete", "complete", "failed"},
+        "failed": {"failed"},
+        "complete": set(),
+    }
+    if status not in allowed[previous_status]:
+        raise OneHotLadderError(
+            f"forbidden one-hot run-state transition: {previous_status} -> {status}"
+        )
+    if previous_started is True and started is not True:
+        raise OneHotLadderError("one-hot execution-started state cannot regress")
+    if status != "prepared" and started is not True:
+        raise OneHotLadderError("non-prepared one-hot state must be execution-started")
+    if status == "failed" and previous_status != "failed":
+        return "run_failed"
+    if previous_started is False and started is True:
+        return "execution_started"
+    if status != previous_status:
+        return f"status_{previous_status}_to_{status}"
+    if attempts > previous["attempt_count"]:
+        return "condition_attempt_progress"
+    return "evidence_update"
+
+
+def _manifest_failure_latched(manifest: Mapping[str, Any]) -> bool:
+    attempts = manifest.get("attempts")
+    return manifest.get("status") == "failed" or (
+        isinstance(attempts, list)
+        and any(
+            isinstance(attempt, Mapping) and attempt.get("status") == "failed"
+            for attempt in attempts
+        )
+    )
+
+
+def _load_run_state_events(
+    manifest_path: Path,
+    *,
+    required: bool,
+) -> list[tuple[dict[str, Any], str]]:
+    run_root = manifest_path.parent
+    if run_root.is_symlink() or not run_root.is_dir():
+        raise OneHotLadderError("one-hot run root must be a real directory")
+    exact_run_root = run_root.resolve(strict=True)
+    exact_ladder_root = exact_run_root.parent
+    state_path = _run_state_path(manifest_path)
+    if not _path_lexists(state_path):
+        if required:
+            raise OneHotLadderError("persistent one-hot run state is missing")
+        return []
+    state_root = state_path.parent
+    exact_state_root = _require_real_directory(
+        state_root,
+        label="persistent one-hot state root",
+        expected_parent=exact_ladder_root,
+    )
+    exact_state = _require_real_directory(
+        state_path,
+        label="persistent one-hot run-state directory",
+        expected_parent=exact_state_root,
+    )
+    all_entries = list(state_path.iterdir())
+    marker_names = {RUN_STARTED_TOMBSTONE, RUN_FAILED_TOMBSTONE}
+    unknown_entries = [
+        entry
+        for entry in all_entries
+        if entry.name not in marker_names and RUN_STATE_EVENT_PATTERN.fullmatch(entry.name) is None
+    ]
+    if unknown_entries:
+        raise OneHotLadderError("persistent one-hot run state contains an unsafe entry")
+    entries = sorted(
+        (
+            entry
+            for entry in all_entries
+            if RUN_STATE_EVENT_PATTERN.fullmatch(entry.name) is not None
+        ),
+        key=lambda item: item.name,
+    )
+    if not entries:
+        raise OneHotLadderError("persistent one-hot run state is empty")
+
+    events: list[tuple[dict[str, Any], str]] = []
+    previous_sha256: str | None = None
+    previous: Mapping[str, Any] | None = None
+    for expected_revision, event_path in enumerate(entries, start=1):
+        match = RUN_STATE_EVENT_PATTERN.fullmatch(event_path.name)
+        if (
+            match is None
+            or event_path.is_symlink()
+            or not event_path.is_file()
+            or event_path.resolve(strict=True).parent != exact_state
+        ):
+            raise OneHotLadderError("persistent one-hot run state contains an unsafe entry")
+        revision = int(match.group("revision"))
+        if revision != expected_revision:
+            raise OneHotLadderError("persistent one-hot run-state revisions are not contiguous")
+        document = leakage._read_json(event_path, "persistent one-hot run-state event")
+        if (
+            set(document) != _RUN_STATE_EVENT_FIELDS
+            or isinstance(document.get("schema"), bool)
+            or document.get("schema") != 1
+            or document.get("event_kind") != RUN_STATE_EVENT_KIND
+            or isinstance(document.get("state_revision"), bool)
+            or not isinstance(document.get("state_revision"), int)
+            or document.get("state_revision") != revision
+            or document.get("previous_event_sha256") != previous_sha256
+            or document.get("manifest_status") not in _MANIFEST_STATUSES
+            or not isinstance(document.get("run_id"), str)
+            or not isinstance(document.get("immutable_plan"), Mapping)
+            or not isinstance(document.get("execution_started"), bool)
+            or not isinstance(document.get("run_id_burned"), bool)
+            or isinstance(document.get("manifest_size_bytes"), bool)
+            or not isinstance(document.get("manifest_size_bytes"), int)
+            or document["manifest_size_bytes"] <= 0
+            or isinstance(document.get("attempt_count"), bool)
+            or not isinstance(document.get("attempt_count"), int)
+            or document["attempt_count"] < 0
+            or not isinstance(document.get("created_at"), str)
+            or not document["created_at"]
+        ):
+            raise OneHotLadderError("persistent one-hot run-state event is malformed")
+        leakage._validate_sha256(
+            document.get("manifest_file_sha256"),
+            "persistent one-hot manifest hash",
+        )
+        expected_burned = bool(document["execution_started"]) or document["manifest_status"] in {
+            "running",
+            "conditions_complete",
+            "complete",
+            "failed",
+        }
+        if document["run_id_burned"] is not expected_burned:
+            raise OneHotLadderError("persistent one-hot run-state burn flag is inconsistent")
+        transition_kind = _state_transition_kind(previous, document)
+        if document["transition_kind"] != transition_kind:
+            raise OneHotLadderError("persistent one-hot run-state transition is inconsistent")
+        if previous is not None and (
+            document["run_id"] != previous["run_id"]
+            or document["immutable_plan"] != previous["immutable_plan"]
+            or document["attempt_count"] < previous["attempt_count"]
+            or (previous["execution_started"] is True and document["execution_started"] is not True)
+            or (previous["run_id_burned"] is True and document["run_id_burned"] is not True)
+            or (previous["manifest_status"] == "failed" and document["manifest_status"] != "failed")
+            or (
+                previous["manifest_status"] == "complete"
+                and document["manifest_status"] != "complete"
+            )
+        ):
+            raise OneHotLadderError("persistent one-hot run state regressed")
+        event_sha256 = sha256_path(event_path)
+        events.append((document, event_sha256))
+        previous = document
+        previous_sha256 = event_sha256
+    return events
+
+
+def _ensure_run_state_directory(manifest_path: Path) -> Path:
+    run_root = _require_real_directory(
+        manifest_path.parent,
+        label="one-hot run root",
+    )
+    ladder_root = run_root.parent
+    state_path = _run_state_path(manifest_path)
+    state_root = state_path.parent
+    exact_state_root = _require_real_directory(
+        state_root,
+        label="persistent one-hot state root",
+        expected_parent=ladder_root,
+        create=not _path_lexists(state_root),
+    )
+    return _require_real_directory(
+        state_path,
+        label="persistent one-hot run-state directory",
+        expected_parent=exact_state_root,
+        create=not _path_lexists(state_path),
+    )
+
+
+def _load_run_tombstones(manifest_path: Path) -> dict[str, dict[str, Any]]:
+    state_path = _run_state_path(manifest_path)
+    exact_state = _ensure_run_state_directory(manifest_path)
+    tombstones: dict[str, dict[str, Any]] = {}
+    for filename, kind in (
+        (RUN_STARTED_TOMBSTONE, "execution_started"),
+        (RUN_FAILED_TOMBSTONE, "failed"),
+    ):
+        tombstone_path = state_path / filename
+        if not _path_lexists(tombstone_path):
+            continue
+        if (
+            tombstone_path.is_symlink()
+            or not tombstone_path.is_file()
+            or tombstone_path.resolve(strict=True).parent != exact_state
+        ):
+            raise OneHotLadderError("persistent one-hot run tombstone is unsafe")
+        document = leakage._read_json(tombstone_path, "persistent one-hot run tombstone")
+        if (
+            set(document) != _RUN_TOMBSTONE_FIELDS
+            or isinstance(document.get("schema"), bool)
+            or document.get("schema") != 1
+            or document.get("tombstone_kind") != kind
+            or not isinstance(document.get("run_id"), str)
+            or not isinstance(document.get("immutable_plan"), Mapping)
+            or not isinstance(document.get("created_at"), str)
+            or not document["created_at"]
+        ):
+            raise OneHotLadderError("persistent one-hot run tombstone is malformed")
+        tombstones[kind] = document
+    if "failed" in tombstones and "execution_started" not in tombstones:
+        raise OneHotLadderError("failed one-hot tombstone lacks execution-started tombstone")
+    return tombstones
+
+
+def _write_run_tombstone(
+    manifest_path: Path,
+    manifest: Mapping[str, Any],
+    *,
+    kind: str,
+) -> None:
+    if kind not in {"execution_started", "failed"}:
+        raise OneHotLadderError("one-hot run tombstone kind is invalid")
+    exact_state = _ensure_run_state_directory(manifest_path)
+    filename = RUN_STARTED_TOMBSTONE if kind == "execution_started" else RUN_FAILED_TOMBSTONE
+    tombstone_path = _run_state_path(manifest_path) / filename
+    document = {
+        "schema": 1,
+        "tombstone_kind": kind,
+        "run_id": manifest["run_id"],
+        "immutable_plan": manifest["immutable_plan"],
+        "created_at": _now(),
+    }
+    if _path_lexists(tombstone_path):
+        if (
+            tombstone_path.is_symlink()
+            or not tombstone_path.is_file()
+            or tombstone_path.resolve(strict=True).parent != exact_state
+        ):
+            raise OneHotLadderError("persistent one-hot run tombstone is unsafe")
+        observed = leakage._read_json(tombstone_path, "existing one-hot run tombstone")
+        if any(
+            observed.get(field) != document.get(field)
+            for field in ("schema", "tombstone_kind", "run_id", "immutable_plan")
+        ):
+            raise OneHotLadderError("persistent one-hot run tombstone identity differs")
+        return
+    if tombstone_path.parent.resolve(strict=True) != exact_state:
+        raise OneHotLadderError("persistent one-hot run tombstone escapes its state directory")
+    leakage._write_immutable_json(tombstone_path, document)
+
+
+def _validate_manifest_run_state(
+    path: Path,
+    manifest: Mapping[str, Any],
+) -> list[tuple[dict[str, Any], str]]:
+    if path.is_symlink() or not path.is_file():
+        raise OneHotLadderError("one-hot manifest must be a real regular file")
+    events = _load_run_state_events(path, required=True)
+    tombstones = _load_run_tombstones(path)
+    latest = events[-1][0]
+    revision = manifest.get("state_revision")
+    attempts = manifest.get("attempts")
+    if (
+        isinstance(revision, bool)
+        or not isinstance(revision, int)
+        or revision != len(events)
+        or latest["state_revision"] != revision
+        or latest["run_id"] != manifest.get("run_id")
+        or latest["immutable_plan"] != manifest.get("immutable_plan")
+        or latest["manifest_file_sha256"] != sha256_path(path)
+        or latest["manifest_size_bytes"] != path.stat().st_size
+        or latest["manifest_status"] != manifest.get("status")
+        or latest["execution_started"] is not manifest.get("execution_started")
+        or ("execution_started" in tombstones) is not (manifest.get("execution_started") is True)
+        or ("failed" in tombstones) is not _manifest_failure_latched(manifest)
+        or not isinstance(attempts, list)
+        or latest["attempt_count"] != len(attempts)
+    ):
+        raise OneHotLadderError(
+            "one-hot manifest differs from persistent run state; deletion or rollback is forbidden"
+        )
+    if any(
+        tombstone["run_id"] != manifest.get("run_id")
+        or tombstone["immutable_plan"] != manifest.get("immutable_plan")
+        for tombstone in tombstones.values()
+    ):
+        raise OneHotLadderError("persistent one-hot run tombstone identity differs")
+    return events
+
+
+def _append_run_state_event(
+    path: Path,
+    manifest: Mapping[str, Any],
+    *,
+    prior_events: list[tuple[dict[str, Any], str]],
+) -> None:
+    revision = manifest.get("state_revision")
+    if isinstance(revision, bool) or not isinstance(revision, int):
+        raise OneHotLadderError("one-hot manifest state revision is malformed")
+    if revision != len(prior_events) + 1:
+        raise OneHotLadderError("one-hot manifest state revision is not monotonic")
+    state_path = _run_state_path(path)
+    exact_state = _ensure_run_state_directory(path)
+    previous = prior_events[-1][0] if prior_events else None
+    if previous is not None and (
+        previous["run_id"] != manifest.get("run_id")
+        or previous["immutable_plan"] != manifest.get("immutable_plan")
+    ):
+        raise OneHotLadderError("one-hot run-state identity changed")
+    status = manifest.get("status")
+    execution_started = manifest.get("execution_started")
+    attempts = manifest.get("attempts")
+    if (
+        status not in _MANIFEST_STATUSES
+        or not isinstance(execution_started, bool)
+        or not isinstance(attempts, list)
+    ):
+        raise OneHotLadderError("one-hot manifest cannot be recorded in persistent run state")
+    event = {
+        "schema": 1,
+        "event_kind": RUN_STATE_EVENT_KIND,
+        "run_id": manifest["run_id"],
+        "immutable_plan": manifest["immutable_plan"],
+        "state_revision": revision,
+        "previous_event_sha256": prior_events[-1][1] if prior_events else None,
+        "transition_kind": "",
+        "manifest_file_sha256": sha256_path(path),
+        "manifest_size_bytes": path.stat().st_size,
+        "manifest_status": status,
+        "execution_started": execution_started,
+        "run_id_burned": bool(execution_started)
+        or status in {"running", "conditions_complete", "complete", "failed"},
+        "attempt_count": len(attempts),
+        "created_at": _now(),
+    }
+    event["transition_kind"] = _state_transition_kind(previous, event)
+    event_path = state_path / f"{revision:020d}.json"
+    if _path_lexists(event_path) or event_path.parent.resolve(strict=True) != exact_state:
+        raise OneHotLadderError("persistent one-hot run-state event already exists or escapes")
+    leakage._write_immutable_json(event_path, event)
+
+
 def _persist_manifest(
     path: Path,
     manifest: dict[str, Any],
     *,
     condition_count: int,
 ) -> None:
+    manifest_exists = _path_lexists(path)
+    state_exists = _run_state_is_present(path)
+    prior_events: list[tuple[dict[str, Any], str]]
+    if manifest_exists:
+        if path.is_symlink() or not path.is_file() or not state_exists:
+            raise OneHotLadderError("existing one-hot manifest lacks its persistent run state")
+        disk_manifest = leakage._read_json(path, "existing one-hot ladder manifest")
+        prior_events = _validate_manifest_run_state(path, disk_manifest)
+        if manifest.get("state_revision") != disk_manifest.get("state_revision"):
+            raise OneHotLadderError("stale one-hot manifest object cannot overwrite run state")
+        if any(
+            manifest.get(field) != disk_manifest.get(field) for field in _MANIFEST_IDENTITY_FIELDS
+        ):
+            raise OneHotLadderError("one-hot manifest immutable identity changed")
+    else:
+        if state_exists:
+            raise OneHotLadderError(
+                "persistent one-hot run state exists without its manifest; run ID is burned"
+            )
+        if manifest.get("state_revision") != 0:
+            raise OneHotLadderError("new one-hot manifest must begin at state revision zero")
+        prior_events = []
+
     manifest["updated_at"] = _now()
     manifest["summary"] = _manifest_summary(manifest, condition_count)
+    manifest["state_revision"] = len(prior_events) + 1
+    previous_event = prior_events[-1][0] if prior_events else None
+    _state_transition_kind(
+        previous_event,
+        {
+            "manifest_status": manifest.get("status"),
+            "execution_started": manifest.get("execution_started"),
+            "attempt_count": len(manifest.get("attempts", [])),
+        },
+    )
+    previous_started = bool(
+        previous_event is not None and previous_event["execution_started"] is True
+    )
+    if manifest.get("execution_started") is True and not previous_started:
+        _write_run_tombstone(path, manifest, kind="execution_started")
+    if _manifest_failure_latched(manifest):
+        _write_run_tombstone(path, manifest, kind="execution_started")
+        _write_run_tombstone(path, manifest, kind="failed")
     write_json_atomic(path, manifest)
+    _append_run_state_event(path, manifest, prior_events=prior_events)
+    _validate_manifest_run_state(path, manifest)
 
 
 def _load_manifest(
@@ -1904,6 +2526,8 @@ def _load_manifest(
     plan_path: Path,
     envelope: Mapping[str, Any],
 ) -> dict[str, Any]:
+    if path.is_symlink() or not path.is_file():
+        raise OneHotLadderError("one-hot manifest must be a real regular file")
     document = leakage._read_json(path, "one-hot ladder manifest")
     contract = envelope["plan_contract"]
     assert isinstance(contract, Mapping)
@@ -1920,12 +2544,18 @@ def _load_manifest(
         or document.get("selector_calibration_claim") is not False
         or document.get("causal_attribution_claim") is not False
         or document.get("operational_switching_claim") is not False
+        or not isinstance(document.get("state_revision"), int)
+        or isinstance(document.get("state_revision"), bool)
+        or document["state_revision"] < 1
+        or not isinstance(document.get("execution_started"), bool)
     ):
         raise OneHotLadderError("manifest identity differs from the immutable one-hot plan")
     list_fields = (
         "confirmations",
+        "native_runtime_preflight_attempts",
         "identity_preflight_attempts",
         "preflight_mute_attempts",
+        "preflight_selector_cleanup_attempts",
         "target_image_preflight_attempts",
         "attempts",
         "recovery_mute_attempts",
@@ -1936,6 +2566,15 @@ def _load_manifest(
     )
     if any(not isinstance(document.get(field), list) for field in list_fields):
         raise OneHotLadderError("manifest progress arrays are malformed")
+    if document.get("preflight_selector_cleanup") is not None and not isinstance(
+        document.get("preflight_selector_cleanup"), Mapping
+    ):
+        raise OneHotLadderError("manifest selector preflight evidence is malformed")
+    if document.get("preflight_mute") is not None and not isinstance(
+        document.get("preflight_mute"), Mapping
+    ):
+        raise OneHotLadderError("manifest mute preflight evidence is malformed")
+    _validate_manifest_run_state(path, document)
     return document
 
 
@@ -1944,19 +2583,34 @@ def _verify_completed_result_files(
     *,
     condition: Mapping[str, Any],
     configuration: Mapping[str, Any],
+    native_runtime_attestation: Mapping[str, Any],
+    native_runtime_sha256: str,
     plan_evidence: Mapping[str, Any],
     capture_root: Path,
 ) -> None:
     """Fail closed if a resumable result lost or changed any accepted artifact."""
 
-    if result.get("immutable_plan") != plan_evidence:
+    if (
+        result.get("immutable_plan") != plan_evidence
+        or result.get("native_libiio_runtime_attestation") != dict(native_runtime_attestation)
+        or result.get("native_libiio_runtime_attestation_sha256") != native_runtime_sha256
+    ):
         raise OneHotLadderError("completed result differs from the immutable plan evidence")
     try:
+        raw_paths = {
+            "capture root": capture_root,
+            "completed artifact root": Path(str(result["artifact_path"])),
+            "completed artifact data": Path(str(result["artifact_data_path"])),
+            "completed artifact metadata": Path(str(result["artifact_metadata_path"])),
+            "completed condition record": Path(str(result["condition_record_path"])),
+        }
+        for label, raw_path in raw_paths.items():
+            _assert_path_chain_has_no_symlink(raw_path, label=label)
         exact_capture_root = capture_root.resolve(strict=True)
-        artifact_root = Path(str(result["artifact_path"])).resolve(strict=True)
-        data_path = Path(str(result["artifact_data_path"])).resolve(strict=True)
-        metadata_path = Path(str(result["artifact_metadata_path"])).resolve(strict=True)
-        record_path = Path(str(result["condition_record_path"])).resolve(strict=True)
+        artifact_root = raw_paths["completed artifact root"].resolve(strict=True)
+        data_path = raw_paths["completed artifact data"].resolve(strict=True)
+        metadata_path = raw_paths["completed artifact metadata"].resolve(strict=True)
+        record_path = raw_paths["completed condition record"].resolve(strict=True)
     except (KeyError, OSError) as error:
         raise OneHotLadderError("completed result artifact path is missing") from error
     if (
@@ -1971,6 +2625,10 @@ def _verify_completed_result_files(
         or not record_path.is_file()
     ):
         raise OneHotLadderError("completed result artifact layout is invalid")
+    _assert_tree_has_no_symlink(
+        artifact_root,
+        label="completed artifact tree",
+    )
     digest_contract = (
         (data_path, "artifact_data_sha256"),
         (metadata_path, "artifact_metadata_sha256"),
@@ -2028,8 +2686,7 @@ def _verify_completed_result_files(
         raise OneHotLadderError("completed live RF readback is invalid") from error
     if (
         record.get("schema") != 1
-        or record.get("record_kind")
-        != "5g8_marker_independent_static_one_hot_path_condition"
+        or record.get("record_kind") != "5g8_marker_independent_static_one_hot_path_condition"
         or record.get("accepted_raw_artifact") is not False
         or record.get("accepted_raw_artifact_pending_manifest_commit") is not True
         or record.get("standalone_condition_record_is_not_acceptance") is not True
@@ -2042,6 +2699,8 @@ def _verify_completed_result_files(
         or record.get("selector_path_characterization_pending_manifest_validation")
         != result.get("measurement_quality_passed")
         or record.get("immutable_plan") != plan_evidence
+        or record.get("native_libiio_runtime_attestation") != dict(native_runtime_attestation)
+        or record.get("native_libiio_runtime_attestation_sha256") != native_runtime_sha256
         or record.get("condition") != dict(condition)
         or not isinstance(artifact_evidence, Mapping)
         or artifact_evidence.get("artifact_id") != result.get("artifact_id")
@@ -2049,8 +2708,7 @@ def _verify_completed_result_files(
         or artifact_evidence.get("data_path") != str(data_path)
         or artifact_evidence.get("data_sha256") != result.get("artifact_data_sha256")
         or artifact_evidence.get("metadata_path") != str(metadata_path)
-        or artifact_evidence.get("metadata_sha256")
-        != result.get("artifact_metadata_sha256")
+        or artifact_evidence.get("metadata_sha256") != result.get("artifact_metadata_sha256")
         or not isinstance(topology, Mapping)
         or topology.get("identity") != TOPOLOGY_IDENTITY
         or topology.get("driven_input") != condition.get("driven_input")
@@ -2059,30 +2717,23 @@ def _verify_completed_result_files(
         or not isinstance(capture, Mapping)
         or capture.get("serial") != configuration.get("serial")
         or capture.get("uri") != configuration.get("uri")
-        or capture.get("center_frequency_hz")
-        != configuration.get("center_frequency_hz")
+        or capture.get("center_frequency_hz") != configuration.get("center_frequency_hz")
         or capture.get("sample_rate_hz") != configuration.get("sample_rate_hz")
         or capture.get("bandwidth_hz") != configuration.get("bandwidth_hz")
         or capture.get("receiver_gain_db") != configuration.get("receiver_gain_db")
         or capture.get("tx_channel") != configuration.get("tx_channel")
         or capture.get("tx_port") != configuration.get("tx_port")
-        or capture.get("tx2_required_exact_muted")
-        != configuration.get("tx2_required_exact_muted")
-        or capture.get("tx_hardware_gain_db_requested")
-        != condition.get("tx_hardware_gain_db")
+        or capture.get("tx2_required_exact_muted") != configuration.get("tx2_required_exact_muted")
+        or capture.get("tx_hardware_gain_db_requested") != condition.get("tx_hardware_gain_db")
         or capture.get("dds_scale_requested") != configuration.get("dds_scale")
-        or capture.get("samples_per_frame")
-        != configuration.get("samples_per_frame")
+        or capture.get("samples_per_frame") != configuration.get("samples_per_frame")
         or capture.get("frame_count") != configuration.get("frame_count")
-        or capture.get("sample_count")
-        != configuration.get("sample_count_per_condition")
+        or capture.get("sample_count") != configuration.get("sample_count_per_condition")
         or capture.get("kernel_buffers") != configuration.get("kernel_buffers")
         or capture.get("stream_id") != result.get("stream_id")
         or capture.get("metadata_abi") != configuration.get("metadata_abi")
-        or capture.get("tone_offset_hz_requested")
-        != configuration.get("tone_offset_hz_requested")
-        or capture.get("tone_offset_hz_requested")
-        != result.get("tone_offset_hz_requested")
+        or capture.get("tone_offset_hz_requested") != configuration.get("tone_offset_hz_requested")
+        or capture.get("tone_offset_hz_requested") != result.get("tone_offset_hz_requested")
         or capture.get("tone_offset_hz_readback") != result.get("tone_offset_hz_readback")
         or capture.get("tone_offset_hz_readback") != active_tone_readback_hz
         or capture.get("tone_offset_hz_measured") != result.get("tone_offset_hz_measured")
@@ -2096,8 +2747,7 @@ def _verify_completed_result_files(
         or selector.get("after_pluto_mute") != result.get("selector_after_pluto_mute")
         or selector.get("hold_command_unchanged") is not True
         or selector.get("cleanup_all_off") != result.get("selector_cleanup_all_off")
-        or record.get("measurement_quality_passed")
-        != result.get("measurement_quality_passed")
+        or record.get("measurement_quality_passed") != result.get("measurement_quality_passed")
         or record.get("measurement_quality_rejection_reasons")
         != result.get("measurement_quality_rejection_reasons")
         or record.get("rx2_tone_detected") != result.get("rx2_tone_detected")
@@ -2124,6 +2774,22 @@ def _verify_completed_result_files(
         raise OneHotLadderError("completed result condition record is inconsistent")
 
 
+def _require_safe_quarantine_tree(
+    root: Path,
+    *,
+    expected_parent: Path,
+) -> Path:
+    exact_root = _assert_tree_has_no_symlink(
+        root,
+        label="one-hot orphan artifact tree",
+    )
+    if exact_root.parent != expected_parent:
+        raise OneHotLadderError(
+            "one-hot orphan artifact tree resolves outside its immutable parent"
+        )
+    return exact_root
+
+
 def _quarantine_orphaned_current_plan_artifacts(
     capture_root: Path,
     *,
@@ -2132,30 +2798,66 @@ def _quarantine_orphaned_current_plan_artifacts(
 ) -> list[dict[str, Any]]:
     """Move current-plan condition records lacking a complete manifest attempt aside."""
 
-    if not capture_root.exists():
+    if not _path_lexists(capture_root):
         return []
-    referenced = {
-        str(Path(str(result["artifact_path"])).resolve())
-        for attempt in manifest.get("attempts", [])
-        if isinstance(attempt, Mapping)
-        and attempt.get("status") == "complete"
-        and isinstance((result := attempt.get("result")), Mapping)
-        and isinstance(result.get("artifact_path"), str)
-    }
-    quarantines: list[dict[str, Any]] = []
-    candidates = [
-        candidate
-        for candidate in capture_root.iterdir()
-        if candidate.is_dir() and candidate.name not in {".failed", ".partial"}
-    ]
-    partial_root = capture_root / ".partial"
-    if partial_root.is_dir():
-        candidates.extend(candidate for candidate in partial_root.iterdir() if candidate.is_dir())
-    for candidate in candidates:
-        if not candidate.is_dir():
+    _assert_path_chain_has_no_symlink(capture_root, label="one-hot run capture root")
+    exact_capture_root = capture_root.resolve(strict=True)
+    if not exact_capture_root.is_dir():
+        raise OneHotLadderError("one-hot run capture root must be a directory")
+    referenced: set[str] = set()
+    for attempt in manifest.get("attempts", []):
+        if (
+            not isinstance(attempt, Mapping)
+            or attempt.get("status") != "complete"
+            or not isinstance((result := attempt.get("result")), Mapping)
+            or not isinstance(result.get("artifact_path"), str)
+        ):
             continue
+        raw_artifact_root = Path(str(result["artifact_path"]))
+        _assert_path_chain_has_no_symlink(
+            raw_artifact_root,
+            label="referenced one-hot artifact path",
+        )
+        exact_artifact_root = _assert_tree_has_no_symlink(
+            raw_artifact_root,
+            label="referenced one-hot artifact tree",
+        )
+        if exact_artifact_root.parent != exact_capture_root:
+            raise OneHotLadderError(
+                "referenced one-hot artifact resolves outside its immutable run root"
+            )
+        referenced.add(str(exact_artifact_root))
+    quarantines: list[dict[str, Any]] = []
+    candidates: list[tuple[Path, Path]] = []
+    for candidate in capture_root.iterdir():
+        if candidate.name in {".failed", ".partial"}:
+            continue
+        if candidate.is_symlink() or not candidate.is_dir():
+            raise OneHotLadderError("one-hot run capture root contains an unsafe orphan entry")
+        candidates.append((candidate, exact_capture_root))
+    partial_root = capture_root / ".partial"
+    if _path_lexists(partial_root):
+        exact_partial_root = _require_real_directory(
+            partial_root,
+            label="one-hot partial-artifact root",
+            expected_parent=exact_capture_root,
+        )
+        for candidate in partial_root.iterdir():
+            if candidate.is_symlink() or not candidate.is_dir():
+                raise OneHotLadderError("one-hot partial-artifact root contains an unsafe entry")
+            candidates.append((candidate, exact_partial_root))
+    failed_root = capture_root / ".failed"
+    exact_failed_root: Path | None = None
+    if _path_lexists(failed_root):
+        _, exact_failed_root = _safe_quarantine_parent(capture_root)
+    for candidate, expected_parent in candidates:
+        _require_safe_quarantine_tree(
+            candidate,
+            expected_parent=expected_parent,
+        )
         record_path = candidate / CONDITION_RECORD_NAME
-        if str(candidate.resolve()) in referenced:
+        exact_candidate = candidate.resolve(strict=True)
+        if str(exact_candidate) in referenced:
             continue
         record: Mapping[str, Any] | None = None
         if record_path.is_file():
@@ -2170,12 +2872,20 @@ def _quarantine_orphaned_current_plan_artifacts(
         error = OneHotLadderError(
             "current-plan artifact has no complete immutable manifest attempt"
         )
-        failed_root = capture_root / ".failed"
-        failed_root.mkdir(parents=True, exist_ok=True)
-        destination = failed_root / f"{candidate.name}.orphaned"
-        if destination.exists():
+        if exact_failed_root is None:
+            _, exact_failed_root = _safe_quarantine_parent(capture_root)
+        else:
+            current_root, current_failed_root = _safe_quarantine_parent(capture_root)
+            if current_root != exact_capture_root or current_failed_root != exact_failed_root:
+                raise OneHotLadderError("one-hot quarantine parent identity changed")
+        destination = exact_failed_root / f"{candidate.name}.orphaned"
+        if _path_lexists(destination):
             raise OneHotLadderError("orphan quarantine destination already exists")
-        os.replace(candidate, destination)
+        os.replace(exact_candidate, destination)
+        _require_safe_quarantine_tree(
+            destination,
+            expected_parent=exact_failed_root,
+        )
         quarantines.append(
             leakage._seal_failed_directory(
                 destination,
@@ -2203,32 +2913,49 @@ def _downgrade_and_quarantine_completed_attempt(
     error: BaseException,
 ) -> None:
     quarantine: dict[str, Any] | None = None
+    quarantine_error: dict[str, Any] | None = None
     if isinstance(result, Mapping) and isinstance(result.get("artifact_path"), str):
         try:
-            source = Path(str(result["artifact_path"])).resolve(strict=True)
-            exact_capture_root = capture_root.resolve(strict=True)
-            if source.is_dir() and source.parent == exact_capture_root:
-                failed_root = exact_capture_root / ".failed"
-                failed_root.mkdir(parents=True, exist_ok=True)
-                destination = failed_root / f"{source.name}.resume-invalid"
-                if destination.exists():
-                    raise OneHotLadderError(
-                        "resume-invalid quarantine destination already exists"
-                    )
-                os.replace(source, destination)
-                quarantine = leakage._seal_failed_directory(
-                    destination,
-                    artifact_id=source.name,
-                    error=error,
-                    context={"invalid_completed_result": leakage._json_safe(result)},
+            raw_source = Path(str(result["artifact_path"]))
+            _assert_path_chain_has_no_symlink(
+                raw_source,
+                label="completed one-hot artifact path",
+            )
+            exact_capture_root, failed_root = _safe_quarantine_parent(capture_root)
+            source = _assert_tree_has_no_symlink(
+                raw_source,
+                label="completed one-hot artifact tree",
+            )
+            if source.parent != exact_capture_root:
+                raise OneHotLadderError(
+                    "completed one-hot artifact resolves outside its immutable run root"
                 )
-        except (OSError, OneHotLadderError):
-            quarantine = None
+            destination = failed_root / f"{source.name}.resume-invalid"
+            if _path_lexists(destination):
+                raise OneHotLadderError("resume-invalid quarantine destination already exists")
+            os.replace(source, destination)
+            _require_safe_quarantine_tree(
+                destination,
+                expected_parent=failed_root,
+            )
+            quarantine = leakage._seal_failed_directory(
+                destination,
+                artifact_id=source.name,
+                error=error,
+                context={"invalid_completed_result": leakage._json_safe(result)},
+            )
+        except (OSError, leakage.LeakageLadderError) as quarantine_failure:
+            quarantine_error = leakage._error_document(quarantine_failure)
+    else:
+        quarantine_error = leakage._error_document(
+            OneHotLadderError("completed result lacks a quarantinable artifact path")
+        )
     if isinstance(attempt, dict):
         attempt["status"] = "failed"
         attempt["outcome"] = "resume_validation_failed"
         attempt["failure_kind"] = "completed_artifact_or_evidence_invalid"
         attempt["quarantine"] = quarantine
+        attempt["quarantine_error"] = quarantine_error
         attempt["error"] = leakage._error_document(error)
         attempt["completed_at"] = _now()
 
@@ -2239,6 +2966,8 @@ def _completed_condition_ids(
     planned_conditions: Mapping[str, Mapping[str, Any]],
     selector_control: Mapping[str, Any],
     configuration: Mapping[str, Any],
+    native_runtime_attestation: Mapping[str, Any],
+    native_runtime_sha256: str,
     serial: str,
     plan_evidence: Mapping[str, Any],
     capture_root: Path,
@@ -2272,6 +3001,7 @@ def _completed_condition_ids(
                 or raw.get("automatic_retry_attempted") is not False
                 or raw.get("failure_kind") is not None
                 or raw.get("quarantine") is not None
+                or raw.get("quarantine_error") is not None
                 or raw.get("error") is not None
                 or raw.get("post_condition_exact_serial_mute")
                 != result.get("post_condition_exact_serial_mute")
@@ -2285,17 +3015,18 @@ def _completed_condition_ids(
                 or isinstance(result.get("stream_id"), bool)
                 or not isinstance(result.get("stream_id"), int)
                 or result.get("condition_id") != condition_id
+                or result.get("native_libiio_runtime_attestation")
+                != dict(native_runtime_attestation)
+                or result.get("native_libiio_runtime_attestation_sha256") != native_runtime_sha256
                 or result.get("topology_identity") != TOPOLOGY_IDENTITY
                 or result.get("driven_input") != driven_input
                 or result.get("fixture_identity") != condition.get("fixture_identity")
-                or result.get("physical_cell_role")
-                != condition.get("physical_cell_role")
+                or result.get("physical_cell_role") != condition.get("physical_cell_role")
                 or result.get("selector_state_name") != state_name
                 or result.get("selector_gpio_code") != state_code
                 or result.get("tx_hardware_gain_db") != condition.get("tx_hardware_gain_db")
                 or result.get("repeat_index") != condition.get("repeat_index")
-                or result.get("repeat_count_at_gain")
-                != condition.get("repeat_count_at_gain")
+                or result.get("repeat_count_at_gain") != condition.get("repeat_count_at_gain")
                 or result.get("independent_fresh_stream_repeat") is not True
                 or result.get("attribution_gain_condition")
                 != condition.get("attribution_gain_condition")
@@ -2347,6 +3078,8 @@ def _completed_condition_ids(
                     result,
                     condition=condition,
                     configuration=configuration,
+                    native_runtime_attestation=native_runtime_attestation,
+                    native_runtime_sha256=native_runtime_sha256,
                     plan_evidence=plan_evidence,
                     capture_root=capture_root,
                 )
@@ -2402,8 +3135,7 @@ def _physical_confirmation_reverified(
         and value.get("topology_identity") == TOPOLOGY_IDENTITY
         and value.get("driven_input") == driven_input
         and value.get("fixture_identity") == fixture
-        and value.get("topology_confirmation_token")
-        == physical_confirmation_token(driven_input)
+        and value.get("topology_confirmation_token") == physical_confirmation_token(driven_input)
         and value.get("no_antennas_anywhere") is True
         and value.get("tx1_matched_conducted_network") is True
         and value.get("tx2_muted_and_50ohm_terminated") is True
@@ -2423,8 +3155,12 @@ def load_verified_one_hot_row_bundle(
 ) -> VerifiedOneHotRowBundle:
     """Open and reverify one complete row before pure matrix aggregation."""
 
-    exact_plan_path = plan_path.expanduser().resolve(strict=True)
-    exact_manifest_path = manifest_path.expanduser().resolve(strict=True)
+    expanded_plan_path = plan_path.expanduser()
+    expanded_manifest_path = manifest_path.expanduser()
+    if expanded_plan_path.is_symlink() or expanded_manifest_path.is_symlink():
+        raise OneHotLadderError("row plan and manifest must not be symlinks")
+    exact_plan_path = expanded_plan_path.resolve(strict=True)
+    exact_manifest_path = expanded_manifest_path.resolve(strict=True)
     raw_envelope = leakage._read_json(exact_plan_path, "immutable one-hot plan")
     raw_contract = raw_envelope.get("plan_contract")
     if not isinstance(raw_contract, Mapping):
@@ -2452,6 +3188,12 @@ def load_verified_one_hot_row_bundle(
         or not isinstance(fixture_identity, Mapping)
     ):
         raise OneHotLadderError("row plan is not an exact one-hot physical-row plan")
+    native_runtime, native_runtime_sha256 = _native_runtime_from_contract(contract)
+    if not runtime_preflight_passed(
+        manifest.get("native_runtime_preflight"),
+        expected=native_runtime,
+    ):
+        raise OneHotLadderError("row native libiio capture-runtime preflight is invalid")
     _verify_fixture_evidence(fixture_identity)
     if (
         manifest.get("status") != "complete"
@@ -2465,8 +3207,7 @@ def load_verified_one_hot_row_bundle(
         not isinstance(confirmations, list)
         or not confirmations
         or not all(
-            _physical_confirmation_reverified(item, contract=contract)
-            for item in confirmations
+            _physical_confirmation_reverified(item, contract=contract) for item in confirmations
         )
     ):
         raise OneHotLadderError("row physical confirmation provenance is invalid")
@@ -2476,9 +3217,23 @@ def load_verified_one_hot_row_bundle(
     ):
         raise OneHotLadderError("row target-image attestation is invalid")
     serial = str(configuration["serial"])
+    state_codes = _state_map(selector_control)
+    if not leakage._mute_passed(
+        manifest.get("preflight_mute"),
+        serial=serial,
+        purpose="preflight",
+    ):
+        raise OneHotLadderError("row preflight exact-serial mute attestation is invalid")
+    if not _selector_passed(
+        manifest.get("preflight_selector_cleanup"),
+        selector_control=selector_control,
+        state_name=ALL_OFF_STATE,
+        state_code=state_codes[ALL_OFF_STATE],
+        purpose="preflight_cleanup_all_off",
+    ):
+        raise OneHotLadderError("row preflight digital ALL_OFF attestation is invalid")
     if not leakage._mute_passed(manifest.get("final_mute"), serial=serial, purpose="final"):
         raise OneHotLadderError("row final exact-serial mute attestation is invalid")
-    state_codes = _state_map(selector_control)
     if not _selector_passed(
         manifest.get("final_selector_cleanup"),
         selector_control=selector_control,
@@ -2496,9 +3251,7 @@ def load_verified_one_hot_row_bundle(
         and isinstance(attempt.get("result"), Mapping)
     ]
     storage = contract.get("storage")
-    if not isinstance(storage, Mapping) or not isinstance(
-        storage.get("run_capture_root"), str
-    ):
+    if not isinstance(storage, Mapping) or not isinstance(storage.get("run_capture_root"), str):
         raise OneHotLadderError("row plan lacks its immutable run-specific capture root")
     capture_root = Path(str(storage["run_capture_root"])).resolve(strict=True)
     planned_conditions = {
@@ -2512,6 +3265,8 @@ def load_verified_one_hot_row_bundle(
         planned_conditions=planned_conditions,
         selector_control=selector_control,
         configuration=configuration,
+        native_runtime_attestation=native_runtime,
+        native_runtime_sha256=native_runtime_sha256,
         serial=serial,
         plan_evidence=plan_evidence,
         capture_root=capture_root,
@@ -2546,35 +3301,40 @@ def load_verified_one_hot_row_bundle(
     if not recomputed.quality_passed:
         raise OneHotLadderError("row repeat/measurement quality admission did not pass")
     manifest_sha = sha256_path(exact_manifest_path)
-    return _seal_verified_one_hot_row_bundle({
-        "schema": 1,
-        "row_bundle_kind": "verified_one_hot_row",
-        "run_id": contract["run_id"],
-        "topology_identity": TOPOLOGY_IDENTITY,
-        "driven_input": contract["driven_input"],
-        "fixture_identity": fixture_identity,
-        "matrix_identity": _matrix_identity_from_contract(contract),
-        "manifest_status": "complete",
-        "manifest_sha256": manifest_sha,
-        "plan_contract_sha256": envelope["plan_contract_sha256"],
-        "plan_file_sha256": sha256_path(exact_plan_path),
-        "physical_confirmation_verified": True,
-        "physical_confirmation_token": physical_confirmation_token(
-            str(contract["driven_input"])
-        ),
-        "verification_evidence": {
-            "verification_kind": "local_manifest_plan_artifact_byte_verification",
-            "manifest_path": str(exact_manifest_path),
-            "manifest_file_sha256": manifest_sha,
-            "plan_path": str(exact_plan_path),
+    return _seal_verified_one_hot_row_bundle(
+        {
+            "schema": 1,
+            "row_bundle_kind": "verified_one_hot_row",
+            "run_id": contract["run_id"],
+            "topology_identity": TOPOLOGY_IDENTITY,
+            "driven_input": contract["driven_input"],
+            "fixture_identity": fixture_identity,
+            "matrix_identity": _matrix_identity_from_contract(contract),
+            "native_libiio_runtime_attestation": native_runtime,
+            "native_libiio_runtime_attestation_sha256": native_runtime_sha256,
+            "manifest_status": "complete",
+            "manifest_sha256": manifest_sha,
             "plan_contract_sha256": envelope["plan_contract_sha256"],
             "plan_file_sha256": sha256_path(exact_plan_path),
-            "condition_artifacts_reverified": True,
-            "abi2_continuity_reaudited": True,
-            "physical_confirmation_reverified": True,
-        },
-        "results": [dict(result) for result in complete_results],
-    })
+            "physical_confirmation_verified": True,
+            "physical_confirmation_token": physical_confirmation_token(
+                str(contract["driven_input"])
+            ),
+            "verification_evidence": {
+                "verification_kind": "local_manifest_plan_artifact_byte_verification",
+                "manifest_path": str(exact_manifest_path),
+                "manifest_file_sha256": manifest_sha,
+                "plan_path": str(exact_plan_path),
+                "plan_contract_sha256": envelope["plan_contract_sha256"],
+                "plan_file_sha256": sha256_path(exact_plan_path),
+                "condition_artifacts_reverified": True,
+                "abi2_continuity_reaudited": True,
+                "native_libiio_capture_runtime_preflight_reverified": True,
+                "physical_confirmation_reverified": True,
+            },
+            "results": [dict(result) for result in complete_results],
+        }
+    )
 
 
 def _selector_cleanup(
@@ -2605,6 +3365,7 @@ def _execute_stage(
     identity_boundary: leakage.IdentityBoundary = leakage._live_identity_boundary,
     selector_boundary: OneHotSelectorBoundary = _live_selector_boundary,
     target_image_boundary: TargetImageBoundary = _live_target_image_attestation,
+    runtime_attestation_boundary: RuntimeAttestationBoundary = attest_runtime,
     fixture_evidence_boundary: Any = _verify_fixture_evidence,
 ) -> None:
     contract = envelope["plan_contract"]
@@ -2619,9 +3380,39 @@ def _execute_stage(
     uri = str(configuration["uri"])
     condition_count = len(conditions)
     plan_evidence = leakage._plan_file_evidence(plan_path, envelope)
+    native_runtime, native_runtime_sha256 = _native_runtime_from_contract(contract)
+    if manifest.get("status") == "complete":
+        raise OneHotLadderError("completed one-hot runs cannot execute again")
+    first_execution = manifest.get("execution_started") is not True
+    if first_execution:
+        manifest["execution_started"] = True
+        _persist_manifest(manifest_path, manifest, condition_count=condition_count)
+    runtime_preflight = call_runtime_preflight(
+        runtime_attestation_boundary,
+        now=_now,
+        error_document=leakage._error_document,
+    )
+    manifest["native_runtime_preflight_attempts"].append(runtime_preflight)
+    manifest["native_runtime_preflight"] = runtime_preflight
+    _persist_manifest(manifest_path, manifest, condition_count=condition_count)
+    if not runtime_preflight_passed(runtime_preflight, expected=native_runtime):
+        error = OneHotLadderError(
+            "native libiio runtime differs from the immutable path/version/hash attestation"
+        )
+        manifest["status"] = "failed"
+        manifest["error"] = leakage._error_document(error)
+        _persist_manifest(manifest_path, manifest, condition_count=condition_count)
+        raise error
+
     fixture_identity = contract["fixture_identity"]
     assert isinstance(fixture_identity, Mapping)
-    fixture_evidence_boundary(fixture_identity)
+    try:
+        fixture_evidence_boundary(fixture_identity)
+    except BaseException as error:
+        manifest["status"] = "failed"
+        manifest["error"] = leakage._error_document(error)
+        _persist_manifest(manifest_path, manifest, condition_count=condition_count)
+        raise
 
     identity = leakage._call_identity(identity_boundary, serial, uri)
     manifest["identity_preflight_attempts"].append(identity)
@@ -2640,40 +3431,14 @@ def _execute_stage(
         )
         manifest["recovery_mute_attempts"].append(recovery_mute)
         manifest["recovery_selector_cleanup_attempts"].append(recovery_selector)
-        error = OneHotLadderError(
+        identity_error = OneHotLadderError(
             "read-only USB identity scan did not resolve the requested URI; exact-serial mute "
             "and selector digital ALL_OFF recovery were attempted"
         )
         manifest["status"] = "failed"
-        manifest["error"] = leakage._error_document(error)
+        manifest["error"] = leakage._error_document(identity_error)
         _persist_manifest(manifest_path, manifest, condition_count=condition_count)
-        raise error
-
-    orphan_quarantines = _quarantine_orphaned_current_plan_artifacts(
-        capture_root,
-        manifest=manifest,
-        plan_evidence=plan_evidence,
-    )
-    manifest["orphan_quarantine_attempts"].extend(orphan_quarantines)
-    if orphan_quarantines:
-        _persist_manifest(manifest_path, manifest, condition_count=condition_count)
-
-    if manifest.get("status") == "failed" or any(
-        isinstance(item, Mapping) and item.get("status") == "failed"
-        for item in manifest["attempts"]
-    ):
-        recovery_mute = leakage._call_mute(mute_boundary, serial, "resume_recovery")
-        recovery_selector = _selector_cleanup(
-            selector_boundary,
-            selector_control,
-            "resume_cleanup_all_off",
-        )
-        manifest["recovery_mute_attempts"].append(recovery_mute)
-        manifest["recovery_selector_cleanup_attempts"].append(recovery_selector)
-        error = OneHotLadderError("failed one-hot runs cannot retry; prepare a new run ID")
-        manifest["error"] = leakage._error_document(error)
-        _persist_manifest(manifest_path, manifest, condition_count=condition_count)
-        raise error
+        raise identity_error
 
     stale = [
         item
@@ -2681,10 +3446,32 @@ def _execute_stage(
         if isinstance(item, dict) and item.get("status") == "running"
     ]
     pending_error: BaseException | None = None
-    manifest["confirmations"].append(dict(confirmation))
-    manifest["status"] = "running"
-    _persist_manifest(manifest_path, manifest, condition_count=condition_count)
     try:
+        if manifest.get("status") == "failed" or any(
+            isinstance(item, Mapping) and item.get("status") == "failed"
+            for item in manifest["attempts"]
+        ):
+            recovery_mute = leakage._call_mute(mute_boundary, serial, "resume_recovery")
+            recovery_selector = _selector_cleanup(
+                selector_boundary,
+                selector_control,
+                "resume_cleanup_all_off",
+            )
+            manifest["recovery_mute_attempts"].append(recovery_mute)
+            manifest["recovery_selector_cleanup_attempts"].append(recovery_selector)
+            raise OneHotLadderError("failed one-hot runs cannot retry; prepare a new run ID")
+        if not first_execution and manifest.get("status") == "prepared":
+            recovery_mute = leakage._call_mute(mute_boundary, serial, "resume_recovery")
+            recovery_selector = _selector_cleanup(
+                selector_boundary,
+                selector_control,
+                "resume_cleanup_all_off",
+            )
+            manifest["recovery_mute_attempts"].append(recovery_mute)
+            manifest["recovery_selector_cleanup_attempts"].append(recovery_selector)
+            raise OneHotLadderError(
+                "started one-hot run has no resumable progress; prepare a new run ID"
+            )
         if stale:
             recovery_mute = leakage._call_mute(mute_boundary, serial, "resume_recovery")
             recovery_selector = _selector_cleanup(
@@ -2704,11 +3491,43 @@ def _execute_stage(
             _persist_manifest(manifest_path, manifest, condition_count=condition_count)
             raise OneHotLadderError("stale live attempt recovered; use a new run ID")
 
+        manifest["confirmations"].append(dict(confirmation))
+        manifest["status"] = "running"
+        _persist_manifest(manifest_path, manifest, condition_count=condition_count)
+
         preflight = leakage._call_mute(mute_boundary, serial, "preflight")
         manifest["preflight_mute_attempts"].append(preflight)
+        manifest["preflight_mute"] = preflight
         _persist_manifest(manifest_path, manifest, condition_count=condition_count)
         if not leakage._mute_passed(preflight, serial=serial, purpose="preflight"):
             raise OneHotLadderError("exact preflight mute attestation failed")
+
+        preflight_selector = _selector_cleanup(
+            selector_boundary,
+            selector_control,
+            "preflight_cleanup_all_off",
+        )
+        manifest["preflight_selector_cleanup_attempts"].append(preflight_selector)
+        manifest["preflight_selector_cleanup"] = preflight_selector
+        _persist_manifest(manifest_path, manifest, condition_count=condition_count)
+        states = _state_map(selector_control)
+        if not _selector_passed(
+            preflight_selector,
+            selector_control=selector_control,
+            state_name=ALL_OFF_STATE,
+            state_code=states[ALL_OFF_STATE],
+            purpose="preflight_cleanup_all_off",
+        ):
+            raise OneHotLadderError("selector preflight ALL_OFF attestation failed")
+
+        orphan_quarantines = _quarantine_orphaned_current_plan_artifacts(
+            capture_root,
+            manifest=manifest,
+            plan_evidence=plan_evidence,
+        )
+        manifest["orphan_quarantine_attempts"].extend(orphan_quarantines)
+        if orphan_quarantines:
+            _persist_manifest(manifest_path, manifest, condition_count=condition_count)
 
         target_image = _call_target_image_attestation(
             target_image_boundary,
@@ -2718,9 +3537,7 @@ def _execute_stage(
         manifest["target_image_preflight"] = target_image
         _persist_manifest(manifest_path, manifest, condition_count=condition_count)
         if not _target_image_passed(target_image, selector_control=selector_control):
-            raise OneHotLadderError(
-                "target flash is not the exact ELF-bound reviewed bench image"
-            )
+            raise OneHotLadderError("target flash is not the exact ELF-bound reviewed bench image")
 
         planned_conditions = {
             str(condition["condition_id"]): condition
@@ -2734,6 +3551,8 @@ def _execute_stage(
             planned_conditions=planned_conditions,
             selector_control=selector_control,
             configuration=configuration,
+            native_runtime_attestation=native_runtime,
+            native_runtime_sha256=native_runtime_sha256,
             serial=serial,
             plan_evidence=plan_evidence,
             capture_root=capture_root,
@@ -2763,6 +3582,7 @@ def _execute_stage(
                 "failure_kind": None,
                 "result": None,
                 "quarantine": None,
+                "quarantine_error": None,
                 "post_condition_exact_serial_mute": None,
                 "error": None,
                 "automatic_retry_attempted": False,
@@ -2785,7 +3605,18 @@ def _execute_stage(
                 attempt["outcome"] = "condition_failed"
                 attempt["failure_kind"] = "capture_or_validation"
                 attempt["quarantine"] = error.quarantine
+                attempt["quarantine_error"] = None
                 attempt["post_condition_exact_serial_mute"] = error.post_mute
+                attempt["error"] = leakage._error_document(error)
+                attempt["completed_at"] = _now()
+                _persist_manifest(manifest_path, manifest, condition_count=condition_count)
+                raise
+            except BaseException as error:
+                attempt["status"] = "failed"
+                attempt["outcome"] = "condition_failed"
+                attempt["failure_kind"] = "capture_or_quarantine_validation"
+                attempt["quarantine"] = None
+                attempt["quarantine_error"] = leakage._error_document(error)
                 attempt["error"] = leakage._error_document(error)
                 attempt["completed_at"] = _now()
                 _persist_manifest(manifest_path, manifest, condition_count=condition_count)
@@ -2816,9 +3647,7 @@ def _execute_stage(
             fixture_identity=contract["fixture_identity"],
             planned_states=tuple(configuration["selector_state_order"]),
             planned_gains_db=tuple(configuration["tx_hardware_gains_db"]),
-            attribution_gain_db=float(
-                configuration["attribution_tx_hardware_gain_db"]
-            ),
+            attribution_gain_db=float(configuration["attribution_tx_hardware_gain_db"]),
             attribution_repeat_count=int(configuration["attribution_repeat_count"]),
             minimum_detected_attribution_repeats=int(
                 configuration["minimum_detected_attribution_repeats"]
@@ -2930,6 +3759,45 @@ def _install_signal_handlers() -> None:
         signal.signal(selected, _signal_handler)
 
 
+def _prepare_plan_only_state(
+    plan_path: Path,
+    manifest_path: Path,
+    contract: Mapping[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    plan_exists = _path_lexists(plan_path)
+    manifest_exists = _path_lexists(manifest_path)
+    state_exists = _run_state_is_present(manifest_path)
+    if plan_exists:
+        if plan_path.is_symlink() or not plan_path.is_file():
+            raise OneHotLadderError("immutable one-hot plan must be a real regular file")
+        if not manifest_exists or not state_exists:
+            raise OneHotLadderError(
+                "existing one-hot plan lacks its manifest or persistent run state; "
+                "run ID cannot be recreated"
+            )
+    elif manifest_exists or state_exists:
+        raise OneHotLadderError(
+            "one-hot manifest or persistent run state exists without its immutable plan; "
+            "run ID is burned"
+        )
+
+    envelope = leakage._prepare_plan(plan_path, contract)
+    if plan_exists:
+        manifest = _load_manifest(
+            manifest_path,
+            plan_path=plan_path,
+            envelope=envelope,
+        )
+    else:
+        manifest = _new_manifest(plan_path, envelope)
+        _persist_manifest(
+            manifest_path,
+            manifest,
+            condition_count=len(contract["conditions"]),
+        )
+    return envelope, manifest
+
+
 def main() -> int:
     args = _parser().parse_args()
     _install_signal_handlers()
@@ -2939,6 +3807,7 @@ def main() -> int:
             "smateway",
         )
         dependency_attestation = attest_pluto_plus_utils_source()
+        native_runtime_attestation = attest_runtime()
         selector_control = _one_hot_selector_control_contract(
             bench_manifest_path=args.bench_manifest,
             openocd_config_path=args.openocd_config,
@@ -2961,38 +3830,30 @@ def main() -> int:
             driven_input=args.driven_input,
             source_commit=source_commit,
             pluto_plus_utils_source_attestation=dependency_attestation,
+            native_libiio_runtime_attestation=native_runtime_attestation,
             selector_control=selector_control,
             fixture_identity=fixture_identity,
         )
-    except (OSError, OneHotLadderError, ValueError, subprocess.CalledProcessError) as error:
+    except (OSError, RuntimeError, ValueError, subprocess.CalledProcessError) as error:
         raise SystemExit(str(error)) from error
 
     board_root = leakage._board_root(str(contract["board_id"]))
     selector_lock_root = (
-        Path.home()
-        / ".local/state/smateway/hardware-locks"
-        / "pluto-rx2-8way-selector-bench"
+        Path.home() / ".local/state/smateway/hardware-locks" / "pluto-rx2-8way-selector-bench"
     )
     run_root = board_root / "5g8-one-hot-path-ladder" / str(contract["run_id"])
     plan_path = run_root / PLAN_FILENAME
     manifest_path = run_root / MANIFEST_FILENAME
     with leakage._board_lock(selector_lock_root), leakage._board_lock(board_root):
         if args.plan_only:
-            envelope = leakage._prepare_plan(plan_path, contract)
-            manifest = (
-                _load_manifest(
+            try:
+                envelope, manifest = _prepare_plan_only_state(
+                    plan_path,
                     manifest_path,
-                    plan_path=plan_path,
-                    envelope=envelope,
+                    contract,
                 )
-                if manifest_path.exists()
-                else _new_manifest(plan_path, envelope)
-            )
-            _persist_manifest(
-                manifest_path,
-                manifest,
-                condition_count=len(contract["conditions"]),
-            )
+            except (OneHotLadderError, leakage.LeakageLadderError) as error:
+                raise SystemExit(str(error)) from error
             print(
                 json.dumps(
                     {
@@ -3012,7 +3873,13 @@ def main() -> int:
             )
             return 0
 
-        if not plan_path.is_file() or not manifest_path.is_file():
+        if (
+            plan_path.is_symlink()
+            or manifest_path.is_symlink()
+            or not plan_path.is_file()
+            or not manifest_path.is_file()
+            or not _run_state_is_present(manifest_path)
+        ):
             raise SystemExit("execute requires a prior successful --plan-only invocation")
         try:
             envelope = leakage._validate_plan_envelope(
@@ -3035,9 +3902,7 @@ def main() -> int:
                 one_hot_static_control=args.confirm_one_hot_static_control,
                 single_driven_input=args.confirm_single_driven_input,
                 other_seven_terminated=args.confirm_other_seven_terminated,
-                no_simultaneous_eight_way_feed=(
-                    args.confirm_no_simultaneous_eight_way_feed
-                ),
+                no_simultaneous_eight_way_feed=(args.confirm_no_simultaneous_eight_way_feed),
                 attribution_repeats_no_cable_movement=(
                     args.confirm_attribution_repeats_no_cable_movement
                 ),

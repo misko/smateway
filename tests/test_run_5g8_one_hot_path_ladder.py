@@ -49,6 +49,29 @@ def _dependency_attestation() -> dict[str, Any]:
     }
 
 
+def _native_attestation() -> dict[str, Any]:
+    return {
+        "schema": 1,
+        "evidence_kind": "native_libiio_process_mapping",
+        "library_path": str(runner.REQUIRED_LIBIIO_PATH),
+        "library_path_from_proc_maps": True,
+        "library_sha256": runner.REQUIRED_LIBIIO_SHA256,
+        "library_size_bytes": 158_416,
+        "requested_soname": "libiio.so.0",
+        "version": {
+            "major": runner.REQUIRED_LIBIIO_VERSION[0],
+            "minor": runner.REQUIRED_LIBIIO_VERSION[1],
+            "git_tag": "synthetic",
+        },
+        "required_symbols": {symbol: True for symbol in runner.REQUIRED_LIBIIO_SYMBOLS},
+        "loader_search_path_first": str(runner.REQUIRED_LIBIIO_DIRECTORY),
+    }
+
+
+def _passing_runtime() -> Any:
+    return lambda: _native_attestation()
+
+
 def _selector_control() -> dict[str, Any]:
     states = [
         {"name": runner.ALL_OFF_STATE, "gpio_code": 8},
@@ -137,8 +160,7 @@ def _selector_control() -> dict[str, Any]:
                 "size_bytes": 32,
                 "bytes_hex": "000014000400170002001a0006001e00010022000500270003002c0007003200",
                 "expected_bytes_hex": (
-                    "000014000400170002001a0006001e00"
-                    "010022000500270003002c0007003200"
+                    "000014000400170002001a0006001e00010022000500270003002c0007003200"
                 ),
                 "state_names": list(runner.ANTENNA_STATES),
                 "gpio_codes": list(ANTENNA_CODES),
@@ -175,6 +197,7 @@ def _contract(driven_input: str = "ANT3") -> dict[str, Any]:
         driven_input=driven_input,
         source_commit=SOURCE_COMMIT,
         pluto_plus_utils_source_attestation=_dependency_attestation(),
+        native_libiio_runtime_attestation=_native_attestation(),
         selector_control=_selector_control(),
         fixture_identity=_fixture(),
     )
@@ -240,11 +263,7 @@ def _selector_boundary(
         del control
         if calls is not None:
             calls.append((state_name, purpose))
-        cleanup = purpose in {
-            "cleanup_all_off",
-            "final_cleanup_all_off",
-            "resume_cleanup_all_off",
-        }
+        cleanup = purpose in runner.ALL_OFF_CLEANUP_PURPOSES
         expected_name = runner.ALL_OFF_STATE if cleanup else state_name
         expected_code = 8 if cleanup else state_code
         selected = expected_name != runner.ALL_OFF_STATE
@@ -258,11 +277,7 @@ def _selector_boundary(
             "acknowledged_sequence": 12,
             "applied_code": expected_code,
             "remaining_lease_ms": (
-                (
-                    3_500
-                    if freeze_countdown or purpose != "after_pluto_mute"
-                    else 3_100
-                )
+                (3_500 if freeze_countdown or purpose != "after_pluto_mute" else 3_100)
                 if selected and not expired
                 else 0
             ),
@@ -300,6 +315,88 @@ def _selector_boundary(
     return selector
 
 
+def test_live_selector_preflight_cleanup_is_supported_and_validated(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeStatus:
+        command_sequence = 12
+        command_code = 8
+        command_lease_ms = 0
+        acknowledged_sequence = 12
+        applied_code = 8
+        remaining_lease_ms = 0
+        command_valid = True
+        lease_active = False
+        guard_active = False
+        invalid_command = False
+
+        def as_dict(self) -> dict[str, int | bool]:
+            return {
+                "command_sequence": self.command_sequence,
+                "command_code": self.command_code,
+                "command_lease_ms": self.command_lease_ms,
+                "acknowledged_sequence": self.acknowledged_sequence,
+                "applied_code": self.applied_code,
+                "remaining_lease_ms": self.remaining_lease_ms,
+                "command_valid": self.command_valid,
+                "lease_active": self.lease_active,
+                "guard_active": self.guard_active,
+                "invalid_command": self.invalid_command,
+            }
+
+    class FakeController:
+        def __init__(self, _manifest: object, _config: Path) -> None:
+            pass
+
+        def status(self) -> FakeStatus:
+            return FakeStatus()
+
+        def request(
+            self,
+            code: int,
+            lease_ms: int,
+            *,
+            wait_until_applied: bool,
+        ) -> FakeStatus:
+            assert (code, lease_ms, wait_until_applied) == (8, 0, True)
+            return FakeStatus()
+
+    control = _selector_control()
+    monkeypatch.setattr(runner, "_verify_one_hot_artifacts", lambda _control: None)
+    monkeypatch.setattr(
+        runner,
+        "_validate_one_hot_selector_control",
+        lambda selector_control: dict(selector_control),
+    )
+    monkeypatch.setattr(runner.BenchManifest, "load", lambda _path: object())
+    monkeypatch.setattr(runner, "OpenOcdBench", FakeController)
+    monkeypatch.setattr(
+        runner.subprocess,
+        "run",
+        lambda *_args, **_kwargs: SimpleNamespace(
+            stdout="0x50000014: 00000008\n",
+            stderr="",
+        ),
+    )
+
+    result = runner._live_selector_boundary(
+        control,
+        "ANT3",
+        2,
+        "preflight_cleanup_all_off",
+    )
+
+    assert result["status"] == "passed"
+    assert result["expected_applied_state_name"] == runner.ALL_OFF_STATE
+    assert runner._selector_passed(
+        result,
+        selector_control=control,
+        state_name="ANT3",
+        state_code=2,
+        purpose="preflight_cleanup_all_off",
+    )
+
+
 def test_frozen_selected_state_lease_countdown_is_rejected() -> None:
     boundary = _selector_boundary(freeze_countdown=True)
     before = boundary(_selector_control(), "ANT3", 2, "before_condition")
@@ -313,9 +410,7 @@ def _passing_target_image() -> Any:
         bench_bin = control["bench_profile_binding"]["bench_bin"]
         return {
             "schema": 1,
-            "evidence_kind": (
-                "exact_target_flash_readback_against_elf_bound_bench_bin"
-            ),
+            "evidence_kind": ("exact_target_flash_readback_against_elf_bound_bench_bin"),
             "status": "passed",
             "flash_base_address": bench_bin["flash_base_address"],
             "byte_count": bench_bin["size_bytes"],
@@ -349,9 +444,7 @@ def test_target_image_mismatch_never_releases_unknown_flash(
             "size_bytes": len(expected),
         }
     )
-    control["bench_profile_binding"]["reproducible_source_build"][
-        "rebuilt_bin_sha256"
-    ] = digest
+    control["bench_profile_binding"]["reproducible_source_build"]["rebuilt_bin_sha256"] = digest
     commands: list[str] = []
 
     def openocd(command: Any, **_kwargs: Any) -> Any:
@@ -517,11 +610,14 @@ def test_plan_is_one_physical_row_with_three_independent_attribution_repeats() -
     ]
     assert contract["stage_contract"]["simultaneous_eight_way_feed_present"] is False
     assert contract["fixture_identity"] == _fixture()
+    assert contract["source"]["native_libiio_runtime_attestation"] == (_native_attestation())
+    assert contract["source"]["native_libiio_runtime_attestation_sha256"] == (
+        runner.attestation_sha256(_native_attestation())
+    )
+    assert contract["safety"]["native_libiio_exact_path_version_hash_required"] is True
     assert contract["interpretation"]["one_run_represents_exactly_one_driven_input"] is True
     assert contract["interpretation"]["cross_gain_observations_are_not_repeatability_claims"]
-    assert contract["safety"][
-        "selector_mailbox_and_gpio_latch_readback_before_every_capture"
-    ]
+    assert contract["safety"]["selector_mailbox_and_gpio_latch_readback_before_every_capture"]
     assert len(conditions) == 72
     assert [item["selector_state_name"] for item in conditions[:9]] == list(
         runner.ONE_HOT_STATE_ORDER
@@ -535,12 +631,17 @@ def test_plan_is_one_physical_row_with_three_independent_attribution_repeats() -
     assert len(attribution) == 27
     assert {item["repeat_index"] for item in attribution} == {0, 1, 2}
     assert all(item["repeat_count_at_gain"] == 3 for item in attribution)
+    assert all("attribution_repeat_index" not in item for item in conditions)
+    assert all("-attribution-repeat" not in item["condition_id"] for item in conditions)
     assert all(item["driven_input"] == "ANT3" for item in conditions)
     assert all(item["fixture_identity"] == _fixture() for item in conditions)
     matrix_identity = runner._matrix_identity_from_contract(contract)
     assert matrix_identity["board_id"] == "board-a"
     assert matrix_identity["pluto_serial"] == SERIAL
     assert matrix_identity["bench_bin_sha256"] == "a" * 64
+    assert matrix_identity["native_libiio_runtime_attestation_sha256"] == (
+        runner.attestation_sha256(_native_attestation())
+    )
     moved_usb_uri = json.loads(json.dumps(contract))
     moved_usb_uri["configuration"]["uri"] = "usb:9.8.7"
     assert runner._matrix_identity_from_contract(moved_usb_uri) == matrix_identity
@@ -564,7 +665,26 @@ def test_plan_rejects_noncanonical_state_map() -> None:
             driven_input="ANT3",
             source_commit=SOURCE_COMMIT,
             pluto_plus_utils_source_attestation=_dependency_attestation(),
+            native_libiio_runtime_attestation=_native_attestation(),
             selector_control=control,
+            fixture_identity=_fixture(),
+        )
+
+
+def test_plan_rejects_unreviewed_native_libiio_identity() -> None:
+    native_runtime = _native_attestation()
+    native_runtime["library_sha256"] = "0" * 64
+    with pytest.raises(ValueError, match="reviewed binary"):
+        runner._build_plan_contract(
+            run_id="run-bad-native-runtime",
+            board_id="board-a",
+            serial=SERIAL,
+            uri=URI,
+            driven_input="ANT3",
+            source_commit=SOURCE_COMMIT,
+            pluto_plus_utils_source_attestation=_dependency_attestation(),
+            native_libiio_runtime_attestation=native_runtime,
+            selector_control=_selector_control(),
             fixture_identity=_fixture(),
         )
 
@@ -643,6 +763,7 @@ def test_full_main_plan_only_never_touches_hardware(
         "attest_pluto_plus_utils_source",
         _dependency_attestation,
     )
+    monkeypatch.setattr(runner, "attest_runtime", _passing_runtime())
     monkeypatch.setattr(runner.leakage, "_board_root", lambda _board: tmp_path / "board")
     monkeypatch.setattr(runner.leakage, "_board_lock", lambda _root: nullcontext())
     monkeypatch.setattr(runner.leakage, "_live_capture_boundary", forbidden("capture"))
@@ -668,10 +789,7 @@ def test_full_main_plan_only_never_touches_hardware(
             "ANT3",
             "--plan-only",
             "--bench-manifest",
-            str(
-                SCRIPT.parents[1]
-                / "build/STM32C011F4P6/bench/pluto_bench.manifest.json"
-            ),
+            str(SCRIPT.parents[1] / "build/STM32C011F4P6/bench/pluto_bench.manifest.json"),
             "--openocd-config",
             str(openocd_config),
             "--profile",
@@ -697,6 +815,294 @@ def test_full_main_plan_only_never_touches_hardware(
     assert output["driven_input"] == "ANT3"
     assert output["condition_count"] == 72
     assert hardware_calls == []
+
+
+def test_repeated_plan_only_is_byte_for_byte_state_noop(tmp_path: Path) -> None:
+    contract = _contract()
+    run_root = tmp_path / "ladder" / str(contract["run_id"])
+    plan_path = run_root / runner.PLAN_FILENAME
+    manifest_path = run_root / runner.MANIFEST_FILENAME
+
+    envelope, manifest = runner._prepare_plan_only_state(
+        plan_path,
+        manifest_path,
+        contract,
+    )
+    manifest_bytes = manifest_path.read_bytes()
+    manifest_mtime_ns = manifest_path.stat().st_mtime_ns
+    state_path = runner._run_state_path(manifest_path)
+    state_files = {
+        path.name: (path.read_bytes(), path.stat().st_mtime_ns) for path in state_path.iterdir()
+    }
+
+    observed_envelope, observed_manifest = runner._prepare_plan_only_state(
+        plan_path,
+        manifest_path,
+        contract,
+    )
+
+    assert observed_envelope == envelope
+    assert observed_manifest == manifest
+    assert manifest_path.read_bytes() == manifest_bytes
+    assert manifest_path.stat().st_mtime_ns == manifest_mtime_ns
+    assert {
+        path.name: (path.read_bytes(), path.stat().st_mtime_ns) for path in state_path.iterdir()
+    } == state_files
+
+
+def test_persistent_run_state_rejects_deleted_failed_manifest(tmp_path: Path) -> None:
+    contract = _contract()
+    run_root = tmp_path / "ladder" / str(contract["run_id"])
+    plan_path = run_root / runner.PLAN_FILENAME
+    manifest_path = run_root / runner.MANIFEST_FILENAME
+    _, manifest = runner._prepare_plan_only_state(plan_path, manifest_path, contract)
+    manifest["execution_started"] = True
+    manifest["status"] = "running"
+    runner._persist_manifest(
+        manifest_path,
+        manifest,
+        condition_count=len(contract["conditions"]),
+    )
+    manifest["status"] = "failed"
+    manifest["error"] = {"type": "SyntheticFailure", "message": "burned"}
+    runner._persist_manifest(
+        manifest_path,
+        manifest,
+        condition_count=len(contract["conditions"]),
+    )
+    state_path = runner._run_state_path(manifest_path)
+    manifest_path.unlink()
+
+    with pytest.raises(runner.OneHotLadderError, match="cannot be recreated"):
+        runner._prepare_plan_only_state(plan_path, manifest_path, contract)
+
+    assert not manifest_path.exists()
+    assert (state_path / runner.RUN_STARTED_TOMBSTONE).is_file()
+    assert (state_path / runner.RUN_FAILED_TOMBSTONE).is_file()
+
+
+def test_initial_manifest_event_crash_window_burns_run_id(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    contract = _contract()
+    run_root = tmp_path / "ladder" / str(contract["run_id"])
+    plan_path = run_root / runner.PLAN_FILENAME
+    manifest_path = run_root / runner.MANIFEST_FILENAME
+    envelope = runner.leakage._prepare_plan(plan_path, contract)
+    manifest = runner._new_manifest(plan_path, envelope)
+
+    def interrupted_event_write(_path: Path, _document: dict[str, Any]) -> None:
+        raise OSError("synthetic interruption before durable state event")
+
+    monkeypatch.setattr(runner.leakage, "_write_immutable_json", interrupted_event_write)
+    with pytest.raises(OSError, match="synthetic interruption"):
+        runner._persist_manifest(
+            manifest_path,
+            manifest,
+            condition_count=len(contract["conditions"]),
+        )
+
+    assert manifest_path.is_file()
+    assert runner._run_state_path(manifest_path).is_dir()
+    with pytest.raises(runner.OneHotLadderError, match="run state is empty"):
+        runner._prepare_plan_only_state(plan_path, manifest_path, contract)
+
+
+def test_board_level_run_state_survives_run_root_deletion(tmp_path: Path) -> None:
+    contract = _contract()
+    run_root = tmp_path / "ladder" / str(contract["run_id"])
+    plan_path = run_root / runner.PLAN_FILENAME
+    manifest_path = run_root / runner.MANIFEST_FILENAME
+    runner._prepare_plan_only_state(plan_path, manifest_path, contract)
+    state_path = runner._run_state_path(manifest_path)
+    plan_path.unlink()
+    manifest_path.unlink()
+    run_root.rmdir()
+
+    with pytest.raises(runner.OneHotLadderError, match="run ID is burned"):
+        runner._prepare_plan_only_state(plan_path, manifest_path, contract)
+
+    assert state_path.is_dir()
+    assert not run_root.exists()
+
+
+def test_run_state_rejects_same_status_manifest_rollback(tmp_path: Path) -> None:
+    contract = _contract()
+    run_root = tmp_path / "ladder" / str(contract["run_id"])
+    plan_path = run_root / runner.PLAN_FILENAME
+    manifest_path = run_root / runner.MANIFEST_FILENAME
+    envelope, manifest = runner._prepare_plan_only_state(plan_path, manifest_path, contract)
+    manifest["execution_started"] = True
+    manifest["status"] = "running"
+    runner._persist_manifest(
+        manifest_path,
+        manifest,
+        condition_count=len(contract["conditions"]),
+    )
+    prior_running_bytes = manifest_path.read_bytes()
+    manifest["confirmations"].append({"synthetic": "later-running-revision"})
+    runner._persist_manifest(
+        manifest_path,
+        manifest,
+        condition_count=len(contract["conditions"]),
+    )
+    manifest_path.write_bytes(prior_running_bytes)
+
+    with pytest.raises(runner.OneHotLadderError, match="deletion or rollback"):
+        runner._load_manifest(
+            manifest_path,
+            plan_path=plan_path,
+            envelope=envelope,
+        )
+
+
+def test_failed_tombstone_survives_ledger_suffix_and_manifest_rollback(
+    tmp_path: Path,
+) -> None:
+    contract = _contract()
+    run_root = tmp_path / "ladder" / str(contract["run_id"])
+    plan_path = run_root / runner.PLAN_FILENAME
+    manifest_path = run_root / runner.MANIFEST_FILENAME
+    envelope, manifest = runner._prepare_plan_only_state(plan_path, manifest_path, contract)
+    manifest["execution_started"] = True
+    manifest["status"] = "running"
+    runner._persist_manifest(
+        manifest_path,
+        manifest,
+        condition_count=len(contract["conditions"]),
+    )
+    pre_failure_bytes = manifest_path.read_bytes()
+    pre_failure_revision = manifest["state_revision"]
+    manifest["attempts"].append(
+        {
+            "attempt_id": 1,
+            "condition_id": contract["conditions"][0]["condition_id"],
+            "status": "failed",
+        }
+    )
+    runner._persist_manifest(
+        manifest_path,
+        manifest,
+        condition_count=len(contract["conditions"]),
+    )
+    state_path = runner._run_state_path(manifest_path)
+    latest_event = state_path / f"{manifest['state_revision']:020d}.json"
+    latest_event.unlink()
+    manifest_path.write_bytes(pre_failure_bytes)
+    assert (
+        pre_failure_revision
+        == json.loads(manifest_path.read_text(encoding="utf-8"))["state_revision"]
+    )
+
+    with pytest.raises(runner.OneHotLadderError, match="deletion or rollback"):
+        runner._load_manifest(
+            manifest_path,
+            plan_path=plan_path,
+            envelope=envelope,
+        )
+
+    assert (state_path / runner.RUN_FAILED_TOMBSTONE).is_file()
+
+
+def test_run_state_rejects_boolean_revision_event(tmp_path: Path) -> None:
+    contract = _contract()
+    run_root = tmp_path / "ladder" / str(contract["run_id"])
+    plan_path = run_root / runner.PLAN_FILENAME
+    manifest_path = run_root / runner.MANIFEST_FILENAME
+    envelope, _ = runner._prepare_plan_only_state(plan_path, manifest_path, contract)
+    event_path = runner._run_state_path(manifest_path) / "00000000000000000001.json"
+    event = json.loads(event_path.read_text(encoding="utf-8"))
+    event["state_revision"] = True
+    event_path.chmod(0o600)
+    event_path.write_text(json.dumps(event), encoding="utf-8")
+
+    with pytest.raises(runner.OneHotLadderError, match="event is malformed"):
+        runner._load_manifest(
+            manifest_path,
+            plan_path=plan_path,
+            envelope=envelope,
+        )
+
+
+def test_run_state_rejects_running_to_prepared_transition(tmp_path: Path) -> None:
+    contract = _contract()
+    run_root = tmp_path / "ladder" / str(contract["run_id"])
+    plan_path = run_root / runner.PLAN_FILENAME
+    manifest_path = run_root / runner.MANIFEST_FILENAME
+    _, manifest = runner._prepare_plan_only_state(plan_path, manifest_path, contract)
+    manifest["execution_started"] = True
+    manifest["status"] = "running"
+    runner._persist_manifest(
+        manifest_path,
+        manifest,
+        condition_count=len(contract["conditions"]),
+    )
+    accepted_bytes = manifest_path.read_bytes()
+    manifest["status"] = "prepared"
+
+    with pytest.raises(runner.OneHotLadderError, match="forbidden.*running -> prepared"):
+        runner._persist_manifest(
+            manifest_path,
+            manifest,
+            condition_count=len(contract["conditions"]),
+        )
+
+    assert manifest_path.read_bytes() == accepted_bytes
+
+
+def test_completed_run_state_remains_loadable_and_plan_only_is_noop(
+    tmp_path: Path,
+) -> None:
+    contract = _contract()
+    run_root = tmp_path / "ladder" / str(contract["run_id"])
+    plan_path = run_root / runner.PLAN_FILENAME
+    manifest_path = run_root / runner.MANIFEST_FILENAME
+    envelope, manifest = runner._prepare_plan_only_state(
+        plan_path,
+        manifest_path,
+        contract,
+    )
+    manifest["execution_started"] = True
+    manifest["status"] = "running"
+    runner._persist_manifest(
+        manifest_path,
+        manifest,
+        condition_count=len(contract["conditions"]),
+    )
+    manifest["status"] = "conditions_complete"
+    runner._persist_manifest(
+        manifest_path,
+        manifest,
+        condition_count=len(contract["conditions"]),
+    )
+    manifest["status"] = "complete"
+    manifest["completed_at"] = "2026-08-29T12:00:00+00:00"
+    runner._persist_manifest(
+        manifest_path,
+        manifest,
+        condition_count=len(contract["conditions"]),
+    )
+    manifest_bytes = manifest_path.read_bytes()
+    state_path = runner._run_state_path(manifest_path)
+    state_files = {path.name: path.read_bytes() for path in state_path.iterdir()}
+
+    loaded = runner._load_manifest(
+        manifest_path,
+        plan_path=plan_path,
+        envelope=envelope,
+    )
+    observed_envelope, observed_manifest = runner._prepare_plan_only_state(
+        plan_path,
+        manifest_path,
+        contract,
+    )
+
+    assert loaded == manifest
+    assert observed_envelope == envelope
+    assert observed_manifest == manifest
+    assert manifest_path.read_bytes() == manifest_bytes
+    assert {path.name: path.read_bytes() for path in state_path.iterdir()} == state_files
 
 
 def test_execution_confirmations_require_exact_input_token_fixture_and_no_movement() -> None:
@@ -776,6 +1182,11 @@ def test_condition_capture_attests_selected_hold_and_all_off_cleanup(
     assert result["pilot_confidence"] >= runner.leakage.MINIMUM_PILOT_CONFIDENCE
     assert result["selector_after_pluto_mute"]["readback"]["lease_active"] is True
     assert result["selector_cleanup_all_off"]["readback"]["applied_code"] == 8
+    assert result["native_libiio_runtime_attestation"] == _native_attestation()
+    assert (
+        result["native_libiio_runtime_attestation_sha256"]
+        == (contract["source"]["native_libiio_runtime_attestation_sha256"])
+    )
 
     record = json.loads((Path(result["artifact_path"]) / runner.CONDITION_RECORD_NAME).read_text())
     assert record["condition"]["selector_state_name"] == "ANT3"
@@ -783,6 +1194,11 @@ def test_condition_capture_attests_selected_hold_and_all_off_cleanup(
     assert record["selector_state_attestation"]["after_pluto_mute"]["status"] == "passed"
     assert record["selector_state_attestation"]["cleanup_all_off"]["status"] == "passed"
     assert record["accepted_for_selector_calibration"] is False
+    assert record["native_libiio_runtime_attestation"] == _native_attestation()
+    assert (
+        record["native_libiio_runtime_attestation_sha256"]
+        == (contract["source"]["native_libiio_runtime_attestation_sha256"])
+    )
     resume_manifest = {
         "attempts": [
             {
@@ -793,9 +1209,7 @@ def test_condition_capture_attests_selected_hold_and_all_off_cleanup(
                 "outcome": "measurement_quality_passed",
                 "failure_kind": None,
                 "quarantine": None,
-                "post_condition_exact_serial_mute": result[
-                    "post_condition_exact_serial_mute"
-                ],
+                "post_condition_exact_serial_mute": result["post_condition_exact_serial_mute"],
                 "error": None,
                 "automatic_retry_attempted": False,
                 "result": result,
@@ -807,10 +1221,30 @@ def test_condition_capture_attests_selected_hold_and_all_off_cleanup(
         planned_conditions={str(condition["condition_id"]): condition},
         selector_control=contract["selector_control"],
         configuration=contract["configuration"],
+        native_runtime_attestation=contract["source"]["native_libiio_runtime_attestation"],
+        native_runtime_sha256=contract["source"]["native_libiio_runtime_attestation_sha256"],
         serial=SERIAL,
         plan_evidence=plan_evidence,
         capture_root=tmp_path / "captures",
     ) == {condition["condition_id"]}
+
+    result["native_libiio_runtime_attestation_sha256"] = "0" * 64
+    with pytest.raises(runner.OneHotLadderError, match="evidence is malformed"):
+        runner._completed_condition_ids(
+            resume_manifest,
+            planned_conditions={str(condition["condition_id"]): condition},
+            selector_control=contract["selector_control"],
+            configuration=contract["configuration"],
+            native_runtime_attestation=contract["source"]["native_libiio_runtime_attestation"],
+            native_runtime_sha256=contract["source"]["native_libiio_runtime_attestation_sha256"],
+            serial=SERIAL,
+            plan_evidence=plan_evidence,
+            capture_root=tmp_path / "captures",
+            downgrade_invalid=False,
+        )
+    result["native_libiio_runtime_attestation_sha256"] = contract["source"][
+        "native_libiio_runtime_attestation_sha256"
+    ]
 
     external_root = tmp_path / "external-root"
     external_root.mkdir()
@@ -820,6 +1254,8 @@ def test_condition_capture_attests_selected_hold_and_all_off_cleanup(
             planned_conditions={str(condition["condition_id"]): condition},
             selector_control=contract["selector_control"],
             configuration=contract["configuration"],
+            native_runtime_attestation=contract["source"]["native_libiio_runtime_attestation"],
+            native_runtime_sha256=contract["source"]["native_libiio_runtime_attestation_sha256"],
             serial=SERIAL,
             plan_evidence=plan_evidence,
             capture_root=external_root,
@@ -833,6 +1269,8 @@ def test_condition_capture_attests_selected_hold_and_all_off_cleanup(
             planned_conditions={str(condition["condition_id"]): condition},
             selector_control=contract["selector_control"],
             configuration=contract["configuration"],
+            native_runtime_attestation=contract["source"]["native_libiio_runtime_attestation"],
+            native_runtime_sha256=contract["source"]["native_libiio_runtime_attestation_sha256"],
             serial=SERIAL,
             plan_evidence=plan_evidence,
             capture_root=tmp_path / "captures",
@@ -849,8 +1287,7 @@ def test_resume_revalidates_claim_safety_rf_and_attempt_state(
     condition = next(
         item
         for item in contract["conditions"]
-        if item["selector_state_name"] == "ANT3"
-        and item["tx_hardware_gain_db"] == -35.0
+        if item["selector_state_name"] == "ANT3" and item["tx_hardware_gain_db"] == -35.0
     )
     plan_evidence = _plan_evidence(tmp_path / "plan.json")
     capture_root = tmp_path / "captures"
@@ -876,9 +1313,7 @@ def test_resume_revalidates_claim_safety_rf_and_attempt_state(
             "outcome": "measurement_quality_passed",
             "failure_kind": None,
             "quarantine": None,
-            "post_condition_exact_serial_mute": result[
-                "post_condition_exact_serial_mute"
-            ],
+            "post_condition_exact_serial_mute": result["post_condition_exact_serial_mute"],
             "error": None,
             "automatic_retry_attempted": False,
             "result": result,
@@ -887,6 +1322,23 @@ def test_resume_revalidates_claim_safety_rf_and_attempt_state(
     def persist_record(record: dict[str, Any]) -> None:
         runner.write_json_atomic(record_path, record)
         result["condition_record_sha256"] = runner.sha256_path(record_path)
+
+    wrong_native_runtime = json.loads(json.dumps(original_record))
+    wrong_native_runtime["native_libiio_runtime_attestation_sha256"] = "0" * 64
+    persist_record(wrong_native_runtime)
+    with pytest.raises(runner.OneHotLadderError, match="condition record is inconsistent"):
+        runner._completed_condition_ids(
+            {"attempts": [attempt()]},
+            planned_conditions={str(condition["condition_id"]): condition},
+            selector_control=contract["selector_control"],
+            configuration=contract["configuration"],
+            native_runtime_attestation=contract["source"]["native_libiio_runtime_attestation"],
+            native_runtime_sha256=contract["source"]["native_libiio_runtime_attestation_sha256"],
+            serial=SERIAL,
+            plan_evidence=plan_evidence,
+            capture_root=capture_root,
+            downgrade_invalid=False,
+        )
 
     weakened_safety = json.loads(json.dumps(original_record))
     weakened_safety["safety"]["fresh_stream_validated"] = False
@@ -897,6 +1349,8 @@ def test_resume_revalidates_claim_safety_rf_and_attempt_state(
             planned_conditions={str(condition["condition_id"]): condition},
             selector_control=contract["selector_control"],
             configuration=contract["configuration"],
+            native_runtime_attestation=contract["source"]["native_libiio_runtime_attestation"],
+            native_runtime_sha256=contract["source"]["native_libiio_runtime_attestation_sha256"],
             serial=SERIAL,
             plan_evidence=plan_evidence,
             capture_root=capture_root,
@@ -914,6 +1368,8 @@ def test_resume_revalidates_claim_safety_rf_and_attempt_state(
             planned_conditions={str(condition["condition_id"]): condition},
             selector_control=contract["selector_control"],
             configuration=contract["configuration"],
+            native_runtime_attestation=contract["source"]["native_libiio_runtime_attestation"],
+            native_runtime_sha256=contract["source"]["native_libiio_runtime_attestation_sha256"],
             serial=SERIAL,
             plan_evidence=plan_evidence,
             capture_root=capture_root,
@@ -928,6 +1384,8 @@ def test_resume_revalidates_claim_safety_rf_and_attempt_state(
             planned_conditions={str(condition["condition_id"]): condition},
             selector_control=contract["selector_control"],
             configuration=contract["configuration"],
+            native_runtime_attestation=contract["source"]["native_libiio_runtime_attestation"],
+            native_runtime_sha256=contract["source"]["native_libiio_runtime_attestation_sha256"],
             serial=SERIAL,
             plan_evidence=plan_evidence,
             capture_root=capture_root,
@@ -946,6 +1404,8 @@ def test_resume_revalidates_claim_safety_rf_and_attempt_state(
             planned_conditions={str(condition["condition_id"]): condition},
             selector_control=contract["selector_control"],
             configuration=contract["configuration"],
+            native_runtime_attestation=contract["source"]["native_libiio_runtime_attestation"],
+            native_runtime_sha256=contract["source"]["native_libiio_runtime_attestation_sha256"],
             serial=SERIAL,
             plan_evidence=plan_evidence,
             capture_root=capture_root,
@@ -1007,6 +1467,44 @@ def test_selected_state_lease_expiry_after_capture_quarantines_retained_iq(
     assert any(item["name"].endswith(".sigmf-data") for item in caught.value.quarantine["files"])
 
 
+def test_native_runtime_mismatch_is_first_pre_rf_failure(tmp_path: Path) -> None:
+    contract = _contract()
+    envelope = runner.leakage._plan_envelope(contract)
+    plan_path = tmp_path / "plan.json"
+    runner.leakage._write_immutable_json(plan_path, envelope)
+    manifest = runner._new_manifest(plan_path, envelope)
+    manifest_path = tmp_path / "manifest.json"
+    calls: list[str] = []
+
+    def wrong_runtime() -> dict[str, Any]:
+        document = _native_attestation()
+        document["library_sha256"] = "0" * 64
+        return document
+
+    with pytest.raises(runner.OneHotLadderError, match="native libiio runtime"):
+        runner._execute_stage(
+            manifest,
+            manifest_path,
+            envelope=envelope,
+            plan_path=plan_path,
+            confirmation={"stage": contract["topology_stage"]},
+            capture_root=tmp_path / "captures",
+            capture_boundary=lambda *_args, **_kwargs: calls.append("capture"),
+            mute_boundary=lambda *_args, **_kwargs: calls.append("mute"),
+            identity_boundary=lambda *_args, **_kwargs: calls.append("identity"),
+            selector_boundary=lambda *_args, **_kwargs: calls.append("selector"),
+            target_image_boundary=lambda *_args, **_kwargs: calls.append("target-image"),
+            runtime_attestation_boundary=wrong_runtime,
+            fixture_evidence_boundary=lambda _fixture: calls.append("fixture"),
+        )
+
+    assert calls == []
+    assert manifest["status"] == "failed"
+    assert manifest["native_runtime_preflight"]["status"] == "failed"
+    assert len(manifest["native_runtime_preflight_attempts"]) == 1
+    assert manifest["identity_preflight_attempts"] == []
+
+
 def test_stale_usb_uri_blocks_mute_selector_and_capture_boundaries(tmp_path: Path) -> None:
     contract = _contract()
     envelope = runner.leakage._plan_envelope(contract)
@@ -1044,14 +1542,13 @@ def test_stale_usb_uri_blocks_mute_selector_and_capture_boundaries(tmp_path: Pat
             identity_boundary=mismatch,
             selector_boundary=_selector_boundary(selector_calls),
             target_image_boundary=_passing_target_image(),
+            runtime_attestation_boundary=_passing_runtime(),
             fixture_evidence_boundary=lambda _fixture: None,
         )
 
     assert capture_calls == []
     assert mute_calls == ["identity_preflight_recovery"]
-    assert selector_calls == [
-        (runner.ALL_OFF_STATE, "identity_failure_cleanup_all_off")
-    ]
+    assert selector_calls == [(runner.ALL_OFF_STATE, "identity_failure_cleanup_all_off")]
     assert manifest["status"] == "failed"
 
 
@@ -1088,6 +1585,7 @@ def test_preflight_mute_failure_never_captures_and_stage_finally_forces_all_off(
             identity_boundary=_passing_identity(),
             selector_boundary=_selector_boundary(selector_calls),
             target_image_boundary=_passing_target_image(),
+            runtime_attestation_boundary=_passing_runtime(),
             fixture_evidence_boundary=lambda _fixture: None,
         )
 
@@ -1124,11 +1622,15 @@ def test_failed_invocation_attempts_pluto_mute_and_selector_all_off_recovery(
             identity_boundary=_passing_identity(),
             selector_boundary=_selector_boundary(selector_calls),
             target_image_boundary=_passing_target_image(),
+            runtime_attestation_boundary=_passing_runtime(),
             fixture_evidence_boundary=lambda _fixture: None,
         )
 
-    assert mute_calls == ["resume_recovery"]
-    assert selector_calls == [(runner.ALL_OFF_STATE, "resume_cleanup_all_off")]
+    assert mute_calls == ["resume_recovery", "final"]
+    assert selector_calls == [
+        (runner.ALL_OFF_STATE, "resume_cleanup_all_off"),
+        (runner.ALL_OFF_STATE, "final_cleanup_all_off"),
+    ]
     assert manifest["recovery_selector_cleanup_attempts"][0]["status"] == "passed"
 
 
@@ -1164,6 +1666,8 @@ def test_resume_rejects_completed_attempt_without_exact_selector_attestations(
             planned_conditions={str(condition["condition_id"]): condition},
             selector_control=_selector_control(),
             configuration=contract["configuration"],
+            native_runtime_attestation=contract["source"]["native_libiio_runtime_attestation"],
+            native_runtime_sha256=contract["source"]["native_libiio_runtime_attestation_sha256"],
             serial=SERIAL,
             plan_evidence=_plan_evidence(tmp_path / "plan.json"),
             capture_root=tmp_path / "captures",
@@ -1193,3 +1697,335 @@ def test_run_specific_orphan_scan_quarantines_truncated_and_partial_artifacts(
     assert not partial.exists()
     assert (capture_root / ".failed/artifact-malformed.orphaned").is_dir()
     assert (capture_root / ".failed/artifact-partial.orphaned").is_dir()
+
+
+def test_orphan_scan_rejects_symlink_escapes_before_move_or_seal(tmp_path: Path) -> None:
+    plan_evidence = _plan_evidence(tmp_path / "plan.json")
+    external = tmp_path / "external"
+    external.mkdir()
+
+    candidate_root = tmp_path / "candidate-run"
+    candidate_root.mkdir()
+    (candidate_root / "escape").symlink_to(external, target_is_directory=True)
+    with pytest.raises(runner.OneHotLadderError, match="unsafe orphan entry"):
+        runner._quarantine_orphaned_current_plan_artifacts(
+            candidate_root,
+            manifest={"attempts": []},
+            plan_evidence=plan_evidence,
+        )
+
+    nested_root = tmp_path / "nested-run"
+    nested_candidate = nested_root / "artifact"
+    nested_candidate.mkdir(parents=True)
+    external_record = external / "record.json"
+    external_record.write_text("{}\n", encoding="utf-8")
+    (nested_candidate / runner.CONDITION_RECORD_NAME).symlink_to(external_record)
+    with pytest.raises(runner.OneHotLadderError, match="contains a symlink"):
+        runner._quarantine_orphaned_current_plan_artifacts(
+            nested_root,
+            manifest={"attempts": []},
+            plan_evidence=plan_evidence,
+        )
+
+    partial_root = tmp_path / "partial-run"
+    partial_root.mkdir()
+    (partial_root / ".partial").symlink_to(external, target_is_directory=True)
+    with pytest.raises(runner.OneHotLadderError, match="must not be a symlink"):
+        runner._quarantine_orphaned_current_plan_artifacts(
+            partial_root,
+            manifest={"attempts": []},
+            plan_evidence=plan_evidence,
+        )
+
+    failed_root = tmp_path / "failed-run"
+    (failed_root / "artifact").mkdir(parents=True)
+    (failed_root / ".failed").symlink_to(external, target_is_directory=True)
+    with pytest.raises(runner.OneHotLadderError, match="symlink"):
+        runner._quarantine_orphaned_current_plan_artifacts(
+            failed_root,
+            manifest={"attempts": []},
+            plan_evidence=plan_evidence,
+        )
+
+    assert not (external / "leakage-ladder-quarantine.json").exists()
+
+
+def test_orphan_scan_rejects_raw_symlink_ancestor_and_dangling_destination(
+    tmp_path: Path,
+) -> None:
+    plan_evidence = _plan_evidence(tmp_path / "plan.json")
+    real_parent = tmp_path / "real-parent"
+    real_capture_root = real_parent / "capture"
+    (real_capture_root / "artifact").mkdir(parents=True)
+    alias_parent = tmp_path / "alias-parent"
+    alias_parent.symlink_to(real_parent, target_is_directory=True)
+
+    with pytest.raises(runner.OneHotLadderError, match="contains a symlink"):
+        runner._quarantine_orphaned_current_plan_artifacts(
+            alias_parent / "capture",
+            manifest={"attempts": []},
+            plan_evidence=plan_evidence,
+        )
+    assert (real_capture_root / "artifact").is_dir()
+
+    collision_root = tmp_path / "collision-run"
+    candidate = collision_root / "artifact"
+    candidate.mkdir(parents=True)
+    failed_root = collision_root / ".failed"
+    failed_root.mkdir()
+    destination = failed_root / "artifact.orphaned"
+    destination.symlink_to(tmp_path / "missing-destination", target_is_directory=True)
+
+    with pytest.raises(runner.OneHotLadderError, match="destination already exists"):
+        runner._quarantine_orphaned_current_plan_artifacts(
+            collision_root,
+            manifest={"attempts": []},
+            plan_evidence=plan_evidence,
+        )
+    assert candidate.is_dir()
+    assert destination.is_symlink()
+
+
+def test_resume_quarantine_rejects_failed_root_and_artifact_symlink_swaps(
+    tmp_path: Path,
+) -> None:
+    error = runner.OneHotLadderError("invalid completed evidence")
+
+    failed_swap_root = tmp_path / "failed-swap"
+    failed_source = failed_swap_root / "artifact"
+    failed_source.mkdir(parents=True)
+    external = tmp_path / "external"
+    external.mkdir()
+    (failed_swap_root / ".failed").symlink_to(external, target_is_directory=True)
+    failed_attempt: dict[str, Any] = {}
+    runner._downgrade_and_quarantine_completed_attempt(
+        failed_attempt,
+        result={"artifact_path": str(failed_source)},
+        capture_root=failed_swap_root,
+        error=error,
+    )
+    assert failed_attempt["status"] == "failed"
+    assert failed_attempt["quarantine"] is None
+    assert failed_attempt["quarantine_error"]["type"] == "OneHotLadderError"
+    assert failed_source.is_dir()
+    assert list(external.iterdir()) == []
+
+    artifact_swap_root = tmp_path / "artifact-swap"
+    sibling = artifact_swap_root / "sibling"
+    sibling.mkdir(parents=True)
+    artifact_alias = artifact_swap_root / "artifact-alias"
+    artifact_alias.symlink_to(sibling, target_is_directory=True)
+    artifact_attempt: dict[str, Any] = {}
+    runner._downgrade_and_quarantine_completed_attempt(
+        artifact_attempt,
+        result={"artifact_path": str(artifact_alias)},
+        capture_root=artifact_swap_root,
+        error=error,
+    )
+    assert artifact_attempt["status"] == "failed"
+    assert artifact_attempt["quarantine"] is None
+    assert artifact_attempt["quarantine_error"]["type"] == "OneHotLadderError"
+    assert sibling.is_dir()
+    assert artifact_alias.is_symlink()
+
+
+def test_resume_quarantine_latches_dangling_collision_and_seal_failure(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    error = runner.OneHotLadderError("invalid completed evidence")
+    collision_root = tmp_path / "collision"
+    collision_source = collision_root / "artifact"
+    collision_source.mkdir(parents=True)
+    failed_root = collision_root / ".failed"
+    failed_root.mkdir()
+    collision = failed_root / "artifact.resume-invalid"
+    collision.symlink_to(tmp_path / "missing", target_is_directory=True)
+    collision_attempt: dict[str, Any] = {}
+
+    runner._downgrade_and_quarantine_completed_attempt(
+        collision_attempt,
+        result={"artifact_path": str(collision_source)},
+        capture_root=collision_root,
+        error=error,
+    )
+    assert collision_attempt["status"] == "failed"
+    assert collision_attempt["quarantine"] is None
+    assert collision_attempt["quarantine_error"]["type"] == "OneHotLadderError"
+    assert collision_source.is_dir()
+    assert collision.is_symlink()
+
+    seal_root = tmp_path / "seal-failure"
+    seal_source = seal_root / "artifact"
+    seal_source.mkdir(parents=True)
+    seal_attempt: dict[str, Any] = {}
+
+    def fail_seal(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+        raise runner.leakage.LeakageLadderError("synthetic quarantine seal failure")
+
+    monkeypatch.setattr(runner.leakage, "_seal_failed_directory", fail_seal)
+    runner._downgrade_and_quarantine_completed_attempt(
+        seal_attempt,
+        result={"artifact_path": str(seal_source)},
+        capture_root=seal_root,
+        error=error,
+    )
+    assert seal_attempt["status"] == "failed"
+    assert seal_attempt["quarantine"] is None
+    assert seal_attempt["quarantine_error"] == {
+        "type": "LeakageLadderError",
+        "message": "synthetic quarantine seal failure",
+    }
+    assert (seal_root / ".failed/artifact.resume-invalid").is_dir()
+
+
+def test_shared_quarantine_error_latches_condition_attempt_failed(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    contract = _contract()
+    envelope = runner.leakage._plan_envelope(contract)
+    plan_path = tmp_path / "run" / runner.PLAN_FILENAME
+    runner.leakage._write_immutable_json(plan_path, envelope)
+    manifest = runner._new_manifest(plan_path, envelope)
+    manifest_path = plan_path.with_name(runner.MANIFEST_FILENAME)
+
+    def fail_capture(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+        raise runner.leakage.LeakageLadderError("synthetic quarantine seal failure")
+
+    monkeypatch.setattr(runner, "_capture_condition", fail_capture)
+    with pytest.raises(runner.leakage.LeakageLadderError, match="seal failure"):
+        runner._execute_stage(
+            manifest,
+            manifest_path,
+            envelope=envelope,
+            plan_path=plan_path,
+            confirmation={"stage": contract["topology_stage"]},
+            capture_root=tmp_path / "captures",
+            mute_boundary=_passing_mute(),
+            identity_boundary=_passing_identity(),
+            selector_boundary=_selector_boundary(),
+            target_image_boundary=_passing_target_image(),
+            runtime_attestation_boundary=_passing_runtime(),
+            fixture_evidence_boundary=lambda _fixture: None,
+        )
+
+    assert manifest["status"] == "failed"
+    assert len(manifest["attempts"]) == 1
+    attempt = manifest["attempts"][0]
+    assert attempt["status"] == "failed"
+    assert attempt["failure_kind"] == "capture_or_quarantine_validation"
+    assert attempt["quarantine"] is None
+    assert attempt["quarantine_error"] == {
+        "type": "LeakageLadderError",
+        "message": "synthetic quarantine seal failure",
+    }
+
+
+def test_orphan_failure_occurs_after_preflight_safe_state_and_gets_final_cleanup(
+    tmp_path: Path,
+) -> None:
+    contract = _contract()
+    envelope = runner.leakage._plan_envelope(contract)
+    plan_path = tmp_path / "run" / runner.PLAN_FILENAME
+    runner.leakage._write_immutable_json(plan_path, envelope)
+    manifest = runner._new_manifest(plan_path, envelope)
+    manifest_path = plan_path.with_name(runner.MANIFEST_FILENAME)
+    capture_root = tmp_path / "captures"
+    orphan = capture_root / "foreign-plan-artifact"
+    orphan.mkdir(parents=True)
+    (orphan / runner.CONDITION_RECORD_NAME).write_text(
+        json.dumps({"immutable_plan": {"foreign": True}}),
+        encoding="utf-8",
+    )
+    calls: list[str] = []
+
+    def runtime() -> dict[str, Any]:
+        calls.append("runtime")
+        return _native_attestation()
+
+    def fixture(_fixture_identity: dict[str, Any]) -> None:
+        calls.append("fixture")
+
+    def identity(serial: str, requested_uri: str) -> dict[str, Any]:
+        calls.append("identity")
+        return _passing_identity()(serial, requested_uri)
+
+    def mute(serial: str, purpose: str) -> dict[str, Any]:
+        calls.append(f"mute:{purpose}")
+        return _passing_mute()(serial, purpose)
+
+    selector = _selector_boundary()
+
+    def select(
+        control: dict[str, Any],
+        state_name: str,
+        state_code: int,
+        purpose: str,
+    ) -> dict[str, Any]:
+        calls.append(f"selector:{purpose}")
+        return selector(control, state_name, state_code, purpose)
+
+    with pytest.raises(runner.OneHotLadderError, match="different immutable plan"):
+        runner._execute_stage(
+            manifest,
+            manifest_path,
+            envelope=envelope,
+            plan_path=plan_path,
+            confirmation={"stage": contract["topology_stage"]},
+            capture_root=capture_root,
+            capture_boundary=lambda *_args, **_kwargs: calls.append("capture"),
+            mute_boundary=mute,
+            identity_boundary=identity,
+            selector_boundary=select,
+            target_image_boundary=lambda _control: calls.append("target-image"),
+            runtime_attestation_boundary=runtime,
+            fixture_evidence_boundary=fixture,
+        )
+
+    assert calls == [
+        "runtime",
+        "fixture",
+        "identity",
+        "mute:preflight",
+        "selector:preflight_cleanup_all_off",
+        "mute:final",
+        "selector:final_cleanup_all_off",
+    ]
+    assert orphan.is_dir()
+    assert manifest["status"] == "failed"
+    assert manifest["preflight_selector_cleanup"]["status"] == "passed"
+
+
+def test_selector_preflight_failure_blocks_orphan_scan_and_capture(tmp_path: Path) -> None:
+    contract = _contract()
+    envelope = runner.leakage._plan_envelope(contract)
+    plan_path = tmp_path / "run" / runner.PLAN_FILENAME
+    runner.leakage._write_immutable_json(plan_path, envelope)
+    manifest = runner._new_manifest(plan_path, envelope)
+    manifest_path = plan_path.with_name(runner.MANIFEST_FILENAME)
+    capture_root = tmp_path / "captures"
+    orphan = capture_root / "artifact"
+    orphan.mkdir(parents=True)
+    calls: list[str] = []
+
+    with pytest.raises(runner.OneHotLadderError, match="preflight ALL_OFF"):
+        runner._execute_stage(
+            manifest,
+            manifest_path,
+            envelope=envelope,
+            plan_path=plan_path,
+            confirmation={"stage": contract["topology_stage"]},
+            capture_root=capture_root,
+            capture_boundary=lambda *_args, **_kwargs: calls.append("capture"),
+            mute_boundary=_passing_mute(calls),
+            identity_boundary=_passing_identity(),
+            selector_boundary=_selector_boundary(fail_purpose="preflight_cleanup_all_off"),
+            target_image_boundary=lambda _control: calls.append("target-image"),
+            runtime_attestation_boundary=_passing_runtime(),
+            fixture_evidence_boundary=lambda _fixture: None,
+        )
+
+    assert calls == ["preflight", "final"]
+    assert orphan.is_dir()
+    assert not (capture_root / ".failed").exists()

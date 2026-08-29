@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "attestation_kind": "5g8_general_topology_run_setup",
+  "attestation_id": "REPLACE_UNIQUE_SETUP_ATTESTATION_ID",
+  "created_at": "REPLACE_WITH_TIMEZONE_QUALIFIED_ISO_8601_TIMESTAMP",
+  "run_id": "REPLACE_RUN_ID",
+  "campaign_id": "REPLACE_CAMPAIGN_ID",
+  "comparable_fixture_group_id": "REPLACE_COMPARABLE_FIXTURE_GROUP_ID",
+  "stage": "direct_rx2_termination",
+  "fixture_manifest_sha256": "REPLACE_WITH_64_LOWERCASE_HEX_DIGITS",
+  "shared_fixture_sha256": "REPLACE_WITH_64_LOWERCASE_HEX_DIGITS",
+  "stage_delta_sha256": "REPLACE_WITH_64_LOWERCASE_HEX_DIGITS",
+  "observed_component_ids": [
+    "REPLACE_WITH_EXACT_SORTED_COMPONENT_AND_INTERCONNECT_ID_INVENTORY"
+  ],
+  "observed_connection_ids": [
+    "REPLACE_WITH_EXACT_SORTED_CONNECTION_ID_INVENTORY"
+  ],
+  "setup_evidence_path": "REPLACE_WITH_RELATIVE_OR_ABSOLUTE_EVIDENCE_PATH",
+  "setup_evidence_sha256": "REPLACE_WITH_64_LOWERCASE_HEX_DIGITS"
+}

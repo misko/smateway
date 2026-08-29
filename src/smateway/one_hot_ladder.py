@@ -283,6 +283,7 @@ def validate_one_hot_matrix_identity(value: object) -> dict[str, Any]:
         "pluto_serial",
         "smateway_commit",
         "pluto_plus_utils_source_attestation_sha256",
+        "native_libiio_runtime_attestation_sha256",
         "bench_manifest_sha256",
         "bench_elf_sha256",
         "bench_bin_sha256",
@@ -321,10 +322,7 @@ def validate_one_hot_matrix_identity(value: object) -> dict[str, Any]:
     normalized_configuration = json.loads(
         json.dumps(configuration, sort_keys=True, allow_nan=False)
     )
-    if (
-        _canonical_sha256(normalized_configuration)
-        != value["acquisition_configuration_sha256"]
-    ):
+    if _canonical_sha256(normalized_configuration) != value["acquisition_configuration_sha256"]:
         raise ValueError("matrix acquisition configuration hash differs")
     return {
         **{key: value[key] for key in required if key != "acquisition_configuration"},
@@ -373,9 +371,7 @@ def _expected_keys(
         (state, gain, repeat_index)
         for state in states
         for gain in gains
-        for repeat_index in range(
-            attribution_repeat_count if gain == attribution_gain_db else 1
-        )
+        for repeat_index in range(attribution_repeat_count if gain == attribution_gain_db else 1)
     }
 
 
@@ -392,9 +388,7 @@ def _state_summary(
     quality_count = 0
     detected_count = 0
     attribution = [
-        result
-        for result in results
-        if float(result["tx_hardware_gain_db"]) == attribution_gain_db
+        result for result in results if float(result["tx_hardware_gain_db"]) == attribution_gain_db
     ]
     for result in results:
         quality_passed = result.get("measurement_quality_passed") is True
@@ -427,9 +421,7 @@ def _state_summary(
             if upper_bound is not None:
                 absent_upper_bounds.append(upper_bound)
 
-    median_amplitude = (
-        float(np.median(detected_amplitudes)) if detected_amplitudes else None
-    )
+    median_amplitude = float(np.median(detected_amplitudes)) if detected_amplitudes else None
     amplitude_span = (
         max(detected_amplitudes) - min(detected_amplitudes)
         if len(detected_amplitudes) >= 2
@@ -553,10 +545,7 @@ def _validate_result_measurement_evidence(
             if abs(phase_residual) > 1e-9:
                 raise ValueError(f"{label} transfer phase contradicts its phasor")
     if detected and (
-        amplitude <= 0.0
-        or amplitude_ratio is None
-        or amplitude_db is None
-        or phase_deg is None
+        amplitude <= 0.0 or amplitude_ratio is None or amplitude_db is None or phase_deg is None
     ):
         raise ValueError(f"{label} detected transfer lacks amplitude or phase evidence")
     if not detected:
@@ -643,27 +632,22 @@ def _intended_contrast_summary(
                 all_off_phasor,
                 label,
             )
-            contrast_db = (
-                -300.0 if contrast_amplitude <= 0.0 else 20.0 * log10(contrast_amplitude)
-            )
+            contrast_db = -300.0 if contrast_amplitude <= 0.0 else 20.0 * log10(contrast_amplitude)
             over_db = 20.0 * log10(
                 max(contrast_amplitude, np.finfo(np.float64).tiny) / reference_amplitude
             )
             raw_over_db = 20.0 * log10(
-                max(abs(intended_phasor), np.finfo(np.float64).tiny)
-                / reference_amplitude
+                max(abs(intended_phasor), np.finfo(np.float64).tiny) / reference_amplitude
             )
             exact_all_off_amplitude = max(
                 abs(all_off_phasor),
                 np.finfo(np.float64).tiny,
             )
             exact_raw_db = 20.0 * log10(
-                max(abs(intended_phasor), np.finfo(np.float64).tiny)
-                / exact_all_off_amplitude
+                max(abs(intended_phasor), np.finfo(np.float64).tiny) / exact_all_off_amplitude
             )
             exact_path_db = 20.0 * log10(
-                max(contrast_amplitude, np.finfo(np.float64).tiny)
-                / exact_all_off_amplitude
+                max(contrast_amplitude, np.finfo(np.float64).tiny) / exact_all_off_amplitude
             )
             contrasts_db.append(contrast_db)
             contrast_over_all_off_db.append(over_db)
@@ -684,9 +668,7 @@ def _intended_contrast_summary(
                 attribution_phasors.append(contrast_phasor)
                 if passed:
                     attribution_detected_count += 1
-    attribution_amplitude_span_db = (
-        max(attribution_contrasts_db) - min(attribution_contrasts_db)
-    )
+    attribution_amplitude_span_db = max(attribution_contrasts_db) - min(attribution_contrasts_db)
     mean_increment = sum(attribution_phasors) / len(attribution_phasors)
     phase_residuals = [
         abs(float(np.degrees(np.angle(value * np.conj(mean_increment)))))
@@ -695,12 +677,10 @@ def _intended_contrast_summary(
     ]
     uncertainty_radius = 0.0
     if len(attribution_phasors) >= 2:
-        radial_variance = sum(
-            abs(value - mean_increment) ** 2 for value in attribution_phasors
-        ) / (len(attribution_phasors) - 1)
-        uncertainty_radius = 4.303 * sqrt(
-            radial_variance / len(attribution_phasors)
+        radial_variance = sum(abs(value - mean_increment) ** 2 for value in attribution_phasors) / (
+            len(attribution_phasors) - 1
         )
+        uncertainty_radius = 4.303 * sqrt(radial_variance / len(attribution_phasors))
     return {
         "detected_count": detected_count,
         "median_contrast_db": float(np.median(contrasts_db)),
@@ -715,13 +695,9 @@ def _intended_contrast_summary(
         "attribution_minimum_path_over_db": min(attribution_exact_path_db),
         "attribution_minimum_conservative_raw_over_db": min(attribution_raw_over_db),
         "attribution_amplitude_span_db": attribution_amplitude_span_db,
-        "attribution_max_phase_residual_deg": (
-            max(phase_residuals) if phase_residuals else None
-        ),
+        "attribution_max_phase_residual_deg": (max(phase_residuals) if phase_residuals else None),
         "attribution_uncertainty_radius": uncertainty_radius,
-        "attribution_confidence_excludes_zero": (
-            abs(mean_increment) > uncertainty_radius
-        ),
+        "attribution_confidence_excludes_zero": (abs(mean_increment) > uncertainty_radius),
     }
 
 
@@ -738,9 +714,7 @@ def summarize_one_hot_run(
     minimum_intended_through_contrast_over_all_off_db: float = (
         DEFAULT_MINIMUM_INTENDED_THROUGH_CONTRAST_OVER_ALL_OFF_DB
     ),
-    maximum_attribution_amplitude_span_db: float = (
-        DEFAULT_MAXIMUM_ATTRIBUTION_AMPLITUDE_SPAN_DB
-    ),
+    maximum_attribution_amplitude_span_db: float = (DEFAULT_MAXIMUM_ATTRIBUTION_AMPLITUDE_SPAN_DB),
     maximum_attribution_phase_residual_deg: float = (
         DEFAULT_MAXIMUM_ATTRIBUTION_PHASE_RESIDUAL_DEG
     ),
@@ -847,9 +821,7 @@ def summarize_one_hot_run(
             intended_contrast_detected_count=int(contrast["detected_count"]),
             median_selected_minus_all_off_db=float(contrast["median_contrast_db"]),
             minimum_contrast_over_all_off_db=float(contrast["minimum_over_db"]),
-            attribution_contrast_detected_count=int(
-                contrast["attribution_detected_count"]
-            ),
+            attribution_contrast_detected_count=int(contrast["attribution_detected_count"]),
             attribution_median_selected_minus_all_off_db=float(
                 contrast["attribution_median_contrast_db"]
             ),
@@ -867,18 +839,14 @@ def summarize_one_hot_run(
             attribution_minimum_raw_selected_to_all_off_db=float(
                 contrast["attribution_minimum_raw_over_db"]
             ),
-            attribution_median_path_contrast_db=float(
-                contrast["attribution_median_path_over_db"]
-            ),
+            attribution_median_path_contrast_db=float(contrast["attribution_median_path_over_db"]),
             attribution_minimum_path_contrast_db=float(
                 contrast["attribution_minimum_path_over_db"]
             ),
             attribution_minimum_conservative_raw_contrast_db=float(
                 contrast["attribution_minimum_conservative_raw_over_db"]
             ),
-            attribution_contrast_amplitude_span_db=float(
-                contrast["attribution_amplitude_span_db"]
-            ),
+            attribution_contrast_amplitude_span_db=float(contrast["attribution_amplitude_span_db"]),
             attribution_contrast_max_phase_residual_deg=(
                 None
                 if contrast["attribution_max_phase_residual_deg"] is None
@@ -895,8 +863,7 @@ def summarize_one_hot_run(
                 >= STRICT_OPERATIONAL_CONTRAST_DB
             ),
             strict_20db_path_contrast_gate_passed=(
-                float(contrast["attribution_minimum_over_db"])
-                >= STRICT_OPERATIONAL_CONTRAST_DB
+                float(contrast["attribution_minimum_over_db"]) >= STRICT_OPERATIONAL_CONTRAST_DB
             ),
         )
         if summary.cell_role == CELL_ROLE_INTENDED_THROUGH
@@ -919,20 +886,15 @@ def summarize_one_hot_run(
         if state_summary.cell_role == CELL_ROLE_INTENDED_THROUGH:
             if (
                 state_summary.attribution_contrast_amplitude_span_db is None
-                or state_summary.attribution_contrast_amplitude_span_db
-                > maximum_amplitude_span_db
+                or state_summary.attribution_contrast_amplitude_span_db > maximum_amplitude_span_db
             ):
-                rejection_reasons.append(
-                    f"{exact_input}_attribution_amplitude_span_above_limit"
-                )
+                rejection_reasons.append(f"{exact_input}_attribution_amplitude_span_above_limit")
             if (
                 state_summary.attribution_contrast_max_phase_residual_deg is None
                 or state_summary.attribution_contrast_max_phase_residual_deg
                 > maximum_phase_residual_deg
             ):
-                rejection_reasons.append(
-                    f"{exact_input}_attribution_phase_residual_above_limit"
-                )
+                rejection_reasons.append(f"{exact_input}_attribution_phase_residual_above_limit")
             if not state_summary.attribution_complex_increment_confidence_excludes_zero:
                 rejection_reasons.append(
                     f"{exact_input}_attribution_increment_confidence_includes_zero"
@@ -990,8 +952,7 @@ def _verified_row_results(
     verification = row.get("verification_evidence")
     if (
         not isinstance(verification, Mapping)
-        or verification.get("verification_kind")
-        != "local_manifest_plan_artifact_byte_verification"
+        or verification.get("verification_kind") != "local_manifest_plan_artifact_byte_verification"
         or verification.get("manifest_file_sha256") != row.get("manifest_sha256")
         or verification.get("plan_contract_sha256") != plan_contract_sha
         or verification.get("plan_file_sha256") != plan_file_sha
@@ -1038,9 +999,7 @@ def summarize_complete_one_hot_matrix(
     minimum_intended_through_contrast_over_all_off_db: float = (
         DEFAULT_MINIMUM_INTENDED_THROUGH_CONTRAST_OVER_ALL_OFF_DB
     ),
-    maximum_attribution_amplitude_span_db: float = (
-        DEFAULT_MAXIMUM_ATTRIBUTION_AMPLITUDE_SPAN_DB
-    ),
+    maximum_attribution_amplitude_span_db: float = (DEFAULT_MAXIMUM_ATTRIBUTION_AMPLITUDE_SPAN_DB),
     maximum_attribution_phase_residual_deg: float = (
         DEFAULT_MAXIMUM_ATTRIBUTION_PHASE_RESIDUAL_DEG
     ),
@@ -1078,9 +1037,7 @@ def summarize_complete_one_hot_matrix(
         if shared_matrix_identity is None:
             shared_matrix_identity = matrix_identity
         elif matrix_identity != shared_matrix_identity:
-            raise ValueError(
-                "matrix rows do not share one DUT/control/acquisition identity"
-            )
+            raise ValueError("matrix rows do not share one DUT/control/acquisition identity")
         if evidence_sha in setup_evidence_hashes:
             raise ValueError("matrix rows reuse setup evidence instead of recording each setup")
         setup_evidence_hashes.add(evidence_sha)
@@ -1121,19 +1078,13 @@ def summarize_complete_one_hot_matrix(
             minimum_intended_through_contrast_over_all_off_db=(
                 minimum_intended_through_contrast_over_all_off_db
             ),
-            maximum_attribution_amplitude_span_db=(
-                maximum_attribution_amplitude_span_db
-            ),
-            maximum_attribution_phase_residual_deg=(
-                maximum_attribution_phase_residual_deg
-            ),
+            maximum_attribution_amplitude_span_db=(maximum_attribution_amplitude_span_db),
+            maximum_attribution_phase_residual_deg=(maximum_attribution_phase_residual_deg),
         )
         for driven_input in ANTENNA_STATES
     )
     rejection_reasons = tuple(
-        f"{run.driven_input}:{reason}"
-        for run in runs
-        for reason in run.quality_rejection_reasons
+        f"{run.driven_input}:{reason}" for run in runs for reason in run.quality_rejection_reasons
     )
     conditions_per_cell = len(gains) + attribution_repeat_count - 1
     expected_count = 72 * conditions_per_cell

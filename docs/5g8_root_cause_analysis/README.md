@@ -1,4 +1,4 @@
-# Exact 5.8 GHz leakage root-cause analysis
+# 5.8 GHz calibration: current status and physical root-cause plan
 
 | Field | Value |
 |---|---|
@@ -7,6 +7,77 @@
 | Selector board | `stm32c011-4c0055000950313950363920` |
 | Pluto serial | `104000b29905000e17000800065934759d` |
 | Calibration disposition | Exact 5.8 GHz remains rejected; no coefficients may be deployed |
+
+## Introduction
+
+This report evaluates whether the Pluto RX2 eight-way selector can support coherent calibration
+and direction finding at exactly 5.8 GHz. It consolidates the retained conducted sweeps, gain
+controls, feed permutations, raw-IQ audits, model tests, and selector-synchronous diagnostics for
+one Pluto and one selector board. It also defines the physical experiments needed to identify the
+remaining leakage path.
+
+The current answer is unambiguous: **exact 5.8 GHz is not qualified for calibration or direction
+finding**. The measured response is deterministic enough to analyze and subtract in an unchanged
+fixture, but its raw state isolation is too poor and its physical source is not yet localized. No
+5.8-GHz coefficients from this work may be deployed.
+
+## Background
+
+The principal experiment is a conducted closed loop. Pluto TX1 drives a matched two-way splitter;
+one attenuated branch provides the RX1 phase reference and the other drives all eight selector
+inputs through a 2–8 GHz splitter. The selector common port returns to RX2. TX2 is muted and
+terminated. For each selected state and `ALL_OFF` interval, the analysis estimates the coherent
+transfer `H = RX2 / RX1` at the commanded tone and separates the raw baseline `H_off`, selected
+response `H_selected`, and leakage-subtracted path `H_path = H_selected - H_off`.
+
+This distinction matters because repeatable subtraction is not the same as physical isolation.
+An uncontrolled emitter does not provide a contemporaneous conducted reference or a guaranteed
+baseline, so direction finding depends on the raw selector states remaining observable. The
+physical transceiver is reported as an AD9363, whose official range ends at 3.8 GHz; operation at
+5.8 GHz is therefore experimental even if an empirical fixture eventually passes.
+
+## Motivation
+
+The board is intended to recover relative phase from a rapidly switched antenna array. A stable
+per-port phase table is useful only when the intended antenna path dominates leakage, pickup, and
+other coherent paths. At 5.8 GHz the array currently fails both the report's 20 dB operational
+contrast gate and the 35.1629 dB leakage ratio associated with a one-degree worst-case coherent
+phase-error bound. Locating the excess baseline is therefore a prerequisite to useful calibration,
+not a post-processing refinement.
+
+## Approach
+
+The investigation combines four complementary lines of evidence:
+
+1. audit every retained exact-5.8-GHz raw capture for identity, byte integrity, format, headroom,
+   and gap-free timing continuity;
+2. replay the 3.6–5.8 GHz conducted sweep and quantify baseline, selected path, contrast,
+   repeatability, and competing frequency-response models;
+3. use TX/RX gain controls, physical feed permutations, TX2-antenna removal, and
+   selector-synchronous `ALL_OFF` guards to reject explanations that the existing fixture can
+   distinguish; and
+4. localize the unresolved contribution with terminated physical boundaries A–C, a one-hot
+   selector matrix D, and simultaneous-feed complex closure E.
+
+The first three lines are complete offline. The fourth is implemented and safety-gated, but no
+physical A–E result has yet been accepted.
+
+## Methods
+
+The main broadband corpus contains 20 paired observations at each of 23 frequencies from 3.6 to
+5.8 GHz in 100 MHz steps. An exhaustive local audit additionally inventories 130 unique
+exact-5.8-GHz raw captures (`3,648,800,000` bytes). Coherent pilot phasors are normalized by RX1;
+all complex subtraction is performed before magnitude or phase reporting. Retained artifacts are
+admitted only after their identities, SHA-256 values, sample formats, continuity metadata, timing
+quality, and ADC headroom satisfy the source-specific contract.
+
+The analysis tests more than repeatability. It fits and rejects a constant complex-gain/single-delay
+model, tests rank-one structure with a Hankel decomposition, compares `ALL_OFF` behavior under
+physical feed permutations, calculates a deliberately adverse PE42482 datasheet-conditioned
+upper bound, and searches the clean centers of nominally identical `ALL_OFF` guards for a
+state-history-dependent term. Physical attribution will use independent repeats, complex
+bootstrap uncertainty, simultaneous amplitude/phase/vector-residual gates, and an independent
+perturbation or VNA confirmation before any causal claim is accepted.
 
 ## Executive conclusion
 
@@ -28,6 +99,12 @@ a uniform frequency-independent selector-sum coefficient. Finally, the observed 
 bound of `0.030493` by `5.77 dB`. Thus a datasheet-conforming ideal switch cannot be the sole
 source of the measured baseline.
 
+An additional source-bound replay tests the nominally identical short `ALL_OFF` guards after
+each selector state. No central-dwell stratum exceeds the fixed `0.5%`-of-`H_off` amplitude and
+`0.75` phase-coherence gates; the largest is `0.119497%` with coherence `0.295711`. This rejects
+a resolved persistent selector-state-history term as the dominant baseline, but it cannot
+separate a state-independent selector-common-launch path from Pluto- or cable-local leakage.
+
 The present data narrows the leading physical paths, in priority order, to:
 
 1. a common TX1-to-RX2 path in the Pluto, RX2 cable, or selector common launch;
@@ -45,8 +122,8 @@ complex vector-closure test. No result from those tests is claimed in this repor
 
 | Classification | Current conclusion |
 |---|---|
-| **Proven by retained data** | A coherent component appears at the commanded TX1 offset and grows with TX1 power; the 5.8 GHz raw baseline is repeatable; the 5.7→5.8 GHz contrast collapse is baseline-driven; one constant gain/delay and a rank-one response are rejected; a uniform frequency-independent selector sum is rejected; an ideal datasheet-conditioned PE42482 alone is insufficient; leakage-subtracted selected responses are repeatable but physically isolation-limited; no admissible exact-5.8-GHz HexRay timing or calibration matrix exists. |
-| **Strongly disfavored as the dominant cause** | TX1-to-TX2-antenna reradiation, unrelated Wi-Fi, random noise, a schedule false lock, a single fixed delay, a simple uniform selector sum, and a datasheet-conforming ideal selector acting alone. |
+| **Proven by retained data** | A coherent component appears at the commanded TX1 offset and grows with TX1 power; the 5.8 GHz raw baseline is repeatable; the 5.7→5.8 GHz contrast collapse is baseline-driven; one constant gain/delay and a rank-one response are rejected; a uniform frequency-independent selector sum is rejected; an ideal datasheet-conditioned PE42482 alone is insufficient; no selector-state-following central `ALL_OFF` stratum crosses the fixed offline diagnostic gates; leakage-subtracted selected responses are repeatable but physically isolation-limited; no admissible exact-5.8-GHz HexRay timing or calibration matrix exists. |
+| **Strongly disfavored as the dominant cause** | TX1-to-TX2-antenna reradiation, unrelated Wi-Fi, random noise, a schedule false lock, a resolved persistent selector-state-history term, a single fixed delay, a simple uniform selector sum, and a datasheet-conforming ideal selector acting alone. |
 | **Unresolved** | A common Pluto/cable/PCB path, a degraded selector or assembly, a combination of common-path pickup and finite selector leakage, and splitter/mismatch effects. |
 | **Not established** | A board-only root cause, a corrected 5.8 GHz operating envelope, a deployable 5.8 GHz coefficient table, or manufacturer-qualified AD9363 operation at 5.8 GHz. |
 
@@ -111,10 +188,11 @@ must describe RX1 as the attenuated conducted reference branch.
 
 ### Evidence packages
 
-The six historical packages below are committed evidence. The compact offline-RCA package was
+The historical packages below are committed evidence. The compact offline-RCA package was
 published in Smateway commit `2b551fa60500c54e71ccc963b17d283e9a1396ce`. This report revision
-also adds a deterministic raw-capture inventory and a source-bound paired-TX OTA control. Their
-capture populations overlap and must not be added without raw-hash deduplication.
+also adds a deterministic raw-capture inventory, a source-bound paired-TX OTA control, and a
+selector-synchronous `ALL_OFF` guard stratification. Their capture populations overlap and must
+not be added without raw-hash deduplication.
 
 | Package | Durable evidence | Relevant use |
 |---|---|---|
@@ -126,6 +204,7 @@ capture populations overlap and must not be added without raw-hash deduplication
 | 5.8 GHz offline RCA | [Frozen observations](data/frequency-domain-observations.json) and [analysis result](data/frequency-domain-analysis.json), committed at `2b551fa` | Source-bound 23-frequency × 20-repeat replay, model rejection, paired uncertainty, permutation phases, and selector bound |
 | Exact-5.8 raw inventory | [Evidence inventory](data/evidence-inventory.json) | Hash-, size-, format-, and continuity-verified index of all 130 retained exact-5.8 captures |
 | Paired-TX OTA control | [ALL_OFF control](data/paired-tx-ota-all-off-control.json) | Ten retained TX1/TX2 OTA captures reprojected from raw IQ; diagnostic only, not conducted-path attribution |
+| Selector-synchronous guard stratification | [Guard-stratification result](data/selector-synchronous-all-off-guard-stratification.json) | Twenty exact-5.8-GHz rotation-0 captures tested for a persistent `ALL_OFF` term dependent on the immediately preceding selector state |
 
 The key evidence file hashes at Smateway commit `2b551fa` are:
 
@@ -163,7 +242,7 @@ are unique; all format, byte-size, path-identity, declared-hash, and gap-free co
 passed. The earliest phase trial has no external manifest and is explicitly classified from its
 SigMF description only, rather than assigned stronger provenance.
 
-## Quantitative findings
+## Results
 
 ### The contrast collapse is primarily a baseline rise
 
@@ -359,6 +438,42 @@ RX1 normalization antenna. The approximately `17.772 dB` difference therefore ca
 to Pluto-internal TX1/TX2 isolation, selector leakage, or any single physical path. It does not
 localize the later conducted closed-loop fault and is not merged numerically with that corpus.
 
+### No persistent selector-history term is resolved
+
+The strongest previously unused offline discriminator is whether nominally identical
+`ALL_OFF` intervals retain a complex signature from the selector state that immediately
+preceded them. A source-bound replay stratifies the seven short guards after ANT1 through ANT7
+and the long-marker entry after ANT8, then compares their central `2–3 ms` against a marker-only
+complex baseline. It uses `0.1 ms` coherent bins, linear interpolation between bracketing marker
+anchors, 23 interior cycles from each of 20 exact-5.8-GHz captures, and a no-transition pre-ANT1
+guard as a negative control.
+
+| Fixed diagnostic | Result |
+|---|---:|
+| Resolution gate | `0.5%` of `H_off` amplitude **and** `0.75` cross-capture phase coherence |
+| Largest state-following robust residual | `0.119497%` of `H_off`, after ANT5 |
+| Phase coherence of that residual | `0.295711` |
+| No-transition control | `0.046578%` of `H_off`, coherence `0.290054` |
+| Strata passing both gates | `0/8` |
+
+This is a resolution-bounded non-detection, not proof that every selector-dependent transient is
+absent. It does show that no persistent central-dwell state-history term large enough to explain
+the approximately `|H_off| = 0.0593` baseline is resolved in this corpus. Edge-adjacent samples
+were deliberately excluded from this artifact, so it makes no quantitative claim about switching
+transients.
+
+The null does not favor a Pluto-internal explanation. Existing observations still identify only
+the sum
+
+```text
+H_off = H_Pluto/direct + H_RX2-cable/common-launch + H_selector/input-fixture
+```
+
+and any state-independent selector-common-launch term remains observationally interchangeable
+with a Pluto-local term. Stages A, B, and C are therefore still the first causal discriminator.
+
+![Selector-synchronous ALL_OFF guard stratification](png/fig07_all_off_guard_stratification.png)
+
 ## Device, fixture, and board expectations
 
 ### Physical AD9363 operating boundary
@@ -506,7 +621,11 @@ Several coherent contributors may coexist and cancel. The final report must not 
 “percentage of power” as though they were incoherent. It should report complex stage increments,
 uncertainty, and counterfactual total magnitude with each term removed.
 
-## Physical topology ladder
+## Next steps
+
+The decisive next work is the physical topology ladder below. Each stage changes one RF boundary
+while retaining the same bounded TX1 tone and conducted RX1 reference, so the measured complex
+increments can localize the excess baseline rather than merely describe it.
 
 All stages retain the same bounded TX1 tone and conducted RX1 reference. TX2 stays exactly
 muted and 50-ohm terminated. No antennas are present in Stages A through E. Every unused RF port
@@ -517,17 +636,24 @@ uses a termination specified through 5.8 GHz.
 | Item | Current retained status |
 |---|---|
 | Offline RCA package | Committed in Smateway `2b551fa`; the observations, analysis, figures, committed ladder runner, and tests are no longer working-tree-only artifacts. |
-| Stage A immutable plan | A six-condition `direct_rx2_termination` plan was prepared under baseline commit `2b551fa`; no capture was executed or accepted. A fresh plan bound to the final clean tooling revision is required before execution. `selector_calibration_claim` is false. |
-| Dedicated one-hot runner | Implemented and independently safety/provenance-reviewed as `scripts/run_5g8_one_hot_path_ladder.py` plus `src/smateway/one_hot_ladder.py`; 31 focused and 65 compatibility tests pass. It remains unexecuted and is tooling, not physical evidence. |
+| Stage A immutable plan | Historical six-condition plans were planning evidence only; no capture was executed or accepted. The hardened runner now freezes ten conditions: the six-gain linearity ladder plus four additional `-20 dB` captures, for five independent attribution repeats total. A fresh plan bound to the final clean tooling revision is required before execution. `selector_calibration_claim` is false. |
+| Dedicated one-hot runner | Implemented as `scripts/run_5g8_one_hot_path_ladder.py` plus `src/smateway/one_hot_ladder.py`, with live-preflight and path-provenance behavior covered by focused tests and independent review. It remains unexecuted and is tooling, not physical evidence. |
 
 The historical Stage A plan is local machine state and planning provenance, not current execution
-authority or a committed/accepted result:
+authority or a committed/accepted result. Both retained plans have zero attempts; `-a` binds the
+initial offline-RCA revision and `-b` binds the superseded pre-fixture-v2 tooling revision:
 
 ```text
 /home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/
   5g8-leakage-ladder/5g8-rca-stage-a-20260829-a/plan.json
 plan_contract_sha256 = 7b11cde871e15361370b3739465ebdbe2cac50a445cb96f58925f00e0089c134
 plan_file_sha256     = 8cfba82ddef766d1afc489a872dd48c0dc2a17918d2ff081ca3ee8832007882e
+manifest             = same directory, manifest.json
+
+/home/pi/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/
+  5g8-leakage-ladder/5g8-rca-stage-a-20260829-b/plan.json
+plan_contract_sha256 = 3ac2bb37ba9e8930c25b75f31e14741d1abe8d386d787ed45f56ba2012c6009f
+plan_file_sha256     = 80147616e08bfb6b35c5f22e2e3321e1052ca5710e9648c5d9a83bf61b8160b8
 manifest             = same directory, manifest.json
 ```
 
@@ -539,8 +665,128 @@ TX1 -> matched 2-way -> attenuator -> RX1
                   +-> 50 ohm
 
 RX2 -> 50 ohm directly at the Pluto reference plane
-selector and RX2 cable disconnected
+selector RF and RX2 cable disconnected; selector bench power off; control/ground harness removed
 ```
+
+Every A/B/C/E plan requires both `--fixture-manifest PATH` and
+`--setup-attestation PATH`. The manifest uses fixture schema v2 and binds one `campaign_id` and
+`comparable_fixture_group_id`. Start from
+[`fixture_manifest_v2.stage-a.template.json`](fixture_manifest_v2.stage-a.template.json) and
+[`setup_attestation_v1.template.json`](setup_attestation_v1.template.json); placeholders are not
+executable values.
+
+The shared fixture is exact, not descriptive. It freezes the Pluto serial and TX1/TX2/RX1/RX2
+port IDs; distinct TX1, RX1, and RX2 reference planes; the TX1 two-way splitter; RX1 attenuator;
+TX2 termination; and four port-to-port connections. Every component and interconnect has its own
+ID, 5.8-GHz-containing frequency range, power rating, port map, and characterization record.
+The physical port IDs within every Pluto or passive-component port map must be unique; two
+logical roles cannot alias the same physical connector.
+The conducted reference is the attenuated splitter branch connected to RX1; it is not an
+"RX1 load". The other TX1 splitter branch is the stimulus branch.
+
+The stage delta freezes the components and edges changed for that topology. Selector RF,
+bench-power, and control-harness states are separate fields:
+
+| Stage | Selector RF state | Bench power | Control/ground harness |
+|---|---|---|---|
+| A/B | `rf_disconnected` | `bench_power_off` | `disconnected` |
+| C/E | `rf_connected` | `bench_power_on` | `connected_static_all_off` |
+
+For C/E the selector record additionally freezes the physical board ID and hardware revision,
+bench-supply and output-channel IDs, voltage and current limit, and positive, power-ground, and
+control-ground reference IDs. The static mailbox firmware/profile evidence is still required;
+it does not replace physical board and power identity.
+
+Stages B/C/E must name the immediately prior immutable `plan.json` and its exact file, contract,
+and fixture hashes. The runner derives and stores a canonical cross-stage comparison anchor:
+
+- A→B preserves the exact TX1 stimulus termination and its connection;
+- A→B also preserves the exact RX2 50-ohm termination identity, ratings, port map, and
+  characterization while allowing only the intended direct-adapter-to-added-cable topology
+  change;
+- B→C preserves those items and the RX2 cable connection ID, Pluto-side endpoint, interconnect
+  identity, ratings, and characterization; only its far endpoint changes from load to selector;
+- C→E preserves the exact selector, including its power identity, the complete
+  RX2-to-selector-common connection, and the hashed selector-control contract.
+
+A substituted load, cable, selector board, supply setting, or connection therefore fails before
+RF. A common shared-fixture hash alone is not sufficient comparison evidence.
+
+The authored B/C/E `prior_stage_binding` contains only `stage`, `run_id`, absolute or
+manifest-relative `plan_path`, `plan_file_sha256`, `plan_contract_sha256`, and
+`fixture_evidence_sha256`. Do not hand-author the derived comparison anchor. Stage deltas use
+these exact role sets:
+
+| Stage | Component roles | Connection roles |
+|---|---|---|
+| A | TX1 stimulus termination; direct RX2 termination | stimulus branch→termination; RX2→direct termination |
+| B | same TX1 stimulus termination; RX2 far-end termination | same stimulus edge; RX2→far-end termination through the fixed cable |
+| C | same TX1 stimulus termination; physical selector; eight identified input terminations | same stimulus edge; fixed RX2 cable→selector common; eight selector-input→load edges |
+| E | same physical selector; 2–8 GHz eight-way splitter | same RX2 cable→selector common; stimulus branch→splitter; eight individually identified splitter→selector cables |
+
+Each asset characterization is either `characterized` or `uncharacterized`. An explicitly
+uncharacterized asset has null evidence, S-parameter, and 5.8-GHz return-loss fields. A
+characterized asset requires hashed evidence, an S-parameter hash, and a finite non-negative
+5.8-GHz return-loss value. Screening capture is allowed with explicitly uncharacterized assets,
+but `causal_attribution_claim` remains false unless both current and prior-stage fixtures meet
+the characterization gate.
+
+The separate setup attestation must be unique and bound to exactly one run. It freezes a
+timezone-qualified descriptive timestamp, run/campaign/group/stage IDs, fixture/shared/delta
+hashes, the complete observed component and connection ID inventories, and a hashed
+setup-evidence file. The runner does **not** impose a wall-clock age or timestamp-freshness
+guarantee; recency comes from operator inspection plus the run-specific hashes and
+`--confirm-no-movement`, not from comparing clocks. Paths may be relative to the JSON file that
+declares them. Planning resolves and hashes the files; execution reconstructs the fixture from
+disk before USB identity or RF. A missing, changed, or swapped file or ID burns the run ID
+without opening the radio.
+
+After replacing every template value and hashing the final files, prepare Stage A from a clean
+Smateway worktree:
+
+```bash
+scripts/run_5g8_leakage_ladder.py \
+  --run-id REPLACE_RUN_ID \
+  --board-id REPLACE_BOARD_ID \
+  --serial REPLACE_EXACT_PLUTO_SERIAL \
+  --uri REPLACE_CURRENT_USB_URI \
+  --stage direct_rx2_termination \
+  --fixture-manifest /absolute/path/to/fixture.json \
+  --setup-attestation /absolute/path/to/setup.json \
+  --plan-only
+```
+
+Execution must replace `--plan-only` with `--execute` and use the same identity/file arguments,
+the exact stage/token confirmations,
+`--confirm-no-antennas`, `--confirm-tx1-matched-conducted`,
+`--confirm-tx2-terminated-muted`, `--confirm-rx1-conducted-reference`, and
+`--confirm-no-movement`. C/E additionally require the frozen bench/OpenOCD/profile files and
+`--confirm-selector-static-all-off`. Never reuse a run ID after any failed attempt.
+
+For C/E, the general runner and the one-hot runner use the same exclusive selector-bench lock.
+After acquiring that lock, the general runner first performs a read-only mailbox status query.
+The selector must already be valid, lease-free static `ALL_OFF`; the runner does not repair a
+different initial state and then continue. Before each capture it preserves the pre-command
+status, the zero-lease `ALL_OFF` command acknowledgement, and the before-capture readback. It
+also preserves a read-only after-capture readback and a commanded `ALL_OFF` cleanup readback.
+Final and exception paths mute the exact Pluto and command/read back `ALL_OFF` while still under
+the lock. Lock contention touches neither radio nor selector.
+
+Every failed run also publishes a create-only, atomically installed, read-only
+`failed-run.tombstone.json` before the mutable failed manifest is written. Deleting or rolling
+back `manifest.json` therefore cannot make that run ID executable again. `--plan-only` is
+idempotent only while the original plan and prepared manifest remain intact; it refuses to
+recreate a manifest when a plan, run directory, capture root, tombstone, or other run history
+already exists.
+
+The native capture ABI is equally fail-closed. The runner starts with `/usr/local/lib` first in
+the loader path, proves from `/proc/self/maps` that the process uniquely mapped
+`/usr/local/lib/libiio.so.0.25`, requires libiio version `0.25` and
+`iio_device_get_kernel_buffers_count`, and requires binary SHA-256
+`d0a18bddcb54d182262acb2a9e31a88c81618cb43789320b8381c149777bef89`. That full attestation
+and its canonical hash are frozen in `plan.json`, checked again before identity/RF, and copied
+into every accepted condition record/result. A system `libiio.so.0.24`, changed 0.25 build, or
+loader ambiguity is a pre-RF failure.
 
 If the full coherent tone remains here, the dominant path is upstream of the RX2 connector
 reference plane: Pluto/transceiver internal coupling or a direct field path local to the radio.
@@ -549,7 +795,7 @@ reference plane: Pluto/transceiver internal coupling or a direct field path loca
 
 ```text
 RX2 -> fixed test cable -> 50 ohm at the cable far end
-selector disconnected
+selector RF disconnected, bench power off, control/ground harness disconnected
 ```
 
 The complex increment `H_B - H_A` estimates cable/common-mode pickup under the fixed geometry.
@@ -565,7 +811,9 @@ ANT1..ANT8 -> individual 50-ohm terminations
 no selector input is driven
 ```
 
-An unpowered selector is not a valid terminated `ALL_OFF` condition. The increment
+The exact C-stage selector board, supply output, voltage/current limit, and ground references
+must carry forward unchanged into E. An unpowered selector is not a valid terminated `ALL_OFF`
+condition. The increment
 `H_C - H_B` measures pickup added by the powered board/common launch when no RF is deliberately
 injected into an antenna port.
 
@@ -619,17 +867,35 @@ a separately frozen protocol; no rejected v2.4 artifact can be promoted retrospe
 - Resolve the current USB IIO URI at runtime and bind the exact Pluto serial.
 - Persist the complete immutable plan before enabling TX1.
 - Require an explicit operator confirmation token for the exact physical stage.
-- Photograph or otherwise record terminations, cable identities, and reference planes.
+- Require a unique run-bound setup attestation and `--confirm-no-movement` after inspecting every
+  frozen component, connection, reference plane, supply, and ground identity. Treat its timestamp
+  as descriptive; no wall-clock freshness window is enforced.
 - Start at the weakest TX1 condition; never exceed the predeclared bounded ladder.
 - Hold TX2 at `-80 dB`, set all TX2 DDS scales exactly to zero, and terminate TX2.
 - Mute and read back the exact radio before the run, after every condition, and finally.
 - On `ENODATA`, interruption, continuity failure, or mute failure, accept no partial artifact and
   do not splice captures.
+- Store captures only below the immutable run-specific local-Raspberry-Pi capture root. Resume
+  skips a condition only after revalidating the exact planned condition, SigMF data/metadata and
+  condition-record byte hashes, ABI-2 continuity, RF readback, mute evidence, stream ID, every
+  selector initial/pre-command/before/after/cleanup attestation, and all plan/fixture bindings.
+  Duplicate streams/artifacts/hashes, orphan directories, partial output, or any changed byte are
+  quarantined; a failed run ID cannot retry. Candidate and nested symlinks, or any path resolving
+  outside the exact run root, are rejected and are never moved, hashed, or sealed through their
+  targets.
+
+These path guarantees cover ordinary single-user execution and fail closed on paths observed as
+unsafe. They are not a proof against a hostile same-UID process replacing filesystem entries in
+the interval between validation and rename; eliminating that time-of-check/time-of-use class
+would require directory-descriptor-based `openat2`/`renameat2` operations in both Smateway and
+the capture dependency.
 
 The current planned diagnostic ladder uses exact 5.800 GHz centre, an approximately `+100 kHz`
 TX1 DDS tone, `1 MS/s`, `800 kHz` bandwidth, `0.3 s` per condition, eight kernel buffers,
 manual RX gain `60 dB`, DDS scale `0.125`, and TX hardware gains `-35` through `-10 dB` in 5 dB
-steps. These remain experimental settings, not an operating recommendation.
+steps. The `-20 dB` point is acquired five times as five separately identified, fresh ABI-2
+streams; there are ten conditions and no automatic retries. These remain experimental settings,
+not an operating recommendation.
 
 ### Stream and RF admission
 
@@ -714,10 +980,11 @@ total amplitude rise through reduced cancellation.
 
 ## Offline analysis package and pending physical artifacts
 
-The compact, hash-bound offline package is committed at Smateway
-`2b551fa60500c54e71ccc963b17d283e9a1396ce`. It is the source for the quantitative analytical
-conclusions above. This publication status does not imply that any topology-ladder or one-hot
-physical result exists.
+The compact, hash-bound frequency-domain package is committed at Smateway
+`2b551fa60500c54e71ccc963b17d283e9a1396ce`. It is the source for the broadband fits, bounds,
+permutation replay, and Figures 1–6. The exact-5.8-GHz inventory, paired-TX control, guard
+stratification, and Figure 7 are current-revision additions listed below. Neither publication
+status implies that any topology-ladder or one-hot physical result exists.
 
 | Data artifact | SHA-256 | Purpose |
 |---|---|---|
@@ -725,6 +992,7 @@ physical result exists.
 | [Frequency-domain analysis](data/frequency-domain-analysis.json) | `f401854e01b9f4395f1fe56c7bbe6ec96abf9ea1f6356145c0d376bf8b7cb841` | Fits, uncertainties, bounds, rejections, and source identities |
 | [Exact-5.8 evidence inventory](data/evidence-inventory.json) | `486468af1b85e1d3c4897584d9b3316639eb0ec78bab1f2496e833475ed3d319` | Exhaustive index of 130 retained raw captures with source classification and integrity/continuity checks |
 | [Paired-TX OTA ALL_OFF control](data/paired-tx-ota-all-off-control.json) | `67d21f17f1558beaf1958b2d3cc28d3a03e839e31b89ca4e448a791bc6f80207` | Raw-IQ replay of five TX1 and five TX2 OTA controls; diagnostic only |
+| [Selector-synchronous guard stratification](data/selector-synchronous-all-off-guard-stratification.json) | `a77e7ada0351e31f1b426c8c62c97f8a00e67f484f998e0116d745fe13acc491` | Source- and generation-environment-bound 20-capture replay of state-following `ALL_OFF` interiors; resolution-bounded null, not physical attribution |
 
 The analysis generator is
 [`scripts/analyze_5g8_frequency_domain.py`](../../scripts/analyze_5g8_frequency_domain.py),
@@ -735,6 +1003,14 @@ SHA-256 `0ad31e8b8a13fa7506bf78a6c606606f675f76b3d2a9b66a36f48e33b13e8017`. The 
 control generator is
 [`scripts/analyze_5g8_paired_tx_ota_control.py`](../../scripts/analyze_5g8_paired_tx_ota_control.py),
 SHA-256 `2db4872fb8418d54082aa4bda61c742d6949096c1a0a53a389c2380d7c12c62b`.
+The selector-synchronous replay is
+[`scripts/analyze_5g8_all_off_guard_stratification.py`](../../scripts/analyze_5g8_all_off_guard_stratification.py),
+SHA-256 `0686ca56c184758d40917bd1ea5a4e3bbeb9df5c8c02462dc366f13859911a24`,
+with pure analysis module
+[`src/smateway/guard_stratification.py`](../../src/smateway/guard_stratification.py),
+SHA-256 `eeeea3d0c78638ce95653ef59093271ea1d42a28da537f6166b96e9b8913c1ab`.
+The result also freezes the project lockfiles, Python/NumPy/Matplotlib versions, Agg renderer,
+and exact regular/bold font identities used to reproduce the PNG.
 
 | Generated figure | SHA-256 |
 |---|---|
@@ -744,6 +1020,7 @@ SHA-256 `2db4872fb8418d54082aa4bda61c742d6949096c1a0a53a389c2380d7c12c62b`.
 | [Figure 4 — Hankel rank and aliased delay spectrum](png/fig04_hankel_rank_delay_spectrum.png) | `ea626cc77174bc9c63675e234053c84fcf9908c96bf22fc3f2e9bb6b19b24113` |
 | [Figure 5 — selector conditioned bound](png/fig05_selector_datasheet_conditioned_bound.png) | `54ad32974bf1b4f7c26279a6845df7a4c9e293a0626e4791486f1125e5dfe4ab` |
 | [Figure 6 — permutation invariance](png/fig06_permutation_invariance.png) | `bafb2f36c7bf8ad01eae55aa13c38165af6641c8be571c0c48862dbad62e4395` |
+| [Figure 7 — selector-synchronous guard stratification](png/fig07_all_off_guard_stratification.png) | `3b05f2f908858c0969864f617f0dfbce9242547412af2058d676a8ae4db4e75e` |
 
 The following repository-normalized physical-attribution artifacts remain planned and do not
 yet carry results. The prepared local Stage A plan described above has not yet been promoted into
@@ -754,21 +1031,36 @@ docs/5g8_root_cause_analysis/data/topology-ladder-plan.json
 docs/5g8_root_cause_analysis/data/topology-ladder-results.json
 docs/5g8_root_cause_analysis/data/hypothesis-disposition.json
 docs/5g8_root_cause_analysis/data/figures-manifest.json
-docs/5g8_root_cause_analysis/png/fig07_physical_stage_attribution_and_disposition.png
+docs/5g8_root_cause_analysis/png/fig08_physical_stage_attribution_and_disposition.png
 ```
 
 The committed general physical runner is
-[`scripts/run_5g8_leakage_ladder.py`](../../scripts/run_5g8_leakage_ladder.py) with the pure
-analyzer [`src/smateway/leakage_ladder.py`](../../src/smateway/leakage_ladder.py). The historical
+[`scripts/run_5g8_leakage_ladder.py`](../../scripts/run_5g8_leakage_ladder.py), SHA-256
+`98c0bd8c5b22cb74f038fbeb0cb50206495ce95dda0592939e2d4a3b81a574d8`, with the pure analyzer
+[`src/smateway/leakage_ladder.py`](../../src/smateway/leakage_ladder.py), SHA-256
+`da9aac88c0ff2a54bc6a58dd1b16525f6af371117d867d0d04105d9b8b00166d`. Both general and
+one-hot runners use
+[`src/smateway/native_iio_attestation.py`](../../src/smateway/native_iio_attestation.py),
+SHA-256 `91236375e0329c8853450a1fa27ab1b14354a943a814a4b0d8b5b7309c01ede3`, for the same
+native-library identity contract. The historical
 Stage A plan is identified above, but it was not executed; a fresh clean-revision plan and accepted
 physical artifact are still required. The dedicated one-hot runner and its analyzer/tests have not been
 executed; passing software gates do not constitute an RF result.
 
+The hardware-free staged classifier is
+[`src/smateway/leakage_attribution.py`](../../src/smateway/leakage_attribution.py), SHA-256
+`c06e20faa40b62e0c06448b128d85d71b856194276e49c27a7dc0e96b3a103b6`. It requires five
+source-distinct repeats for each of A, B, C, and a contemporaneous E reference; exact shared
+fixture/provenance equality; phase-free upper bounds for nondetections; independent complex
+bootstrap uncertainty; and simultaneous amplitude, phase, and vector-residual equivalence gates.
+It remains software admission logic until physical manifests exist. Algebraic decompositions are
+explicitly point-only and are never presented as independently measured closure.
+
 The Stage D sources are
 [`scripts/run_5g8_one_hot_path_ladder.py`](../../scripts/run_5g8_one_hot_path_ladder.py),
-SHA-256 `2e749034e06567de35457d548f25f1aedc69a15a67e47f677875a65d1e29512b`, and
+SHA-256 `0c8492bae07145acff78b9f6906da41ec8c6e2dd4aef2c3b43c0eeca21413a82`, and
 [`src/smateway/one_hot_ladder.py`](../../src/smateway/one_hot_ladder.py), SHA-256
-`d5b4b2214936b27dc5eab0bec7e183f245a14f3d83aa97f272f8b348a4e998ef`.
+`cd24920f84d64ced4744eb584a02db4210eba44a80b899c219c479dae67c22ef`.
 
 ## Limitations
 
@@ -791,6 +1083,9 @@ SHA-256 `2e749034e06567de35457d548f25f1aedc69a15a67e47f677875a65d1e29512b`, and
 12. The source-bound baseline analysis rejects one constant gain/delay, rank one, and a uniform
     selector sum, but it does not determine the number or physical location of contributors.
     Terminated boundary captures, one-hot closure, and VNA evidence remain necessary.
+13. The selector-synchronous guard replay resolves no state-history term above its fixed gates,
+    but a null cannot distinguish Pluto-local leakage from state-independent RX2 cable or selector
+    common-launch pickup.
 
 ## Authoritative sources
 
