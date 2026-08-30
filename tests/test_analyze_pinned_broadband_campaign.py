@@ -95,6 +95,36 @@ def test_delay_model_flags_search_boundary_alias() -> None:
     assert result["heldout_phase_rms_deg"] > 100.0
 
 
+def test_log_ripple_model_recovers_repeatable_frequency_structure() -> None:
+    frequencies = np.asarray(analyzer.FREQUENCIES_HZ)
+    delta_frequency_ghz = (frequencies - np.mean(frequencies)) / 1e9
+    base_delay_ns = 0.085
+    ripple_delay_ns = 0.64
+    ripple = 0.38 * np.exp(1j * np.deg2rad(47.0))
+    log_response = (
+        math.log(0.8)
+        + 1j * np.deg2rad(-32.0)
+        - 2j * np.pi * delta_frequency_ghz * base_delay_ns
+        + ripple * np.exp(-2j * np.pi * delta_frequency_ghz * ripple_delay_ns)
+    )
+    coefficients = np.exp(log_response)
+    delay_only = analyzer.fit_delay_model(frequencies.tolist(), coefficients.tolist())
+    result = analyzer.fit_log_ripple_model(frequencies.tolist(), coefficients.tolist())
+    assert result["base_delay_ns"] == pytest.approx(base_delay_ns, abs=0.001)
+    assert result["ripple_delay_ns"] == pytest.approx(ripple_delay_ns, abs=0.002)
+    assert result["ripple_log_amplitude"] == pytest.approx(abs(ripple), abs=0.002)
+    assert result["heldout_phase_rms_deg"] < 0.1
+    assert result["heldout_gain_rms_db"] < 0.01
+    assert result["heldout_phase_rms_deg"] < delay_only["heldout_phase_rms_deg"]
+
+
+def test_log_ripple_model_rejects_invalid_input() -> None:
+    with pytest.raises(analyzer.CampaignError, match="eight points"):
+        analyzer.fit_log_ripple_model([1, 2, 3, 4], [1 + 0j] * 4)
+    with pytest.raises(analyzer.CampaignError, match="finite and non-zero"):
+        analyzer.fit_log_ripple_model(list(range(8)), [1 + 0j] * 7 + [0j])
+
+
 def test_selector_contract_checks_lease_guard_and_sequence() -> None:
     valid = {
         "applied_code": 0,

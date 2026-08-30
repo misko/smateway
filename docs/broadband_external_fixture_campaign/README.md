@@ -12,7 +12,8 @@ causes from an earlier campaign are included.**
 
 **Disposition:** **All eight selected paths were measurable at 5.8 GHz. Retain both raw and
 `ALL_OFF`-subtracted frequency-indexed calibration candidates for held-out comparison; a single
-path-length model is not accurate enough for ANT2–ANT7.**
+path-length model is not accurate enough for ANT2–ANT7. One fitted complex ripple explains a large,
+repeatable part of the residual, but it is still not accurate enough to replace the table.**
 
 ## Executive result
 
@@ -36,6 +37,12 @@ and ANT6 roll off sharply above 5.4 GHz, and a constant-gain/constant-delay mode
 held-out phase RMS and 2.6–4.0 dB held-out gain RMS on ANT2–ANT7. Only ANT1 relative to ANT8 is close
 to a simple path: 2.51° held-out phase RMS and 0.42 dB gain RMS. The model is useful as a diagnostic
 average slope; it is not a replacement for frequency-specific complex coefficients.
+
+An exploratory delay-plus-one-ripple model reduces alternating-bin held-out phase RMS to 8.47–13.78°
+and gain RMS to 1.32–2.16 dB on ANT2–ANT7. ANT2/3/6/7 independently select a 0.640–0.649 ns ripple
+delay, while ANT4/5 select 0.514–0.519 ns. The agreement is evidence that the visible wave is
+structured rather than random, but the model was proposed after inspecting these data and does not
+uniquely locate a physical reflection.
 
 ## Conducted setup
 
@@ -292,6 +299,51 @@ alone do not distinguish it from aliases separated by 10 ns.
 If the calibration coefficient `C = P8/Pi` is fitted instead of `R = Pi/P8`, the delay sign reverses.
 The equation and reference plane must accompany every exported delay.
 
+## Can one periodic complex ripple fit the wave?
+
+Yes, partially. The exploratory model adds one complex harmonic to the logarithm of the relative
+response:
+
+```text
+log R_i(f) = log A_i + j(phi_i - 2*pi*(f-f0)*tau_i)
+             + q_i exp(-j*2*pi*(f-f0)*delta_i)
+```
+
+For each candidate positive ripple delay `delta_i` on a 0.001 ns grid from 0.05 through 2.5 ns, the
+other five real parameters are solved by linear least squares. Selection and scoring use the same
+two alternating-frequency folds as the single-delay model: each fold chooses `delta_i` using only
+its 19 training bins, then predicts the other 19 bins. The final red curve is the descriptive
+all-38-bin fit.
+
+![Delay plus one complex ripple](png/fig08_ripple_model_fits.png)
+
+| Path | Ripple delay `δ` | Ripple period | `|q|` | Held-out phase RMS, delay → ripple | Held-out gain RMS, delay → ripple |
+|---|---:|---:|---:|---:|---:|
+| ANT1 | 0.295 ns | 3.390 GHz | 0.025 | 2.51° → 2.39° | 0.42 → 0.39 dB |
+| ANT2 | **0.640 ns** | 1.562 GHz | 0.467 | 20.98° → **8.81°** | 3.10 → **1.33 dB** |
+| ANT3 | **0.649 ns** | 1.541 GHz | 0.572 | 23.53° → **8.47°** | 3.95 → **1.52 dB** |
+| ANT4 | **0.519 ns** | 1.927 GHz | 0.284 | 18.44° → **13.78°** | 2.59 → **2.01 dB** |
+| ANT5 | **0.514 ns** | 1.946 GHz | 0.313 | 19.10° → **13.50°** | 2.80 → **2.16 dB** |
+| ANT6 | **0.645 ns** | 1.550 GHz | 0.571 | 23.54° → **8.50°** | 3.86 → **1.32 dB** |
+| ANT7 | **0.640 ns** | 1.562 GHz | 0.477 | 21.45° → **8.96°** | 3.16 → **1.34 dB** |
+
+![Held-out ripple-model comparison](png/fig09_ripple_model_quality.png)
+
+The independently trained folds are stable: ANT2/3/6/7 choose ripple delays within 0.008 ns of each
+other fold, and ANT4/5 within 0.009 ns. The two path families also match the paired structure visible
+in the transfer curves. This makes a deterministic common mechanism plausible.
+
+The fit does **not** establish one literal echo. For a weak single reflection,
+`log(1 + rho*exp(-j*2*pi*f*delta))` begins with a term of this form and `|q|` approximates `|rho|`.
+Here several `|q|` values are 0.3–0.57, outside a comfortably weak-reflection regime. The response is
+also a ratio of two complete networks and may contain multiple reflections, splitter response,
+switch parasitics, and leakage. Consequently `delta` is a repeatable spectral periodicity, not a
+reflection location or cable-length measurement.
+
+The remaining 8.5–13.8° phase RMS and 1.3–2.2 dB gain RMS on ANT2–ANT7 are still too large for a
+precision broadband calibration. The compact model is valuable for diagnosis and perhaps
+initialization; the measured frequency-indexed complex coefficients remain the calibration product.
+
 ## Conclusions supported by these three sweeps
 
 1. Static selection, simultaneous two-channel measurement, and the independent source produced
@@ -304,7 +356,8 @@ The equation and reference plane must accompany every exported delay.
 4. Relative calibration is much more repeatable than absolute transfer: median three-pass span is
    0.0536 dB / 0.480°, with worst observed span 0.797 dB / 9.676°.
 5. A constant-gain/constant-delay model is adequate only for ANT1 relative to ANT8. ANT2–ANT7 need
-   frequency-indexed complex calibration or a richer model.
+   frequency-indexed complex calibration. One added complex ripple captures much of their structure
+   but leaves 8.5–13.8° held-out phase RMS.
 
 These statements apply only to the recorded identities, configuration, conducted fixture, and
 observation interval. The three sweeps do not identify which physical component creates a feature,
@@ -339,6 +392,10 @@ frequency-indexed tables. Do not promote either as the default until held-out cl
 - ANT8 was sequential rather than interleaved with each path.
 - The fixture was not disconnected/reconnected between passes.
 - The 100 MHz grid can hide narrow structure.
+- The ripple model is exploratory and was chosen after inspecting these residuals; alternating-bin
+  validation limits interpolation overfit but is not an independent confirming campaign.
+- The ripple-delay search uses a declared 0.05–2.5 ns branch. Uniform 100 MHz samples alone retain
+  delay aliases outside that interval.
 - `ALL_OFF` subtraction assumes its coherent contribution remains stable between sequential states.
 - No broadband source-muted control was acquired, so `ALL_OFF` cannot be apportioned among receiver
   floor, coherent external leakage, selector leakage, or fixture coupling.
@@ -375,5 +432,5 @@ Focused verification at report generation:
 uv run ruff check scripts/analyze_pinned_broadband_campaign.py \
   tests/test_analyze_pinned_broadband_campaign.py
 uv run pytest -q tests/test_analyze_pinned_broadband_campaign.py
-14 passed
+16 passed
 ```

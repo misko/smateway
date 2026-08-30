@@ -53,6 +53,9 @@ MINIMUM_DERIVED_PATH_MAGNITUDE = 1e-9
 DELAY_SEARCH_MIN_NS = -2.5
 DELAY_SEARCH_MAX_NS = 2.5
 DELAY_SEARCH_POINTS = 20_001
+RIPPLE_DELAY_MIN_NS = 0.05
+RIPPLE_DELAY_MAX_NS = 2.5
+RIPPLE_DELAY_SEARCH_POINTS = 2_451
 
 
 class CampaignError(ValueError):
@@ -583,6 +586,173 @@ def fit_delay_model(
     }
 
 
+def fit_log_ripple_model(
+    frequencies_hz: Sequence[int], coefficients: Sequence[complex]
+) -> dict[str, Any]:
+    """Fit linear delay plus one complex log-response ripple with two-fold validation."""
+    if len(frequencies_hz) != len(coefficients) or len(coefficients) < 8:
+        raise CampaignError(
+            "ripple fit requires matching frequency/phasor arrays with eight points"
+        )
+    frequency = np.asarray(frequencies_hz, dtype=np.float64)
+    phasors = np.asarray(coefficients, dtype=np.complex128)
+    if not np.all(np.isfinite(phasors)) or np.any(np.abs(phasors) == 0.0):
+        raise CampaignError("ripple fit coefficients must be finite and non-zero")
+    center_hz = float(np.mean(frequency))
+    delta_frequency_ghz = (frequency - center_hz) / 1e9
+    measured_log = np.log(np.abs(phasors)) + 1j * np.unwrap(np.angle(phasors))
+    ripple_delay_grid_ns = np.linspace(
+        RIPPLE_DELAY_MIN_NS,
+        RIPPLE_DELAY_MAX_NS,
+        RIPPLE_DELAY_SEARCH_POINTS,
+    )
+    sample_count = len(frequency)
+
+    def design_matrix(ripple_delay_ns: float) -> np.ndarray:
+        angle = 2.0 * np.pi * delta_frequency_ghz * ripple_delay_ns
+        cosine = np.cos(angle)
+        sine = np.sin(angle)
+        design = np.zeros((2 * sample_count, 5), dtype=np.float64)
+        # log(R) = log(A) + j(phi - 2*pi*df*tau) + q*exp(-j*2*pi*df*delta)
+        # with q = q_real + j*q_imag.
+        design[:sample_count, 0] = 1.0
+        design[:sample_count, 3] = cosine
+        design[:sample_count, 4] = sine
+        design[sample_count:, 1] = 1.0
+        design[sample_count:, 2] = -2.0 * np.pi * delta_frequency_ghz
+        design[sample_count:, 3] = -sine
+        design[sample_count:, 4] = cosine
+        return design
+
+    def linear_fit(mask: np.ndarray) -> dict[str, Any]:
+        selected = np.flatnonzero(mask)
+        rows = np.concatenate((selected, sample_count + selected))
+        selected_log = np.log(np.abs(phasors[selected])) + 1j * np.unwrap(
+            np.angle(phasors[selected])
+        )
+        selected_observation = np.concatenate((selected_log.real, selected_log.imag))
+        best_score = math.inf
+        best_index = -1
+        best_parameters: np.ndarray | None = None
+        best_design: np.ndarray | None = None
+        for index, ripple_delay_ns in enumerate(ripple_delay_grid_ns):
+            design = design_matrix(float(ripple_delay_ns))
+            parameters, *_ = np.linalg.lstsq(design[rows], selected_observation, rcond=None)
+            residual = selected_observation - design[rows] @ parameters
+            score = float(np.mean(residual**2))
+            if score < best_score:
+                best_score = score
+                best_index = index
+                best_parameters = parameters
+                best_design = design
+        if best_parameters is None or best_design is None:
+            raise CampaignError("ripple search did not produce a finite model")
+        predicted_log = best_design @ best_parameters
+        predicted_log_complex = (
+            predicted_log[:sample_count] + 1j * predicted_log[sample_count:]
+        )
+        predicted = np.exp(predicted_log_complex)
+        phase_residual_deg = np.rad2deg(np.angle(phasors * np.conj(predicted)))
+        gain_residual_db = 20.0 * np.log10(np.abs(phasors) / np.abs(predicted))
+        ripple = complex(best_parameters[3], best_parameters[4])
+        return {
+            "base_gain_db": float(20.0 * best_parameters[0] / math.log(10.0)),
+            "base_phase_at_center_deg": wrap_phase_deg(math.degrees(best_parameters[1])),
+            "base_phase_at_center_unwrapped_deg": float(math.degrees(best_parameters[1])),
+            "base_delay_ns": float(best_parameters[2]),
+            "ripple_delay_ns": float(ripple_delay_grid_ns[best_index]),
+            "ripple_period_ghz": float(1.0 / ripple_delay_grid_ns[best_index]),
+            "ripple_log_amplitude": float(abs(ripple)),
+            "ripple_phase_at_center_deg": wrap_phase_deg(math.degrees(np.angle(ripple))),
+            "predicted_phase_deg": np.rad2deg(predicted_log_complex.imag).tolist(),
+            "predicted_gain_db": (20.0 * predicted_log_complex.real / math.log(10.0)).tolist(),
+            "phase_residual_deg": phase_residual_deg,
+            "gain_residual_db": gain_residual_db,
+            "joint_log_rms": math.sqrt(best_score),
+            "search_boundary": best_index < 4
+            or best_index >= len(ripple_delay_grid_ns) - 4,
+        }
+
+    folds: list[dict[str, Any]] = []
+    heldout_phase_residuals: list[float] = []
+    training_phase_residuals: list[float] = []
+    heldout_gain_residuals: list[float] = []
+    training_gain_residuals: list[float] = []
+    for parity in (0, 1):
+        train = np.arange(sample_count) % 2 == parity
+        heldout = ~train
+        fit = linear_fit(train)
+        phase_residual = fit["phase_residual_deg"]
+        gain_residual = fit["gain_residual_db"]
+        training_phase_residuals.extend(phase_residual[train].tolist())
+        heldout_phase_residuals.extend(phase_residual[heldout].tolist())
+        training_gain_residuals.extend(gain_residual[train].tolist())
+        heldout_gain_residuals.extend(gain_residual[heldout].tolist())
+        folds.append(
+            {
+                "training_parity": "even" if parity == 0 else "odd",
+                "training_indices": np.flatnonzero(train).tolist(),
+                "heldout_indices": np.flatnonzero(heldout).tolist(),
+                "base_delay_ns": fit["base_delay_ns"],
+                "ripple_delay_ns": fit["ripple_delay_ns"],
+                "ripple_log_amplitude": fit["ripple_log_amplitude"],
+                "training_phase_rms_deg": float(
+                    np.sqrt(np.mean(phase_residual[train] ** 2))
+                ),
+                "heldout_phase_rms_deg": float(
+                    np.sqrt(np.mean(phase_residual[heldout] ** 2))
+                ),
+                "maximum_heldout_phase_error_deg": float(
+                    np.max(np.abs(phase_residual[heldout]))
+                ),
+                "training_gain_rms_db": float(np.sqrt(np.mean(gain_residual[train] ** 2))),
+                "heldout_gain_rms_db": float(np.sqrt(np.mean(gain_residual[heldout] ** 2))),
+                "search_boundary": fit["search_boundary"],
+            }
+        )
+
+    full = linear_fit(np.ones(sample_count, dtype=bool))
+    heldout_phase = np.asarray(heldout_phase_residuals)
+    training_phase = np.asarray(training_phase_residuals)
+    heldout_gain = np.asarray(heldout_gain_residuals)
+    training_gain = np.asarray(training_gain_residuals)
+    full_phase_residual = np.asarray(full["phase_residual_deg"])
+    full_gain_residual = np.asarray(full["gain_residual_db"])
+    return {
+        "center_frequency_hz": center_hz,
+        "parameter_count": 6,
+        "training_point_count_per_fold": sample_count // 2,
+        "heldout_point_count_per_fold": sample_count // 2,
+        "cross_validation": folds,
+        "base_gain_db": full["base_gain_db"],
+        "base_phase_at_center_deg": full["base_phase_at_center_deg"],
+        "base_phase_at_center_unwrapped_deg": full["base_phase_at_center_unwrapped_deg"],
+        "base_delay_ns": full["base_delay_ns"],
+        "ripple_delay_ns": full["ripple_delay_ns"],
+        "ripple_period_ghz": full["ripple_period_ghz"],
+        "ripple_log_amplitude": full["ripple_log_amplitude"],
+        "ripple_phase_at_center_deg": full["ripple_phase_at_center_deg"],
+        "training_phase_rms_deg": float(np.sqrt(np.mean(training_phase**2))),
+        "heldout_phase_rms_deg": float(np.sqrt(np.mean(heldout_phase**2))),
+        "maximum_heldout_phase_error_deg": float(np.max(np.abs(heldout_phase))),
+        "training_gain_rms_db": float(np.sqrt(np.mean(training_gain**2))),
+        "heldout_gain_rms_db": float(np.sqrt(np.mean(heldout_gain**2))),
+        "all_phase_rms_deg": float(np.sqrt(np.mean(full_phase_residual**2))),
+        "all_gain_rms_db": float(np.sqrt(np.mean(full_gain_residual**2))),
+        "predicted_phase_deg": full["predicted_phase_deg"],
+        "predicted_gain_db": full["predicted_gain_db"],
+        "phase_residual_deg": full_phase_residual.tolist(),
+        "gain_residual_db": full_gain_residual.tolist(),
+        "measured_unwrapped_phase_deg": np.rad2deg(measured_log.imag).tolist(),
+        "measured_gain_db": (20.0 * measured_log.real / math.log(10.0)).tolist(),
+        "full_fit": {
+            key: value
+            for key, value in full.items()
+            if key not in {"phase_residual_deg", "gain_residual_db"}
+        },
+    }
+
+
 def _cohort(
     rows: Sequence[Mapping[str, Any]], *, frequency_hz: int, state: str
 ) -> list[Mapping[str, Any]]:
@@ -710,6 +880,7 @@ def analyze_campaign(run_paths: Sequence[Path]) -> dict[str, Any]:
                 path_ratio_by_run_state.setdefault((run_index, state), []).append(path_ratio)
 
     path_models: list[dict[str, Any]] = []
+    path_ripple_models: list[dict[str, Any]] = []
     for state in MODEL_STATES:
         # Aggregate by frequency, not by sweep: P_i/P_8 is the physical relative path model.
         mean_path_ratios = [
@@ -743,6 +914,13 @@ def analyze_campaign(run_paths: Sequence[Path]) -> dict[str, Any]:
         ):
             raise CampaignError(f"{state} delay fit touches the predeclared search boundary")
         path_models.append(model)
+        ripple_model = fit_log_ripple_model(FREQUENCIES_HZ, mean_path_ratios)
+        ripple_model.update({"state": state, "reference_state": "ANT8"})
+        if ripple_model["full_fit"]["search_boundary"] or any(
+            fold["search_boundary"] for fold in ripple_model["cross_validation"]
+        ):
+            raise CampaignError(f"{state} ripple fit touches the predeclared search boundary")
+        path_ripple_models.append(ripple_model)
 
     selected_transfers = [row for row in transfer_cells if row["state"] != "ALL_OFF"]
     selected_calibration = [row for row in calibration_cells if row["state"] != "ANT8"]
@@ -832,6 +1010,15 @@ def analyze_campaign(run_paths: Sequence[Path]) -> dict[str, Any]:
         ),
         "maximum_model_heldout_gain_rms_db": max(row["heldout_gain_rms_db"] for row in path_models),
         "maximum_model_sweep_delay_span_ns": max(row["sweep_delay_span_ns"] for row in path_models),
+        "maximum_ripple_model_heldout_phase_rms_deg": max(
+            row["heldout_phase_rms_deg"] for row in path_ripple_models
+        ),
+        "minimum_ripple_model_heldout_phase_rms_deg": min(
+            row["heldout_phase_rms_deg"] for row in path_ripple_models
+        ),
+        "maximum_ripple_model_heldout_gain_rms_db": max(
+            row["heldout_gain_rms_db"] for row in path_ripple_models
+        ),
         "delay_alias_period_ns": 10.0,
         "cross_validation_training_alias_period_ns": 5.0,
         "delay_search_interval_ns": [DELAY_SEARCH_MIN_NS, DELAY_SEARCH_MAX_NS],
@@ -874,6 +1061,15 @@ def analyze_campaign(run_paths: Sequence[Path]) -> dict[str, Any]:
                 "fold aliases every 5 ns, so a predeclared [-2.5,+2.5) ns physical prior "
                 "selects one branch"
             ),
+            "log_ripple_model": (
+                "log(P_i/P_ANT8) = log(A_i) + j(phi_i - 2*pi*(f-f0)*tau_i) "
+                "+ q_i*exp(-j*2*pi*(f-f0)*delta_i); delta is searched on [0.05,2.5] ns "
+                "and all other parameters are solved by linear least squares"
+            ),
+            "log_ripple_interpretation_limit": (
+                "the ripple term is the first log-response harmonic of a weak single echo; "
+                "its fitted delay is descriptive and is not a proven reflection location"
+            ),
             "raw_replay": (
                 "every NPZ is loaded with pickle disabled and the stored complex transfer is "
                 "checked against a fresh pilot fit/projection"
@@ -901,6 +1097,7 @@ def analyze_campaign(run_paths: Sequence[Path]) -> dict[str, Any]:
         "selected_over_all_off": contrast_cells,
         "path_over_all_off": path_contrast_cells,
         "path_models": path_models,
+        "path_ripple_models": path_ripple_models,
         "raw_observations": all_rows,
     }
 
@@ -921,6 +1118,7 @@ def render_figures(result: Mapping[str, Any], output: Path) -> list[str]:
     calibration = result["calibration_relative_to_ant8"]
     contrast = result["selected_over_all_off"]
     models = result["path_models"]
+    ripple_models = result["path_ripple_models"]
     names: list[str] = []
 
     figure, axis = plt.subplots(figsize=(10, 5.8), constrained_layout=True)
@@ -979,9 +1177,15 @@ def render_figures(result: Mapping[str, Any], output: Path) -> list[str]:
         display_fold = model["cross_validation"][0]
         train = np.asarray(display_fold["training_indices"], dtype=int)
         heldout = np.asarray(display_fold["heldout_indices"], dtype=int)
-        axis.plot(frequency_ghz, predicted, color="black", label="train fit")
-        axis.scatter(frequency_ghz[train], measured[train], s=18, label="training")
-        axis.scatter(frequency_ghz[heldout], measured[heldout], marker="x", s=24, label="held out")
+        axis.plot(frequency_ghz, predicted, color="black", label="full single-delay fit")
+        axis.scatter(frequency_ghz[train], measured[train], s=18, label="even frequency bins")
+        axis.scatter(
+            frequency_ghz[heldout],
+            measured[heldout],
+            marker="x",
+            s=24,
+            label="odd frequency bins",
+        )
         axis.set_title(
             f"{model['state']} vs ANT8: {model['delay_ns']:+.3f} ns, "
             f"holdout {model['heldout_phase_rms_deg']:.1f} deg"
@@ -1049,6 +1253,82 @@ def render_figures(result: Mapping[str, Any], output: Path) -> list[str]:
     gain_axis.grid(True, axis="y", alpha=0.3)
     phase_axis.legend(fontsize=8)
     name = "fig07_model_quality.png"
+    figure.savefig(output / name, dpi=180)
+    plt.close(figure)
+    names.append(name)
+
+    ripple_by_state = {model["state"]: model for model in ripple_models}
+    figure, axes = plt.subplots(4, 2, figsize=(11, 12), sharex=True, constrained_layout=True)
+    axes_flat = axes.flat
+    for axis, delay_model in zip(axes_flat, models, strict=False):
+        ripple_model = ripple_by_state[delay_model["state"]]
+        measured = np.asarray(delay_model["measured_unwrapped_phase_deg"])
+        axis.scatter(frequency_ghz, measured, color="black", s=16, label="measured")
+        axis.plot(
+            frequency_ghz,
+            delay_model["predicted_phase_deg"],
+            "--",
+            color="tab:gray",
+            label="single delay",
+        )
+        axis.plot(
+            frequency_ghz,
+            ripple_model["predicted_phase_deg"],
+            color="tab:red",
+            label="delay + one ripple",
+        )
+        axis.set_title(
+            f"{delay_model['state']}: CV phase "
+            f"{delay_model['heldout_phase_rms_deg']:.1f}→"
+            f"{ripple_model['heldout_phase_rms_deg']:.1f}°, "
+            f"δ={ripple_model['ripple_delay_ns']:.3f} ns"
+        )
+        axis.grid(True, alpha=0.3)
+    axes_flat[0].legend(fontsize=7)
+    for axis in axes[:, 0]:
+        axis.set_ylabel("Unwrapped relative phase (degrees)")
+    for axis in axes[-1, :]:
+        axis.set_xlabel("Center frequency (GHz)")
+    axes_flat[-1].set_visible(False)
+    name = "fig08_ripple_model_fits.png"
+    figure.savefig(output / name, dpi=180)
+    plt.close(figure)
+    names.append(name)
+
+    figure, (phase_axis, gain_axis) = plt.subplots(2, 1, figsize=(9, 7), constrained_layout=True)
+    positions = np.arange(len(states))
+    width = 0.38
+    phase_axis.bar(
+        positions - width / 2,
+        [model["heldout_phase_rms_deg"] for model in models],
+        width,
+        label="single delay",
+    )
+    phase_axis.bar(
+        positions + width / 2,
+        [ripple_by_state[state]["heldout_phase_rms_deg"] for state in states],
+        width,
+        label="delay + one ripple",
+    )
+    gain_axis.bar(
+        positions - width / 2,
+        [model["heldout_gain_rms_db"] for model in models],
+        width,
+        label="single delay",
+    )
+    gain_axis.bar(
+        positions + width / 2,
+        [ripple_by_state[state]["heldout_gain_rms_db"] for state in states],
+        width,
+        label="delay + one ripple",
+    )
+    for axis in (phase_axis, gain_axis):
+        axis.set_xticks(positions, states)
+        axis.grid(True, axis="y", alpha=0.3)
+    phase_axis.set(ylabel="Held-out phase RMS (degrees)")
+    gain_axis.set(ylabel="Held-out gain RMS (dB)")
+    phase_axis.legend(fontsize=8)
+    name = "fig09_ripple_model_quality.png"
     figure.savefig(output / name, dpi=180)
     plt.close(figure)
     names.append(name)
