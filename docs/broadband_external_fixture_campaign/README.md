@@ -1,4 +1,4 @@
-# External-source 2.1–5.8 GHz broadband campaign
+# Three-pass external-source sweep: 2.1–5.8 GHz
 
 **Date:** 2026-08-30
 
@@ -6,7 +6,11 @@
 
 **Acquisition source freeze:** `4a163644ab54c804680e2784da1f73dcb1c2167a`
 
-**Disposition:** **The corrected independent-source fixture works at 5.8 GHz. Retain both raw and
+**Evidence boundary:** **This report uses only the three sweep runs listed below. Every number,
+table, plot, fit, and conclusion is derived from their 1,026 captures. No measurements or inferred
+causes from an earlier campaign are included.**
+
+**Disposition:** **All eight selected paths were measurable at 5.8 GHz. Retain both raw and
 `ALL_OFF`-subtracted frequency-indexed calibration candidates for held-out comparison; a single
 path-length model is not accurate enough for ANT2–ANT7.**
 
@@ -18,8 +22,7 @@ Each sweep measured static `ALL_OFF` and ANT1 through ANT8 states, giving 38 fre
 lattice/identity, finite-IQ, raw-replay, and exact-cleanup checks. Both radios were muted and the
 selector was lease-free `ALL_OFF` after every observation and at final exit.
 
-The original 5.8 GHz failure does not reproduce with `.173` as an independent transmitter and the
-corrected downstream fixture. At 5.8 GHz:
+At 5.8 GHz in these three sweeps:
 
 - `ALL_OFF` averages **−58.80 dB** in `RX2/RX1`;
 - leakage-subtracted selected-path contrast is **29.39–39.23 dB**;
@@ -27,12 +30,6 @@ corrected downstream fixture. At 5.8 GHz:
 - ANT3 and ANT6 are repeatable but require **+9.84 dB** and **+8.70 dB** gain correction relative to
   ANT8; and
 - worst three-sweep relative-calibration span is **0.145 dB / 0.738°** at this frequency.
-
-The former same-Pluto 5.8 GHz fixture produced about −24.55 dB `ALL_OFF`. The old high floor is absent
-in the present fixture: the new −58.80 dB result is roughly 34.3 dB lower. Both source topology and
-the downstream connection changed, so this campaign is not a single-variable A/B that apportions
-those two causes. It does strongly reject an inherent inability of this powered selector board and
-recorded receiver configuration to pass 5.8 GHz.
 
 The broadband result is more nuanced. The transfer contains repeatable notch/lobe structure, ANT3
 and ANT6 roll off sharply above 5.4 GHz, and a constant-gain/constant-delay model leaves 18.4–23.5°
@@ -181,12 +178,6 @@ The raw selected/`ALL_OFF` numbers are nearly identical: 19.823–40.845 dB acro
 The single borderline result means the complete band cannot honestly be described as clearing 20 dB
 on every individual observation, even though every three-sweep cell mean clears it.
 
-The conservative 35.1629 dB one-degree unknown-leakage target is not generally met: 750/912
-individual leakage-subtracted cells are below it. That scalar gate is sufficient for treating leakage
-as an unknown perturbation; it is not the only possible tracking architecture. A stable complex
-fixture/manifold model can use lower raw isolation, but must be validated by held-out bearing error
-and cannot restore SNR lost in a weak path.
-
 ## Exact 5.8 GHz result
 
 | State | Mean `H` | Phase | Raw three-sweep span | `C` gain vs ANT8 | `C` phase | Path/`ALL_OFF` |
@@ -245,9 +236,9 @@ its ANT8 observation improves relative calibration substantially:
 
 The tails matter. ANT8 is captured last at every frequency, not interleaved around each tested path.
 Several 4.9 GHz states move together relative to ANT8, which is consistent with within-frequency
-reference/time drift rather than a port suddenly changing. Three unchanged ascending passes are
-good short-term evidence, but not reconnect closure, calibration-age evidence, randomized-order
-closure, or a production coefficient release.
+reference/time drift. Three unchanged ascending passes are good short-term evidence, but not
+reconnect closure, calibration-age evidence, randomized-order closure, or a production coefficient
+release.
 
 ## Can an easy path-length model explain phase?
 
@@ -286,39 +277,38 @@ The answer is therefore:
   multi-dB gain ripple are too large for precision calibration; and
 - **all paths:** the equivalent lengths describe the complete conducted network, not PCB copper.
 
-The PCB route prior reinforces that caution. ANT4 and ANT5 have equal realized PCB route length in
-the existing design snapshot, yet their fitted end-to-end delays differ by roughly 77 ps. Common
-source/reference/receiver terms ideally cancel in `Pi/P8`; the fit retains differential 8-way arms,
-cables, connectors, selector ports, state-dependent loading/reflections, and sequential drift.
-Calling these numbers “PCB path lengths” would be physically wrong.
+Common source/reference/receiver terms ideally cancel in `Pi/P8`; the fit retains differential
+8-way arms, cables, connectors, selector ports, state-dependent loading/reflections, and sequential
+drift. Calling these numbers “PCB path lengths” would be physically wrong.
 
 ### Delay alias and sign limits
 
 A 100 MHz frequency grid identifies delay only modulo `1 / 100 MHz = 10 ns`. Every alternating-bin
 training fold is spaced 200 MHz and aliases every 5 ns. The analyzer therefore predeclares a
 board/fixture-scale search interval of **[−2.5, +2.5) ns**. None of the fits touched that boundary.
-The reported ~0.1 ns branch is selected with that physical prior; the samples alone do not distinguish
-it from aliases separated by 10 ns.
+The reported ~0.1 ns branch is selected by the declared fixture-scale search interval; the samples
+alone do not distinguish it from aliases separated by 10 ns.
 
 If the calibration coefficient `C = P8/Pi` is fitted instead of `R = Pi/P8`, the delay sign reverses.
 The equation and reference plane must accompany every exported delay.
 
-## What this says about the original 5.8 GHz failure
+## Conclusions supported by these three sweeps
 
-The broadband campaign supports a direct, bounded conclusion:
+1. Static selection, simultaneous two-channel measurement, and the independent source produced
+   finite, repeatable observations across the complete 2.1–5.8 GHz grid.
+2. At 5.8 GHz, every selected path was 29.39–39.23 dB above its paired coherent `ALL_OFF` phasor
+   after subtraction. `ALL_OFF` itself averaged −58.80 dB in `RX2/RX1`.
+3. ANT3 and ANT6 are the weakest 5.8 GHz paths, requiring +9.84 dB and +8.70 dB candidate gain
+   corrections relative to ANT8. Their behavior is repeatable across these passes and strongly
+   frequency dependent.
+4. Relative calibration is much more repeatable than absolute transfer: median three-pass span is
+   0.0536 dB / 0.480°, with worst observed span 0.797 dB / 9.676°.
+5. A constant-gain/constant-delay model is adequate only for ANT1 relative to ANT8. ANT2–ANT7 need
+   frequency-indexed complex calibration or a richer model.
 
-1. Static selection, simultaneous two-channel measurement, and the independent source all operate
-   at 5.8 GHz in the present engineering configuration.
-2. The old high `ALL_OFF` floor is absent by roughly 34 dB in the jointly changed source/downstream
-   fixture; this campaign alone does not apportion the change.
-3. The previously incorrect termination/downstream connection was capable of making selected states
-   indistinguishable from `ALL_OFF`.
-4. The present remaining problem is not “5.8 GHz cannot calibrate.” It is frequency-selective
-   end-to-end transfer/loss, plausibly including mismatch/reflection and strongest on ANT3/ANT6,
-   plus the need for held-out calibration closure.
-
-This does not prove guaranteed 5.8 GHz performance for every Pluto hardware population or firmware
-identity. It proves the recorded identities and exact fixture used here.
+These statements apply only to the recorded identities, configuration, conducted fixture, and
+observation interval. The three sweeps do not identify which physical component creates a feature,
+and they do not establish free-space direction-finding performance.
 
 ## Recommended next campaign
 
@@ -333,16 +323,7 @@ identity. It proves the recorded identities and exact fixture used here.
    strong/weak fixture pairs `ANT1 ↔ ANT3` and `ANT8 ↔ ANT6`, then repeat those states. A feature that
    follows the arm implicates splitter/cable hardware; one that stays with the selector state
    implicates its connector/PCB/switch path. Restore and prove the original mapping afterward.
-5. **Separate tinySA screening from true VNA work.** The official tinySA Ultra is a spectrum
-   analyzer/signal generator, not a two-port VNA. It can screen tone level, leakage, harmonics, and
-   scalar selected/`ALL_OFF` amplitude within its supported modes, but it cannot produce calibrated
-   complex S11/S21 or group delay. The standard Ultra's generator also does not reach 5.8 GHz. For
-   terminated static S-parameters, use a calibrated VNA that covers at least 6 GHz (or confirm that
-   the instrument on hand is actually a NanoVNA/VNA rather than a tinySA). Calibrate at the board
-   SMA mating planes, terminate all unused inputs, measure selected S21, driven-port S11,
-   common-port S22 where supported, and `ALL_OFF` leakage for each path, then densely inspect
-   implicated bands.
-6. **Then calibrate tracking at the task level.** Install the antennas, survey geometry, capture an
+5. **Calibrate tracking at the task level.** Install the antennas, survey geometry, capture an
    angular manifold, hold out complete bearings, and report median/p95 bearing error, ambiguity, SNR
    dependence, and calibration-age drift. Conducted coefficients alone are not an antenna-array
    calibration.
