@@ -2,7 +2,7 @@
 
 | Status date | Hardware | Overall conclusion |
 |---|---|---|
-| 2026-08-29 | Board `stm32c011-4c0055000950313950363920`, Pluto `104000b29905000e17000800065934759d` | The acquisition, timing, and frequency-specific 2.4 GHz calibration layers work; general direction finding and exact 5.8 GHz calibration are not yet qualified. |
+| 2026-08-30 | Board `stm32c011-4c0055000950313950363920`, receiver Pluto `104000b29905000e17000800065934759d` | The acquisition and frequency-specific 2.4 GHz layers work; a corrected independent-source 5.8 GHz conducted campaign now supports engineering calibration, while production confidence-bound closure and general direction finding remain unqualified. |
 
 ## Executive status
 
@@ -16,9 +16,11 @@ products:
    array at five exact 2.4 GHz centers.
 
 Both products are frequency-specific and setup-specific. Neither is by itself
-an angular direction-finding manifold. Exact 5.8 GHz remains blocked by raw
-leakage that hides the `ALL_OFF` state, and a single path-length offset per
-antenna does not explain the measured frequency response.
+an angular direction-finding manifold. A new independent-source campaign now
+resolves the earlier hidden-`ALL_OFF` problem and supplies engineering complex
+corrections from 5.725 through 5.875 GHz. Those coefficients remain conducted-
+fixture-specific, ANT3/ANT6 retain large loss penalties, and a single path-
+length offset per antenna still does not explain the frequency response.
 
 | Layer | Current state | Defensible use today |
 |---|---|---|
@@ -27,7 +29,7 @@ antenna does not explain the measured frequency response.
 | Eight-path board calibration | Qualified at 2.400, 2.420, 2.440, 2.460, and 2.480 GHz | Correct the conducted selector/PCB path at those exact centers |
 | Six-element centered HexRay calibration | Qualified at 2.400, 2.423, 2.440, 2.472, and 2.483 GHz | Reproduce and normalize the centered TX1 manifold vector in the unchanged setup at those exact centers |
 | Broadband stability | Strong descriptive evidence, with fixture-transfer drift | Use as a repeatability envelope; reanalyse the full corpus with current v2 timing before promotion |
-| Exact 5.8 GHz | Rejected | Diagnostic board and phase tables only; no admitted HexRay high-rate timing or deployable end-to-end calibration |
+| Conducted 5.725-5.875 GHz | Engineering-qualified on the corrected independent-source fixture | Frequency-indexed board/fixture correction for controlled experiments; production confidence bounds and installed-array calibration remain pending |
 | Source bearing and position | Exploratory | No production angle or range result yet |
 
 ## Background and introduction
@@ -341,28 +343,30 @@ The current calibration representation must therefore remain a per-frequency
 complex table. Sparse wrapped-phase interpolation and one scalar cable/path
 length per antenna are both rejected by the data.
 
-### 6. Exact 5.8 GHz is leakage-limited and not calibrated
+### 6. Corrected independent-source 5.8 GHz campaign works
 
-At 5.8 GHz, the observed tone follows commanded TX1 gain, but the ordinary
-`ALL_OFF` amplitude marker is not usable. Removing the antenna formerly attached
-to TX2 left the RX2 peak almost unchanged—389 counts versus an attached-antenna
-mean of 383—so TX2-antenna reradiation is not the dominant path.
+The earlier same-radio fixture was leakage-limited: its commanded tone appeared
+strongly on RX2 even with RX2 terminated, and an initially terminated or
+misconnected downstream path made selected states indistinguishable from
+`ALL_OFF`. Those results remain valid evidence about that contaminated fixture,
+not about the selector's intrinsic ability to operate at 5.8 GHz.
 
-External Wi-Fi is not the leading explanation because the component appears at
-the commanded coherent offset, tracks the TX1 gain ladder, and repeats a phase
-pattern. That is an inference, not a spectrum certification. The unresolved
-paths are Pluto-internal TX1-to-RX2 leakage, coupling into the RX2 cable/common
-route, selector/PCB `ALL_OFF` leakage, or a connector/cable defect.
+The corrected campaign used `.173` as an independent TX1 source and `.15` as the
+simultaneous RX1/RX2 receiver. Across 381 captures, seven frequencies, five power
+levels, and ascending/descending sweeps, every selected path was observable and
+every run ended exactly muted in `ALL_OFF`. Worst selected repeatability was
+0.073 dB and 0.416 degrees; reverse-sweep closure was 0.084 dB and 0.714 degrees.
+Point-estimate selected/`ALL_OFF` contrast ranged from 23.63 to 40.01 dB.
 
-The strict screen stopped before a 5.8 GHz timing pair or calibration matrix was
-started, so no admissible HexRay calibration exists. The earlier conducted
-permutation analysis retained a board-only 5.8 GHz coefficient table, and the
-12 HexRay phase-only trials retained a phase fingerprint, but both are
-diagnostic and must not be deployed as calibration coefficients. These tests
-used an AD9361 extended-band software profile on a physical AD9363, outside its
-official operating range.
+ANT3 and ANT6 remain 6.4-10.5 dB weaker than the ANT8 reference depending on
+frequency. The campaign therefore supports frequency-indexed engineering
+correction, but not yet production deployment: the formal lower-confidence-
+bound release gate was not computed, several weak-path cells miss the 35.1629 dB
+one-degree leakage objective, and the installed antenna array is not calibrated.
+See the complete report in
+[`docs/5g8_external_fixture_campaign/`](../5g8_external_fixture_campaign/README.md).
 
-![Current 5.8 GHz failure localization](../hexray_tx_in_middle_calibration/png/fig11_v24_5g8_failure_localization.png)
+![Historical same-radio 5.8 GHz failure localization](../hexray_tx_in_middle_calibration/png/fig11_v24_5g8_failure_localization.png)
 
 ### 7. Direction finding is not yet production-ready
 
@@ -383,8 +387,8 @@ not enough: the geometric model and array manifold must also be valid.
 
 | Category | Current knowledge |
 |---|---|
-| **Works** | Safe deterministic selector control; bounded fail-muted dual-RX acquisition; continuity proof; strict low-band conducted state alignment; exact-tone complex transfer; board-path correction at five 2.4 GHz centers; centered HexRay correction at its five exact centers |
-| **Rejected or unsafe today** | Greedy single-basin timing alignment can succeed but is unsafe for admission; `ALL_OFF` subtraction is not proof of raw isolation; one static delay per antenna and sparse cross-frequency interpolation fail these data; exact-5.8 calibration is rejected in the current fixture; the direct-CW free-space solver failed in the unsurveyed, unmodelled setup |
+| **Works** | Safe deterministic selector control; bounded fail-muted dual-RX acquisition; continuity proof; strict low-band conducted state alignment; exact-tone complex transfer; board-path correction at five 2.4 GHz centers; corrected-fixture engineering correction at seven 5.8 GHz-band centers; centered HexRay correction at its five exact 2.4 GHz centers |
+| **Rejected or unsafe today** | Greedy single-basin timing alignment can succeed but is unsafe for admission; `ALL_OFF` subtraction is not proof of raw isolation; one static delay per antenna and sparse cross-frequency interpolation fail these data; the old same-radio 5.8 GHz coefficients remain rejected; the direct-CW free-space solver failed in the unsurveyed, unmodelled setup |
 | **Unknown / not yet qualified** | Current-v2 yield over 2.6–5.8 GHz; TX2-specific behavior; another board or Pluto; response after cable/antenna/environment movement; realistic modulated or uncontrolled emitters; known-angle bearing error and ambiguity |
 
 ## Recommended operating envelope today
@@ -405,9 +409,9 @@ For defensible experiments now:
 - describe any bearing output as experimental until it passes surveyed angular
   holdouts.
 
-Do not deploy 5.8 GHz coefficients, interpolate the sparse HexRay table, infer
-physical cable length from fitted phase, or report phase-likelihood radius as
-measured range.
+Do not represent the 5.8 GHz engineering coefficients as production or installed-
+array calibration, interpolate the sparse HexRay table, infer physical cable
+length from fitted phase, or report phase-likelihood radius as measured range.
 
 ## Prioritized next steps
 
@@ -416,10 +420,10 @@ measured range.
    aggregator to consume current decoder and quality evidence. Parameterize the
    RX1 reference role so new conducted sidecars no longer inherit OTA-reference
    wording.
-2. **Localize the 5.8 GHz leakage path.** Run the unchanged bounded TX1 tone with
-   Pluto RX2 terminated directly at its reference plane; then add the RX2 cable;
-   then add the selector with its inputs terminated or shielded. Require usable
-   raw `ALL_OFF` contrast before starting timing or calibration.
+2. **Localize the remaining ANT3/ANT6 loss.** With both radios muted, swap only
+   the selector-end cables `ANT1 <-> ANT3` and `ANT8 <-> ANT6`, then repeat those
+   four states. The loss following a cable implicates the splitter output/cable;
+   the loss remaining on a selector state implicates that PCB launch/switch path.
 3. **Resolve the conducted phase branch.** Add one non-cyclic feed-to-port
    mapping, such as a single F1/F2 swap, and keep it blind while choosing among
    the eight equivalent 45° spatial-ramp branches.

@@ -43,6 +43,13 @@ belong outside Git under `~/.local/state/smateway/boards/<board-id>/`.
 
 ## Current calibration and direction-finding status
 
+The corrected independent-source 5.725-5.875 GHz campaign, 381-capture normalized evidence,
+frequency-indexed complex corrections, safety closure, and next hardware-attribution experiment are
+in [`docs/5g8_external_fixture_campaign/`](docs/5g8_external_fixture_campaign/README.md). This is the
+current 5.8 GHz engineering result: all paths work and clear the 20 dB point-estimate isolation
+screen, while ANT3/ANT6 loss attribution and held-out confidence-bound closure remain before
+production deployment.
+
 The present-state summary of firmware, acquisition, timing, conducted
 calibration, six-element HexRay calibration, known limitations, and prioritized
 direction-finding work is in
@@ -56,8 +63,8 @@ The completed three-permutation splitter calibration, reconnect closure, release
 board-path coefficients, diagnostic 5.8 GHz result, PNG evidence and exact reproduction command
 are in [`docs/closed_loop_permutation_calibration/`](docs/closed_loop_permutation_calibration/README.md).
 The five 2.400–2.480 GHz points qualify with a measured `1.4–2.0 degree` coherent-isolation
-floor. The 5.8 GHz coefficients remain diagnostic-only because raw ALL_OFF leakage can exceed
-the selected-path signal.
+floor. Its older 5.8 GHz result remains useful evidence for the contaminated same-radio fixture, but
+it is superseded for current engineering work by the corrected independent-source campaign above.
 
 ## Host-only bootstrap
 
