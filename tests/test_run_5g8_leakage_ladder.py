@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 import json
 import os
+import re
 import stat
 import sys
+from collections.abc import Mapping
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -22,6 +25,15 @@ assert SPEC is not None and SPEC.loader is not None
 runner = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = runner
 SPEC.loader.exec_module(runner)
+
+FIXTURE_FACTORY_SCRIPT = Path(__file__).with_name("test_fixture_v2.py")
+FIXTURE_FACTORY_SPEC = importlib.util.spec_from_file_location(
+    "test_fixture_v2_factory_for_leakage_ladder", FIXTURE_FACTORY_SCRIPT
+)
+assert FIXTURE_FACTORY_SPEC is not None and FIXTURE_FACTORY_SPEC.loader is not None
+fixture_v2_factory = importlib.util.module_from_spec(FIXTURE_FACTORY_SPEC)
+sys.modules[FIXTURE_FACTORY_SPEC.name] = fixture_v2_factory
+FIXTURE_FACTORY_SPEC.loader.exec_module(fixture_v2_factory)
 
 SOURCE_COMMIT = "1" * 40
 DEPENDENCY_COMMIT = "2" * 40
@@ -61,6 +73,19 @@ def _native_attestation() -> dict[str, Any]:
         "version": {"major": 0, "minor": 25, "git_tag": "synthetic"},
         "required_symbols": {symbol: True for symbol in runner.REQUIRED_LIBIIO_SYMBOLS},
         "loader_search_path_first": "/usr/local/lib",
+    }
+
+
+def _selector_flash_binding() -> dict[str, Any]:
+    return {
+        "schema": 1,
+        "binding_kind": "sealed_selector_flash_evidence_v1",
+        "path": "/synthetic/selector-flash-evidence.json",
+        "sha256": "b" * 64,
+        "campaign_id": "campaign-a",
+        "run_id": "bench-flash-r01",
+        "board_id": "board-a",
+        "image_role": "bench",
     }
 
 
@@ -114,6 +139,9 @@ def _connection(
 
 def _fixture_evidence(stage: str = "direct_rx2_termination") -> dict[str, Any]:
     run_id = f"run-{stage}"
+    selector_flash = (
+        _selector_flash_binding() if stage in runner.SELECTOR_CONNECTED_STAGES else None
+    )
     pluto = {
         "id": "pluto-a",
         "serial": SERIAL,
@@ -138,6 +166,12 @@ def _fixture_evidence(stage: str = "direct_rx2_termination") -> dict[str, Any]:
         },
         "tx1_reference_splitter": splitter,
         "rx1_attenuator": attenuator,
+        "rx2_attenuator": {
+            "state": "absent",
+            "asset": None,
+            "orientation": None,
+            "pluto_connection": None,
+        },
         "tx2_termination": tx2_load,
         "connections": {
             "tx1_to_splitter": _connection(
@@ -331,6 +365,7 @@ def _fixture_evidence(stage: str = "direct_rx2_termination") -> dict[str, Any]:
         "stage_delta_sha256": delta_sha,
         "observed_component_ids": component_ids,
         "observed_connection_ids": connection_ids,
+        "selector_flash_evidence": selector_flash,
         "setup_evidence": {
             "path": f"/synthetic/{run_id}-setup.png",
             "sha256": "9" * 64,
@@ -361,6 +396,7 @@ def _fixture_evidence(stage: str = "direct_rx2_termination") -> dict[str, Any]:
         "stage_delta_sha256": delta_sha,
         "prior_stage_binding": prior,
         "setup_attestation": setup,
+        "selector_flash_evidence": selector_flash,
         "component_ids": component_ids,
         "connection_ids": connection_ids,
         "characterization_summary": runner._characterization_summary(
@@ -395,6 +431,17 @@ def _selector_control() -> dict[str, Any]:
             "lease_ms": 0,
             "wait_until_applied": True,
             "readback_required": True,
+        },
+        "selector_flash_evidence": _selector_flash_binding(),
+        "target_image_admission_contract": {
+            "schema": 1,
+            "flash_base_address": runner.FLASH_BASE_ADDRESS,
+            "firmware_bin_path": "/synthetic/pluto_bench.bin",
+            "firmware_bin_sha256": "a" * 64,
+            "firmware_bin_size_bytes": 1024,
+            "board_id": "board-a",
+            "selector_flash_evidence_sha256": "b" * 64,
+            "full_bin_extent_and_uid_required_before_mailbox": True,
         },
     }
 
@@ -548,6 +595,56 @@ def _passing_selector(calls: list[str] | None = None) -> Any:
         }
 
     return selector
+
+
+def _passing_selector_image(calls: list[str] | None = None) -> Any:
+    def admit(control: dict[str, Any]) -> dict[str, Any]:
+        if calls is not None:
+            calls.append("target_image")
+        target = control["target_image_admission_contract"]
+        flash = control["selector_flash_evidence"]
+        return {
+            "schema": 1,
+            "evidence_kind": "contemporaneous_full_bin_extent_and_uid_admission_v1",
+            "status": "passed",
+            "selector_flash_evidence_sha256": flash["sha256"],
+            "flash_base_address": target["flash_base_address"],
+            "byte_count": target["firmware_bin_size_bytes"],
+            "expected_bin_sha256": target["firmware_bin_sha256"],
+            "observed_target_sha256": target["firmware_bin_sha256"],
+            "expected_board_id": flash["board_id"],
+            "observed_uid": flash["board_id"].removeprefix("stm32c011-"),
+            "exact_bin_and_uid_match": True,
+            "reviewed_image_started_only_after_exact_match": True,
+            "target_may_have_started_before_failure_halt": False,
+            "failure_halt_required": False,
+            "failure_halt": None,
+            "target_kept_halted_on_failure": False,
+            "mailbox_access_performed": False,
+            "error": None,
+        }
+
+    return admit
+
+
+def _passing_selector_target_halt(
+    control: Mapping[str, Any],
+    purpose: str = "image_admission_failure_cleanup",
+) -> dict[str, Any]:
+    config = control["openocd_config"]
+    return {
+        "schema": 1,
+        "evidence_kind": "selector_target_best_effort_halt_v1",
+        "purpose": purpose,
+        "status": "passed",
+        "openocd_config_path": config["path"],
+        "openocd_config_sha256": config["file_sha256"],
+        "command": "init; halt; shutdown",
+        "returncode": 0,
+        "target_halted": True,
+        "mailbox_access_performed": False,
+        "error": None,
+    }
 
 
 def _passing_mute(calls: list[str] | None = None) -> Any:
@@ -726,10 +823,151 @@ def _completed_single_condition_run(
         mute_boundary=_passing_mute(),
         identity_boundary=_passing_identity(),
         selector_boundary=_passing_selector(),
+        selector_image_boundary=_passing_selector_image(),
         runtime_attestation_boundary=_passing_runtime(),
         fixture_evidence_boundary=_passing_fixture(),
     )
     return contract, envelope, manifest, plan_path, manifest_path
+
+
+def _write_x_fixture_chain(
+    directory: Path,
+    *,
+    current_limit_a: float,
+    run_prefix: str,
+) -> dict[str, Any]:
+    """Build a source-backed production A -> B -> C -> E fixture chain for X tests."""
+
+    original_identity = (
+        fixture_v2_factory.CAMPAIGN,
+        fixture_v2_factory.GROUP,
+        fixture_v2_factory.BOARD,
+        fixture_v2_factory.SERIAL,
+    )
+    original_plan = fixture_v2_factory._plan
+
+    def runner_compatible_plan(
+        plan_directory: Path,
+        *,
+        stage: str,
+        run_id: str,
+        evidence: dict[str, Any],
+        selector_binding: dict[str, Any],
+        selector_control: dict[str, Any] | None = None,
+    ) -> tuple[Path, dict[str, Any]]:
+        plan_path, envelope = original_plan(
+            plan_directory,
+            stage=stage,
+            run_id=run_id,
+            evidence=evidence,
+            selector_binding=selector_binding,
+            selector_control=selector_control,
+        )
+        if stage in runner.SELECTOR_CONNECTED_STAGES and selector_control is None:
+            envelope["plan_contract"]["selector_control"] = _selector_control_for_flash(
+                selector_binding
+            )
+            envelope["plan_contract_sha256"] = runner.canonical_json_sha256(
+                envelope["plan_contract"]
+            )
+            fixture_v2_factory._write_json(plan_path, envelope)
+        return plan_path, envelope
+
+    try:
+        fixture_v2_factory.CAMPAIGN = "campaign-a"
+        fixture_v2_factory.GROUP = "fixture-group-a"
+        fixture_v2_factory.BOARD = "board-a"
+        fixture_v2_factory.SERIAL = SERIAL
+        fixture_v2_factory._plan = runner_compatible_plan
+        return fixture_v2_factory._chain(
+            directory,
+            supply_current_limit_a=current_limit_a,
+            run_prefix=run_prefix,
+        )
+    finally:
+        (
+            fixture_v2_factory.CAMPAIGN,
+            fixture_v2_factory.GROUP,
+            fixture_v2_factory.BOARD,
+            fixture_v2_factory.SERIAL,
+        ) = original_identity
+        fixture_v2_factory._plan = original_plan
+
+
+def _write_x_full_fixture(path: Path, *, current_limit_a: float) -> Path:
+    chain = _write_x_fixture_chain(
+        path.parent / f"{path.stem}-chain",
+        current_limit_a=current_limit_a,
+        run_prefix=path.stem,
+    )
+    return Path(chain["full_conducted_fixture"]["manifest"])
+
+
+def _selector_control_for_flash(flash: Mapping[str, Any]) -> dict[str, Any]:
+    control = json.loads(json.dumps(_selector_control()))
+    control["selector_flash_evidence"] = dict(flash)
+    target = control["target_image_admission_contract"]
+    target["board_id"] = flash["board_id"]
+    target["selector_flash_evidence_sha256"] = flash["sha256"]
+    return control
+
+
+def _x_contract(
+    tmp_path: Path,
+    *,
+    stage: str,
+    role: str,
+    implicated_stage: str,
+) -> dict[str, Any]:
+    before_chain = _write_x_fixture_chain(
+        tmp_path / "before-chain",
+        current_limit_a=0.4,
+        run_prefix="x-before",
+    )
+    after_chain = _write_x_fixture_chain(
+        tmp_path / "after-chain",
+        current_limit_a=0.5,
+        run_prefix="x-after",
+    )
+    capture_chain = after_chain if role.endswith("_intervention") else before_chain
+    before = Path(before_chain["full_conducted_fixture"]["manifest"])
+    after = Path(after_chain["full_conducted_fixture"]["manifest"])
+    capture = after if role.endswith("_intervention") else before
+    fixture = capture_chain[stage]["evidence"]
+    flash = capture_chain["selector"]
+    run_id = fixture["run_id"]
+    prebinding, context = runner._x_intervention_contract_from_manifests(
+        contract_id="shield-current-limit-r01",
+        run_role=role,
+        implicated_boundary_stage=implicated_stage,
+        installed_fixture_manifest_path=after,
+        capture_fixture_manifest_path=capture,
+        acquisition_index=11,
+        freshness_epoch_id="x-epoch-r01",
+        stage=stage,
+        board_id="board-a",
+        serial=SERIAL,
+        fixture_evidence=fixture,
+        selector_flash_evidence=flash,
+    )
+    return runner._build_plan_contract(
+        run_id=run_id,
+        board_id="board-a",
+        serial=SERIAL,
+        uri=URI,
+        stage=stage,
+        source_commit=SOURCE_COMMIT,
+        pluto_plus_utils_source_attestation=_dependency_attestation(),
+        selector_control=(
+            _selector_control_for_flash(flash)
+            if stage in runner.SELECTOR_CONNECTED_STAGES
+            else None
+        ),
+        native_libiio_runtime_attestation=_native_attestation(),
+        fixture_evidence=fixture,
+        x_intervention_prebinding=prebinding,
+        x_intervention_capture_context=context,
+    )
 
 
 def test_plan_contract_freezes_exact_stages_and_bounded_tx1_ladder() -> None:
@@ -808,10 +1046,14 @@ def test_plan_rejects_nonexact_device_identity(serial: str, uri: str, message: s
             stage="direct_rx2_termination",
             source_commit=SOURCE_COMMIT,
             pluto_plus_utils_source_attestation=_dependency_attestation(),
+            require_fixture_evidence=False,
         )
 
 
 def test_selector_connected_plan_requires_static_all_off_control_contract() -> None:
+    fixture = _fixture_evidence("powered_selector_all_inputs_terminated")
+    fixture["run_id"] = "run-selector"
+    fixture["setup_attestation"]["run_id"] = "run-selector"
     with pytest.raises(ValueError, match="static ALL_OFF"):
         runner._build_plan_contract(
             run_id="run-selector",
@@ -821,6 +1063,7 @@ def test_selector_connected_plan_requires_static_all_off_control_contract() -> N
             stage="powered_selector_all_inputs_terminated",
             source_commit=SOURCE_COMMIT,
             pluto_plus_utils_source_attestation=_dependency_attestation(),
+            fixture_evidence=fixture,
         )
 
 
@@ -860,6 +1103,7 @@ def test_fixture_v2_covers_every_general_stage_with_port_level_graph(stage: str)
     )
     assert observed["shared_fixture"]["pluto"]["serial"] == SERIAL
     assert set(observed["shared_fixture"]["reference_planes"]) == {"tx1", "rx1", "rx2"}
+    assert observed["shared_fixture"]["rx2_attenuator"]["state"] == "absent"
     assert observed["component_ids"]
     assert observed["connection_ids"]
     assert observed["characterization_summary"]["causal_attribution_claim"] is False
@@ -880,6 +1124,65 @@ def test_fixture_v2_covers_every_general_stage_with_port_level_graph(stage: str)
         assert selector["hardware_revision"] == "v5"
         assert selector["supply_voltage_v"] == 5.0
         assert selector["supply_current_limit_a"] == 0.5
+
+
+def test_present_rx2_attenuator_retargets_stage_graph_and_is_inventory_bound() -> None:
+    fixture = _fixture_evidence("direct_rx2_termination")
+    shared = json.loads(json.dumps(fixture["shared_fixture"]))
+    delta = json.loads(json.dumps(fixture["stage_delta"]))
+    shared["rx2_attenuator"] = {
+        "state": "present",
+        "asset": _asset(
+            "rx2-attenuator-a",
+            {"input": "IN", "output": "OUT"},
+            attenuation_db=20.0,
+        ),
+        "orientation": {
+            "fixture_side_port_role": "input",
+            "pluto_side_port_role": "output",
+        },
+        "pluto_connection": _connection(
+            "shared-rx2-attenuator",
+            ("pluto-a", "RX2"),
+            ("rx2-attenuator-a", "OUT"),
+            kind="direct_adapter",
+        ),
+    }
+    delta["connections"]["rx2_to_direct_termination"]["from"] = {
+        "component_id": "rx2-attenuator-a",
+        "port_id": "IN",
+    }
+
+    normalized_shared = runner._normalize_shared_fixture(shared, expected_serial=SERIAL)
+    normalized_delta = runner._normalize_stage_delta(
+        delta,
+        stage="direct_rx2_termination",
+        shared=normalized_shared,
+    )
+    component_ids, connection_ids = runner._fixture_identity_sets(
+        normalized_shared, normalized_delta
+    )
+
+    assert "rx2-attenuator-a" in component_ids
+    assert "shared-rx2-attenuator" in connection_ids
+    assert normalized_delta["connections"]["rx2_to_direct_termination"]["from"] == {
+        "component_id": "rx2-attenuator-a",
+        "port_id": "IN",
+    }
+
+
+@pytest.mark.parametrize(
+    "state",
+    (
+        {"state": "absent", "asset": {}, "orientation": None, "pluto_connection": None},
+        {"state": "present", "asset": None, "orientation": None, "pluto_connection": None},
+    ),
+)
+def test_optional_rx2_attenuator_state_fails_closed(state: dict[str, Any]) -> None:
+    shared = _fixture_evidence("direct_rx2_termination")["shared_fixture"]
+    shared["rx2_attenuator"] = state
+    with pytest.raises(ValueError, match="RX2 attenuator"):
+        runner._normalize_shared_fixture(shared, expected_serial=SERIAL)
 
 
 @pytest.mark.parametrize(
@@ -1097,6 +1400,7 @@ def test_fixture_v2_hashes_unique_run_bound_setup_evidence_without_timestamp_fre
         "stage_delta_sha256": fixture["stage_delta_sha256"],
         "observed_component_ids": fixture["component_ids"],
         "observed_connection_ids": fixture["connection_ids"],
+        "selector_flash_evidence": None,
         "setup_evidence_path": photograph.name,
         "setup_evidence_sha256": runner.sha256_path(photograph),
     }
@@ -1494,9 +1798,11 @@ def test_stage_execution_uses_preflight_condition_and_final_exact_mutes(
     assert record["fixture_evidence"] == contract["fixture_evidence"]
     assert manifest["summary"]["completed_conditions"] == 1
     assert manifest["summary"]["selector_calibration_claim"] is False
+    assert manifest["x_intervention_capture_manifest"] is None
+    assert not (tmp_path / runner.X_CAPTURE_MANIFEST_FILENAME).exists()
 
 
-def test_complete_stage_resume_revalidates_artifact_and_skips_capture(
+def test_complete_stage_execution_tombstone_rejects_reuse_without_hardware(
     tmp_path: Path,
 ) -> None:
     contract, envelope, manifest, plan_path, manifest_path = _completed_single_condition_run(
@@ -1505,25 +1811,26 @@ def test_complete_stage_resume_revalidates_artifact_and_skips_capture(
     capture_calls: list[dict[str, Any]] = []
     mute_calls: list[str] = []
 
-    runner._execute_stage(
-        manifest,
-        manifest_path,
-        envelope=envelope,
-        plan_path=plan_path,
-        confirmation=_confirmation(contract),
-        capture_root=tmp_path / "captures",
-        capture_boundary=_capture_boundary(
-            _blocks(stream_id=99_999),
-            calls=capture_calls,
-        ),
-        mute_boundary=_passing_mute(mute_calls),
-        identity_boundary=_passing_identity(),
-        runtime_attestation_boundary=_passing_runtime(),
-        fixture_evidence_boundary=_passing_fixture(),
-    )
+    with pytest.raises(runner.LeakageLadderError, match="cannot be resumed or retried"):
+        runner._execute_stage(
+            manifest,
+            manifest_path,
+            envelope=envelope,
+            plan_path=plan_path,
+            confirmation=_confirmation(contract),
+            capture_root=tmp_path / "captures",
+            capture_boundary=_capture_boundary(
+                _blocks(stream_id=99_999),
+                calls=capture_calls,
+            ),
+            mute_boundary=_passing_mute(mute_calls),
+            identity_boundary=_passing_identity(),
+            runtime_attestation_boundary=_passing_runtime(),
+            fixture_evidence_boundary=_passing_fixture(),
+        )
 
     assert capture_calls == []
-    assert mute_calls == ["preflight", "final"]
+    assert mute_calls == []
     assert manifest["status"] == "complete"
     assert len(manifest["attempts"]) == 1
 
@@ -1575,7 +1882,7 @@ def test_resume_rejects_attempt_condition_different_from_immutable_plan(
     artifact_path = Path(manifest["attempts"][0]["result"]["artifact_path"])
     mute_calls: list[str] = []
 
-    with pytest.raises(runner.LeakageLadderError, match="evidence is malformed"):
+    with pytest.raises(runner.LeakageLadderError, match="cannot be resumed or retried"):
         runner._execute_stage(
             manifest,
             manifest_path,
@@ -1590,13 +1897,10 @@ def test_resume_rejects_attempt_condition_different_from_immutable_plan(
             fixture_evidence_boundary=_passing_fixture(),
         )
 
-    assert mute_calls == ["preflight", "final"]
-    assert manifest["status"] == "failed"
-    assert manifest["attempts"][0]["outcome"] == "resume_validation_failed"
-    assert not artifact_path.exists()
-    quarantine = manifest["attempts"][0]["quarantine"]
-    assert quarantine["accepted"] is False
-    assert Path(quarantine["path"]).parent.name == ".failed"
+    assert mute_calls == []
+    assert manifest["status"] == "complete"
+    assert artifact_path.exists()
+    assert manifest["attempts"][0]["quarantine"] is None
 
 
 @pytest.mark.parametrize(
@@ -1620,7 +1924,7 @@ def test_resume_rejects_any_changed_artifact_record_bytes(
     with changed_path.open("ab") as handle:
         handle.write(mutation)
 
-    with pytest.raises(runner.LeakageLadderError, match="artifact hash differs"):
+    with pytest.raises(runner.LeakageLadderError, match="cannot be resumed or retried"):
         runner._execute_stage(
             manifest,
             manifest_path,
@@ -1635,9 +1939,8 @@ def test_resume_rejects_any_changed_artifact_record_bytes(
             fixture_evidence_boundary=_passing_fixture(),
         )
 
-    assert manifest["status"] == "failed"
-    assert manifest["attempts"][0]["outcome"] == "resume_validation_failed"
-    assert manifest["attempts"][0]["quarantine"]["accepted"] is False
+    assert manifest["status"] == "complete"
+    assert manifest["attempts"][0]["quarantine"] is None
 
 
 def test_resume_quarantines_finalized_and_partial_orphans_for_current_plan(
@@ -1751,7 +2054,7 @@ def test_resume_rejects_accepted_artifact_file_symlink_without_sealing_target(
     data_path.unlink()
     data_path.symlink_to(external)
 
-    with pytest.raises(runner.LeakageLadderError, match="contains a symlink"):
+    with pytest.raises(runner.LeakageLadderError, match="cannot be resumed or retried"):
         runner._execute_stage(
             manifest,
             manifest_path,
@@ -1836,7 +2139,7 @@ def test_read_only_identity_mismatch_blocks_all_mute_and_capture_boundaries(
         )
 
     assert capture_calls == []
-    assert mute_calls == ["final"]
+    assert mute_calls == ["preflight", "final"]
     assert manifest["status"] == "failed"
     assert manifest["identity_preflight"]["resolved_uri"] == "usb:9.9.9"
 
@@ -1947,6 +2250,7 @@ def test_selector_connected_condition_attests_static_all_off_before_and_after(
         mute_boundary=_passing_mute(),
         identity_boundary=_passing_identity(),
         selector_boundary=_passing_selector(selector_calls),
+        selector_image_boundary=_passing_selector_image(),
         runtime_attestation_boundary=_passing_runtime(),
         fixture_evidence_boundary=_passing_fixture(),
     )
@@ -1999,6 +2303,7 @@ def test_selector_connected_execution_uses_shared_exclusive_lock(
             mute_boundary=_passing_mute(mute_calls),
             identity_boundary=_passing_identity(),
             selector_boundary=_passing_selector(selector_calls),
+            selector_image_boundary=_passing_selector_image(),
             runtime_attestation_boundary=_passing_runtime(),
             fixture_evidence_boundary=_passing_fixture(),
             selector_lock_root=lock_root,
@@ -2049,13 +2354,14 @@ def test_selector_initial_state_must_already_be_all_off_without_silent_repair(
             mute_boundary=_passing_mute(mute_calls),
             identity_boundary=_passing_identity(),
             selector_boundary=initially_not_all_off,
+            selector_image_boundary=_passing_selector_image(),
             runtime_attestation_boundary=_passing_runtime(),
             fixture_evidence_boundary=_passing_fixture(),
             selector_lock_root=tmp_path / "selector-lock",
         )
 
     assert calls == ["initial_state_before_command", "exception_cleanup_all_off"]
-    assert mute_calls == ["final"]
+    assert mute_calls == ["preflight", "final"]
     assert capture_calls == []
     initial = manifest["selector_initial_state"]
     assert initial["operation"] == "read_only"
@@ -2117,7 +2423,7 @@ def test_resume_revalidates_manifest_selector_attestation_history(
     manifest[manifest_field][0]["readback"]["applied_code"] ^= 1
     selector_calls: list[str] = []
 
-    with pytest.raises(runner.LeakageLadderError, match="selector attestation is invalid"):
+    with pytest.raises(runner.LeakageLadderError, match="cannot be resumed or retried"):
         runner._execute_stage(
             manifest,
             manifest_path,
@@ -2129,13 +2435,14 @@ def test_resume_revalidates_manifest_selector_attestation_history(
             mute_boundary=_passing_mute(),
             identity_boundary=_passing_identity(),
             selector_boundary=_passing_selector(selector_calls),
+            selector_image_boundary=_passing_selector_image(),
             runtime_attestation_boundary=_passing_runtime(),
             fixture_evidence_boundary=_passing_fixture(),
             selector_lock_root=tmp_path / "selector-lock",
         )
 
-    assert selector_calls == ["exception_cleanup_all_off"]
-    assert manifest["status"] == "failed"
+    assert selector_calls == []
+    assert manifest["status"] == "complete"
 
 
 @pytest.mark.parametrize(
@@ -2158,7 +2465,7 @@ def test_resume_revalidates_every_condition_selector_readback(
     result = manifest["attempts"][0]["result"]
     result[result_field]["readback"]["applied_code"] ^= 1
 
-    with pytest.raises(runner.LeakageLadderError, match="condition record is inconsistent"):
+    with pytest.raises(runner.LeakageLadderError, match="cannot be resumed or retried"):
         runner._execute_stage(
             manifest,
             manifest_path,
@@ -2170,13 +2477,14 @@ def test_resume_revalidates_every_condition_selector_readback(
             mute_boundary=_passing_mute(),
             identity_boundary=_passing_identity(),
             selector_boundary=_passing_selector(),
+            selector_image_boundary=_passing_selector_image(),
             runtime_attestation_boundary=_passing_runtime(),
             fixture_evidence_boundary=_passing_fixture(),
             selector_lock_root=tmp_path / "selector-lock",
         )
 
-    assert manifest["attempts"][0]["outcome"] == "resume_validation_failed"
-    assert manifest["attempts"][0]["quarantine"]["accepted"] is False
+    assert manifest["attempts"][0]["outcome"] == "measurement_quality_passed"
+    assert manifest["attempts"][0]["quarantine"] is None
 
 
 def test_selector_all_off_readback_failure_blocks_rf_capture(tmp_path: Path) -> None:
@@ -2354,8 +2662,262 @@ def test_failed_attempt_cannot_be_retried_if_top_level_status_is_damaged(
             fixture_evidence_boundary=_passing_fixture(),
         )
 
-    assert mute_calls == ["resume_recovery", "final"]
+    assert mute_calls == ["final"]
     assert len(manifest["attempts"]) == 1
+
+
+def test_selector_image_mismatch_is_ordered_after_mute_and_before_any_mailbox(
+    tmp_path: Path,
+) -> None:
+    contract = _contract("powered_selector_all_inputs_terminated")
+    capture_root = tmp_path / "captures"
+    _bind_run_capture_root(contract, capture_root)
+    contract["conditions"] = contract["conditions"][:1]
+    envelope = runner._plan_envelope(contract)
+    plan_path = tmp_path / "plan.json"
+    runner._write_immutable_json(plan_path, envelope)
+    manifest = runner._new_manifest(plan_path, envelope)
+    manifest_path = tmp_path / "manifest.json"
+    calls: list[str] = []
+
+    def mute(serial: str, purpose: str) -> dict[str, Any]:
+        calls.append(f"mute:{purpose}")
+        return _passing_mute()(serial, purpose)
+
+    def mismatch(control: dict[str, Any]) -> dict[str, Any]:
+        calls.append("target-image")
+        evidence = _passing_selector_image()(control)
+        evidence.update(
+            {
+                "status": "failed",
+                "exact_bin_and_uid_match": False,
+                "reviewed_image_started_only_after_exact_match": False,
+                "target_may_have_started_before_failure_halt": False,
+                "failure_halt_required": True,
+                "failure_halt": _passing_selector_target_halt(control),
+                "target_kept_halted_on_failure": True,
+                "error": {"type": "SyntheticMismatch", "message": "mismatch"},
+            }
+        )
+        return evidence
+
+    def selector(_control: dict[str, Any], purpose: str) -> dict[str, Any]:
+        calls.append(f"selector:{purpose}")
+        raise AssertionError("mailbox must not be accessed after image mismatch")
+
+    with pytest.raises(runner.LeakageLadderError, match="full-BIN extent or UID"):
+        runner._execute_stage(
+            manifest,
+            manifest_path,
+            envelope=envelope,
+            plan_path=plan_path,
+            confirmation=_confirmation(contract),
+            capture_root=capture_root,
+            capture_boundary=_capture_boundary(_blocks()),
+            mute_boundary=mute,
+            identity_boundary=_passing_identity(),
+            selector_boundary=selector,
+            selector_image_boundary=mismatch,
+            runtime_attestation_boundary=_passing_runtime(),
+            fixture_evidence_boundary=_passing_fixture(),
+            selector_lock_root=tmp_path / "selector-lock",
+        )
+
+    assert calls == ["mute:preflight", "target-image", "mute:final"]
+    assert manifest["final_selector_cleanup"] is None
+    tombstone = tmp_path / runner.EXECUTION_TOMBSTONE_FILENAME
+    assert tombstone.is_file()
+    assert not tombstone.stat().st_mode & 0o222
+
+
+def test_selector_image_reset_run_failure_is_separately_halted_without_mailbox(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    firmware = b"reviewed-static-selector-image"
+    uid = bytes.fromhex("00112233445566778899aabb")
+    firmware_path = tmp_path / "pluto_bench.bin"
+    firmware_path.write_bytes(firmware)
+    config_path = tmp_path / "rpi4-swd.cfg"
+    config_path.write_text("adapter driver bcm2835gpio\n", encoding="utf-8")
+    control = _selector_control()
+    control["openocd_config"] = {
+        "path": str(config_path),
+        "file_sha256": runner.sha256_path(config_path),
+    }
+    control["selector_flash_evidence"]["board_id"] = f"stm32c011-{uid.hex()}"
+    target = control["target_image_admission_contract"]
+    target.update(
+        {
+            "firmware_bin_path": str(firmware_path),
+            "firmware_bin_sha256": hashlib.sha256(firmware).hexdigest(),
+            "firmware_bin_size_bytes": len(firmware),
+            "board_id": control["selector_flash_evidence"]["board_id"],
+        }
+    )
+    monkeypatch.setattr(
+        runner,
+        "_cross_bind_selector_control_to_sealed_image",
+        lambda _control: None,
+    )
+    commands: list[str] = []
+
+    def fake_run(command: tuple[str, ...], **_kwargs: Any) -> SimpleNamespace:
+        openocd_command = command[-1]
+        commands.append(openocd_command)
+        if "dump_image" in openocd_command:
+            dump_paths = re.findall(r"dump_image \{([^}]+)\}", openocd_command)
+            assert len(dump_paths) == 2
+            Path(dump_paths[0]).write_bytes(firmware)
+            Path(dump_paths[1]).write_bytes(uid)
+            return SimpleNamespace(returncode=0)
+        if openocd_command == "init; reset run; shutdown":
+            return SimpleNamespace(returncode=17)
+        assert openocd_command == "init; halt; shutdown"
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr(runner.subprocess, "run", fake_run)
+
+    evidence = runner._live_selector_image_admission(control)
+
+    assert commands[-2:] == ["init; reset run; shutdown", "init; halt; shutdown"]
+    assert evidence["status"] == "failed"
+    assert evidence["target_may_have_started_before_failure_halt"] is True
+    assert evidence["failure_halt"]["command"] == "init; halt; shutdown"
+    assert evidence["target_kept_halted_on_failure"] is True
+    assert evidence["mailbox_access_performed"] is False
+    assert runner._selector_image_failure_halted(evidence, selector_control=control)
+
+
+def test_rejected_selector_image_evidence_triggers_conservative_separate_halt() -> None:
+    control = _selector_control()
+    halt_calls: list[str] = []
+
+    def malformed_pass(candidate: dict[str, Any]) -> dict[str, Any]:
+        evidence = _passing_selector_image()(candidate)
+        evidence["byte_count"] += 1
+        return evidence
+
+    def halt(candidate: dict[str, Any], purpose: str) -> dict[str, Any]:
+        halt_calls.append(purpose)
+        return _passing_selector_target_halt(candidate, purpose)
+
+    evidence = runner._call_selector_image_admission(
+        malformed_pass,
+        control,
+        halt_boundary=halt,
+    )
+
+    assert halt_calls == ["image_admission_failure_cleanup"]
+    assert evidence["status"] == "failed"
+    assert evidence["target_may_have_started_before_failure_halt"] is True
+    assert evidence["target_kept_halted_on_failure"] is True
+    assert evidence["mailbox_access_performed"] is False
+    assert runner._selector_image_failure_halted(evidence, selector_control=control)
+
+
+def test_local_storage_rejection_precedes_run_burn_and_all_hardware(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    contract = _contract()
+    capture_root = tmp_path / "captures"
+    _bind_run_capture_root(contract, capture_root)
+    envelope = runner._plan_envelope(contract)
+    plan_path = tmp_path / "plan.json"
+    runner._write_immutable_json(plan_path, envelope)
+    manifest = runner._new_manifest(plan_path, envelope)
+    calls: list[str] = []
+    monkeypatch.setattr(
+        runner,
+        "_assert_local_rpi_storage",
+        lambda *_paths: (_ for _ in ()).throw(
+            runner.LeakageLadderError("not on the Raspberry Pi local filesystem")
+        ),
+    )
+
+    with pytest.raises(runner.LeakageLadderError, match="local filesystem"):
+        runner._execute_stage(
+            manifest,
+            tmp_path / "manifest.json",
+            envelope=envelope,
+            plan_path=plan_path,
+            confirmation=_confirmation(contract),
+            capture_root=capture_root,
+            mute_boundary=lambda *_args: calls.append("mute"),
+            identity_boundary=lambda *_args: calls.append("identity"),
+        )
+
+    assert calls == []
+    assert not (tmp_path / runner.EXECUTION_TOMBSTONE_FILENAME).exists()
+
+
+def test_selector_control_cross_binding_rejects_substituted_openocd_tuple(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    files: dict[str, Path] = {}
+    for name in (
+        "build_manifest",
+        "elf",
+        "firmware_bin",
+        "openocd_config",
+        "profile",
+        "profile_header",
+    ):
+        path = tmp_path / name
+        path.write_bytes(f"{name}\n".encode())
+        files[name] = path
+
+    def identity(path: Path) -> dict[str, Any]:
+        return {
+            "path": str(path),
+            "sha256": runner.sha256_path(path),
+            "size_bytes": path.stat().st_size,
+        }
+
+    control = _selector_control()
+    control.pop("target_image_admission_contract")
+    control["bench_manifest"].update(
+        {
+            "path": str(files["build_manifest"]),
+            "file_sha256": runner.sha256_path(files["build_manifest"]),
+        }
+    )
+    control["openocd_config"].update(
+        {
+            "path": str(files["openocd_config"]),
+            "file_sha256": runner.sha256_path(files["openocd_config"]),
+        }
+    )
+    control["control_profile"].update(
+        {
+            "path": str(files["profile"]),
+            "file_sha256": runner.sha256_path(files["profile"]),
+            "header_path": str(files["profile_header"]),
+            "header_file_sha256": runner.sha256_path(files["profile_header"]),
+            "profile_id": "fast20-v1",
+            "revision": 1,
+            "contract_sha256": "c" * 64,
+        }
+    )
+    sealed = {
+        "frozen_inputs": {
+            "files": {name: identity(path) for name, path in files.items()},
+            "control_profile": {
+                "id": "fast20-v1",
+                "revision": 1,
+                "contract_sha256": "c" * 64,
+                "all_off_code": 15,
+            },
+        }
+    }
+    monkeypatch.setattr(runner, "_sealed_selector_document", lambda _flash: sealed)
+
+    assert runner._cross_bind_selector_control_to_sealed_image(control) == sealed
+    control["openocd_config"]["file_sha256"] = "0" * 64
+    with pytest.raises(runner.LeakageLadderError, match="sealed selector frozen-input"):
+        runner._cross_bind_selector_control_to_sealed_image(control)
 
 
 def test_json_serialization_is_deterministic_for_complex_and_nonfinite_values() -> None:
@@ -2372,3 +2934,274 @@ def test_json_serialization_is_deterministic_for_complex_and_nonfinite_values() 
         "negative_infinity": None,
     }
     json.dumps(value, allow_nan=False)
+
+
+def test_x_cli_prebinding_is_optional_for_normal_runs_and_complete_for_x_mode() -> None:
+    plain = SimpleNamespace(
+        x_mode=False,
+        x_intervention_contract_id=None,
+        x_run_role=None,
+        x_implicated_boundary_stage=None,
+        x_installed_fixture_manifest=None,
+        x_capture_fixture_manifest=None,
+        x_acquisition_index=None,
+        x_freshness_epoch_id=None,
+        selector_flash_evidence=None,
+        selector_flash_evidence_sha256=None,
+        selector_flash_run_id=None,
+    )
+    runner._validate_x_cli_mode(plain)
+    plain.x_run_role = "boundary_baseline"
+    with pytest.raises(runner.LeakageLadderError, match="only with --x-mode"):
+        runner._validate_x_cli_mode(plain)
+
+    plain.x_mode = True
+    with pytest.raises(runner.LeakageLadderError, match="--x-mode requires"):
+        runner._validate_x_cli_mode(plain)
+    plain.x_intervention_contract_id = "contract-r01"
+    plain.x_implicated_boundary_stage = "direct_rx2_termination"
+    plain.x_installed_fixture_manifest = Path("/tmp/installed.json")
+    plain.x_capture_fixture_manifest = Path("/tmp/capture.json")
+    plain.x_acquisition_index = 1
+    plain.x_freshness_epoch_id = "epoch-r01"
+    plain.selector_flash_evidence = Path("/tmp/flash.json")
+    plain.selector_flash_evidence_sha256 = "a" * 64
+    plain.selector_flash_run_id = "flash-r01"
+    runner._validate_x_cli_mode(plain)
+
+
+@pytest.mark.parametrize(
+    ("stage", "role", "implicated"),
+    (
+        ("direct_rx2_termination", "boundary_baseline", "direct_rx2_termination"),
+        ("rx2_cable_terminated", "boundary_intervention", "rx2_cable_terminated"),
+        (
+            "powered_selector_all_inputs_terminated",
+            "boundary_baseline",
+            "powered_selector_all_inputs_terminated",
+        ),
+        ("full_conducted_fixture", "full_fixture_intervention", "direct_rx2_termination"),
+        ("full_conducted_fixture", "full_fixture_baseline", "full_conducted_fixture"),
+    ),
+)
+def test_x_prebinding_accepts_exact_boundary_mapping_and_e_two_run_reduction(
+    tmp_path: Path,
+    stage: str,
+    role: str,
+    implicated: str,
+) -> None:
+    contract = _x_contract(
+        tmp_path,
+        stage=stage,
+        role=role,
+        implicated_stage=implicated,
+    )
+    prebinding = contract["x_intervention_prebinding"]
+    context = contract["x_intervention_capture_context"]
+    assert set(prebinding) == {
+        "schema",
+        "binding_kind",
+        "contract_id",
+        "run_role",
+        "installed_fixture_revision_sha256",
+    }
+    assert prebinding["run_role"] == role
+    assert context["implicated_boundary_stage"] == implicated
+    assert context["capture_state_fixture"]["fixture_manifest_path"].startswith(str(tmp_path))
+
+
+def test_x_prebinding_rejects_role_topology_and_fixture_revision_mismatch(
+    tmp_path: Path,
+) -> None:
+    with pytest.raises(runner.LeakageLadderError, match="must run the predeclared"):
+        _x_contract(
+            tmp_path / "wrong-stage",
+            stage="rx2_cable_terminated",
+            role="boundary_baseline",
+            implicated_stage="direct_rx2_termination",
+        )
+    with pytest.raises(runner.LeakageLadderError, match="exactly the two full-fixture"):
+        runner._validate_x_role_topology(
+            role="boundary_baseline",
+            implicated_stage="full_conducted_fixture",
+            run_stage="full_conducted_fixture",
+        )
+    before = _write_x_full_fixture(tmp_path / "same-before.json", current_limit_a=0.4)
+    fixture = _fixture_evidence("direct_rx2_termination")
+    with pytest.raises(runner.LeakageLadderError, match="distinct from installed-after"):
+        runner._x_intervention_contract_from_manifests(
+            contract_id="contract-r01",
+            run_role="boundary_baseline",
+            implicated_boundary_stage="direct_rx2_termination",
+            installed_fixture_manifest_path=before,
+            capture_fixture_manifest_path=before,
+            acquisition_index=1,
+            freshness_epoch_id="epoch-r01",
+            stage="direct_rx2_termination",
+            board_id="board-a",
+            serial=SERIAL,
+            fixture_evidence=fixture,
+            selector_flash_evidence=_selector_flash_binding(),
+        )
+
+
+def test_x_prebinding_rejects_symlinked_global_fixture_before_any_run(
+    tmp_path: Path,
+) -> None:
+    before = _write_x_full_fixture(tmp_path / "before.json", current_limit_a=0.4)
+    after = _write_x_full_fixture(tmp_path / "after.json", current_limit_a=0.5)
+    linked_after = tmp_path / "linked-after.json"
+    linked_after.symlink_to(after)
+    with pytest.raises(runner.LeakageLadderError, match="symlink"):
+        runner._x_intervention_contract_from_manifests(
+            contract_id="contract-r01",
+            run_role="boundary_baseline",
+            implicated_boundary_stage="direct_rx2_termination",
+            installed_fixture_manifest_path=linked_after,
+            capture_fixture_manifest_path=before,
+            acquisition_index=1,
+            freshness_epoch_id="epoch-r01",
+            stage="direct_rx2_termination",
+            board_id="board-a",
+            serial=SERIAL,
+            fixture_evidence=_fixture_evidence("direct_rx2_termination"),
+            selector_flash_evidence=_selector_flash_binding(),
+        )
+
+
+@pytest.mark.parametrize(
+    ("stage", "role", "safe_status"),
+    (
+        ("direct_rx2_termination", "boundary_baseline", "physical_disconnect_verified"),
+        (
+            "powered_selector_all_inputs_terminated",
+            "boundary_intervention",
+            "mailbox_all_off_verified",
+        ),
+    ),
+)
+def test_x_execution_emits_source_bound_abi2_manifest_and_truthful_selector_safety(
+    tmp_path: Path,
+    stage: str,
+    role: str,
+    safe_status: str,
+) -> None:
+    contract = _x_contract(
+        tmp_path,
+        stage=stage,
+        role=role,
+        implicated_stage=stage,
+    )
+    capture_root = tmp_path / "captures"
+    _bind_run_capture_root(contract, capture_root)
+    contract["conditions"] = contract["conditions"][:1]
+    envelope = runner._plan_envelope(contract)
+    plan_path = tmp_path / runner.PLAN_FILENAME
+    runner._write_immutable_json(plan_path, envelope)
+    manifest = runner._new_manifest(plan_path, envelope)
+    manifest_path = tmp_path / runner.MANIFEST_FILENAME
+
+    runner._execute_stage(
+        manifest,
+        manifest_path,
+        envelope=envelope,
+        plan_path=plan_path,
+        confirmation=_confirmation(contract),
+        capture_root=capture_root,
+        capture_boundary=_capture_boundary(_blocks(stream_id=72_000)),
+        mute_boundary=_passing_mute(),
+        identity_boundary=_passing_identity(),
+        selector_boundary=_passing_selector(),
+        selector_image_boundary=_passing_selector_image(),
+        runtime_attestation_boundary=_passing_runtime(),
+        fixture_evidence_boundary=_passing_fixture(),
+        selector_lock_root=tmp_path / "selector-lock",
+    )
+
+    binding = manifest["x_intervention_capture_manifest"]
+    assert binding is not None
+    x_path = Path(binding["path"])
+    document = json.loads(x_path.read_text(encoding="utf-8"))
+    assert document["run_kind"] == runner.X_CAPTURE_MANIFEST_KIND
+    assert document["run_role"] == role
+    assert document["topology_stage"] == stage
+    assert document["topology_fixture_sha256"] == contract["fixture_evidence_sha256"]
+    assert document["final_mute_verified"] is True
+    assert document["final_selector_safe_state"]["status"] == safe_status
+    assert document["measurement_quality_rejection_reasons"] == []
+    assert len(document["captures"]) == 1
+    capture = document["captures"][0]
+    assert capture["abi2_continuity_verified"] is True
+    assert capture["measurement_quality_passed"] is True
+    for name in ("raw_iq_file", "metadata_file", "condition_record_file"):
+        file_binding = capture[name]
+        assert Path(file_binding["path"]).is_file()
+        assert runner.sha256_path(Path(file_binding["path"])) == file_binding["sha256"]
+    assert stat.S_IMODE(x_path.stat().st_mode) == 0o400
+
+    repository = str(SCRIPT.parents[1])
+    sys.path.insert(0, repository)
+    try:
+        from scripts import prepare_5g8_selected_state_inputs as t8_inputs
+    finally:
+        sys.path.remove(repository)
+
+    admitted = t8_inputs._accepted_x_manifest(
+        x_path,
+        role=role,
+        contract_id=str(contract["x_intervention_prebinding"]["contract_id"]),
+        change_plan_sha256="f" * 64,
+        expected_plan={
+            "run_id": contract["run_id"],
+            "plan_file": runner._x_bound_file(plan_path, "test X plan"),
+        },
+    )
+    assert admitted["acceptance_revalidated"] is True
+
+
+def test_x_connected_acceptance_rejects_missing_final_all_off_without_output(
+    tmp_path: Path,
+) -> None:
+    contract = _x_contract(
+        tmp_path,
+        stage="powered_selector_all_inputs_terminated",
+        role="boundary_intervention",
+        implicated_stage="powered_selector_all_inputs_terminated",
+    )
+    capture_root = tmp_path / "captures"
+    _bind_run_capture_root(contract, capture_root)
+    contract["conditions"] = contract["conditions"][:1]
+    envelope = runner._plan_envelope(contract)
+    plan_path = tmp_path / runner.PLAN_FILENAME
+    runner._write_immutable_json(plan_path, envelope)
+    manifest = runner._new_manifest(plan_path, envelope)
+    manifest_path = tmp_path / runner.MANIFEST_FILENAME
+
+    def fail_final_selector(control: dict[str, Any], purpose: str) -> dict[str, Any]:
+        evidence = _passing_selector()(control, purpose)
+        if purpose == "final_cleanup_all_off":
+            evidence["status"] = "failed"
+            evidence["error"] = {"type": "SyntheticFailure", "message": "not all off"}
+        return evidence
+
+    with pytest.raises(runner.LeakageLadderError, match="final mute or selector"):
+        runner._execute_stage(
+            manifest,
+            manifest_path,
+            envelope=envelope,
+            plan_path=plan_path,
+            confirmation=_confirmation(contract),
+            capture_root=capture_root,
+            capture_boundary=_capture_boundary(_blocks(stream_id=72_001)),
+            mute_boundary=_passing_mute(),
+            identity_boundary=_passing_identity(),
+            selector_boundary=fail_final_selector,
+            selector_image_boundary=_passing_selector_image(),
+            runtime_attestation_boundary=_passing_runtime(),
+            fixture_evidence_boundary=_passing_fixture(),
+            selector_lock_root=tmp_path / "selector-lock",
+        )
+
+    assert manifest["status"] == "failed"
+    assert manifest["x_intervention_capture_manifest"] is None
+    assert not (tmp_path / runner.X_CAPTURE_MANIFEST_FILENAME).exists()

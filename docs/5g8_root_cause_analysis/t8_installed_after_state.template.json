@@ -1,0 +1,24 @@
+{
+  "accepted": true,
+  "contract_id": "REPLACE_PREDECLARED_INTERVENTION_CONTRACT_ID",
+  "evidence_kind": "5g8_installed_after_state_attestation_v1",
+  "fixture_manifest_file": {
+    "path": "REPLACE_ABSOLUTE_AFTER_FIXTURE_MANIFEST_PATH",
+    "sha256": "REPLACE_EXACT_AFTER_FIXTURE_MANIFEST_SHA256",
+    "size_bytes": "REPLACE_EXACT_SIZE_BYTES"
+  },
+  "fixture_revision_sha256": "REPLACE_DERIVED_AFTER_FIXTURE_REVISION_SHA256",
+  "installed_state": "after",
+  "observed_at": "REPLACE_TIMEZONE_QUALIFIED_ISO_8601_TIMESTAMP_AFTER_X",
+  "schema": 1,
+  "setup_attestation_file": {
+    "path": "REPLACE_ABSOLUTE_RUN_SPECIFIC_SETUP_ATTESTATION_PATH",
+    "sha256": "REPLACE_EXACT_SETUP_ATTESTATION_SHA256",
+    "size_bytes": "REPLACE_EXACT_SIZE_BYTES"
+  },
+  "setup_evidence_file": {
+    "path": "REPLACE_ABSOLUTE_CURRENT_SETUP_PHOTO_PATH",
+    "sha256": "REPLACE_EXACT_SETUP_PHOTO_SHA256",
+    "size_bytes": "REPLACE_EXACT_SIZE_BYTES"
+  }
+}

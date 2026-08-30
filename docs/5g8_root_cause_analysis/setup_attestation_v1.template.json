@@ -16,6 +16,7 @@
   "observed_connection_ids": [
     "REPLACE_WITH_EXACT_SORTED_CONNECTION_ID_INVENTORY"
   ],
+  "selector_flash_evidence": null,
   "setup_evidence_path": "REPLACE_WITH_RELATIVE_OR_ABSOLUTE_EVIDENCE_PATH",
   "setup_evidence_sha256": "REPLACE_WITH_64_LOWERCASE_HEX_DIGITS"
 }

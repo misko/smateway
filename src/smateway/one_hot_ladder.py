@@ -14,6 +14,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from math import atan2, cos, degrees, isclose, isfinite, log10, radians, sin, sqrt
 from numbers import Real
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -224,11 +225,49 @@ def _sha256(value: object, label: str) -> str:
     return value
 
 
+def _validate_selector_flash_identity(value: object) -> dict[str, Any]:
+    required = {
+        "schema",
+        "binding_kind",
+        "path",
+        "sha256",
+        "campaign_id",
+        "run_id",
+        "board_id",
+        "image_role",
+    }
+    if not isinstance(value, Mapping) or set(value) != required:
+        raise ValueError("one-hot evidence lacks sealed selector-flash identity")
+    flash_path = value.get("path")
+    if (
+        value.get("schema") != 1
+        or value.get("binding_kind") != "sealed_selector_flash_evidence_v1"
+        or value.get("image_role") != "bench"
+        or not isinstance(flash_path, str)
+        or not Path(flash_path).is_absolute()
+    ):
+        raise ValueError("one-hot selector-flash identity is invalid")
+    for key in ("campaign_id", "run_id", "board_id"):
+        if not isinstance(value.get(key), str) or not value[key]:
+            raise ValueError("one-hot selector-flash identity is invalid")
+    return {
+        "schema": 1,
+        "binding_kind": "sealed_selector_flash_evidence_v1",
+        "path": flash_path,
+        "sha256": _sha256(value.get("sha256"), "selector-flash evidence"),
+        "campaign_id": str(value["campaign_id"]),
+        "run_id": str(value["run_id"]),
+        "board_id": str(value["board_id"]),
+        "image_role": "bench",
+    }
+
+
 def validate_one_hot_fixture_identity(value: object) -> dict[str, Any]:
     if not isinstance(value, Mapping):
         raise ValueError("one-hot fixture identity must be an object")
     shared = value.get("shared_hardware")
     evidence = value.get("setup_evidence")
+    selector_flash = value.get("selector_flash_evidence")
     required = {
         "feed_arm_id",
         "feed_cable_id",
@@ -252,12 +291,14 @@ def validate_one_hot_fixture_identity(value: object) -> dict[str, Any]:
         raise ValueError("one-hot setup evidence is incomplete")
     if value.get("attribution_repeats_without_cable_movement_required") is not True:
         raise ValueError("one-hot repeats must freeze the no-cable-movement contract")
+    normalized_selector_flash = _validate_selector_flash_identity(selector_flash)
     return {
         "shared_hardware": normalized_shared,
         "setup_evidence": {
             "path": str(evidence["path"]),
             "file_sha256": _sha256(evidence.get("file_sha256"), "setup evidence"),
         },
+        "selector_flash_evidence": normalized_selector_flash,
         "attribution_repeats_without_cable_movement_required": True,
     }
 
@@ -294,6 +335,7 @@ def validate_one_hot_matrix_identity(value: object) -> dict[str, Any]:
         "control_profile_sha256",
         "control_profile_header_sha256",
         "control_profile_provenance_sha256",
+        "selector_flash_evidence",
         "acquisition_configuration",
         "acquisition_configuration_sha256",
     }
@@ -314,8 +356,10 @@ def validate_one_hot_matrix_identity(value: object) -> dict[str, Any]:
         "pluto_serial",
         "smateway_commit",
         "acquisition_configuration",
+        "selector_flash_evidence",
     }:
         _sha256(value.get(key), f"matrix identity {key}")
+    selector_flash = _validate_selector_flash_identity(value.get("selector_flash_evidence"))
     configuration = value.get("acquisition_configuration")
     if not isinstance(configuration, Mapping) or not configuration:
         raise ValueError("matrix acquisition configuration is invalid")
@@ -325,8 +369,13 @@ def validate_one_hot_matrix_identity(value: object) -> dict[str, Any]:
     if _canonical_sha256(normalized_configuration) != value["acquisition_configuration_sha256"]:
         raise ValueError("matrix acquisition configuration hash differs")
     return {
-        **{key: value[key] for key in required if key != "acquisition_configuration"},
+        **{
+            key: value[key]
+            for key in required
+            if key not in {"acquisition_configuration", "selector_flash_evidence"}
+        },
         "acquisition_configuration": normalized_configuration,
+        "selector_flash_evidence": selector_flash,
     }
 
 
@@ -1028,6 +1077,10 @@ def summarize_complete_one_hot_matrix(
         results = _verified_row_results(row, expected_driven_input=driven_input)
         fixture = validate_one_hot_fixture_identity(row.get("fixture_identity"))
         matrix_identity = validate_one_hot_matrix_identity(row.get("matrix_identity"))
+        if matrix_identity["selector_flash_evidence"] != fixture["selector_flash_evidence"]:
+            raise ValueError(
+                "matrix row fixture and matrix identity bind different selector-flash evidence"
+            )
         shared = fixture["shared_hardware"]
         evidence_sha = str(fixture["setup_evidence"]["file_sha256"])
         if shared_fixture_identity is None:

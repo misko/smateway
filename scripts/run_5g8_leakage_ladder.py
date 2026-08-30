@@ -101,6 +101,15 @@ from smateway.native_iio_attestation import (
 from smateway.ota_analysis import estimate_coherent_pilot_offset
 from smateway.profile import load_profile
 from smateway.rf_policy import EXPERIMENTAL_5G8_CENTER_HZ, classify_fast20_center_frequency
+from smateway.selector_flash_attestation import (
+    SelectorFlashError,
+    validate_sealed_selector_evidence,
+)
+from smateway.selected_state_qualification import (
+    SelectedStateQualificationError,
+    full_simultaneous_fixture_binding_from_manifest,
+    validate_full_simultaneous_fixture,
+)
 
 REQUIRED_LIBIIO_DIRECTORY = _native_iio_attestation.REQUIRED_LIBIIO_DIRECTORY
 REQUIRED_LIBIIO_PATH = _native_iio_attestation.REQUIRED_LIBIIO_PATH
@@ -133,6 +142,19 @@ CONDITION_RECORD_NAME = "5g8-leakage-condition.json"
 PLAN_FILENAME = "plan.json"
 MANIFEST_FILENAME = "manifest.json"
 FAILURE_TOMBSTONE_FILENAME = "failed-run.tombstone.json"
+EXECUTION_TOMBSTONE_FILENAME = "execution-started.tombstone.json"
+X_CAPTURE_MANIFEST_FILENAME = "x-intervention-capture.json"
+X_PREBINDING_KIND = "5g8_x_intervention_prebinding_v1"
+X_CAPTURE_CONTEXT_KIND = "5g8_x_intervention_capture_context_v1"
+X_CAPTURE_MANIFEST_KIND = "5g8_x_intervention_capture_v1"
+X_RUN_ROLES = (
+    "boundary_baseline",
+    "boundary_intervention",
+    "full_fixture_baseline",
+    "full_fixture_intervention",
+)
+X_BOUNDARY_ROLES = frozenset({"boundary_baseline", "boundary_intervention"})
+X_FULL_FIXTURE_ROLES = frozenset({"full_fixture_baseline", "full_fixture_intervention"})
 IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
 USB_URI = re.compile(r"usb:[0-9]+(?:\.[0-9]+)+")
 GIT_COMMIT = re.compile(r"[0-9a-f]{40}")
@@ -225,6 +247,9 @@ SELECTOR_CLEANUP_PURPOSES = frozenset(
         "resume_cleanup_all_off",
     }
 )
+FLASH_BASE_ADDRESS = 0x08000000
+STM32C011_UID_ADDRESS = 0x1FFF7550
+STM32C011_UID_SIZE_BYTES = 12
 
 
 class LeakageLadderError(RuntimeError):
@@ -275,6 +300,22 @@ class FixtureEvidenceBoundary(Protocol):
     def __call__(self, fixture_evidence: Mapping[str, Any]) -> dict[str, Any]: ...
 
 
+class SelectorImageBoundary(Protocol):
+    """Injectable read-only target BIN/UID admission seam."""
+
+    def __call__(self, selector_control: Mapping[str, Any]) -> dict[str, Any]: ...
+
+
+class SelectorTargetHaltBoundary(Protocol):
+    """Injectable best-effort target halt used only by image-admission failure cleanup."""
+
+    def __call__(
+        self,
+        selector_control: Mapping[str, Any],
+        purpose: str,
+    ) -> dict[str, Any]: ...
+
+
 class SelectorBoundary(Protocol):
     """Injectable static ALL_OFF command plus mailbox-readback boundary."""
 
@@ -322,6 +363,242 @@ def _validate_sha256(value: object, label: str) -> str:
     if SHA256.fullmatch(digest) is None:
         raise ValueError(f"{label} must be a lowercase SHA-256 digest")
     return digest
+
+
+def _validate_selector_flash_evidence_binding(
+    value: object,
+    *,
+    expected_campaign_id: str | None = None,
+    expected_board_id: str | None = None,
+    expected_image_role: str = "bench",
+) -> dict[str, Any]:
+    """Validate the immutable path/hash identity of one sealed live selector image."""
+
+    if not isinstance(value, Mapping) or set(value) != {
+        "schema",
+        "binding_kind",
+        "path",
+        "sha256",
+        "campaign_id",
+        "run_id",
+        "board_id",
+        "image_role",
+    }:
+        raise ValueError("selector-flash evidence binding is incomplete or unexpected")
+    path_value = value.get("path")
+    if not isinstance(path_value, str) or not Path(path_value).is_absolute():
+        raise ValueError("selector-flash evidence path must be absolute")
+    campaign_id = _validate_identifier(str(value.get("campaign_id")), "flash campaign ID")
+    run_id = _validate_identifier(str(value.get("run_id")), "flash run ID")
+    board_id = _validate_identifier(str(value.get("board_id")), "flash board ID")
+    image_role = str(value.get("image_role"))
+    if (
+        value.get("schema") != 1
+        or value.get("binding_kind") != "sealed_selector_flash_evidence_v1"
+        or image_role != expected_image_role
+        or (expected_campaign_id is not None and campaign_id != expected_campaign_id)
+        or (expected_board_id is not None and board_id != expected_board_id)
+    ):
+        raise ValueError("selector-flash evidence identity differs from the capture")
+    return {
+        "schema": 1,
+        "binding_kind": "sealed_selector_flash_evidence_v1",
+        "path": path_value,
+        "sha256": _validate_sha256(value.get("sha256"), "selector-flash evidence hash"),
+        "campaign_id": campaign_id,
+        "run_id": run_id,
+        "board_id": board_id,
+        "image_role": image_role,
+    }
+
+
+def _selector_flash_evidence_binding_from_file(
+    path: Path,
+    *,
+    expected_sha256: str,
+    campaign_id: str,
+    flash_run_id: str,
+    board_id: str,
+    image_role: str = "bench",
+) -> dict[str, Any]:
+    """Recursively attest a sealed manifest, then freeze its downstream binding tuple."""
+
+    if image_role != "bench":
+        raise ValueError("the general leakage ladder requires the reviewed bench image")
+    candidate_path = path.expanduser().absolute()
+    digest = _validate_sha256(expected_sha256, "selector-flash evidence hash")
+    try:
+        validate_sealed_selector_evidence(
+            candidate_path,
+            expected_sha256=digest,
+            expected_campaign_id=campaign_id,
+            expected_run_id=flash_run_id,
+            expected_board_id=board_id,
+            expected_image_role="bench",
+        )
+    except SelectorFlashError as error:
+        raise LeakageLadderError(f"sealed selector-flash evidence failed: {error}") from error
+    exact_path = candidate_path.resolve(strict=True)
+    return _validate_selector_flash_evidence_binding(
+        {
+            "schema": 1,
+            "binding_kind": "sealed_selector_flash_evidence_v1",
+            "path": str(exact_path),
+            "sha256": digest,
+            "campaign_id": campaign_id,
+            "run_id": flash_run_id,
+            "board_id": board_id,
+            "image_role": image_role,
+        },
+        expected_campaign_id=campaign_id,
+        expected_board_id=board_id,
+        expected_image_role=image_role,
+    )
+
+
+def _sealed_selector_document(
+    binding: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Re-admit a sealed selector record and return its recursively verified document."""
+
+    flash = _validate_selector_flash_evidence_binding(binding, expected_image_role="bench")
+    try:
+        return validate_sealed_selector_evidence(
+            Path(str(flash["path"])),
+            expected_sha256=str(flash["sha256"]),
+            expected_campaign_id=str(flash["campaign_id"]),
+            expected_run_id=str(flash["run_id"]),
+            expected_board_id=str(flash["board_id"]),
+            expected_image_role="bench",
+        )
+    except SelectorFlashError as error:
+        raise LeakageLadderError(
+            f"sealed live selector-image evidence changed or failed: {error}"
+        ) from error
+
+
+def _selector_frozen_files(document: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
+    frozen = document.get("frozen_inputs")
+    files = frozen.get("files") if isinstance(frozen, Mapping) else None
+    if not isinstance(files, Mapping):
+        raise LeakageLadderError("sealed selector evidence lacks frozen input files")
+    required = {
+        "build_manifest",
+        "elf",
+        "firmware_bin",
+        "openocd_config",
+        "profile",
+        "profile_header",
+    }
+    if not required.issubset(files):
+        raise LeakageLadderError("sealed bench evidence lacks the complete control/image tuple")
+    normalized: dict[str, Mapping[str, Any]] = {}
+    for name in required:
+        identity = files[name]
+        if not isinstance(identity, Mapping):
+            raise LeakageLadderError(f"sealed selector {name} identity is malformed")
+        normalized[name] = identity
+    return normalized
+
+
+def _require_same_frozen_file(
+    section: Mapping[str, Any],
+    *,
+    path_key: str,
+    hash_key: str,
+    frozen: Mapping[str, Any],
+    label: str,
+) -> None:
+    live_path = Path(str(section.get(path_key, ""))).resolve(strict=True)
+    frozen_path = Path(str(frozen.get("path", ""))).resolve(strict=True)
+    if (
+        live_path != frozen_path
+        or section.get(hash_key) != frozen.get("sha256")
+        or sha256_path(live_path) != frozen.get("sha256")
+        or live_path.stat().st_size != frozen.get("size_bytes")
+    ):
+        raise LeakageLadderError(f"{label} differs from the sealed selector frozen-input identity")
+
+
+def _cross_bind_selector_control_to_sealed_image(
+    selector_control: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Bind every live control artifact to the same sealed bench image record."""
+
+    control = _validate_selector_control_contract(selector_control)
+    flash = control.get("selector_flash_evidence")
+    if not isinstance(flash, Mapping):
+        raise LeakageLadderError("selector control lacks sealed-image evidence")
+    sealed = _sealed_selector_document(flash)
+    files = _selector_frozen_files(sealed)
+    manifest = control.get("bench_manifest")
+    config = control.get("openocd_config")
+    profile = control.get("control_profile")
+    if not all(isinstance(item, Mapping) for item in (manifest, config, profile)):
+        raise LeakageLadderError("selector control artifact tuple is malformed")
+    assert isinstance(manifest, Mapping)
+    assert isinstance(config, Mapping)
+    assert isinstance(profile, Mapping)
+    _require_same_frozen_file(
+        manifest,
+        path_key="path",
+        hash_key="file_sha256",
+        frozen=files["build_manifest"],
+        label="bench manifest",
+    )
+    _require_same_frozen_file(
+        config,
+        path_key="path",
+        hash_key="file_sha256",
+        frozen=files["openocd_config"],
+        label="OpenOCD config",
+    )
+    _require_same_frozen_file(
+        profile,
+        path_key="path",
+        hash_key="file_sha256",
+        frozen=files["profile"],
+        label="control profile",
+    )
+    _require_same_frozen_file(
+        profile,
+        path_key="header_path",
+        hash_key="header_file_sha256",
+        frozen=files["profile_header"],
+        label="control profile header",
+    )
+    frozen_inputs = sealed.get("frozen_inputs")
+    frozen_profile = (
+        frozen_inputs.get("control_profile") if isinstance(frozen_inputs, Mapping) else None
+    )
+    profile_fields = {
+        "profile_id": "id",
+        "revision": "revision",
+        "contract_sha256": "contract_sha256",
+        "all_off_code": "all_off_code",
+    }
+    if not isinstance(frozen_profile, Mapping) or any(
+        profile.get(control_key) != frozen_profile.get(frozen_key)
+        for control_key, frozen_key in profile_fields.items()
+    ):
+        raise LeakageLadderError("control profile contract differs from the sealed bench image")
+    target = control.get("target_image_admission_contract")
+    if target is not None:
+        try:
+            target_contract = _validate_target_image_admission_contract(control)
+        except ValueError as error:
+            raise LeakageLadderError(str(error)) from error
+        firmware = files["firmware_bin"]
+        if (
+            Path(str(target_contract["firmware_bin_path"])).resolve(strict=True)
+            != Path(str(firmware["path"])).resolve(strict=True)
+            or target_contract["firmware_bin_sha256"] != firmware["sha256"]
+            or target_contract["firmware_bin_size_bytes"] != firmware["size_bytes"]
+        ):
+            raise LeakageLadderError(
+                "target-image admission contract differs from sealed firmware BIN"
+            )
+    return sealed
 
 
 def _json_safe(value: object) -> Any:
@@ -752,6 +1029,7 @@ def _normalize_shared_fixture(
         "reference_planes",
         "tx1_reference_splitter",
         "rx1_attenuator",
+        "rx2_attenuator",
         "tx2_termination",
         "connections",
     }:
@@ -778,6 +1056,12 @@ def _normalize_shared_fixture(
         label="RX1 attenuator",
         port_names=("input", "output"),
         extra_numeric_fields=("attenuation_db",),
+        base_directory=base_directory,
+        verify_files=verify_files,
+    )
+    rx2_attenuator = _normalize_optional_rx2_attenuator(
+        value["rx2_attenuator"],
+        pluto=pluto,
         base_directory=base_directory,
         verify_files=verify_files,
     )
@@ -838,9 +1122,100 @@ def _normalize_shared_fixture(
         "reference_planes": reference_planes,
         "tx1_reference_splitter": splitter,
         "rx1_attenuator": attenuator,
+        "rx2_attenuator": rx2_attenuator,
         "tx2_termination": tx2_load,
         "connections": connections,
     }
+
+
+def _normalize_optional_rx2_attenuator(
+    value: object,
+    *,
+    pluto: Mapping[str, Any],
+    base_directory: Path | None,
+    verify_files: bool,
+) -> dict[str, Any]:
+    """Normalize the explicit present/absent receiver-chain attenuator state.
+
+    The optional attenuator is part of the shared fixture, not an implicit cable
+    loss.  When present, its physical orientation and Pluto-side connection are
+    part of the port-level graph and therefore preserved across A/B/C/E.
+    """
+
+    if not isinstance(value, Mapping) or set(value) != {
+        "state",
+        "asset",
+        "orientation",
+        "pluto_connection",
+    }:
+        raise ValueError("RX2 attenuator state fields are incomplete or unexpected")
+    state = value["state"]
+    if state == "absent":
+        if any(value[field] is not None for field in ("asset", "orientation", "pluto_connection")):
+            raise ValueError("absent RX2 attenuator must use null asset/orientation/connection")
+        return {
+            "state": "absent",
+            "asset": None,
+            "orientation": None,
+            "pluto_connection": None,
+        }
+    if state != "present":
+        raise ValueError("RX2 attenuator state must be explicitly present or absent")
+    asset = _normalize_rated_asset(
+        value["asset"],
+        label="RX2 attenuator",
+        port_names=("input", "output"),
+        extra_numeric_fields=("attenuation_db",),
+        base_directory=base_directory,
+        verify_files=verify_files,
+    )
+    orientation = value["orientation"]
+    if not isinstance(orientation, Mapping) or set(orientation) != {
+        "fixture_side_port_role",
+        "pluto_side_port_role",
+    }:
+        raise ValueError("RX2 attenuator orientation is incomplete or unexpected")
+    fixture_side = orientation["fixture_side_port_role"]
+    pluto_side = orientation["pluto_side_port_role"]
+    if {fixture_side, pluto_side} != {"input", "output"}:
+        raise ValueError("RX2 attenuator orientation must assign input/output to opposite sides")
+    normalized_orientation = {
+        "fixture_side_port_role": str(fixture_side),
+        "pluto_side_port_role": str(pluto_side),
+    }
+    connection = _normalize_connection(
+        value["pluto_connection"],
+        label="Pluto-RX2-to-attenuator",
+        base_directory=base_directory,
+        verify_files=verify_files,
+    )
+    _require_connection(
+        connection,
+        source=(pluto["id"], pluto["port_map"]["rx2"]),
+        destination=(asset["id"], asset["port_map"][str(pluto_side)]),
+        label="Pluto-RX2-to-attenuator connection",
+    )
+    return {
+        "state": "present",
+        "asset": asset,
+        "orientation": normalized_orientation,
+        "pluto_connection": connection,
+    }
+
+
+def _rx2_fixture_endpoint(shared: Mapping[str, Any]) -> tuple[str, str]:
+    """Return the receiver-chain endpoint exposed to the stage-specific graph."""
+
+    optional = shared["rx2_attenuator"]
+    if optional["state"] == "absent":
+        pluto = shared["pluto"]
+        return str(pluto["id"]), str(pluto["port_map"]["rx2"])
+    asset = optional["asset"]
+    orientation = optional["orientation"]
+    return (
+        str(asset["id"]),
+        str(asset["port_map"][str(orientation["fixture_side_port_role"])]),
+    )
 
 
 def _normalize_load(
@@ -960,12 +1335,10 @@ def _normalize_stage_delta(
     connections = value["connections"]
     if not isinstance(components, Mapping) or not isinstance(connections, Mapping):
         raise ValueError("stage components and connections must be objects")
-    pluto = shared["pluto"]
     splitter = shared["tx1_reference_splitter"]
-    pluto_id = pluto["id"]
-    pluto_ports = pluto["port_map"]
     splitter_id = splitter["id"]
     stimulus_port = splitter["port_map"]["stimulus_branch"]
+    rx2_fixture_endpoint = _rx2_fixture_endpoint(shared)
     normalized_components: dict[str, Any]
     normalized_connections: dict[str, Any]
 
@@ -1016,7 +1389,7 @@ def _normalize_stage_delta(
         rx2_role = next(role for role in expected_connections if role.startswith("rx2_"))
         _require_connection(
             normalized_connections[rx2_role],
-            source=(pluto_id, pluto_ports["rx2"]),
+            source=rx2_fixture_endpoint,
             destination=(rx2_load["id"], rx2_load["port_map"]["load"]),
             label="RX2 termination connection",
             required_kind=(
@@ -1082,7 +1455,7 @@ def _normalize_stage_delta(
         selector = normalized_components["selector"]
         _require_connection(
             normalized_connections["rx2_to_selector_common"],
-            source=(pluto_id, pluto_ports["rx2"]),
+            source=rx2_fixture_endpoint,
             destination=(selector["id"], selector["port_map"]["common"]),
             label="RX2-to-selector-common connection",
             required_kind="coaxial_cable",
@@ -1136,7 +1509,7 @@ def _normalize_stage_delta(
         )
         _require_connection(
             normalized_connections["rx2_to_selector_common"],
-            source=(pluto_id, pluto_ports["rx2"]),
+            source=rx2_fixture_endpoint,
             destination=(selector["id"], selector["port_map"]["common"]),
             label="RX2-to-selector-common connection",
             required_kind="coaxial_cable",
@@ -1559,6 +1932,7 @@ def _normalize_setup_attestation(
     stage_delta_sha256: str,
     component_ids: list[str],
     connection_ids: list[str],
+    selector_flash_evidence: Mapping[str, Any] | None,
 ) -> dict[str, Any]:
     exact_path = path.expanduser().resolve(strict=True)
     raw = _read_json(exact_path, "per-run setup attestation")
@@ -1576,6 +1950,7 @@ def _normalize_setup_attestation(
         "stage_delta_sha256",
         "observed_component_ids",
         "observed_connection_ids",
+        "selector_flash_evidence",
         "setup_evidence_path",
         "setup_evidence_sha256",
     }:
@@ -1598,6 +1973,16 @@ def _normalize_setup_attestation(
         or raw["stage_delta_sha256"] != stage_delta_sha256
         or raw["observed_component_ids"] != component_ids
         or raw["observed_connection_ids"] != connection_ids
+        or raw["selector_flash_evidence"]
+        != (
+            None
+            if selector_flash_evidence is None
+            else {
+                "path": selector_flash_evidence["path"],
+                "sha256": selector_flash_evidence["sha256"],
+                "run_id": selector_flash_evidence["run_id"],
+            }
+        )
     ):
         raise LeakageLadderError("per-run setup attestation is not bound to this exact fixture")
     evidence_path = Path(str(raw["setup_evidence_path"])).expanduser()
@@ -1624,6 +2009,9 @@ def _normalize_setup_attestation(
         "stage_delta_sha256": stage_delta_sha256,
         "observed_component_ids": component_ids,
         "observed_connection_ids": connection_ids,
+        "selector_flash_evidence": (
+            None if selector_flash_evidence is None else dict(selector_flash_evidence)
+        ),
         "setup_evidence": {
             "path": str(evidence_path),
             "sha256": evidence_sha,
@@ -1661,6 +2049,7 @@ def _validate_fixture_evidence_v2(
         "stage_delta_sha256",
         "prior_stage_binding",
         "setup_attestation",
+        "selector_flash_evidence",
         "component_ids",
         "connection_ids",
         "characterization_summary",
@@ -1708,6 +2097,18 @@ def _validate_fixture_evidence_v2(
     if document["component_ids"] != component_ids or document["connection_ids"] != connection_ids:
         raise ValueError("fixture component/connection ID inventory differs from its graph")
     setup = document["setup_attestation"]
+    raw_selector_flash = document["selector_flash_evidence"]
+    if expected_stage in SELECTOR_CONNECTED_STAGES:
+        selector_flash = _validate_selector_flash_evidence_binding(
+            raw_selector_flash,
+            expected_campaign_id=campaign_id,
+            expected_board_id=expected_board_id,
+            expected_image_role="bench",
+        )
+    elif raw_selector_flash is not None:
+        raise ValueError("selector-disconnected fixture must not bind selector-flash evidence")
+    else:
+        selector_flash = None
     if not isinstance(setup, Mapping) or (
         setup.get("run_id") != expected_run_id
         or setup.get("campaign_id") != campaign_id
@@ -1720,6 +2121,7 @@ def _validate_fixture_evidence_v2(
         or setup.get("stage_delta_sha256") != delta_sha
         or setup.get("observed_component_ids") != component_ids
         or setup.get("observed_connection_ids") != connection_ids
+        or setup.get("selector_flash_evidence") != selector_flash
     ):
         raise ValueError("per-run setup attestation binding is invalid")
     if setup.get("setup_attestation_file") != document["source_files"]["setup_attestation"]:
@@ -1741,6 +2143,7 @@ def _validate_fixture_evidence_v2(
             "stage_delta": delta,
             "prior_stage_binding": prior,
             "setup_attestation": dict(setup),
+            "selector_flash_evidence": selector_flash,
         }
     )
     return document
@@ -1754,6 +2157,9 @@ def _fixture_evidence_from_manifests(
     board_id: str,
     serial: str,
     stage: str,
+    selector_flash_evidence_path: Path | None = None,
+    selector_flash_evidence_sha256: str | None = None,
+    selector_flash_run_id: str | None = None,
 ) -> dict[str, Any]:
     manifest_path = fixture_manifest_path.expanduser().resolve(strict=True)
     raw = _read_json(manifest_path, "fixture manifest v2")
@@ -1780,6 +2186,32 @@ def _fixture_evidence_from_manifests(
     group_id = _validate_identifier(
         str(raw["comparable_fixture_group_id"]), "comparable fixture group ID"
     )
+    flash_arguments = (
+        selector_flash_evidence_path,
+        selector_flash_evidence_sha256,
+        selector_flash_run_id,
+    )
+    if stage in SELECTOR_CONNECTED_STAGES:
+        if any(item is None for item in flash_arguments):
+            raise LeakageLadderError(
+                "selector-connected fixture requires sealed selector-flash path, hash, and run ID"
+            )
+        assert selector_flash_evidence_path is not None
+        assert selector_flash_evidence_sha256 is not None
+        assert selector_flash_run_id is not None
+        selector_flash = _selector_flash_evidence_binding_from_file(
+            selector_flash_evidence_path,
+            expected_sha256=selector_flash_evidence_sha256,
+            campaign_id=campaign_id,
+            flash_run_id=selector_flash_run_id,
+            board_id=board_id,
+        )
+    elif any(item is not None for item in flash_arguments):
+        raise LeakageLadderError(
+            "selector-disconnected fixture must not include selector-flash evidence"
+        )
+    else:
+        selector_flash = None
     shared = _normalize_shared_fixture(
         raw["shared_fixture"],
         expected_serial=serial,
@@ -1823,6 +2255,7 @@ def _fixture_evidence_from_manifests(
         stage_delta_sha256=delta_sha,
         component_ids=component_ids,
         connection_ids=connection_ids,
+        selector_flash_evidence=selector_flash,
     )
     prior_characterized = prior is None or bool(prior["prior_fixture_characterized"])
     normalized = {
@@ -1843,6 +2276,7 @@ def _fixture_evidence_from_manifests(
         "stage_delta_sha256": delta_sha,
         "prior_stage_binding": prior,
         "setup_attestation": setup,
+        "selector_flash_evidence": selector_flash,
         "component_ids": component_ids,
         "connection_ids": connection_ids,
         "characterization_summary": _characterization_summary(
@@ -1860,11 +2294,376 @@ def _fixture_evidence_from_manifests(
     )
 
 
+def _full_fixture_binding(path: Path, label: str) -> dict[str, Any]:
+    """Freeze and reopen one full-conducted fixture revision for a T8 X run."""
+
+    exact = path.expanduser().absolute()
+    _assert_path_chain_has_no_symlink(exact, label=label)
+    _assert_local_rpi_storage(exact)
+    try:
+        raw = _read_json(exact, label)
+        if set(raw) != {
+            "schema",
+            "fixture_kind",
+            "campaign_id",
+            "comparable_fixture_group_id",
+            "stage",
+            "board_id",
+            "shared_fixture",
+            "stage_delta",
+            "prior_stage_binding",
+        }:
+            raise LeakageLadderError(f"{label} fields are incomplete or unexpected")
+        shared = _normalize_shared_fixture(
+            raw.get("shared_fixture"),
+            expected_serial=str(raw.get("shared_fixture", {}).get("pluto", {}).get("serial", ""))
+            if isinstance(raw.get("shared_fixture"), Mapping)
+            and isinstance(raw["shared_fixture"].get("pluto"), Mapping)
+            else "",
+            base_directory=exact.parent,
+            verify_files=True,
+        )
+        _normalize_stage_delta(
+            raw.get("stage_delta"),
+            stage="full_conducted_fixture",
+            shared=shared,
+            base_directory=exact.parent,
+            verify_files=True,
+        )
+        binding = full_simultaneous_fixture_binding_from_manifest(exact)
+        validate_full_simultaneous_fixture(binding)
+    except (OSError, SelectedStateQualificationError, ValueError) as error:
+        raise LeakageLadderError(f"{label} is not an admissible full fixture: {error}") from error
+    return binding
+
+
+def _reopen_full_fixture_binding(value: object, label: str) -> dict[str, Any]:
+    if not isinstance(value, Mapping):
+        raise LeakageLadderError(f"{label} is missing")
+    binding = _json_safe(dict(value))
+    if not isinstance(binding, dict):
+        raise LeakageLadderError(f"{label} is malformed")
+    observed = _full_fixture_binding(
+        Path(str(binding.get("fixture_manifest_path", ""))),
+        label,
+    )
+    if observed != binding:
+        raise LeakageLadderError(f"{label} bytes or derived identity differ from the plan")
+    return binding
+
+
+def _same_fixture_hardware_identity(first: Mapping[str, Any], second: Mapping[str, Any]) -> bool:
+    ignored = {
+        "fixture_manifest_path",
+        "fixture_manifest_sha256",
+        "fixture_revision_sha256",
+    }
+    return {key: value for key, value in first.items() if key not in ignored} == {
+        key: value for key, value in second.items() if key not in ignored
+    }
+
+
+def _require_x_fixture_matches_topology_fixture(
+    *,
+    capture_fixture: Mapping[str, Any],
+    fixture_evidence: Mapping[str, Any],
+    stage: str,
+) -> None:
+    """Bind an associated full-fixture revision to the exact Stage A/B/C/E run."""
+
+    shared = fixture_evidence.get("shared_fixture")
+    delta = fixture_evidence.get("stage_delta")
+    source_files = fixture_evidence.get("source_files")
+    if not all(isinstance(item, Mapping) for item in (shared, delta, source_files)):
+        raise LeakageLadderError("X topology fixture evidence is malformed")
+    assert isinstance(shared, Mapping)
+    assert isinstance(delta, Mapping)
+    assert isinstance(source_files, Mapping)
+    pluto = shared.get("pluto")
+    if (
+        fixture_evidence.get("stage") != stage
+        or fixture_evidence.get("board_id") != capture_fixture.get("board_id")
+        or fixture_evidence.get("comparable_fixture_group_id") != capture_fixture.get("fixture_id")
+        or not isinstance(pluto, Mapping)
+        or pluto.get("serial") != capture_fixture.get("pluto_serial")
+    ):
+        raise LeakageLadderError(
+            "X full-fixture revision differs from the current topology fixture identity"
+        )
+
+    capture_path = Path(str(capture_fixture.get("fixture_manifest_path", "")))
+    capture_document = _read_json(capture_path, "X capture full fixture manifest")
+    raw_capture_shared = capture_document.get("shared_fixture")
+    if not isinstance(raw_capture_shared, Mapping):
+        raise LeakageLadderError("X capture full fixture graph is malformed")
+    raw_capture_pluto = raw_capture_shared.get("pluto")
+    if not isinstance(raw_capture_pluto, Mapping):
+        raise LeakageLadderError("X capture full fixture Pluto graph is malformed")
+    capture_shared = _normalize_shared_fixture(
+        raw_capture_shared,
+        expected_serial=str(raw_capture_pluto.get("serial", "")),
+        base_directory=capture_path.parent,
+        verify_files=True,
+    )
+    capture_delta = _normalize_stage_delta(
+        capture_document.get("stage_delta"),
+        stage="full_conducted_fixture",
+        shared=capture_shared,
+        base_directory=capture_path.parent,
+        verify_files=True,
+    )
+    if dict(shared) != capture_shared:
+        raise LeakageLadderError(
+            "X capture full fixture does not share the exact current topology fixture"
+        )
+
+    if stage == "full_conducted_fixture":
+        fixture_file = source_files.get("fixture_manifest")
+        if (
+            not isinstance(fixture_file, Mapping)
+            or fixture_file.get("path") != str(capture_path)
+            or fixture_file.get("sha256") != capture_fixture.get("fixture_manifest_sha256")
+        ):
+            raise LeakageLadderError(
+                "full-fixture X role must use its capture-revision manifest as --fixture-manifest"
+            )
+        return
+
+    components = delta.get("components")
+    capture_components = capture_delta.get("components")
+    if not isinstance(components, Mapping) or not isinstance(capture_components, Mapping):
+        raise LeakageLadderError("boundary/full X fixture component graphs are malformed")
+    # A/B intentionally have no live selector component.  Their exact shared
+    # graph, comparison group and associated full-fixture bytes still bind the
+    # predeclared intervention revision without authorizing selector control.
+    if stage == "powered_selector_all_inputs_terminated":
+        connections = delta.get("connections")
+        capture_connections = capture_delta.get("connections")
+        if not isinstance(connections, Mapping) or not isinstance(capture_connections, Mapping):
+            raise LeakageLadderError("boundary/full X fixture connection graphs are malformed")
+        if components.get("selector") != capture_components.get("selector") or connections.get(
+            "rx2_to_selector_common"
+        ) != capture_connections.get("rx2_to_selector_common"):
+            raise LeakageLadderError(
+                "Stage-C X fixture does not match its associated full-fixture selector boundary"
+            )
+
+
+def _validate_x_role_topology(*, role: str, implicated_stage: str, run_stage: str) -> None:
+    if implicated_stage not in STAGES:
+        raise LeakageLadderError("X implicated boundary stage is unsupported")
+    if implicated_stage == "full_conducted_fixture":
+        if role not in X_FULL_FIXTURE_ROLES or run_stage != "full_conducted_fixture":
+            raise LeakageLadderError(
+                "E-as-implicated-boundary uses exactly the two full-fixture X roles"
+            )
+        return
+    if role in X_BOUNDARY_ROLES:
+        if run_stage != implicated_stage:
+            raise LeakageLadderError(
+                f"X boundary role {role} must run the predeclared implicated stage"
+            )
+    elif role in X_FULL_FIXTURE_ROLES:
+        if run_stage != "full_conducted_fixture":
+            raise LeakageLadderError("X full-fixture roles must run full_conducted_fixture")
+    else:
+        raise LeakageLadderError("X run role is unsupported")
+
+
+def _x_intervention_contract_from_manifests(
+    *,
+    contract_id: str,
+    run_role: str,
+    implicated_boundary_stage: str,
+    installed_fixture_manifest_path: Path,
+    capture_fixture_manifest_path: Path,
+    acquisition_index: int,
+    freshness_epoch_id: str,
+    stage: str,
+    board_id: str,
+    serial: str,
+    fixture_evidence: Mapping[str, Any],
+    selector_flash_evidence: Mapping[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Derive exact T8 prebinding/context before any X RF is authorized."""
+
+    exact_contract = _validate_identifier(contract_id, "X intervention contract ID")
+    if run_role not in X_RUN_ROLES:
+        raise LeakageLadderError("X run role is unsupported")
+    _validate_x_role_topology(
+        role=run_role,
+        implicated_stage=implicated_boundary_stage,
+        run_stage=stage,
+    )
+    if isinstance(acquisition_index, bool) or not isinstance(acquisition_index, int):
+        raise LeakageLadderError("X acquisition index must be a positive integer")
+    if acquisition_index < 1:
+        raise LeakageLadderError("X acquisition index must be a positive integer")
+    exact_epoch = _validate_identifier(freshness_epoch_id, "X freshness epoch ID")
+    capture = _full_fixture_binding(
+        capture_fixture_manifest_path,
+        "X capture-state full fixture manifest",
+    )
+    installed = _full_fixture_binding(
+        installed_fixture_manifest_path,
+        "X installed-after full fixture manifest",
+    )
+    flash = _validate_selector_flash_evidence_binding(
+        selector_flash_evidence,
+        expected_image_role="bench",
+    )
+    if (
+        capture.get("board_id") != board_id
+        or installed.get("board_id") != board_id
+        or capture.get("pluto_serial") != serial
+        or installed.get("pluto_serial") != serial
+        or flash.get("board_id") != board_id
+        or not _same_fixture_hardware_identity(capture, installed)
+    ):
+        raise LeakageLadderError(
+            "X current/installed fixture identity differs from the run board, Pluto, or hardware"
+        )
+    capture_revision = str(capture["fixture_revision_sha256"])
+    installed_revision = str(installed["fixture_revision_sha256"])
+    if run_role.endswith("_baseline"):
+        if capture_revision == installed_revision:
+            raise LeakageLadderError(
+                "X baseline must bind a before revision distinct from installed-after"
+            )
+    elif capture_revision != installed_revision:
+        raise LeakageLadderError(
+            "X intervention must capture the exact installed-after fixture revision"
+        )
+    fixture_flash = fixture_evidence.get("selector_flash_evidence")
+    if stage in SELECTOR_CONNECTED_STAGES and fixture_flash != flash:
+        raise LeakageLadderError("X selector evidence differs from the connected topology fixture")
+    if stage not in SELECTOR_CONNECTED_STAGES and fixture_flash is not None:
+        raise LeakageLadderError("disconnected X topology unexpectedly binds live selector control")
+    _require_x_fixture_matches_topology_fixture(
+        capture_fixture=capture,
+        fixture_evidence=fixture_evidence,
+        stage=stage,
+    )
+    prebinding = {
+        "schema": 1,
+        "binding_kind": X_PREBINDING_KIND,
+        "contract_id": exact_contract,
+        "run_role": run_role,
+        "installed_fixture_revision_sha256": installed_revision,
+    }
+    context = {
+        "schema": 1,
+        "binding_kind": X_CAPTURE_CONTEXT_KIND,
+        "implicated_boundary_stage": implicated_boundary_stage,
+        "acquisition_index": acquisition_index,
+        "freshness_epoch_id": exact_epoch,
+        "capture_state_fixture": capture,
+        "installed_after_fixture": installed,
+        "selector_flash_evidence": flash,
+    }
+    return prebinding, context
+
+
+def _validate_x_intervention_contract(
+    *,
+    prebinding: object,
+    capture_context: object,
+    stage: str,
+    board_id: str,
+    serial: str,
+    fixture_evidence: Mapping[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    if not isinstance(prebinding, Mapping) or set(prebinding) != {
+        "schema",
+        "binding_kind",
+        "contract_id",
+        "run_role",
+        "installed_fixture_revision_sha256",
+    }:
+        raise LeakageLadderError("X intervention prebinding is incomplete or unexpected")
+    role = prebinding.get("run_role")
+    if (
+        prebinding.get("schema") != 1
+        or prebinding.get("binding_kind") != X_PREBINDING_KIND
+        or not isinstance(role, str)
+        or role not in X_RUN_ROLES
+    ):
+        raise LeakageLadderError("X intervention prebinding is malformed")
+    _validate_identifier(str(prebinding.get("contract_id", "")), "X intervention contract ID")
+    installed_revision = _validate_sha256(
+        prebinding.get("installed_fixture_revision_sha256"),
+        "X installed fixture revision",
+    )
+    if not isinstance(capture_context, Mapping) or set(capture_context) != {
+        "schema",
+        "binding_kind",
+        "implicated_boundary_stage",
+        "acquisition_index",
+        "freshness_epoch_id",
+        "capture_state_fixture",
+        "installed_after_fixture",
+        "selector_flash_evidence",
+    }:
+        raise LeakageLadderError("X capture context is incomplete or unexpected")
+    index = capture_context.get("acquisition_index")
+    implicated = capture_context.get("implicated_boundary_stage")
+    if (
+        capture_context.get("schema") != 1
+        or capture_context.get("binding_kind") != X_CAPTURE_CONTEXT_KIND
+        or not isinstance(implicated, str)
+        or isinstance(index, bool)
+        or not isinstance(index, int)
+        or index < 1
+    ):
+        raise LeakageLadderError("X capture context is malformed")
+    _validate_x_role_topology(role=role, implicated_stage=implicated, run_stage=stage)
+    _validate_identifier(str(capture_context.get("freshness_epoch_id", "")), "X epoch ID")
+    capture = _reopen_full_fixture_binding(
+        capture_context.get("capture_state_fixture"),
+        "X capture-state full fixture binding",
+    )
+    installed = _reopen_full_fixture_binding(
+        capture_context.get("installed_after_fixture"),
+        "X installed-after full fixture binding",
+    )
+    flash = _validate_selector_flash_evidence_binding(
+        capture_context.get("selector_flash_evidence"),
+        expected_image_role="bench",
+    )
+    if (
+        installed.get("fixture_revision_sha256") != installed_revision
+        or capture.get("board_id") != board_id
+        or installed.get("board_id") != board_id
+        or capture.get("pluto_serial") != serial
+        or installed.get("pluto_serial") != serial
+        or flash.get("board_id") != board_id
+        or not _same_fixture_hardware_identity(capture, installed)
+    ):
+        raise LeakageLadderError("X capture context fixture identity is inconsistent")
+    capture_revision = capture.get("fixture_revision_sha256")
+    if (role.endswith("_baseline") and capture_revision == installed_revision) or (
+        role.endswith("_intervention") and capture_revision != installed_revision
+    ):
+        raise LeakageLadderError("X role binds the wrong intervention-state fixture revision")
+    fixture_flash = fixture_evidence.get("selector_flash_evidence")
+    if stage in SELECTOR_CONNECTED_STAGES and fixture_flash != flash:
+        raise LeakageLadderError("X connected fixture selector evidence is inconsistent")
+    if stage not in SELECTOR_CONNECTED_STAGES and fixture_flash is not None:
+        raise LeakageLadderError("X disconnected fixture unexpectedly binds selector control")
+    _require_x_fixture_matches_topology_fixture(
+        capture_fixture=capture,
+        fixture_evidence=fixture_evidence,
+        stage=stage,
+    )
+    return dict(prebinding), dict(capture_context)
+
+
 def _selector_control_contract(
     *,
     bench_manifest_path: Path,
     openocd_config_path: Path,
     profile_path: Path,
+    selector_flash_evidence: Mapping[str, Any],
 ) -> dict[str, Any]:
     """Freeze the exact static-selector mailbox and ALL_OFF control artifacts."""
 
@@ -1874,7 +2673,11 @@ def _selector_control_contract(
     profile_header_path = exact_profile_path.with_name("control_profile.h").resolve(strict=True)
     manifest = BenchManifest.load(manifest_path)
     profile = load_profile(exact_profile_path)
-    return {
+    flash = _validate_selector_flash_evidence_binding(
+        selector_flash_evidence,
+        expected_image_role="bench",
+    )
+    control = {
         "schema": 1,
         "mode": "reviewed_static_selector_mailbox_all_off",
         "bench_manifest": {
@@ -1908,7 +2711,21 @@ def _selector_control_contract(
             "wait_until_applied": True,
             "readback_required": True,
         },
+        "selector_flash_evidence": flash,
     }
+    sealed = _cross_bind_selector_control_to_sealed_image(control)
+    firmware = _selector_frozen_files(sealed)["firmware_bin"]
+    control["target_image_admission_contract"] = {
+        "schema": 1,
+        "flash_base_address": FLASH_BASE_ADDRESS,
+        "firmware_bin_path": str(firmware["path"]),
+        "firmware_bin_sha256": str(firmware["sha256"]),
+        "firmware_bin_size_bytes": int(firmware["size_bytes"]),
+        "board_id": str(flash["board_id"]),
+        "selector_flash_evidence_sha256": str(flash["sha256"]),
+        "full_bin_extent_and_uid_required_before_mailbox": True,
+    }
+    return control
 
 
 def _validate_selector_control_contract(value: Mapping[str, Any]) -> dict[str, Any]:
@@ -1919,6 +2736,7 @@ def _validate_selector_control_contract(value: Mapping[str, Any]) -> dict[str, A
     config = document.get("openocd_config")
     profile = document.get("control_profile")
     command = document.get("command")
+    flash = document.get("selector_flash_evidence")
     if (
         document.get("schema") != 1
         or document.get("mode") != "reviewed_static_selector_mailbox_all_off"
@@ -1929,6 +2747,10 @@ def _validate_selector_control_contract(value: Mapping[str, Any]) -> dict[str, A
     assert isinstance(config, Mapping)
     assert isinstance(profile, Mapping)
     assert isinstance(command, Mapping)
+    document["selector_flash_evidence"] = _validate_selector_flash_evidence_binding(
+        flash,
+        expected_image_role="bench",
+    )
     if (
         command.get("code") != profile.get("all_off_code")
         or command.get("lease_ms") != 0
@@ -1946,6 +2768,43 @@ def _validate_selector_control_contract(value: Mapping[str, Any]) -> dict[str, A
         if len(digest) != 64 or any(character not in "0123456789abcdef" for character in digest):
             raise ValueError("selector-control artifact hash is malformed")
     return document
+
+
+def _validate_target_image_admission_contract(
+    selector_control: Mapping[str, Any],
+) -> dict[str, Any]:
+    control = _validate_selector_control_contract(selector_control)
+    target = control.get("target_image_admission_contract")
+    flash = control.get("selector_flash_evidence")
+    if not isinstance(target, Mapping) or not isinstance(flash, Mapping):
+        raise ValueError("selector control lacks a frozen target-image admission contract")
+    expected_fields = {
+        "schema",
+        "flash_base_address",
+        "firmware_bin_path",
+        "firmware_bin_sha256",
+        "firmware_bin_size_bytes",
+        "board_id",
+        "selector_flash_evidence_sha256",
+        "full_bin_extent_and_uid_required_before_mailbox",
+    }
+    size = target.get("firmware_bin_size_bytes")
+    if (
+        set(target) != expected_fields
+        or target.get("schema") != 1
+        or target.get("flash_base_address") != FLASH_BASE_ADDRESS
+        or not Path(str(target.get("firmware_bin_path", ""))).is_absolute()
+        or _validate_sha256(target.get("firmware_bin_sha256"), "target-admission firmware BIN hash")
+        != target.get("firmware_bin_sha256")
+        or isinstance(size, bool)
+        or not isinstance(size, int)
+        or size <= 0
+        or target.get("board_id") != flash.get("board_id")
+        or target.get("selector_flash_evidence_sha256") != flash.get("sha256")
+        or target.get("full_bin_extent_and_uid_required_before_mailbox") is not True
+    ):
+        raise ValueError("selector target-image admission contract is malformed")
+    return dict(target)
 
 
 def _tone_plan(condition: Mapping[str, Any], contract: Mapping[str, Any]) -> SafeDdsTonePlan:
@@ -1983,7 +2842,10 @@ def _build_plan_contract(
     selector_control: Mapping[str, Any] | None = None,
     native_libiio_runtime_attestation: Mapping[str, Any] | None = None,
     fixture_evidence: Mapping[str, Any] | None = None,
+    x_intervention_prebinding: Mapping[str, Any] | None = None,
+    x_intervention_capture_context: Mapping[str, Any] | None = None,
     freeze_attribution_repeats: bool = True,
+    require_fixture_evidence: bool = True,
 ) -> dict[str, Any]:
     run = _validate_identifier(run_id, "run ID")
     board = _validate_identifier(board_id, "board ID")
@@ -2009,6 +2871,24 @@ def _build_plan_contract(
         if fixture_evidence is not None
         else None
     )
+    if require_fixture_evidence and frozen_fixture_evidence is None:
+        raise ValueError("general leakage-ladder plans require fixture-evidence v2")
+    if (x_intervention_prebinding is None) != (x_intervention_capture_context is None):
+        raise ValueError("X mode requires both prebinding and capture context")
+    if x_intervention_prebinding is not None:
+        if frozen_fixture_evidence is None:
+            raise ValueError("X mode requires exact fixture-evidence v2")
+        frozen_x_prebinding, frozen_x_context = _validate_x_intervention_contract(
+            prebinding=x_intervention_prebinding,
+            capture_context=x_intervention_capture_context,
+            stage=stage,
+            board_id=board,
+            serial=exact_serial,
+            fixture_evidence=frozen_fixture_evidence,
+        )
+    else:
+        frozen_x_prebinding = None
+        frozen_x_context = None
     if stage in SELECTOR_CONNECTED_STAGES:
         if selector_control is None:
             raise ValueError("selector-connected stage requires frozen static ALL_OFF control")
@@ -2017,6 +2897,22 @@ def _build_plan_contract(
         raise ValueError("selector-disconnected stage must not include selector control")
     else:
         frozen_selector_control = None
+    fixture_flash = (
+        frozen_fixture_evidence.get("selector_flash_evidence")
+        if isinstance(frozen_fixture_evidence, Mapping)
+        else None
+    )
+    control_flash = (
+        frozen_selector_control.get("selector_flash_evidence")
+        if isinstance(frozen_selector_control, Mapping)
+        else None
+    )
+    if frozen_fixture_evidence is not None and fixture_flash != control_flash:
+        raise ValueError(
+            "fixture/setup and selector control must bind the same sealed live-image evidence"
+        )
+    if frozen_selector_control is not None:
+        _validate_target_image_admission_contract(frozen_selector_control)
     if stage == "full_conducted_fixture" and frozen_fixture_evidence is not None:
         prior_binding = frozen_fixture_evidence.get("prior_stage_binding")
         if (
@@ -2101,7 +2997,7 @@ def _build_plan_contract(
         isinstance(characterization, Mapping)
         and characterization.get("causal_attribution_fixture_eligible") is True
     )
-    return {
+    contract = {
         "schema": 1,
         "plan_kind": "5g8_marker_independent_coherent_leakage_ladder",
         "run_id": run,
@@ -2220,6 +3116,10 @@ def _build_plan_contract(
         },
         "conditions": conditions,
     }
+    if frozen_x_prebinding is not None and frozen_x_context is not None:
+        contract["x_intervention_prebinding"] = frozen_x_prebinding
+        contract["x_intervention_capture_context"] = frozen_x_context
+    return contract
 
 
 def _plan_envelope(contract: Mapping[str, Any]) -> dict[str, Any]:
@@ -2282,6 +3182,10 @@ def _prepare_plan_only_run(
         raise LeakageLadderError("plan storage contract is malformed")
     capture_root = Path(str(storage.get("run_capture_root", "")))
     tombstone = _failure_tombstone_path(manifest_path)
+    execution_tombstone = _execution_tombstone_path(manifest_path)
+    _assert_local_rpi_storage(run_root, capture_root)
+    if execution_tombstone.exists() or execution_tombstone.is_symlink():
+        raise LeakageLadderError("execution tombstone forbids plan-only reuse")
     if tombstone.exists() or tombstone.is_symlink():
         raise LeakageLadderError("failed-run tombstone forbids plan-only reuse")
     if manifest_path.exists() or manifest_path.is_symlink():
@@ -2331,6 +3235,7 @@ def _new_manifest(plan_path: Path, envelope: Mapping[str, Any]) -> dict[str, Any
         "updated_at": _now(),
         "completed_at": None,
         "immutable_plan": _plan_file_evidence(plan_path, envelope),
+        "execution_tombstone": None,
         "confirmations": [],
         "native_runtime_preflight_attempts": [],
         "native_runtime_preflight": None,
@@ -2341,6 +3246,8 @@ def _new_manifest(plan_path: Path, envelope: Mapping[str, Any]) -> dict[str, Any
         "identity_preflight_attempts": [],
         "identity_preflight": None,
         "preflight_mute_attempts": [],
+        "target_image_preflight_attempts": [],
+        "target_image_preflight": None,
         "attempts": [],
         "recovery_mute_attempts": [],
         "recovery_selector_cleanup_attempts": [],
@@ -2349,6 +3256,7 @@ def _new_manifest(plan_path: Path, envelope: Mapping[str, Any]) -> dict[str, Any
         "final_mute": None,
         "final_selector_cleanup_attempts": [],
         "final_selector_cleanup": None,
+        "x_intervention_capture_manifest": None,
         "error": None,
         "summary": {},
         "selector_calibration_claim": False,
@@ -2515,6 +3423,7 @@ def _load_manifest(
         "selector_initial_state_attempts",
         "identity_preflight_attempts",
         "preflight_mute_attempts",
+        "target_image_preflight_attempts",
         "attempts",
         "recovery_mute_attempts",
         "recovery_selector_cleanup_attempts",
@@ -2524,6 +3433,9 @@ def _load_manifest(
     )
     if any(not isinstance(document.get(field), list) for field in list_fields):
         raise LeakageLadderError("manifest progress arrays are malformed")
+    execution_tombstone = _execution_tombstone_path(path)
+    if execution_tombstone.exists() or execution_tombstone.is_symlink():
+        _validate_execution_tombstone(execution_tombstone, manifest=document)
     _validate_manifest_selector_history(
         document,
         selector_control=contract.get("selector_control"),
@@ -2794,6 +3706,9 @@ def _live_fixture_evidence_boundary(
     setup = source_files.get("setup_attestation")
     if not isinstance(manifest, Mapping) or not isinstance(setup, Mapping):
         raise LeakageLadderError("frozen fixture manifest/setup evidence is malformed")
+    flash = fixture_evidence.get("selector_flash_evidence")
+    if flash is not None and not isinstance(flash, Mapping):
+        raise LeakageLadderError("frozen selector-flash fixture binding is malformed")
     observed = _fixture_evidence_from_manifests(
         Path(str(manifest.get("path", ""))),
         Path(str(setup.get("path", ""))),
@@ -2805,6 +3720,15 @@ def _live_fixture_evidence_boundary(
             else ""
         ),
         stage=str(fixture_evidence.get("stage", "")),
+        selector_flash_evidence_path=(
+            Path(str(flash.get("path", ""))) if isinstance(flash, Mapping) else None
+        ),
+        selector_flash_evidence_sha256=(
+            str(flash.get("sha256", "")) if isinstance(flash, Mapping) else None
+        ),
+        selector_flash_run_id=(
+            str(flash.get("run_id", "")) if isinstance(flash, Mapping) else None
+        ),
     )
     exact_match = observed == dict(fixture_evidence)
     return {
@@ -2875,18 +3799,432 @@ def _fixture_evidence_passed(
 
 
 def _verify_selector_artifacts(selector_control: Mapping[str, Any]) -> None:
+    control = _validate_selector_control_contract(selector_control)
     for section_name, path_key, hash_key in (
         ("bench_manifest", "path", "file_sha256"),
         ("openocd_config", "path", "file_sha256"),
         ("control_profile", "path", "file_sha256"),
         ("control_profile", "header_path", "header_file_sha256"),
     ):
-        section = selector_control.get(section_name)
+        section = control.get(section_name)
         if not isinstance(section, Mapping):
             raise LeakageLadderError("selector-control artifact section is malformed")
         path = Path(str(section[path_key])).resolve(strict=True)
         if sha256_path(path) != section.get(hash_key):
             raise LeakageLadderError("selector-control artifact differs from immutable plan")
+    _cross_bind_selector_control_to_sealed_image(control)
+
+
+def _live_selector_target_halt(
+    selector_control: Mapping[str, Any],
+    purpose: str,
+) -> dict[str, Any]:
+    """Issue one separately attested best-effort halt without mailbox access."""
+
+    started_at = _now()
+    control = _validate_selector_control_contract(selector_control)
+    config = control.get("openocd_config")
+    if not isinstance(config, Mapping):
+        raise LeakageLadderError("selector halt lacks frozen OpenOCD config")
+    config_path = Path(str(config["path"])).resolve(strict=True)
+    if sha256_path(config_path) != config.get("file_sha256"):
+        raise LeakageLadderError("selector halt OpenOCD config differs from the plan")
+    command = "init; halt; shutdown"
+    completed = subprocess.run(
+        ("openocd", "-f", str(config_path), "-c", command),
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    passed = completed.returncode == 0
+    return {
+        "schema": 1,
+        "evidence_kind": "selector_target_best_effort_halt_v1",
+        "purpose": purpose,
+        "status": "passed" if passed else "failed",
+        "openocd_config_path": str(config_path),
+        "openocd_config_sha256": config["file_sha256"],
+        "command": command,
+        "returncode": completed.returncode,
+        "target_halted": passed,
+        "mailbox_access_performed": False,
+        "started_at": started_at,
+        "completed_at": _now(),
+        "error": (
+            None
+            if passed
+            else {
+                "type": "SelectorTargetHaltFailed",
+                "message": f"OpenOCD halt returned {completed.returncode}",
+            }
+        ),
+    }
+
+
+def _call_selector_target_halt(
+    boundary: SelectorTargetHaltBoundary,
+    selector_control: Mapping[str, Any],
+    purpose: str,
+) -> dict[str, Any]:
+    started_at = _now()
+    config = selector_control.get("openocd_config")
+    config_path = config.get("path") if isinstance(config, Mapping) else None
+    config_sha256 = config.get("file_sha256") if isinstance(config, Mapping) else None
+    try:
+        result = boundary(selector_control, purpose)
+    except BaseException as error:
+        return {
+            "schema": 1,
+            "evidence_kind": "selector_target_best_effort_halt_v1",
+            "purpose": purpose,
+            "status": "failed",
+            "openocd_config_path": config_path,
+            "openocd_config_sha256": config_sha256,
+            "command": "init; halt; shutdown",
+            "returncode": None,
+            "target_halted": False,
+            "mailbox_access_performed": False,
+            "started_at": started_at,
+            "completed_at": _now(),
+            "error": _error_document(error),
+        }
+    if not isinstance(result, dict):
+        return {
+            "schema": 1,
+            "evidence_kind": "selector_target_best_effort_halt_v1",
+            "purpose": purpose,
+            "status": "failed",
+            "openocd_config_path": config_path,
+            "openocd_config_sha256": config_sha256,
+            "command": "init; halt; shutdown",
+            "returncode": None,
+            "target_halted": False,
+            "mailbox_access_performed": False,
+            "started_at": started_at,
+            "completed_at": _now(),
+            "error": {
+                "type": "InvalidSelectorTargetHaltEvidence",
+                "message": "selector halt boundary did not return an object",
+            },
+        }
+    return result
+
+
+def _selector_target_halt_passed(
+    value: object,
+    *,
+    selector_control: Mapping[str, Any],
+    purpose: str,
+) -> bool:
+    config = selector_control.get("openocd_config")
+    return (
+        isinstance(config, Mapping)
+        and isinstance(value, Mapping)
+        and value.get("schema") == 1
+        and value.get("evidence_kind") == "selector_target_best_effort_halt_v1"
+        and value.get("purpose") == purpose
+        and value.get("status") == "passed"
+        and value.get("openocd_config_path") == config.get("path")
+        and value.get("openocd_config_sha256") == config.get("file_sha256")
+        and value.get("command") == "init; halt; shutdown"
+        and value.get("returncode") == 0
+        and value.get("target_halted") is True
+        and value.get("mailbox_access_performed") is False
+        and value.get("error") is None
+    )
+
+
+def _selector_image_failure_evidence(
+    selector_control: Mapping[str, Any],
+    *,
+    base: object,
+    error: Mapping[str, Any],
+    failure_halt: Mapping[str, Any],
+    target_may_have_started: bool,
+    started_at: str,
+) -> dict[str, Any]:
+    control = _validate_selector_control_contract(selector_control)
+    target = _validate_target_image_admission_contract(control)
+    flash = control.get("selector_flash_evidence")
+    if not isinstance(flash, Mapping):
+        raise LeakageLadderError("selector image failure lacks sealed flash evidence")
+    observed = base if isinstance(base, Mapping) else {}
+    halt_passed = _selector_target_halt_passed(
+        failure_halt,
+        selector_control=control,
+        purpose="image_admission_failure_cleanup",
+    )
+    return {
+        "schema": 1,
+        "evidence_kind": "contemporaneous_full_bin_extent_and_uid_admission_v1",
+        "status": "failed",
+        "selector_flash_evidence_sha256": flash["sha256"],
+        "flash_base_address": FLASH_BASE_ADDRESS,
+        "byte_count": target["firmware_bin_size_bytes"],
+        "expected_bin_sha256": target["firmware_bin_sha256"],
+        "observed_target_sha256": observed.get("observed_target_sha256"),
+        "expected_board_id": flash["board_id"],
+        "observed_uid": observed.get("observed_uid"),
+        "exact_bin_and_uid_match": observed.get("exact_bin_and_uid_match") is True,
+        "reviewed_image_started_only_after_exact_match": (
+            observed.get("reviewed_image_started_only_after_exact_match") is True
+        ),
+        "target_may_have_started_before_failure_halt": target_may_have_started,
+        "failure_halt_required": True,
+        "failure_halt": dict(failure_halt),
+        "target_kept_halted_on_failure": halt_passed,
+        "mailbox_access_performed": False,
+        "started_at": started_at,
+        "completed_at": _now(),
+        "error": dict(error),
+    }
+
+
+def _live_selector_image_admission(
+    selector_control: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Read the full frozen BIN extent and UID before any mailbox operation."""
+
+    started_at = _now()
+    control = _validate_selector_control_contract(selector_control)
+    _cross_bind_selector_control_to_sealed_image(control)
+    target_contract = _validate_target_image_admission_contract(control)
+    config = control.get("openocd_config")
+    flash = control.get("selector_flash_evidence")
+    if not isinstance(config, Mapping) or not isinstance(flash, Mapping):
+        raise LeakageLadderError("selector target-admission tuple is malformed")
+    expected_path = Path(str(target_contract["firmware_bin_path"])).resolve(strict=True)
+    expected_sha256 = str(target_contract["firmware_bin_sha256"])
+    byte_count = int(target_contract["firmware_bin_size_bytes"])
+    board_id = str(flash["board_id"])
+    expected_uid = board_id.removeprefix("stm32c011-")
+    if (
+        not board_id.startswith("stm32c011-")
+        or len(expected_uid) != 24
+        or any(character not in "0123456789abcdef" for character in expected_uid)
+    ):
+        raise LeakageLadderError("selector board ID is not an STM32C011 UID identity")
+    config_path = Path(str(config["path"])).resolve(strict=True)
+    observed_sha256: str | None = None
+    observed_uid: str | None = None
+    exact_match = False
+    target_may_have_started = True
+    with tempfile.TemporaryDirectory(prefix="selector-target-admission-") as temporary:
+        target_dump = Path(temporary) / "target-flash.bin"
+        uid_dump = Path(temporary) / "target-uid.bin"
+        read_command = (
+            "init; reset halt; "
+            f"dump_image {{{target_dump}}} 0x{FLASH_BASE_ADDRESS:x} 0x{byte_count:x}; "
+            f"dump_image {{{uid_dump}}} 0x{STM32C011_UID_ADDRESS:x} "
+            f"0x{STM32C011_UID_SIZE_BYTES:x}; shutdown"
+        )
+        try:
+            subprocess.run(
+                ("openocd", "-f", str(config_path), "-c", read_command),
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            target_may_have_started = False
+            observed = target_dump.read_bytes()
+            uid_bytes = uid_dump.read_bytes()
+            observed_sha256 = hashlib.sha256(observed).hexdigest()
+            observed_uid = uid_bytes.hex()
+            exact_match = (
+                len(observed) == byte_count
+                and observed_sha256 == expected_sha256
+                and observed == expected_path.read_bytes()
+                and len(uid_bytes) == STM32C011_UID_SIZE_BYTES
+                and observed_uid == expected_uid
+            )
+            if not exact_match:
+                raise LeakageLadderError(
+                    "target full-BIN extent or UID differs from sealed evidence"
+                )
+            target_may_have_started = True
+            reset_run = subprocess.run(
+                (
+                    "openocd",
+                    "-f",
+                    str(config_path),
+                    "-c",
+                    "init; reset run; shutdown",
+                ),
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            if reset_run.returncode != 0:
+                raise LeakageLadderError(
+                    f"reviewed selector image reset-run returned {reset_run.returncode}"
+                )
+            return {
+                "schema": 1,
+                "evidence_kind": "contemporaneous_full_bin_extent_and_uid_admission_v1",
+                "status": "passed",
+                "selector_flash_evidence_sha256": flash["sha256"],
+                "flash_base_address": FLASH_BASE_ADDRESS,
+                "byte_count": byte_count,
+                "expected_bin_sha256": expected_sha256,
+                "observed_target_sha256": observed_sha256,
+                "expected_board_id": board_id,
+                "observed_uid": observed_uid,
+                "exact_bin_and_uid_match": True,
+                "reviewed_image_started_only_after_exact_match": True,
+                "target_may_have_started_before_failure_halt": False,
+                "failure_halt_required": False,
+                "failure_halt": None,
+                "target_kept_halted_on_failure": False,
+                "mailbox_access_performed": False,
+                "started_at": started_at,
+                "completed_at": _now(),
+                "error": None,
+            }
+        except BaseException as error:
+            failure_halt = _call_selector_target_halt(
+                _live_selector_target_halt,
+                control,
+                "image_admission_failure_cleanup",
+            )
+            return _selector_image_failure_evidence(
+                control,
+                base={
+                    "observed_target_sha256": observed_sha256,
+                    "observed_uid": observed_uid,
+                    "exact_bin_and_uid_match": exact_match,
+                    "reviewed_image_started_only_after_exact_match": (
+                        exact_match and target_may_have_started
+                    ),
+                },
+                error=_error_document(error),
+                failure_halt=failure_halt,
+                target_may_have_started=target_may_have_started,
+                started_at=started_at,
+            )
+
+
+def _selector_image_failure_halted(
+    value: object,
+    *,
+    selector_control: Mapping[str, Any],
+) -> bool:
+    control = _validate_selector_control_contract(selector_control)
+    flash = control.get("selector_flash_evidence")
+    try:
+        target = _validate_target_image_admission_contract(control)
+    except ValueError:
+        return False
+    return (
+        isinstance(flash, Mapping)
+        and isinstance(value, Mapping)
+        and value.get("schema") == 1
+        and value.get("evidence_kind") == "contemporaneous_full_bin_extent_and_uid_admission_v1"
+        and value.get("status") == "failed"
+        and value.get("selector_flash_evidence_sha256") == flash.get("sha256")
+        and value.get("flash_base_address") == FLASH_BASE_ADDRESS
+        and value.get("byte_count") == target.get("firmware_bin_size_bytes")
+        and value.get("expected_bin_sha256") == target.get("firmware_bin_sha256")
+        and value.get("expected_board_id") == flash.get("board_id")
+        and value.get("failure_halt_required") is True
+        and _selector_target_halt_passed(
+            value.get("failure_halt"),
+            selector_control=selector_control,
+            purpose="image_admission_failure_cleanup",
+        )
+        and value.get("target_kept_halted_on_failure") is True
+        and value.get("mailbox_access_performed") is False
+        and isinstance(value.get("error"), Mapping)
+    )
+
+
+def _call_selector_image_admission(
+    boundary: SelectorImageBoundary,
+    selector_control: Mapping[str, Any],
+    halt_boundary: SelectorTargetHaltBoundary | None = None,
+) -> dict[str, Any]:
+    started_at = _now()
+    result: object
+    try:
+        result = boundary(selector_control)
+    except BaseException as error:
+        result = None
+        rejection_error = _error_document(error)
+    else:
+        rejection_error = (
+            dict(result["error"])
+            if isinstance(result, Mapping) and isinstance(result.get("error"), Mapping)
+            else {
+                "type": "SelectorImageAdmissionEvidenceRejected",
+                "message": "selector image admission did not pass exact evidence validation",
+            }
+        )
+    if isinstance(result, dict) and _selector_image_admission_passed(
+        result,
+        selector_control=selector_control,
+    ):
+        return result
+    if isinstance(result, dict) and _selector_image_failure_halted(
+        result,
+        selector_control=selector_control,
+    ):
+        return result
+    failure_halt = _call_selector_target_halt(
+        halt_boundary or _live_selector_target_halt,
+        selector_control,
+        "image_admission_failure_cleanup",
+    )
+    # Once an injected or future admission boundary returns evidence that fails
+    # exact validation, its target state is unknown.  Keep the failure evidence
+    # conservative even when the rejected object claims it never started.
+    target_may_have_started = True
+    return _selector_image_failure_evidence(
+        selector_control,
+        base=result,
+        error=rejection_error,
+        failure_halt=failure_halt,
+        target_may_have_started=target_may_have_started,
+        started_at=(
+            str(result.get("started_at"))
+            if isinstance(result, Mapping) and isinstance(result.get("started_at"), str)
+            else started_at
+        ),
+    )
+
+
+def _selector_image_admission_passed(
+    value: object,
+    *,
+    selector_control: Mapping[str, Any],
+) -> bool:
+    control = _validate_selector_control_contract(selector_control)
+    flash = control.get("selector_flash_evidence")
+    if not isinstance(flash, Mapping):
+        return False
+    try:
+        target = _validate_target_image_admission_contract(control)
+    except ValueError:
+        return False
+    return (
+        isinstance(value, Mapping)
+        and value.get("schema") == 1
+        and value.get("evidence_kind") == "contemporaneous_full_bin_extent_and_uid_admission_v1"
+        and value.get("status") == "passed"
+        and value.get("selector_flash_evidence_sha256") == flash.get("sha256")
+        and value.get("flash_base_address") == FLASH_BASE_ADDRESS
+        and value.get("byte_count") == target.get("firmware_bin_size_bytes")
+        and value.get("expected_bin_sha256") == target.get("firmware_bin_sha256")
+        and value.get("observed_target_sha256") == target.get("firmware_bin_sha256")
+        and value.get("expected_board_id") == flash.get("board_id")
+        and value.get("observed_uid") == str(flash.get("board_id", "")).removeprefix("stm32c011-")
+        and value.get("exact_bin_and_uid_match") is True
+        and value.get("reviewed_image_started_only_after_exact_match") is True
+        and value.get("target_may_have_started_before_failure_halt") is False
+        and value.get("failure_halt_required") is False
+        and value.get("failure_halt") is None
+        and value.get("target_kept_halted_on_failure") is False
+        and value.get("mailbox_access_performed") is False
+        and value.get("error") is None
+    )
 
 
 def _live_selector_all_off_boundary(
@@ -3263,6 +4601,96 @@ def _assert_path_chain_has_no_symlink(path: Path, *, label: str) -> None:
         current = current / part
         if current.is_symlink():
             raise LeakageLadderError(f"{label} contains a symlink: {current}")
+
+
+def _nearest_existing_path(path: Path) -> Path:
+    candidate = path.expanduser().absolute()
+    while not candidate.exists():
+        if candidate == candidate.parent:
+            raise LeakageLadderError("cannot find an existing storage parent")
+        candidate = candidate.parent
+    return candidate
+
+
+def _assert_local_rpi_storage(*paths: Path) -> None:
+    """Require non-symlink paths on the same local device as /home/pi."""
+
+    home = Path("/home/pi")
+    home_device = os.stat(home).st_dev
+    for path in paths:
+        _assert_path_chain_has_no_symlink(path, label="Raspberry Pi local storage path")
+        existing = _nearest_existing_path(path)
+        if os.stat(existing).st_dev != home_device:
+            raise LeakageLadderError(
+                f"storage path is not on the Raspberry Pi local filesystem: {path}"
+            )
+
+
+def _execution_tombstone_path(manifest_path: Path) -> Path:
+    return manifest_path.parent / EXECUTION_TOMBSTONE_FILENAME
+
+
+def _validate_execution_tombstone(
+    path: Path,
+    *,
+    manifest: Mapping[str, Any],
+) -> dict[str, Any]:
+    if path.is_symlink() or not path.is_file() or path.stat().st_mode & 0o222:
+        raise LeakageLadderError("execution tombstone must be a read-only regular file")
+    document = _read_json(path, "execution-started tombstone")
+    if (
+        set(document)
+        != {
+            "schema",
+            "marker_kind",
+            "run_id",
+            "topology_stage",
+            "immutable_plan",
+            "started_at",
+            "manifest_path",
+            "run_id_burned",
+            "retry_forbidden",
+        }
+        or document.get("schema") != 1
+        or document.get("marker_kind") != "5g8_general_ladder_execution_started_tombstone"
+        or document.get("run_id") != manifest.get("run_id")
+        or document.get("topology_stage") != manifest.get("topology_stage")
+        or document.get("immutable_plan") != manifest.get("immutable_plan")
+        or not isinstance(document.get("started_at"), str)
+        or not document.get("started_at")
+        or document.get("manifest_path") != str(path.parent / MANIFEST_FILENAME)
+        or document.get("run_id_burned") is not True
+        or document.get("retry_forbidden") is not True
+    ):
+        raise LeakageLadderError("execution tombstone identity is invalid")
+    return document
+
+
+def _burn_execution_run_id(
+    manifest_path: Path,
+    manifest: Mapping[str, Any],
+) -> dict[str, Any]:
+    path = _execution_tombstone_path(manifest_path)
+    if path.exists() or path.is_symlink():
+        _validate_execution_tombstone(path, manifest=manifest)
+        raise LeakageLadderError("run ID was already executed and cannot be resumed or retried")
+    document = {
+        "schema": 1,
+        "marker_kind": "5g8_general_ladder_execution_started_tombstone",
+        "run_id": manifest.get("run_id"),
+        "topology_stage": manifest.get("topology_stage"),
+        "immutable_plan": manifest.get("immutable_plan"),
+        "started_at": _now(),
+        "manifest_path": str(manifest_path),
+        "run_id_burned": True,
+        "retry_forbidden": True,
+    }
+    _write_immutable_json(path, document)
+    return {
+        "path": str(path),
+        "sha256": sha256_path(path),
+        "document": _validate_execution_tombstone(path, manifest=manifest),
+    }
 
 
 def _assert_tree_has_no_symlink(root: Path, *, label: str) -> Path:
@@ -4417,6 +5845,327 @@ def _completed_condition_ids(
     return completed
 
 
+def _x_bound_file(path: Path, label: str) -> dict[str, Any]:
+    exact = path.expanduser().absolute()
+    _assert_path_chain_has_no_symlink(exact, label=label)
+    _assert_local_rpi_storage(exact)
+    if not exact.is_file():
+        raise LeakageLadderError(f"{label} must be a regular non-symlink file")
+    size = exact.stat().st_size
+    if size <= 0:
+        raise LeakageLadderError(f"{label} must not be empty")
+    return {
+        "path": str(exact),
+        "sha256": sha256_path(exact),
+        "size_bytes": size,
+    }
+
+
+def _x_final_selector_safe_state(
+    manifest: Mapping[str, Any], contract: Mapping[str, Any]
+) -> dict[str, Any]:
+    stage = str(contract.get("topology_stage", ""))
+    fixture = contract.get("fixture_evidence")
+    if not isinstance(fixture, Mapping):
+        raise LeakageLadderError("X acceptance lacks frozen topology fixture evidence")
+    if stage in SELECTOR_CONNECTED_STAGES:
+        selector_control = contract.get("selector_control")
+        if (
+            not isinstance(selector_control, Mapping)
+            or not _selector_image_admission_passed(
+                manifest.get("target_image_preflight"),
+                selector_control=selector_control,
+            )
+            or not _selector_passed(
+                manifest.get("final_selector_cleanup"),
+                selector_control=selector_control,
+                purpose="final_cleanup_all_off",
+            )
+        ):
+            raise LeakageLadderError(
+                "X acceptance requires admitted selector image and final mailbox ALL_OFF"
+            )
+        return {
+            "status": "mailbox_all_off_verified",
+            "topology_stage": stage,
+            "mailbox_all_off_verified": True,
+        }
+    delta = fixture.get("stage_delta")
+    if not isinstance(delta, Mapping):
+        raise LeakageLadderError("X disconnected fixture delta is malformed")
+    expected = {
+        "selector_rf_state": "rf_disconnected",
+        "selector_power_state": "bench_power_off",
+        "selector_control_harness_state": "disconnected",
+    }
+    if any(delta.get(key) != value for key, value in expected.items()):
+        raise LeakageLadderError(
+            "X Stage-A/B selector safety requires RF, power, and control physical disconnect"
+        )
+    return {
+        "status": "physical_disconnect_verified",
+        "topology_stage": stage,
+        **expected,
+    }
+
+
+def _validate_x_capture_manifest(
+    document: Mapping[str, Any],
+    *,
+    contract: Mapping[str, Any],
+    plan_path: Path,
+) -> dict[str, Any]:
+    expected_fields = {
+        "schema",
+        "run_kind",
+        "contract_id",
+        "run_role",
+        "run_id",
+        "status",
+        "captured_at",
+        "acquisition_index",
+        "freshness_epoch_id",
+        "intervention_state_fixture_revision_sha256",
+        "topology_stage",
+        "topology_fixture_sha256",
+        "source_commit",
+        "dependency_commit",
+        "selector_evidence_sha256",
+        "immutable_plan_file",
+        "captures",
+        "measurement_quality_rejection_reasons",
+        "final_mute_verified",
+        "final_selector_safe_state",
+    }
+    prebinding = contract.get("x_intervention_prebinding")
+    context = contract.get("x_intervention_capture_context")
+    source = contract.get("source")
+    if (
+        set(document) != expected_fields
+        or not isinstance(prebinding, Mapping)
+        or not isinstance(context, Mapping)
+        or not isinstance(source, Mapping)
+        or document.get("schema") != 1
+        or document.get("run_kind") != X_CAPTURE_MANIFEST_KIND
+        or document.get("contract_id") != prebinding.get("contract_id")
+        or document.get("run_role") != prebinding.get("run_role")
+        or document.get("run_id") != contract.get("run_id")
+        or document.get("status") != "accepted"
+        or not isinstance(document.get("captured_at"), str)
+        or not document.get("captured_at")
+        or document.get("acquisition_index") != context.get("acquisition_index")
+        or document.get("freshness_epoch_id") != context.get("freshness_epoch_id")
+        or document.get("topology_stage") != contract.get("topology_stage")
+        or document.get("topology_fixture_sha256") != contract.get("fixture_evidence_sha256")
+        or document.get("source_commit") != source.get("smateway_commit")
+        or document.get("measurement_quality_rejection_reasons") != []
+        or document.get("final_mute_verified") is not True
+    ):
+        raise LeakageLadderError("accepted X capture manifest identity is malformed")
+    dependency = source.get("pluto_plus_utils_source_attestation")
+    capture_fixture = context.get("capture_state_fixture")
+    flash = context.get("selector_flash_evidence")
+    if (
+        not isinstance(dependency, Mapping)
+        or not isinstance(capture_fixture, Mapping)
+        or not isinstance(flash, Mapping)
+        or document.get("dependency_commit") != dependency.get("commit")
+        or document.get("selector_evidence_sha256") != flash.get("sha256")
+        or document.get("intervention_state_fixture_revision_sha256")
+        != capture_fixture.get("fixture_revision_sha256")
+    ):
+        raise LeakageLadderError("accepted X source/fixture identity is malformed")
+    expected_plan = _x_bound_file(plan_path, "X immutable plan")
+    if document.get("immutable_plan_file") != expected_plan:
+        raise LeakageLadderError("accepted X manifest differs from immutable plan bytes")
+    _validate_plan_envelope(
+        _read_json(plan_path, "X immutable plan"),
+        expected_contract=contract,
+    )
+    captures = document.get("captures")
+    if not isinstance(captures, list) or not captures:
+        raise LeakageLadderError("accepted X manifest has no captures")
+    stream_ids: set[str] = set()
+    raw_hashes: set[str] = set()
+    for index, capture in enumerate(captures, start=1):
+        if not isinstance(capture, Mapping) or set(capture) != {
+            "stream_id",
+            "raw_iq_file",
+            "metadata_file",
+            "condition_record_file",
+            "abi2_continuity_verified",
+            "measurement_quality_passed",
+        }:
+            raise LeakageLadderError(f"accepted X capture {index} is malformed")
+        stream_id = _validate_identifier(str(capture.get("stream_id", "")), "X stream ID")
+        if (
+            stream_id in stream_ids
+            or capture.get("abi2_continuity_verified") is not True
+            or capture.get("measurement_quality_passed") is not True
+        ):
+            raise LeakageLadderError("accepted X capture reuses a stream or failed admission")
+        stream_ids.add(stream_id)
+        for name in ("raw_iq_file", "metadata_file", "condition_record_file"):
+            binding = capture.get(name)
+            if not isinstance(binding, Mapping):
+                raise LeakageLadderError(f"accepted X capture lacks {name}")
+            actual = _x_bound_file(Path(str(binding.get("path", ""))), f"X {name}")
+            if actual != dict(binding):
+                raise LeakageLadderError(f"accepted X {name} bytes differ from their binding")
+            if name == "raw_iq_file":
+                if actual["sha256"] in raw_hashes:
+                    raise LeakageLadderError("accepted X capture reuses raw IQ bytes")
+                raw_hashes.add(str(actual["sha256"]))
+    if contract.get("topology_stage") in SELECTOR_CONNECTED_STAGES:
+        expected_safe_state = {
+            "status": "mailbox_all_off_verified",
+            "topology_stage": contract.get("topology_stage"),
+            "mailbox_all_off_verified": True,
+        }
+    else:
+        expected_safe_state = _x_final_selector_safe_state({}, contract)
+    if document.get("final_selector_safe_state") != expected_safe_state:
+        raise LeakageLadderError("accepted X final selector safe state is inconsistent")
+    return dict(document)
+
+
+def _emit_x_intervention_capture_manifest(
+    *,
+    manifest: Mapping[str, Any],
+    contract: Mapping[str, Any],
+    plan_path: Path,
+    capture_root: Path,
+    output_path: Path,
+) -> dict[str, Any] | None:
+    prebinding = contract.get("x_intervention_prebinding")
+    context = contract.get("x_intervention_capture_context")
+    if prebinding is None and context is None:
+        return None
+    if not isinstance(prebinding, Mapping) or not isinstance(context, Mapping):
+        raise LeakageLadderError("X plan prebinding/context is incomplete")
+    fixture = contract.get("fixture_evidence")
+    configuration = contract.get("configuration")
+    if not isinstance(fixture, Mapping) or not isinstance(configuration, Mapping):
+        raise LeakageLadderError("X plan fixture/configuration is malformed")
+    _validate_x_intervention_contract(
+        prebinding=prebinding,
+        capture_context=context,
+        stage=str(contract.get("topology_stage", "")),
+        board_id=str(contract.get("board_id", "")),
+        serial=str(configuration.get("serial", "")),
+        fixture_evidence=fixture,
+    )
+    serial = str(configuration.get("serial", ""))
+    if (
+        manifest.get("status") != "complete"
+        or manifest.get("error") is not None
+        or not _mute_passed(manifest.get("final_mute"), serial=serial, purpose="final")
+    ):
+        raise LeakageLadderError("X output requires a complete run and exact final Pluto mute")
+    safe_state = _x_final_selector_safe_state(manifest, contract)
+    conditions = contract.get("conditions")
+    if not isinstance(conditions, list):
+        raise LeakageLadderError("X plan conditions are malformed")
+    planned = {
+        str(condition["condition_id"]): condition
+        for condition in conditions
+        if isinstance(condition, Mapping)
+    }
+    plan_evidence = _plan_file_evidence(plan_path, _read_json(plan_path, "X immutable plan"))
+    completed = _completed_condition_ids(
+        manifest,
+        planned_conditions=planned,
+        contract=contract,
+        serial=serial,
+        plan_evidence=plan_evidence,
+        capture_root=capture_root,
+        downgrade_invalid=False,
+    )
+    if completed != set(planned):
+        raise LeakageLadderError("X output requires every immutable condition")
+    attempts = {
+        str(attempt.get("condition_id")): attempt
+        for attempt in manifest.get("attempts", [])
+        if isinstance(attempt, Mapping)
+    }
+    captures: list[dict[str, Any]] = []
+    for condition in conditions:
+        assert isinstance(condition, Mapping)
+        attempt = attempts[str(condition["condition_id"])]
+        result = attempt.get("result")
+        if not isinstance(result, Mapping):
+            raise LeakageLadderError("X completed attempt lacks a result")
+        if (
+            result.get("metadata_abi") != 2
+            or result.get("measurement_quality_passed") is not True
+            or result.get("measurement_quality_rejection_reasons") != []
+        ):
+            raise LeakageLadderError("X capture failed ABI2 continuity or measurement quality")
+        captures.append(
+            {
+                "stream_id": str(result["stream_id"]),
+                "raw_iq_file": _x_bound_file(
+                    Path(str(result["artifact_data_path"])),
+                    "X raw IQ",
+                ),
+                "metadata_file": _x_bound_file(
+                    Path(str(result["artifact_metadata_path"])),
+                    "X metadata",
+                ),
+                "condition_record_file": _x_bound_file(
+                    Path(str(result["condition_record_path"])),
+                    "X condition record",
+                ),
+                "abi2_continuity_verified": True,
+                "measurement_quality_passed": True,
+            }
+        )
+    source = contract.get("source")
+    capture_fixture = context.get("capture_state_fixture")
+    flash = context.get("selector_flash_evidence")
+    if not all(isinstance(item, Mapping) for item in (source, capture_fixture, flash)):
+        raise LeakageLadderError("X source/context binding is malformed")
+    assert isinstance(source, Mapping)
+    assert isinstance(capture_fixture, Mapping)
+    assert isinstance(flash, Mapping)
+    dependency = source.get("pluto_plus_utils_source_attestation")
+    if not isinstance(dependency, Mapping):
+        raise LeakageLadderError("X dependency source binding is malformed")
+    document = {
+        "schema": 1,
+        "run_kind": X_CAPTURE_MANIFEST_KIND,
+        "contract_id": prebinding["contract_id"],
+        "run_role": prebinding["run_role"],
+        "run_id": contract["run_id"],
+        "status": "accepted",
+        "captured_at": manifest.get("completed_at"),
+        "acquisition_index": context["acquisition_index"],
+        "freshness_epoch_id": context["freshness_epoch_id"],
+        "intervention_state_fixture_revision_sha256": capture_fixture["fixture_revision_sha256"],
+        "topology_stage": contract["topology_stage"],
+        "topology_fixture_sha256": contract["fixture_evidence_sha256"],
+        "source_commit": source["smateway_commit"],
+        "dependency_commit": dependency["commit"],
+        "selector_evidence_sha256": flash["sha256"],
+        "immutable_plan_file": _x_bound_file(plan_path, "X immutable plan"),
+        "captures": captures,
+        "measurement_quality_rejection_reasons": [],
+        "final_mute_verified": True,
+        "final_selector_safe_state": safe_state,
+    }
+    if output_path.exists() or output_path.is_symlink():
+        raise LeakageLadderError("accepted X manifest path already exists")
+    _write_immutable_json(output_path, document)
+    validated = _validate_x_capture_manifest(
+        _read_json(output_path, "accepted X capture manifest"),
+        contract=contract,
+        plan_path=plan_path,
+    )
+    if validated != document:
+        raise LeakageLadderError("persisted X capture manifest differs from accepted bytes")
+    return _x_bound_file(output_path, "accepted X capture manifest")
+
+
 def _execute_stage_under_selector_lock(
     manifest: dict[str, Any],
     manifest_path: Path,
@@ -4429,6 +6178,7 @@ def _execute_stage_under_selector_lock(
     mute_boundary: MuteBoundary = _strict_mute,
     identity_boundary: IdentityBoundary = _live_identity_boundary,
     selector_boundary: SelectorBoundary = _live_selector_all_off_boundary,
+    selector_image_boundary: SelectorImageBoundary = _live_selector_image_admission,
     runtime_attestation_boundary: RuntimeAttestationBoundary = (_native_libiio_runtime_attestation),
     fixture_evidence_boundary: FixtureEvidenceBoundary = _live_fixture_evidence_boundary,
 ) -> None:
@@ -4498,10 +6248,43 @@ def _execute_stage_under_selector_lock(
         manifest,
         selector_control=selector_control,
     )
+    if manifest.get("status") == "failed" or any(
+        isinstance(item, Mapping) and item.get("status") in {"failed", "running"}
+        for item in manifest["attempts"]
+    ):
+        error = LeakageLadderError("started ladder runs cannot retry; prepare a new run ID")
+        manifest["error"] = _error_document(error)
+        manifest["status"] = "failed"
+        _persist_manifest(manifest_path, manifest, condition_count=condition_count)
+        raise error
+    pending_error: BaseException | None = None
+    manifest["confirmations"].append(dict(confirmation))
+    manifest["status"] = "running"
+    _persist_manifest(manifest_path, manifest, condition_count=condition_count)
+
+    preflight = _call_mute(mute_boundary, serial, "preflight")
+    manifest["preflight_mute_attempts"].append(preflight)
+    _persist_manifest(manifest_path, manifest, condition_count=condition_count)
+    if not _mute_passed(preflight, serial=serial, purpose="preflight"):
+        raise LeakageLadderError("exact preflight mute attestation failed")
 
     if stage in SELECTOR_CONNECTED_STAGES:
         if selector_control is None:
             raise LeakageLadderError("selector-connected stage lacks selector control")
+        target_image = _call_selector_image_admission(
+            selector_image_boundary,
+            selector_control,
+        )
+        manifest["target_image_preflight_attempts"].append(target_image)
+        manifest["target_image_preflight"] = target_image
+        _persist_manifest(manifest_path, manifest, condition_count=condition_count)
+        if not _selector_image_admission_passed(
+            target_image,
+            selector_control=selector_control,
+        ):
+            raise LeakageLadderError(
+                "selector target full-BIN extent or UID differs from the sealed image"
+            )
         initial_selector = _call_selector(
             selector_boundary,
             selector_control,
@@ -4515,13 +6298,9 @@ def _execute_stage_under_selector_lock(
             selector_control=selector_control,
             purpose="initial_state_before_command",
         ):
-            error = LeakageLadderError(
+            raise LeakageLadderError(
                 "selector was not already static ALL_OFF before the first command"
             )
-            manifest["status"] = "failed"
-            manifest["error"] = _error_document(error)
-            _persist_manifest(manifest_path, manifest, condition_count=condition_count)
-            raise error
     elif selector_control is not None:
         raise LeakageLadderError("selector-disconnected stage includes selector control")
 
@@ -4530,72 +6309,11 @@ def _execute_stage_under_selector_lock(
     manifest["identity_preflight"] = identity
     _persist_manifest(manifest_path, manifest, condition_count=condition_count)
     if not _identity_passed(identity, serial=serial, requested_uri=uri):
-        error = LeakageLadderError(
+        raise LeakageLadderError(
             "read-only USB identity scan did not resolve the exact requested current URI"
         )
-        manifest["status"] = "failed"
-        manifest["error"] = _error_document(error)
-        _persist_manifest(manifest_path, manifest, condition_count=condition_count)
-        raise error
 
-    if manifest.get("status") == "failed" or any(
-        isinstance(item, Mapping) and item.get("status") == "failed"
-        for item in manifest["attempts"]
-    ):
-        recovery = _call_mute(mute_boundary, serial, "resume_recovery")
-        manifest["recovery_mute_attempts"].append(recovery)
-        if selector_control is not None:
-            recovery_selector = _call_selector(
-                selector_boundary,
-                selector_control,
-                "resume_cleanup_all_off",
-            )
-            manifest["recovery_selector_cleanup_attempts"].append(recovery_selector)
-        error = LeakageLadderError("failed ladder runs cannot retry; prepare a new run ID")
-        manifest["error"] = _error_document(error)
-        _persist_manifest(manifest_path, manifest, condition_count=condition_count)
-        raise error
-
-    stale = [
-        item
-        for item in manifest["attempts"]
-        if isinstance(item, dict) and item.get("status") == "running"
-    ]
-    pending_error: BaseException | None = None
-    manifest["confirmations"].append(dict(confirmation))
-    manifest["status"] = "running"
-    _persist_manifest(manifest_path, manifest, condition_count=condition_count)
     try:
-        if stale:
-            recovery = _call_mute(mute_boundary, serial, "resume_recovery")
-            manifest["recovery_mute_attempts"].append(recovery)
-            stale_recovery_selector = (
-                _call_selector(
-                    selector_boundary,
-                    selector_control,
-                    "resume_cleanup_all_off",
-                )
-                if selector_control is not None
-                else None
-            )
-            if stale_recovery_selector is not None:
-                manifest["recovery_selector_cleanup_attempts"].append(stale_recovery_selector)
-            for stale_attempt in stale:
-                stale_attempt["status"] = "failed"
-                stale_attempt["outcome"] = "stale_process_failed"
-                stale_attempt["failure_kind"] = "stale_process"
-                stale_attempt["recovery_mute"] = recovery
-                stale_attempt["recovery_selector_cleanup"] = stale_recovery_selector
-                stale_attempt["completed_at"] = _now()
-            _persist_manifest(manifest_path, manifest, condition_count=condition_count)
-            raise LeakageLadderError("stale live attempt recovered; use a new run ID")
-
-        preflight = _call_mute(mute_boundary, serial, "preflight")
-        manifest["preflight_mute_attempts"].append(preflight)
-        _persist_manifest(manifest_path, manifest, condition_count=condition_count)
-        if not _mute_passed(preflight, serial=serial, purpose="preflight"):
-            raise LeakageLadderError("exact preflight mute attestation failed")
-
         planned_conditions = {
             str(condition["condition_id"]): condition
             for condition in conditions
@@ -4712,13 +6430,21 @@ def _execute_stage_under_selector_lock(
         manifest["status"] = "failed"
     finally:
         final_mute = _call_mute(mute_boundary, serial, "final")
+        admitted_control: Mapping[str, Any] | None = (
+            selector_control
+            if isinstance(selector_control, Mapping)
+            and _selector_image_admission_passed(
+                manifest.get("target_image_preflight"), selector_control=selector_control
+            )
+            else None
+        )
         final_selector = (
             _call_selector(
                 selector_boundary,
-                selector_control,
+                admitted_control,
                 "final_cleanup_all_off",
             )
-            if selector_control is not None
+            if admitted_control is not None
             else None
         )
         manifest["final_mute_attempts"].append(final_mute)
@@ -4726,9 +6452,9 @@ def _execute_stage_under_selector_lock(
         if final_selector is not None:
             manifest["final_selector_cleanup_attempts"].append(final_selector)
         manifest["final_selector_cleanup"] = final_selector
-        final_selector_passed = selector_control is None or _selector_passed(
+        final_selector_passed = admitted_control is None or _selector_passed(
             final_selector,
-            selector_control=selector_control,
+            selector_control=admitted_control,
             purpose="final_cleanup_all_off",
         )
         if (
@@ -4761,6 +6487,7 @@ def _execute_stage(
     mute_boundary: MuteBoundary = _strict_mute,
     identity_boundary: IdentityBoundary = _live_identity_boundary,
     selector_boundary: SelectorBoundary = _live_selector_all_off_boundary,
+    selector_image_boundary: SelectorImageBoundary = _live_selector_image_admission,
     runtime_attestation_boundary: RuntimeAttestationBoundary = (_native_libiio_runtime_attestation),
     fixture_evidence_boundary: FixtureEvidenceBoundary = _live_fixture_evidence_boundary,
     selector_lock_root: Path | None = None,
@@ -4772,12 +6499,17 @@ def _execute_stage(
     selector_control = contract.get("selector_control")
     serial = str(contract.get("configuration", {}).get("serial", ""))
     condition_count = len(contract.get("conditions", []))
+    _assert_local_rpi_storage(manifest_path.parent, plan_path, capture_root)
     lock = (
         _board_lock(selector_lock_root or _selector_lock_root())
         if stage in SELECTOR_CONNECTED_STAGES
         else nullcontext()
     )
     with lock:
+        execution_tombstone = _burn_execution_run_id(manifest_path, manifest)
+        manifest["execution_tombstone"] = execution_tombstone
+        manifest["status"] = "running"
+        _persist_manifest(manifest_path, manifest, condition_count=condition_count)
         final_attempt_count = len(manifest.get("final_mute_attempts", []))
         try:
             _execute_stage_under_selector_lock(
@@ -4791,20 +6523,54 @@ def _execute_stage(
                 mute_boundary=mute_boundary,
                 identity_boundary=identity_boundary,
                 selector_boundary=selector_boundary,
+                selector_image_boundary=selector_image_boundary,
                 runtime_attestation_boundary=runtime_attestation_boundary,
                 fixture_evidence_boundary=fixture_evidence_boundary,
             )
+            try:
+                x_capture = _emit_x_intervention_capture_manifest(
+                    manifest=manifest,
+                    contract=contract,
+                    plan_path=plan_path,
+                    capture_root=capture_root,
+                    output_path=manifest_path.parent / X_CAPTURE_MANIFEST_FILENAME,
+                )
+                if x_capture is not None:
+                    manifest["x_intervention_capture_manifest"] = x_capture
+                    _persist_manifest(
+                        manifest_path,
+                        manifest,
+                        condition_count=condition_count,
+                    )
+            except BaseException as x_error:
+                manifest["status"] = "failed"
+                manifest["error"] = _error_document(x_error)
+                _persist_manifest(
+                    manifest_path,
+                    manifest,
+                    condition_count=condition_count,
+                )
+                raise
         except BaseException as error:
             if len(manifest.get("final_mute_attempts", [])) == final_attempt_count:
                 cleanup_error: BaseException = error
                 final_mute = _call_mute(mute_boundary, serial, "final")
+                admitted_control: Mapping[str, Any] | None = (
+                    selector_control
+                    if isinstance(selector_control, Mapping)
+                    and _selector_image_admission_passed(
+                        manifest.get("target_image_preflight"),
+                        selector_control=selector_control,
+                    )
+                    else None
+                )
                 final_selector = (
                     _call_selector(
                         selector_boundary,
-                        selector_control,
+                        admitted_control,
                         "exception_cleanup_all_off",
                     )
-                    if isinstance(selector_control, Mapping)
+                    if admitted_control is not None
                     else None
                 )
                 manifest["final_mute_attempts"].append(final_mute)
@@ -4812,11 +6578,9 @@ def _execute_stage(
                 if final_selector is not None:
                     manifest["final_selector_cleanup_attempts"].append(final_selector)
                 manifest["final_selector_cleanup"] = final_selector
-                selector_cleanup_passed = not isinstance(
-                    selector_control, Mapping
-                ) or _selector_passed(
+                selector_cleanup_passed = admitted_control is None or _selector_passed(
                     final_selector,
-                    selector_control=selector_control,
+                    selector_control=admitted_control,
                     purpose="exception_cleanup_all_off",
                 )
                 if (
@@ -4863,6 +6627,21 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--bench-manifest", type=Path)
     parser.add_argument("--openocd-config", type=Path)
     parser.add_argument("--profile", type=Path)
+    parser.add_argument("--selector-flash-evidence", type=Path)
+    parser.add_argument("--selector-flash-evidence-sha256")
+    parser.add_argument("--selector-flash-run-id")
+    parser.add_argument(
+        "--x-mode",
+        action="store_true",
+        help="produce one prebound T8 intervention-comparison X run",
+    )
+    parser.add_argument("--x-intervention-contract-id")
+    parser.add_argument("--x-run-role", choices=X_RUN_ROLES)
+    parser.add_argument("--x-implicated-boundary-stage", choices=STAGES)
+    parser.add_argument("--x-installed-fixture-manifest", type=Path)
+    parser.add_argument("--x-capture-fixture-manifest", type=Path)
+    parser.add_argument("--x-acquisition-index", type=int)
+    parser.add_argument("--x-freshness-epoch-id")
     parser.add_argument(
         "--fixture-manifest",
         type=Path,
@@ -4888,6 +6667,35 @@ def _install_signal_handlers() -> None:
         signal.signal(selected, _signal_handler)
 
 
+def _validate_x_cli_mode(args: argparse.Namespace) -> None:
+    x_arguments = {
+        "--x-intervention-contract-id": args.x_intervention_contract_id,
+        "--x-run-role": args.x_run_role,
+        "--x-implicated-boundary-stage": args.x_implicated_boundary_stage,
+        "--x-installed-fixture-manifest": args.x_installed_fixture_manifest,
+        "--x-capture-fixture-manifest": args.x_capture_fixture_manifest,
+        "--x-acquisition-index": args.x_acquisition_index,
+        "--x-freshness-epoch-id": args.x_freshness_epoch_id,
+    }
+    if args.x_mode:
+        missing_x = [name for name, value in x_arguments.items() if value is None]
+        if missing_x:
+            raise LeakageLadderError("--x-mode requires " + ", ".join(missing_x))
+        if any(
+            value is None
+            for value in (
+                args.selector_flash_evidence,
+                args.selector_flash_evidence_sha256,
+                args.selector_flash_run_id,
+            )
+        ):
+            raise LeakageLadderError(
+                "--x-mode requires the same sealed selector flash path/hash/run tuple"
+            )
+    elif any(value is not None for value in x_arguments.values()):
+        raise LeakageLadderError("X prebinding arguments are valid only with --x-mode")
+
+
 def main() -> int:
     args = _parser().parse_args()
     _install_signal_handlers()
@@ -4900,6 +6708,23 @@ def main() -> int:
             raise LeakageLadderError(
                 "every general-ladder stage requires --fixture-manifest and --setup-attestation"
             )
+        _validate_x_cli_mode(args)
+        connected = args.stage in SELECTOR_CONNECTED_STAGES
+        if (
+            not connected
+            and not args.x_mode
+            and any(
+                value is not None
+                for value in (
+                    args.selector_flash_evidence,
+                    args.selector_flash_evidence_sha256,
+                    args.selector_flash_run_id,
+                )
+            )
+        ):
+            raise LeakageLadderError(
+                "selector-disconnected non-X stage must not include selector flash evidence"
+            )
         fixture_evidence = _fixture_evidence_from_manifests(
             args.fixture_manifest,
             args.setup_attestation,
@@ -4907,9 +6732,14 @@ def main() -> int:
             board_id=args.board_id,
             serial=args.serial,
             stage=args.stage,
+            selector_flash_evidence_path=(args.selector_flash_evidence if connected else None),
+            selector_flash_evidence_sha256=(
+                args.selector_flash_evidence_sha256 if connected else None
+            ),
+            selector_flash_run_id=(args.selector_flash_run_id if connected else None),
         )
         selector_control = None
-        if args.stage in SELECTOR_CONNECTED_STAGES:
+        if connected:
             if not all((args.bench_manifest, args.openocd_config, args.profile)):
                 raise LeakageLadderError(
                     "selector-connected stage requires --bench-manifest, --openocd-config, "
@@ -4919,10 +6749,50 @@ def main() -> int:
                 bench_manifest_path=args.bench_manifest,
                 openocd_config_path=args.openocd_config,
                 profile_path=args.profile,
+                selector_flash_evidence=fixture_evidence["selector_flash_evidence"],
             )
         elif any((args.bench_manifest, args.openocd_config, args.profile)):
             raise LeakageLadderError(
                 "selector-disconnected stage must not include selector-control files"
+            )
+        x_prebinding = None
+        x_capture_context = None
+        if args.x_mode:
+            assert args.selector_flash_evidence is not None
+            assert args.selector_flash_evidence_sha256 is not None
+            assert args.selector_flash_run_id is not None
+            flash = (
+                fixture_evidence["selector_flash_evidence"]
+                if connected
+                else _selector_flash_evidence_binding_from_file(
+                    args.selector_flash_evidence,
+                    expected_sha256=args.selector_flash_evidence_sha256,
+                    campaign_id=str(fixture_evidence["campaign_id"]),
+                    flash_run_id=args.selector_flash_run_id,
+                    board_id=args.board_id,
+                )
+            )
+            assert isinstance(flash, Mapping)
+            assert args.x_intervention_contract_id is not None
+            assert args.x_run_role is not None
+            assert args.x_implicated_boundary_stage is not None
+            assert args.x_installed_fixture_manifest is not None
+            assert args.x_capture_fixture_manifest is not None
+            assert args.x_acquisition_index is not None
+            assert args.x_freshness_epoch_id is not None
+            x_prebinding, x_capture_context = _x_intervention_contract_from_manifests(
+                contract_id=args.x_intervention_contract_id,
+                run_role=args.x_run_role,
+                implicated_boundary_stage=args.x_implicated_boundary_stage,
+                installed_fixture_manifest_path=args.x_installed_fixture_manifest,
+                capture_fixture_manifest_path=args.x_capture_fixture_manifest,
+                acquisition_index=args.x_acquisition_index,
+                freshness_epoch_id=args.x_freshness_epoch_id,
+                stage=args.stage,
+                board_id=args.board_id,
+                serial=args.serial,
+                fixture_evidence=fixture_evidence,
+                selector_flash_evidence=flash,
             )
         contract = _build_plan_contract(
             run_id=args.run_id,
@@ -4935,6 +6805,8 @@ def main() -> int:
             selector_control=selector_control,
             native_libiio_runtime_attestation=native_runtime_attestation,
             fixture_evidence=fixture_evidence,
+            x_intervention_prebinding=x_prebinding,
+            x_intervention_capture_context=x_capture_context,
         )
     except (LeakageLadderError, ValueError, subprocess.CalledProcessError) as error:
         raise SystemExit(str(error)) from error
@@ -4943,6 +6815,11 @@ def main() -> int:
     run_root = board_root / "5g8-leakage-ladder" / str(contract["run_id"])
     plan_path = run_root / PLAN_FILENAME
     manifest_path = run_root / MANIFEST_FILENAME
+    _assert_local_rpi_storage(
+        board_root,
+        run_root,
+        Path(str(contract["storage"]["run_capture_root"])),
+    )
     with _board_lock(board_root):
         if args.plan_only:
             try:
@@ -4969,6 +6846,12 @@ def main() -> int:
                         "plan_file_sha256": sha256_path(plan_path),
                         "manifest": str(manifest_path),
                         "condition_count": len(contract["conditions"]),
+                        "x_mode": "x_intervention_prebinding" in contract,
+                        "x_run_role": (
+                            contract.get("x_intervention_prebinding", {}).get("run_role")
+                            if isinstance(contract.get("x_intervention_prebinding"), Mapping)
+                            else None
+                        ),
                         "selector_calibration_claim": False,
                     },
                     sort_keys=True,
@@ -5025,6 +6908,9 @@ def main() -> int:
                     "stage": contract["topology_stage"],
                     "status": manifest["status"],
                     "manifest": str(manifest_path),
+                    "x_intervention_capture_manifest": (
+                        manifest.get("x_intervention_capture_manifest")
+                    ),
                     "summary": manifest["summary"],
                     "selector_calibration_claim": False,
                 },

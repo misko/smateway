@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import re
 import sys
 from contextlib import nullcontext
 from pathlib import Path
@@ -72,6 +73,19 @@ def _passing_runtime() -> Any:
     return lambda: _native_attestation()
 
 
+def _selector_flash_binding() -> dict[str, Any]:
+    return {
+        "schema": 1,
+        "binding_kind": "sealed_selector_flash_evidence_v1",
+        "path": "/synthetic/selector-flash-evidence.json",
+        "sha256": "f" * 64,
+        "campaign_id": "campaign-a",
+        "run_id": "bench-flash-r01",
+        "board_id": "board-a",
+        "image_role": "bench",
+    }
+
+
 def _selector_control() -> dict[str, Any]:
     states = [
         {"name": runner.ALL_OFF_STATE, "gpio_code": 8},
@@ -106,6 +120,17 @@ def _selector_control() -> dict[str, Any]:
             "lease_ms": 0,
             "wait_until_applied": True,
             "readback_required": True,
+        },
+        "selector_flash_evidence": _selector_flash_binding(),
+        "target_image_admission_contract": {
+            "schema": 1,
+            "flash_base_address": runner.leakage.FLASH_BASE_ADDRESS,
+            "firmware_bin_path": "/synthetic/pluto_bench.bin",
+            "firmware_bin_sha256": "a" * 64,
+            "firmware_bin_size_bytes": 1024,
+            "board_id": "board-a",
+            "selector_flash_evidence_sha256": "f" * 64,
+            "full_bin_extent_and_uid_required_before_mailbox": True,
         },
         "one_hot_static_states": states,
         "selected_state_lease_ms": runner.SELECTED_STATE_LEASE_MS,
@@ -184,6 +209,7 @@ def _fixture(evidence_sha: str = "e" * 64) -> dict[str, Any]:
             "path": "/synthetic/setup-evidence.json",
             "file_sha256": evidence_sha,
         },
+        "selector_flash_evidence": _selector_flash_binding(),
         "attribution_repeats_without_cable_movement_required": True,
     }
 
@@ -407,18 +433,26 @@ def test_frozen_selected_state_lease_countdown_is_rejected() -> None:
 
 def _passing_target_image() -> Any:
     def target(control: dict[str, Any]) -> dict[str, Any]:
-        bench_bin = control["bench_profile_binding"]["bench_bin"]
+        admission = control["target_image_admission_contract"]
+        flash = control["selector_flash_evidence"]
         return {
             "schema": 1,
-            "evidence_kind": ("exact_target_flash_readback_against_elf_bound_bench_bin"),
+            "evidence_kind": "contemporaneous_full_bin_extent_and_uid_admission_v1",
             "status": "passed",
-            "flash_base_address": bench_bin["flash_base_address"],
-            "byte_count": bench_bin["size_bytes"],
-            "expected_bin_sha256": bench_bin["file_sha256"],
-            "observed_target_sha256": bench_bin["file_sha256"],
-            "exact_byte_match": True,
+            "selector_flash_evidence_sha256": flash["sha256"],
+            "flash_base_address": admission["flash_base_address"],
+            "byte_count": admission["firmware_bin_size_bytes"],
+            "expected_bin_sha256": admission["firmware_bin_sha256"],
+            "observed_target_sha256": admission["firmware_bin_sha256"],
+            "expected_board_id": flash["board_id"],
+            "observed_uid": flash["board_id"].removeprefix("stm32c011-"),
+            "exact_bin_and_uid_match": True,
             "reviewed_image_started_only_after_exact_match": True,
+            "target_may_have_started_before_failure_halt": False,
+            "failure_halt_required": False,
+            "failure_halt": None,
             "target_kept_halted_on_failure": False,
+            "mailbox_access_performed": False,
             "error": None,
         }
 
@@ -437,6 +471,7 @@ def test_target_image_mismatch_never_releases_unknown_flash(
     control = _selector_control()
     digest = hashlib.sha256(expected).hexdigest()
     control["openocd_config"]["path"] = str(config_path)
+    control["openocd_config"]["file_sha256"] = runner.sha256_path(config_path)
     control["bench_profile_binding"]["bench_bin"].update(
         {
             "path": str(expected_path),
@@ -445,23 +480,39 @@ def test_target_image_mismatch_never_releases_unknown_flash(
         }
     )
     control["bench_profile_binding"]["reproducible_source_build"]["rebuilt_bin_sha256"] = digest
+    uid = "00112233445566778899aabb"
+    control["selector_flash_evidence"]["board_id"] = f"stm32c011-{uid}"
+    control["target_image_admission_contract"].update(
+        {
+            "firmware_bin_path": str(expected_path),
+            "firmware_bin_sha256": digest,
+            "firmware_bin_size_bytes": len(expected),
+            "board_id": f"stm32c011-{uid}",
+        }
+    )
     commands: list[str] = []
 
     def openocd(command: Any, **_kwargs: Any) -> Any:
         text = str(command[-1])
         commands.append(text)
         if "dump_image" in text:
-            target = Path(text.split("dump_image ", 1)[1].split(" ", 1)[0])
-            target.write_bytes(b"X" * len(expected))
+            targets = re.findall(r"dump_image \{([^}]+)\}", text)
+            Path(targets[0]).write_bytes(b"X" * len(expected))
+            Path(targets[1]).write_bytes(bytes.fromhex(uid))
         return SimpleNamespace(returncode=0, stdout="", stderr="")
 
     monkeypatch.setattr(runner, "_verify_one_hot_artifacts", lambda _control: None)
+    monkeypatch.setattr(
+        runner.leakage,
+        "_cross_bind_selector_control_to_sealed_image",
+        lambda _control: {},
+    )
     monkeypatch.setattr(runner.subprocess, "run", openocd)
 
     result = runner._live_target_image_attestation(control)
 
     assert result["status"] == "failed"
-    assert result["exact_byte_match"] is False
+    assert result["exact_bin_and_uid_match"] is False
     assert result["target_kept_halted_on_failure"] is True
     assert not any("reset run" in command for command in commands)
     assert commands[-1] == "init; halt; shutdown"
@@ -591,7 +642,7 @@ def _capture_boundary(
     return capture
 
 
-def test_plan_is_one_physical_row_with_three_independent_attribution_repeats() -> None:
+def test_plan_is_one_physical_row_with_five_independent_attribution_repeats() -> None:
     contract = _contract("ANT3")
     conditions = contract["conditions"]
 
@@ -618,7 +669,7 @@ def test_plan_is_one_physical_row_with_three_independent_attribution_repeats() -
     assert contract["interpretation"]["one_run_represents_exactly_one_driven_input"] is True
     assert contract["interpretation"]["cross_gain_observations_are_not_repeatability_claims"]
     assert contract["safety"]["selector_mailbox_and_gpio_latch_readback_before_every_capture"]
-    assert len(conditions) == 72
+    assert len(conditions) == 90
     assert [item["selector_state_name"] for item in conditions[:9]] == list(
         runner.ONE_HOT_STATE_ORDER
     )
@@ -628,9 +679,9 @@ def test_plan_is_one_physical_row_with_three_independent_attribution_repeats() -
         for item in conditions
         if item["tx_hardware_gain_db"] == runner.ATTRIBUTION_TX_HARDWARE_GAIN_DB
     ]
-    assert len(attribution) == 27
-    assert {item["repeat_index"] for item in attribution} == {0, 1, 2}
-    assert all(item["repeat_count_at_gain"] == 3 for item in attribution)
+    assert len(attribution) == 45
+    assert {item["repeat_index"] for item in attribution} == {0, 1, 2, 3, 4}
+    assert all(item["repeat_count_at_gain"] == 5 for item in attribution)
     assert all("attribution_repeat_index" not in item for item in conditions)
     assert all("-attribution-repeat" not in item["condition_id"] for item in conditions)
     assert all(item["driven_input"] == "ANT3" for item in conditions)
@@ -648,6 +699,38 @@ def test_plan_is_one_physical_row_with_three_independent_attribution_repeats() -
     serialized = json.dumps(contract)
     assert "full_conducted_fixture" not in serialized
     assert "powered_selector_all_inputs_terminated" not in serialized
+
+
+@pytest.mark.parametrize("repeat_count", [3, 4, 6])
+def test_campaign_repeat_lattice_rejects_nonfive_counts(repeat_count: int) -> None:
+    conditions = [dict(item) for item in _contract("ANT3")["conditions"]]
+    if repeat_count < runner.ATTRIBUTION_REPEAT_COUNT:
+        conditions = [
+            item
+            for item in conditions
+            if not (item["attribution_gain_condition"] and item["repeat_index"] >= repeat_count)
+        ]
+    else:
+        for item in conditions:
+            if item["attribution_gain_condition"]:
+                item["repeat_count_at_gain"] = repeat_count
+        additions: list[dict[str, Any]] = []
+        for state_name in runner.ONE_HOT_STATE_ORDER:
+            template = next(
+                item
+                for item in conditions
+                if item["attribution_gain_condition"]
+                and item["selector_state_name"] == state_name
+                and item["repeat_index"] == 0
+            )
+            addition = dict(template)
+            addition["repeat_index"] = repeat_count - 1
+            addition["condition_id"] = f"{template['condition_id']}-extra"
+            additions.append(addition)
+        conditions.extend(additions)
+
+    with pytest.raises(ValueError, match="requires exactly 90 conditions"):
+        runner._validate_campaign_repeat_lattice(conditions)
 
 
 def test_plan_rejects_noncanonical_state_map() -> None:
@@ -764,6 +847,31 @@ def test_full_main_plan_only_never_touches_hardware(
         _dependency_attestation,
     )
     monkeypatch.setattr(runner, "attest_runtime", _passing_runtime())
+    monkeypatch.setattr(
+        runner.leakage,
+        "_selector_flash_evidence_binding_from_file",
+        lambda *_args, **_kwargs: _selector_flash_binding(),
+    )
+    monkeypatch.setattr(
+        runner.leakage,
+        "_cross_bind_selector_control_to_sealed_image",
+        lambda _control: {},
+    )
+    monkeypatch.setattr(
+        runner.leakage,
+        "_selector_frozen_files",
+        lambda _sealed: {
+            "firmware_bin": {
+                "path": str(SCRIPT.parents[1] / "build/STM32C011F4P6/bench/pluto_bench.bin"),
+                "sha256": runner.sha256_path(
+                    SCRIPT.parents[1] / "build/STM32C011F4P6/bench/pluto_bench.bin"
+                ),
+                "size_bytes": (SCRIPT.parents[1] / "build/STM32C011F4P6/bench/pluto_bench.bin")
+                .stat()
+                .st_size,
+            }
+        },
+    )
     monkeypatch.setattr(runner.leakage, "_board_root", lambda _board: tmp_path / "board")
     monkeypatch.setattr(runner.leakage, "_board_lock", lambda _root: nullcontext())
     monkeypatch.setattr(runner.leakage, "_live_capture_boundary", forbidden("capture"))
@@ -794,6 +902,14 @@ def test_full_main_plan_only_never_touches_hardware(
             str(openocd_config),
             "--profile",
             str(SCRIPT.parents[1] / "profiles/fast20-v1/control_profile.json"),
+            "--campaign-id",
+            "campaign-a",
+            "--selector-flash-evidence",
+            str(evidence),
+            "--selector-flash-evidence-sha256",
+            "f" * 64,
+            "--selector-flash-run-id",
+            "bench-flash-r01",
             "--feed-arm-id",
             "feed-arm-a",
             "--feed-cable-id",
@@ -813,7 +929,7 @@ def test_full_main_plan_only_never_touches_hardware(
     output = json.loads(capsys.readouterr().out)
     assert output["rf_activity"] is False
     assert output["driven_input"] == "ANT3"
-    assert output["condition_count"] == 72
+    assert output["condition_count"] == 90
     assert hardware_calls == []
 
 
@@ -1280,6 +1396,30 @@ def test_condition_capture_attests_selected_hold_and_all_off_cleanup(
     assert not Path(result["artifact_path"]).exists()
 
 
+def test_condition_capture_rejects_reused_abi2_stream(tmp_path: Path) -> None:
+    contract = _contract()
+    condition = next(
+        item
+        for item in contract["conditions"]
+        if item["selector_state_name"] == "ANT3" and item["tx_hardware_gain_db"] == -20.0
+    )
+
+    with pytest.raises(
+        runner.leakage.ConditionCaptureFailure,
+        match="reused an earlier stream ID",
+    ):
+        runner._capture_condition(
+            condition,
+            contract=contract,
+            plan_evidence=_plan_evidence(tmp_path / "plan.json"),
+            capture_root=tmp_path / "captures",
+            forbidden_stream_ids={12345},
+            capture_boundary=_capture_boundary(_blocks(stream_id=12345)),
+            mute_boundary=_passing_mute(),
+            selector_boundary=_selector_boundary(),
+        )
+
+
 def test_resume_revalidates_claim_safety_rf_and_attempt_state(
     tmp_path: Path,
 ) -> None:
@@ -1547,8 +1687,11 @@ def test_stale_usb_uri_blocks_mute_selector_and_capture_boundaries(tmp_path: Pat
         )
 
     assert capture_calls == []
-    assert mute_calls == ["identity_preflight_recovery"]
-    assert selector_calls == [(runner.ALL_OFF_STATE, "identity_failure_cleanup_all_off")]
+    assert mute_calls == ["preflight", "final"]
+    assert selector_calls == [
+        (runner.ALL_OFF_STATE, "preflight_cleanup_all_off"),
+        (runner.ALL_OFF_STATE, "final_cleanup_all_off"),
+    ]
     assert manifest["status"] == "failed"
 
 
@@ -1591,8 +1734,8 @@ def test_preflight_mute_failure_never_captures_and_stage_finally_forces_all_off(
 
     assert capture_calls == []
     assert mute_calls == ["preflight", "final"]
-    assert selector_calls == [(runner.ALL_OFF_STATE, "final_cleanup_all_off")]
-    assert manifest["final_selector_cleanup"]["status"] == "passed"
+    assert selector_calls == []
+    assert manifest["final_selector_cleanup"] is None
     assert manifest["status"] == "failed"
 
 
@@ -1626,12 +1769,9 @@ def test_failed_invocation_attempts_pluto_mute_and_selector_all_off_recovery(
             fixture_evidence_boundary=lambda _fixture: None,
         )
 
-    assert mute_calls == ["resume_recovery", "final"]
-    assert selector_calls == [
-        (runner.ALL_OFF_STATE, "resume_cleanup_all_off"),
-        (runner.ALL_OFF_STATE, "final_cleanup_all_off"),
-    ]
-    assert manifest["recovery_selector_cleanup_attempts"][0]["status"] == "passed"
+    assert mute_calls == ["final"]
+    assert selector_calls == []
+    assert manifest["recovery_selector_cleanup_attempts"] == []
 
 
 def test_resume_rejects_completed_attempt_without_exact_selector_attestations(
@@ -1966,6 +2106,10 @@ def test_orphan_failure_occurs_after_preflight_safe_state_and_gets_final_cleanup
         calls.append(f"selector:{purpose}")
         return selector(control, state_name, state_code, purpose)
 
+    def target_image(control: dict[str, Any]) -> dict[str, Any]:
+        calls.append("target-image")
+        return _passing_target_image()(control)
+
     with pytest.raises(runner.OneHotLadderError, match="different immutable plan"):
         runner._execute_stage(
             manifest,
@@ -1978,7 +2122,7 @@ def test_orphan_failure_occurs_after_preflight_safe_state_and_gets_final_cleanup
             mute_boundary=mute,
             identity_boundary=identity,
             selector_boundary=select,
-            target_image_boundary=lambda _control: calls.append("target-image"),
+            target_image_boundary=target_image,
             runtime_attestation_boundary=runtime,
             fixture_evidence_boundary=fixture,
         )
@@ -1986,9 +2130,10 @@ def test_orphan_failure_occurs_after_preflight_safe_state_and_gets_final_cleanup
     assert calls == [
         "runtime",
         "fixture",
-        "identity",
         "mute:preflight",
+        "target-image",
         "selector:preflight_cleanup_all_off",
+        "identity",
         "mute:final",
         "selector:final_cleanup_all_off",
     ]
@@ -2021,11 +2166,13 @@ def test_selector_preflight_failure_blocks_orphan_scan_and_capture(tmp_path: Pat
             mute_boundary=_passing_mute(calls),
             identity_boundary=_passing_identity(),
             selector_boundary=_selector_boundary(fail_purpose="preflight_cleanup_all_off"),
-            target_image_boundary=lambda _control: calls.append("target-image"),
+            target_image_boundary=lambda control: (
+                calls.append("target-image") or _passing_target_image()(control)
+            ),
             runtime_attestation_boundary=_passing_runtime(),
             fixture_evidence_boundary=lambda _fixture: None,
         )
 
-    assert calls == ["preflight", "final"]
+    assert calls == ["preflight", "target-image", "final"]
     assert orphan.is_dir()
     assert not (capture_root / ".failed").exists()

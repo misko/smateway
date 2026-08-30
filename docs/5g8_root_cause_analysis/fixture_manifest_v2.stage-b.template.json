@@ -3,18 +3,13 @@
   "fixture_kind": "5g8_general_topology_stage_fixture",
   "campaign_id": "REPLACE_CAMPAIGN_ID",
   "comparable_fixture_group_id": "REPLACE_COMPARABLE_FIXTURE_GROUP_ID",
-  "stage": "direct_rx2_termination",
+  "stage": "rx2_cable_terminated",
   "board_id": "REPLACE_BOARD_ID",
   "shared_fixture": {
     "pluto": {
       "id": "REPLACE_PLUTO_FIXTURE_ID",
       "serial": "REPLACE_EXACT_PLUTO_SERIAL",
-      "port_map": {
-        "tx1": "TX1",
-        "tx2": "TX2",
-        "rx1": "RX1",
-        "rx2": "RX2"
-      }
+      "port_map": {"tx1": "TX1", "tx2": "TX2", "rx1": "RX1", "rx2": "RX2"}
     },
     "reference_planes": {
       "tx1": "REPLACE_TX1_SMA_REFERENCE_PLANE_ID",
@@ -26,11 +21,7 @@
       "rated_min_frequency_hz": "REPLACE_OPERATOR_OBSERVED_RATED_MIN_FREQUENCY_HZ",
       "rated_max_frequency_hz": "REPLACE_OPERATOR_OBSERVED_RATED_MAX_FREQUENCY_HZ",
       "maximum_input_power_dbm": "REPLACE_OPERATOR_OBSERVED_MAXIMUM_INPUT_POWER_DBM",
-      "port_map": {
-        "input": "IN",
-        "rx1_branch": "OUT1",
-        "stimulus_branch": "OUT2"
-      },
+      "port_map": {"input": "IN", "rx1_branch": "OUT1", "stimulus_branch": "OUT2"},
       "characterization": {
         "status": "uncharacterized",
         "evidence_path": null,
@@ -44,10 +35,7 @@
       "rated_min_frequency_hz": "REPLACE_OPERATOR_OBSERVED_RATED_MIN_FREQUENCY_HZ",
       "rated_max_frequency_hz": "REPLACE_OPERATOR_OBSERVED_RATED_MAX_FREQUENCY_HZ",
       "maximum_input_power_dbm": "REPLACE_OPERATOR_OBSERVED_MAXIMUM_INPUT_POWER_DBM",
-      "port_map": {
-        "input": "IN",
-        "output": "OUT"
-      },
+      "port_map": {"input": "IN", "output": "OUT"},
       "characterization": {
         "status": "uncharacterized",
         "evidence_path": null,
@@ -90,11 +78,8 @@
           "rated_max_frequency_hz": "REPLACE_OPERATOR_OBSERVED_RATED_MAX_FREQUENCY_HZ",
           "maximum_input_power_dbm": "REPLACE_OPERATOR_OBSERVED_MAXIMUM_INPUT_POWER_DBM",
           "characterization": {
-            "status": "uncharacterized",
-            "evidence_path": null,
-            "evidence_sha256": null,
-            "s_parameter_sha256": null,
-            "return_loss_db_at_5g8": null
+            "status": "uncharacterized", "evidence_path": null, "evidence_sha256": null,
+            "s_parameter_sha256": null, "return_loss_db_at_5g8": null
           }
         }
       },
@@ -109,11 +94,8 @@
           "rated_max_frequency_hz": "REPLACE_OPERATOR_OBSERVED_RATED_MAX_FREQUENCY_HZ",
           "maximum_input_power_dbm": "REPLACE_OPERATOR_OBSERVED_MAXIMUM_INPUT_POWER_DBM",
           "characterization": {
-            "status": "uncharacterized",
-            "evidence_path": null,
-            "evidence_sha256": null,
-            "s_parameter_sha256": null,
-            "return_loss_db_at_5g8": null
+            "status": "uncharacterized", "evidence_path": null, "evidence_sha256": null,
+            "s_parameter_sha256": null, "return_loss_db_at_5g8": null
           }
         }
       },
@@ -128,11 +110,8 @@
           "rated_max_frequency_hz": "REPLACE_OPERATOR_OBSERVED_RATED_MAX_FREQUENCY_HZ",
           "maximum_input_power_dbm": "REPLACE_OPERATOR_OBSERVED_MAXIMUM_INPUT_POWER_DBM",
           "characterization": {
-            "status": "uncharacterized",
-            "evidence_path": null,
-            "evidence_sha256": null,
-            "s_parameter_sha256": null,
-            "return_loss_db_at_5g8": null
+            "status": "uncharacterized", "evidence_path": null, "evidence_sha256": null,
+            "s_parameter_sha256": null, "return_loss_db_at_5g8": null
           }
         }
       },
@@ -147,11 +126,8 @@
           "rated_max_frequency_hz": "REPLACE_OPERATOR_OBSERVED_RATED_MAX_FREQUENCY_HZ",
           "maximum_input_power_dbm": "REPLACE_OPERATOR_OBSERVED_MAXIMUM_INPUT_POWER_DBM",
           "characterization": {
-            "status": "uncharacterized",
-            "evidence_path": null,
-            "evidence_sha256": null,
-            "s_parameter_sha256": null,
-            "return_loss_db_at_5g8": null
+            "status": "uncharacterized", "evidence_path": null, "evidence_sha256": null,
+            "s_parameter_sha256": null, "return_loss_db_at_5g8": null
           }
         }
       }
@@ -159,7 +135,7 @@
   },
   "stage_delta": {
     "schema": 1,
-    "delta_id": "REPLACE_STAGE_A_DELTA_ID",
+    "delta_id": "REPLACE_STAGE_B_DELTA_ID",
     "selector_rf_state": "rf_disconnected",
     "selector_power_state": "bench_power_off",
     "selector_control_harness_state": "disconnected",
@@ -171,11 +147,8 @@
         "maximum_input_power_dbm": "REPLACE_OPERATOR_OBSERVED_MAXIMUM_INPUT_POWER_DBM",
         "port_map": {"load": "LOAD"},
         "characterization": {
-          "status": "uncharacterized",
-          "evidence_path": null,
-          "evidence_sha256": null,
-          "s_parameter_sha256": null,
-          "return_loss_db_at_5g8": null
+          "status": "uncharacterized", "evidence_path": null, "evidence_sha256": null,
+          "s_parameter_sha256": null, "return_loss_db_at_5g8": null
         },
         "impedance_ohm": "REPLACE_OPERATOR_OBSERVED_IMPEDANCE_OHM"
       },
@@ -186,11 +159,8 @@
         "maximum_input_power_dbm": "REPLACE_OPERATOR_OBSERVED_MAXIMUM_INPUT_POWER_DBM",
         "port_map": {"load": "LOAD"},
         "characterization": {
-          "status": "uncharacterized",
-          "evidence_path": null,
-          "evidence_sha256": null,
-          "s_parameter_sha256": null,
-          "return_loss_db_at_5g8": null
+          "status": "uncharacterized", "evidence_path": null, "evidence_sha256": null,
+          "s_parameter_sha256": null, "return_loss_db_at_5g8": null
         },
         "impedance_ohm": "REPLACE_OPERATOR_OBSERVED_IMPEDANCE_OHM"
       }
@@ -207,30 +177,24 @@
           "rated_max_frequency_hz": "REPLACE_OPERATOR_OBSERVED_RATED_MAX_FREQUENCY_HZ",
           "maximum_input_power_dbm": "REPLACE_OPERATOR_OBSERVED_MAXIMUM_INPUT_POWER_DBM",
           "characterization": {
-            "status": "uncharacterized",
-            "evidence_path": null,
-            "evidence_sha256": null,
-            "s_parameter_sha256": null,
-            "return_loss_db_at_5g8": null
+            "status": "uncharacterized", "evidence_path": null, "evidence_sha256": null,
+            "s_parameter_sha256": null, "return_loss_db_at_5g8": null
           }
         }
       },
-      "rx2_to_direct_termination": {
-        "id": "REPLACE_DIRECT_RX2_TERMINATION_CONNECTION_ID",
+      "rx2_to_far_end_termination": {
+        "id": "REPLACE_RX2_COMMON_CABLE_CONNECTION_ID",
         "from": {"component_id": "REPLACE_PLUTO_FIXTURE_ID", "port_id": "RX2"},
         "to": {"component_id": "REPLACE_DIRECT_RX2_TERMINATION_ID", "port_id": "LOAD"},
         "interconnect": {
-          "id": "REPLACE_DIRECT_RX2_TERMINATION_ADAPTER_ID",
-          "kind": "direct_adapter",
+          "id": "REPLACE_RX2_COMMON_CABLE_ID",
+          "kind": "coaxial_cable",
           "rated_min_frequency_hz": "REPLACE_OPERATOR_OBSERVED_RATED_MIN_FREQUENCY_HZ",
           "rated_max_frequency_hz": "REPLACE_OPERATOR_OBSERVED_RATED_MAX_FREQUENCY_HZ",
           "maximum_input_power_dbm": "REPLACE_OPERATOR_OBSERVED_MAXIMUM_INPUT_POWER_DBM",
           "characterization": {
-            "status": "uncharacterized",
-            "evidence_path": null,
-            "evidence_sha256": null,
-            "s_parameter_sha256": null,
-            "return_loss_db_at_5g8": null
+            "status": "uncharacterized", "evidence_path": null, "evidence_sha256": null,
+            "s_parameter_sha256": null, "return_loss_db_at_5g8": null
           }
         }
       }

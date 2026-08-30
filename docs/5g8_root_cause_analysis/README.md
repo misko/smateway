@@ -1,5 +1,9 @@
 # 5.8 GHz calibration: current status and physical root-cause plan
 
+Engineering checkpoint and handoff:
+
+- [`2026-08-30-campaign-tooling-status-and-handoff.md`](2026-08-30-campaign-tooling-status-and-handoff.md) — completed work, verification state, remaining release gates, and exact restart point.
+
 | Field | Value |
 |---|---|
 | Status | **IN PROGRESS — physical attribution pending** |
@@ -20,6 +24,11 @@ The current answer is unambiguous: **exact 5.8 GHz is not qualified for calibrat
 finding**. The measured response is deterministic enough to analyze and subtract in an unchanged
 fixture, but its raw state isolation is too poor and its physical source is not yet localized. No
 5.8-GHz coefficients from this work may be deployed.
+
+Authoritative campaign runners use the separate
+[shared root-owned run-ledger authority](shared_global_ledger_authority.md) to reserve and burn
+run identities outside caller-owned state. The implementation and offline tests are complete;
+host provisioning remains an explicit operator action and has not been performed by this work.
 
 ## Background
 
@@ -78,6 +87,13 @@ upper bound, and searches the clean centers of nominally identical `ALL_OFF` gua
 state-history-dependent term. Physical attribution will use independent repeats, complex
 bootstrap uncertainty, simultaneous amplitude/phase/vector-residual gates, and an independent
 perturbation or VNA confirmation before any causal claim is accepted.
+
+The arm-preserving D2 analyzer currently emits only its recursively admitted `C_i`/`D2_i`
+fragment. Its legacy `--global-h-c`, `--observed-e`, and `--d1-cohort` inputs are explicitly
+disabled: those files are summary cohorts and do not recursively reopen their producer plans,
+manifests, condition records, SigMF metadata, and raw IQ. They cannot support full closure merely
+by declaring their own hashes or authority. Full closure remains fail-closed until an upstream
+adapter performs that complete source-bound admission.
 
 ## Executive conclusion
 
@@ -657,16 +673,22 @@ plan_file_sha256     = 80147616e08bfb6b35c5f22e2e3321e1052ca5710e9648c5d9a83bf61
 manifest             = same directory, manifest.json
 ```
 
-### Stage A — direct Pluto boundary
+### Stage A — frozen RX2 receiver-chain boundary
 
 ```text
 TX1 -> matched 2-way -> attenuator -> RX1
                   |
                   +-> 50 ohm
 
-RX2 -> 50 ohm directly at the Pluto reference plane
+RX2 -> [optional fixed RX2 attenuator] -> 50 ohm at the fixture-facing boundary
 selector RF and RX2 cable disconnected; selector bench power off; control/ground harness removed
 ```
+
+The bracketed attenuator is not assumed. If `shared_fixture.rx2_attenuator.state` is `absent`, the
+load is directly at the Pluto RX2 reference plane and all three optional fields are null. If it is
+`present`, the exact rated asset, attenuation, labelled-port orientation, Pluto-side connection,
+and fixture-facing endpoint are mandatory; the Stage-A load terminates that outer endpoint. The
+same explicit state and graph are preserved through A/B/C/E.
 
 Every A/B/C/E plan requires both `--fixture-manifest PATH` and
 `--setup-attestation PATH`. The manifest uses fixture schema v2 and binds one `campaign_id` and
@@ -677,8 +699,11 @@ executable values.
 
 The shared fixture is exact, not descriptive. It freezes the Pluto serial and TX1/TX2/RX1/RX2
 port IDs; distinct TX1, RX1, and RX2 reference planes; the TX1 two-way splitter; RX1 attenuator;
-TX2 termination; and four port-to-port connections. Every component and interconnect has its own
-ID, 5.8-GHz-containing frequency range, power rating, port map, and characterization record.
+the explicit present/absent RX2 attenuator state; TX2 termination; and four mandatory
+port-to-port connections. When the RX2 attenuator is present, its separately identified
+Pluto-side connection and orientation are also part of the shared graph. Every component and
+interconnect has its own ID, 5.8-GHz-containing frequency range, power rating, port map, and
+characterization record.
 The physical port IDs within every Pluto or passive-component port map must be unique; two
 logical roles cannot alias the same physical connector.
 The conducted reference is the attenuated splitter branch connected to RX1; it is not an
@@ -701,6 +726,8 @@ Stages B/C/E must name the immediately prior immutable `plan.json` and its exact
 and fixture hashes. The runner derives and stores a canonical cross-stage comparison anchor:
 
 - A→B preserves the exact TX1 stimulus termination and its connection;
+- A→B preserves the explicit RX2 attenuator state and, when present, its exact rated asset,
+  attenuation, orientation, Pluto-side edge, and fixture-facing endpoint;
 - A→B also preserves the exact RX2 50-ohm termination identity, ratings, port map, and
   characterization while allowing only the intended direct-adapter-to-added-cable topology
   change;

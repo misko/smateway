@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "attestation_kind": "5g8_p1_muted_control_setup",
+  "attestation_id": "REPLACE_UNIQUE_P1_SETUP_ATTESTATION_ID",
+  "run_id": "REPLACE_EXACT_P1_RUN_ID",
+  "campaign_id": "REPLACE_CAMPAIGN_ID",
+  "board_id": "REPLACE_BOARD_ID",
+  "pluto_serial": "REPLACE_EXACT_PLUTO_SERIAL",
+  "fixture_manifest_sha256": "REPLACE_SHARED_P1_FIXTURE_MANIFEST_SHA256",
+  "setup_evidence": {
+    "path": "REPLACE_ABSOLUTE_RUN_SPECIFIC_SETUP_PHOTO_OR_DIAGRAM_PATH",
+    "sha256": "REPLACE_RUN_SPECIFIC_SETUP_EVIDENCE_SHA256",
+    "size_bytes": "REPLACE_RUN_SPECIFIC_SETUP_EVIDENCE_SIZE_BYTES"
+  },
+  "no_component_or_connection_movement": true,
+  "selector_flash_evidence_sha256": "REPLACE_SEALED_FAST20_SELECTOR_EVIDENCE_SHA256",
+  "p0_source_manifest_sha256s": [
+    "REPLACE_P0_R01_MANIFEST_SHA256",
+    "REPLACE_P0_R02_MANIFEST_SHA256",
+    "REPLACE_P0_R03_MANIFEST_SHA256",
+    "REPLACE_P0_R04_MANIFEST_SHA256",
+    "REPLACE_P0_R05_MANIFEST_SHA256"
+  ]
+}

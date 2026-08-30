@@ -1,0 +1,14 @@
+{
+  "accepted": true,
+  "contract_id": "REPLACE_PREDECLARED_INTERVENTION_CONTRACT_ID",
+  "evidence_kind": "5g8_fixture_state_transition_attestation_v1",
+  "from_fixture_revision_sha256": "REPLACE_OBSERVED_SOURCE_FIXTURE_REVISION",
+  "observed_at": "REPLACE_TIMEZONE_QUALIFIED_ISO_8601_TIMESTAMP",
+  "schema": 1,
+  "setup_evidence_file": {
+    "path": "REPLACE_ABSOLUTE_SETUP_PHOTO_PATH",
+    "sha256": "REPLACE_EXACT_SETUP_PHOTO_SHA256",
+    "size_bytes": "REPLACE_EXACT_SIZE_BYTES"
+  },
+  "to_fixture_revision_sha256": "REPLACE_OBSERVED_DESTINATION_FIXTURE_REVISION"
+}

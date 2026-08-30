@@ -32,6 +32,19 @@ SHARED_FIXTURE = {
 }
 
 
+def _selector_flash_binding() -> dict[str, Any]:
+    return {
+        "schema": 1,
+        "binding_kind": "sealed_selector_flash_evidence_v1",
+        "path": "/evidence/selector-flash-evidence.json",
+        "sha256": _digest(13),
+        "campaign_id": "campaign-a",
+        "run_id": "bench-flash-r01",
+        "board_id": "board-a",
+        "image_role": "bench",
+    }
+
+
 def _fixture(evidence_index: int = 1) -> dict[str, Any]:
     return {
         "shared_hardware": dict(SHARED_FIXTURE),
@@ -39,6 +52,7 @@ def _fixture(evidence_index: int = 1) -> dict[str, Any]:
             "path": f"/evidence/row-{evidence_index}.json",
             "file_sha256": _digest(500 + evidence_index),
         },
+        "selector_flash_evidence": _selector_flash_binding(),
         "attribution_repeats_without_cable_movement_required": True,
     }
 
@@ -77,6 +91,7 @@ def _matrix_identity() -> dict[str, Any]:
         "control_profile_sha256": _digest(9),
         "control_profile_header_sha256": _digest(10),
         "control_profile_provenance_sha256": _digest(11),
+        "selector_flash_evidence": _selector_flash_binding(),
         "acquisition_configuration": acquisition,
         "acquisition_configuration_sha256": acquisition_sha,
     }

@@ -16,7 +16,7 @@ import struct
 import subprocess
 import sys
 import tempfile
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import asdict, replace
 from pathlib import Path
 from typing import Any, Protocol
@@ -117,7 +117,7 @@ if REQUIRED_LIBIIO_DIRECTORY != _REQUIRED_LIBIIO_BOOTSTRAP_DIRECTORY:
 DEFAULT_BOARD_ID = leakage.DEFAULT_BOARD_ID
 SELECTED_STATE_LEASE_MS = 5_000
 ATTRIBUTION_TX_HARDWARE_GAIN_DB = -20.0
-ATTRIBUTION_REPEAT_COUNT = 3
+ATTRIBUTION_REPEAT_COUNT = 5
 MINIMUM_DETECTED_ATTRIBUTION_REPEATS = 3
 PLAN_FILENAME = "plan.json"
 MANIFEST_FILENAME = "manifest.json"
@@ -192,6 +192,7 @@ def _native_runtime_from_contract(
 def _fixture_identity_contract(value: Mapping[str, Any]) -> dict[str, Any]:
     shared = value.get("shared_hardware")
     evidence = value.get("setup_evidence")
+    selector_flash = value.get("selector_flash_evidence")
     if not isinstance(shared, Mapping) or not isinstance(evidence, Mapping):
         raise ValueError("one-hot fixture identity is malformed")
     required_shared = {
@@ -215,6 +216,10 @@ def _fixture_identity_contract(value: Mapping[str, Any]) -> dict[str, Any]:
     return {
         "shared_hardware": normalized_shared,
         "setup_evidence": {"path": evidence_path, "file_sha256": evidence_sha},
+        "selector_flash_evidence": leakage._validate_selector_flash_evidence_binding(
+            selector_flash,
+            expected_image_role="bench",
+        ),
         "attribution_repeats_without_cable_movement_required": True,
     }
 
@@ -227,6 +232,7 @@ def _fixture_identity_from_cli(
     rx1_reference_plane_id: str,
     rx2_reference_plane_id: str,
     setup_evidence_path: Path,
+    selector_flash_evidence: Mapping[str, Any],
 ) -> dict[str, Any]:
     evidence_path = setup_evidence_path.expanduser().resolve(strict=True)
     return _fixture_identity_contract(
@@ -242,6 +248,7 @@ def _fixture_identity_from_cli(
                 "path": str(evidence_path),
                 "file_sha256": sha256_path(evidence_path),
             },
+            "selector_flash_evidence": dict(selector_flash_evidence),
             "attribution_repeats_without_cable_movement_required": True,
         }
     )
@@ -319,6 +326,7 @@ def _matrix_identity_from_contract(contract: Mapping[str, Any]) -> dict[str, Any
             "control_profile_sha256": profile.get("file_sha256"),
             "control_profile_header_sha256": profile.get("header_file_sha256"),
             "control_profile_provenance_sha256": provenance.get("file_sha256"),
+            "selector_flash_evidence": selector.get("selector_flash_evidence"),
             "acquisition_configuration": acquisition,
             "acquisition_configuration_sha256": acquisition_sha256,
         }
@@ -559,6 +567,7 @@ def _one_hot_selector_control_contract(
     openocd_config_path: Path,
     profile_path: Path,
     source_commit: str,
+    selector_flash_evidence: Mapping[str, Any],
 ) -> dict[str, Any]:
     """Freeze the exact bench/profile artifacts and static ANT state codes."""
 
@@ -566,6 +575,7 @@ def _one_hot_selector_control_contract(
         bench_manifest_path=bench_manifest_path,
         openocd_config_path=openocd_config_path,
         profile_path=profile_path,
+        selector_flash_evidence=selector_flash_evidence,
     )
     profile = load_profile(profile_path.expanduser().resolve(strict=True))
     states = validate_one_hot_state_codes(
@@ -632,12 +642,13 @@ def _validate_one_hot_selector_control(value: Mapping[str, Any]) -> dict[str, An
     provenance = binding.get("profile_provenance")
     reproducible = binding.get("reproducible_source_build")
     schedule = binding.get("control_schedule")
+    target_admission = control.get("target_image_admission_contract")
     if (
         binding.get("schema") != 1
         or binding.get("binding_kind") != "profile_json_header_provenance_to_bench_elf_schedule"
         or not all(
             isinstance(item, Mapping)
-            for item in (elf, bench_bin, provenance, reproducible, schedule)
+            for item in (elf, bench_bin, provenance, reproducible, schedule, target_admission)
         )
     ):
         raise ValueError("selector bench/profile binding is malformed")
@@ -646,6 +657,7 @@ def _validate_one_hot_selector_control(value: Mapping[str, Any]) -> dict[str, An
     assert isinstance(provenance, Mapping)
     assert isinstance(reproducible, Mapping)
     assert isinstance(schedule, Mapping)
+    assert isinstance(target_admission, Mapping)
     manifest_elf_sha = manifest.get("elf_sha256")
     profile_contract = control.get("control_profile", {}).get("contract_sha256")
     reproducible_source_commit = str(reproducible.get("source_commit", ""))
@@ -677,10 +689,56 @@ def _validate_one_hot_selector_control(value: Mapping[str, Any]) -> dict[str, An
         or schedule.get("gpio_codes") != [int(state["gpio_code"]) for state in states[1:]]
         or not isinstance(schedule.get("dwell_ms"), list)
         or len(schedule["dwell_ms"]) != 8
+        or target_admission.get("firmware_bin_path") != bench_bin.get("path")
+        or target_admission.get("firmware_bin_sha256") != bench_bin.get("file_sha256")
+        or target_admission.get("firmware_bin_size_bytes") != bench_bin.get("size_bytes")
     ):
         raise ValueError("selector bench/profile binding is inconsistent")
     control["one_hot_static_states"] = [dict(item) for item in states]
     return control
+
+
+def _validate_campaign_repeat_lattice(conditions: Sequence[Mapping[str, Any]]) -> None:
+    """Require the campaign's exact six-gain/five-attribution-repeat lattice."""
+
+    expected_total = len(leakage.TX_HARDWARE_GAINS_DB) * len(ONE_HOT_STATE_ORDER)
+    expected_total += (ATTRIBUTION_REPEAT_COUNT - 1) * len(ONE_HOT_STATE_ORDER)
+    if len(conditions) != expected_total:
+        raise ValueError(f"one-hot campaign requires exactly {expected_total} conditions per row")
+    grouped: dict[tuple[float, str], list[Mapping[str, Any]]] = {}
+    condition_ids: set[str] = set()
+    for condition in conditions:
+        try:
+            gain_db = float(condition["tx_hardware_gain_db"])
+            state_name = str(condition["selector_state_name"])
+            condition_id = str(condition["condition_id"])
+        except (KeyError, TypeError, ValueError) as error:
+            raise ValueError("one-hot campaign repeat lattice is malformed") from error
+        if gain_db not in leakage.TX_HARDWARE_GAINS_DB or state_name not in ONE_HOT_STATE_ORDER:
+            raise ValueError("one-hot campaign repeat lattice contains an unexpected cell")
+        if not condition_id or condition_id in condition_ids:
+            raise ValueError("one-hot campaign condition IDs must be unique")
+        condition_ids.add(condition_id)
+        grouped.setdefault((gain_db, state_name), []).append(condition)
+
+    expected_cells = {
+        (gain_db, state_name)
+        for gain_db in leakage.TX_HARDWARE_GAINS_DB
+        for state_name in ONE_HOT_STATE_ORDER
+    }
+    if set(grouped) != expected_cells:
+        raise ValueError("one-hot campaign repeat lattice is incomplete")
+    for (gain_db, _state_name), repeats in grouped.items():
+        expected_repeats = (
+            ATTRIBUTION_REPEAT_COUNT if gain_db == ATTRIBUTION_TX_HARDWARE_GAIN_DB else 1
+        )
+        if len(repeats) != expected_repeats:
+            raise ValueError("one-hot campaign requires exactly five attribution streams per state")
+        indices = {item.get("repeat_index") for item in repeats}
+        if indices != set(range(expected_repeats)) or any(
+            item.get("repeat_count_at_gain") != expected_repeats for item in repeats
+        ):
+            raise ValueError("one-hot campaign repeat indices/counts are not canonical")
 
 
 def _build_plan_contract(
@@ -702,6 +760,11 @@ def _build_plan_contract(
     if not isinstance(reproducible, Mapping) or reproducible.get("source_commit") != source_commit:
         raise ValueError("bench reproducible build is not bound to the plan source commit")
     fixture = _fixture_identity_contract(fixture_identity)
+    if fixture["selector_flash_evidence"] != control["selector_flash_evidence"]:
+        raise ValueError("one-hot fixture and selector control bind different live-image evidence")
+    flash = control["selector_flash_evidence"]
+    if not isinstance(flash, Mapping) or flash.get("board_id") != board_id:
+        raise ValueError("one-hot selector-flash evidence is bound to a different board")
     native_runtime = validate_runtime_attestation(native_libiio_runtime_attestation)
     base = leakage._build_plan_contract(
         run_id=run_id,
@@ -714,6 +777,7 @@ def _build_plan_contract(
         native_libiio_runtime_attestation=native_runtime,
         selector_control=control,
         freeze_attribution_repeats=False,
+        require_fixture_evidence=False,
     )
     templates = {
         float(condition["tx_hardware_gain_db"]): condition for condition in base["conditions"]
@@ -766,6 +830,8 @@ def _build_plan_contract(
                 )
                 conditions.append(condition)
                 plan_index += 1
+
+    _validate_campaign_repeat_lattice(conditions)
 
     base["plan_kind"] = "5g8_marker_independent_one_hot_selector_path_ladder"
     base["topology_stage"] = TOPOLOGY_IDENTITY
@@ -1016,88 +1082,10 @@ def _verify_fixture_evidence(fixture_identity: Mapping[str, Any]) -> None:
 def _live_target_image_attestation(
     selector_control: Mapping[str, Any],
 ) -> dict[str, Any]:
-    """Read target flash and require an exact byte match to the ELF-bound BIN."""
+    """Read the target full BIN extent and UID through the common admission boundary."""
 
-    started_at = _now()
     _verify_one_hot_artifacts(selector_control)
-    control = _validate_one_hot_selector_control(selector_control)
-    binding = control["bench_profile_binding"]
-    config = control["openocd_config"]
-    assert isinstance(binding, Mapping)
-    assert isinstance(config, Mapping)
-    bench_bin = binding["bench_bin"]
-    assert isinstance(bench_bin, Mapping)
-    expected_path = Path(str(bench_bin["path"])).resolve(strict=True)
-    expected_sha256 = str(bench_bin["file_sha256"])
-    byte_count = int(bench_bin["size_bytes"])
-    flash_address = int(bench_bin["flash_base_address"])
-    config_path = Path(str(config["path"])).resolve(strict=True)
-    exact_match = False
-    target_running_reviewed_image = False
-    target_kept_halted_on_failure = False
-    with tempfile.TemporaryDirectory(prefix="one-hot-target-flash-") as temporary:
-        target_dump = Path(temporary) / "target-flash.bin"
-        command = (
-            f"init; reset halt; dump_image {target_dump} 0x{flash_address:x} {byte_count}; shutdown"
-        )
-        try:
-            subprocess.run(
-                ("openocd", "-f", str(config_path), "-c", command),
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            observed = target_dump.read_bytes()
-            observed_sha256 = hashlib.sha256(observed).hexdigest()
-            exact_match = (
-                len(observed) == byte_count
-                and observed_sha256 == expected_sha256
-                and observed == expected_path.read_bytes()
-            )
-            followup_command = (
-                "init; reset run; shutdown" if exact_match else "init; halt; shutdown"
-            )
-            followup = subprocess.run(
-                (
-                    "openocd",
-                    "-f",
-                    str(config_path),
-                    "-c",
-                    followup_command,
-                ),
-                check=False,
-                capture_output=True,
-                text=True,
-            )
-            target_running_reviewed_image = exact_match and followup.returncode == 0
-            target_kept_halted_on_failure = not exact_match and followup.returncode == 0
-        except BaseException:
-            halt = subprocess.run(
-                ("openocd", "-f", str(config_path), "-c", "init; halt; shutdown"),
-                check=False,
-                capture_output=True,
-                text=True,
-            )
-            target_kept_halted_on_failure = halt.returncode == 0
-            raise
-    passed = exact_match and target_running_reviewed_image
-    return {
-        "schema": 1,
-        "evidence_kind": "exact_target_flash_readback_against_elf_bound_bench_bin",
-        "status": "passed" if passed else "failed",
-        "flash_base_address": flash_address,
-        "byte_count": byte_count,
-        "expected_bin_sha256": expected_sha256,
-        "observed_target_sha256": observed_sha256,
-        "exact_byte_match": exact_match,
-        "reviewed_image_started_only_after_exact_match": target_running_reviewed_image,
-        "target_kept_halted_on_failure": target_kept_halted_on_failure,
-        "started_at": started_at,
-        "completed_at": _now(),
-        "error": (
-            None if passed else {"type": "TargetImageMismatch", "message": "target flash differs"}
-        ),
-    }
+    return leakage._live_selector_image_admission(selector_control)
 
 
 def _call_target_image_attestation(
@@ -1109,8 +1097,9 @@ def _call_target_image_attestation(
     except BaseException as error:
         return {
             "schema": 1,
-            "evidence_kind": "exact_target_flash_readback_against_elf_bound_bench_bin",
+            "evidence_kind": "contemporaneous_full_bin_extent_and_uid_admission_v1",
             "status": "failed",
+            "mailbox_access_performed": False,
             "completed_at": _now(),
             "error": leakage._error_document(error),
         }
@@ -1119,8 +1108,9 @@ def _call_target_image_attestation(
         if isinstance(result, dict)
         else {
             "schema": 1,
-            "evidence_kind": "exact_target_flash_readback_against_elf_bound_bench_bin",
+            "evidence_kind": "contemporaneous_full_bin_extent_and_uid_admission_v1",
             "status": "failed",
+            "mailbox_access_performed": False,
             "completed_at": _now(),
             "error": {"type": "InvalidTargetImageAttestation", "message": "not an object"},
         }
@@ -1132,24 +1122,10 @@ def _target_image_passed(
     *,
     selector_control: Mapping[str, Any],
 ) -> bool:
-    control = _validate_one_hot_selector_control(selector_control)
-    binding = control["bench_profile_binding"]
-    assert isinstance(binding, Mapping)
-    bench_bin = binding["bench_bin"]
-    assert isinstance(bench_bin, Mapping)
-    return (
-        isinstance(value, Mapping)
-        and value.get("schema") == 1
-        and value.get("evidence_kind") == "exact_target_flash_readback_against_elf_bound_bench_bin"
-        and value.get("status") == "passed"
-        and value.get("flash_base_address") == bench_bin.get("flash_base_address")
-        and value.get("byte_count") == bench_bin.get("size_bytes")
-        and value.get("expected_bin_sha256") == bench_bin.get("file_sha256")
-        and value.get("observed_target_sha256") == bench_bin.get("file_sha256")
-        and value.get("exact_byte_match") is True
-        and value.get("reviewed_image_started_only_after_exact_match") is True
-        and value.get("target_kept_halted_on_failure") is False
-        and value.get("error") is None
+    _validate_one_hot_selector_control(selector_control)
+    return leakage._selector_image_admission_passed(
+        value,
+        selector_control=selector_control,
     )
 
 
@@ -3194,6 +3170,7 @@ def load_verified_one_hot_row_bundle(
         expected=native_runtime,
     ):
         raise OneHotLadderError("row native libiio capture-runtime preflight is invalid")
+    _verify_one_hot_artifacts(selector_control)
     _verify_fixture_evidence(fixture_identity)
     if (
         manifest.get("status") != "complete"
@@ -3381,12 +3358,14 @@ def _execute_stage(
     condition_count = len(conditions)
     plan_evidence = leakage._plan_file_evidence(plan_path, envelope)
     native_runtime, native_runtime_sha256 = _native_runtime_from_contract(contract)
+    leakage._assert_local_rpi_storage(manifest_path.parent, plan_path, capture_root)
     if manifest.get("status") == "complete":
         raise OneHotLadderError("completed one-hot runs cannot execute again")
     first_execution = manifest.get("execution_started") is not True
-    if first_execution:
-        manifest["execution_started"] = True
-        _persist_manifest(manifest_path, manifest, condition_count=condition_count)
+    if not first_execution:
+        raise OneHotLadderError("run ID was already executed and cannot be resumed or retried")
+    manifest["execution_started"] = True
+    _persist_manifest(manifest_path, manifest, condition_count=condition_count)
     runtime_preflight = call_runtime_preflight(
         runtime_attestation_boundary,
         now=_now,
@@ -3414,82 +3393,13 @@ def _execute_stage(
         _persist_manifest(manifest_path, manifest, condition_count=condition_count)
         raise
 
-    identity = leakage._call_identity(identity_boundary, serial, uri)
-    manifest["identity_preflight_attempts"].append(identity)
-    manifest["identity_preflight"] = identity
-    _persist_manifest(manifest_path, manifest, condition_count=condition_count)
-    if not leakage._identity_passed(identity, serial=serial, requested_uri=uri):
-        recovery_mute = leakage._call_mute(
-            mute_boundary,
-            serial,
-            "identity_preflight_recovery",
-        )
-        recovery_selector = _selector_cleanup(
-            selector_boundary,
-            selector_control,
-            "identity_failure_cleanup_all_off",
-        )
-        manifest["recovery_mute_attempts"].append(recovery_mute)
-        manifest["recovery_selector_cleanup_attempts"].append(recovery_selector)
-        identity_error = OneHotLadderError(
-            "read-only USB identity scan did not resolve the requested URI; exact-serial mute "
-            "and selector digital ALL_OFF recovery were attempted"
-        )
-        manifest["status"] = "failed"
-        manifest["error"] = leakage._error_document(identity_error)
-        _persist_manifest(manifest_path, manifest, condition_count=condition_count)
-        raise identity_error
-
-    stale = [
-        item
-        for item in manifest["attempts"]
-        if isinstance(item, dict) and item.get("status") == "running"
-    ]
     pending_error: BaseException | None = None
     try:
         if manifest.get("status") == "failed" or any(
-            isinstance(item, Mapping) and item.get("status") == "failed"
+            isinstance(item, Mapping) and item.get("status") in {"failed", "running"}
             for item in manifest["attempts"]
         ):
-            recovery_mute = leakage._call_mute(mute_boundary, serial, "resume_recovery")
-            recovery_selector = _selector_cleanup(
-                selector_boundary,
-                selector_control,
-                "resume_cleanup_all_off",
-            )
-            manifest["recovery_mute_attempts"].append(recovery_mute)
-            manifest["recovery_selector_cleanup_attempts"].append(recovery_selector)
-            raise OneHotLadderError("failed one-hot runs cannot retry; prepare a new run ID")
-        if not first_execution and manifest.get("status") == "prepared":
-            recovery_mute = leakage._call_mute(mute_boundary, serial, "resume_recovery")
-            recovery_selector = _selector_cleanup(
-                selector_boundary,
-                selector_control,
-                "resume_cleanup_all_off",
-            )
-            manifest["recovery_mute_attempts"].append(recovery_mute)
-            manifest["recovery_selector_cleanup_attempts"].append(recovery_selector)
-            raise OneHotLadderError(
-                "started one-hot run has no resumable progress; prepare a new run ID"
-            )
-        if stale:
-            recovery_mute = leakage._call_mute(mute_boundary, serial, "resume_recovery")
-            recovery_selector = _selector_cleanup(
-                selector_boundary,
-                selector_control,
-                "resume_cleanup_all_off",
-            )
-            manifest["recovery_mute_attempts"].append(recovery_mute)
-            manifest["recovery_selector_cleanup_attempts"].append(recovery_selector)
-            for stale_attempt in stale:
-                stale_attempt["status"] = "failed"
-                stale_attempt["outcome"] = "stale_process_failed"
-                stale_attempt["failure_kind"] = "stale_process"
-                stale_attempt["recovery_mute"] = recovery_mute
-                stale_attempt["recovery_selector_cleanup"] = recovery_selector
-                stale_attempt["completed_at"] = _now()
-            _persist_manifest(manifest_path, manifest, condition_count=condition_count)
-            raise OneHotLadderError("stale live attempt recovered; use a new run ID")
+            raise OneHotLadderError("started one-hot runs cannot retry; prepare a new run ID")
 
         manifest["confirmations"].append(dict(confirmation))
         manifest["status"] = "running"
@@ -3501,6 +3411,18 @@ def _execute_stage(
         _persist_manifest(manifest_path, manifest, condition_count=condition_count)
         if not leakage._mute_passed(preflight, serial=serial, purpose="preflight"):
             raise OneHotLadderError("exact preflight mute attestation failed")
+
+        target_image = _call_target_image_attestation(
+            target_image_boundary,
+            selector_control,
+        )
+        manifest["target_image_preflight_attempts"].append(target_image)
+        manifest["target_image_preflight"] = target_image
+        _persist_manifest(manifest_path, manifest, condition_count=condition_count)
+        if not _target_image_passed(target_image, selector_control=selector_control):
+            raise OneHotLadderError(
+                "target full-BIN extent or UID differs from the sealed reviewed bench image"
+            )
 
         preflight_selector = _selector_cleanup(
             selector_boundary,
@@ -3520,6 +3442,13 @@ def _execute_stage(
         ):
             raise OneHotLadderError("selector preflight ALL_OFF attestation failed")
 
+        identity = leakage._call_identity(identity_boundary, serial, uri)
+        manifest["identity_preflight_attempts"].append(identity)
+        manifest["identity_preflight"] = identity
+        _persist_manifest(manifest_path, manifest, condition_count=condition_count)
+        if not leakage._identity_passed(identity, serial=serial, requested_uri=uri):
+            raise OneHotLadderError("read-only USB identity scan did not resolve the requested URI")
+
         orphan_quarantines = _quarantine_orphaned_current_plan_artifacts(
             capture_root,
             manifest=manifest,
@@ -3528,16 +3457,6 @@ def _execute_stage(
         manifest["orphan_quarantine_attempts"].extend(orphan_quarantines)
         if orphan_quarantines:
             _persist_manifest(manifest_path, manifest, condition_count=condition_count)
-
-        target_image = _call_target_image_attestation(
-            target_image_boundary,
-            selector_control,
-        )
-        manifest["target_image_preflight_attempts"].append(target_image)
-        manifest["target_image_preflight"] = target_image
-        _persist_manifest(manifest_path, manifest, condition_count=condition_count)
-        if not _target_image_passed(target_image, selector_control=selector_control):
-            raise OneHotLadderError("target flash is not the exact ELF-bound reviewed bench image")
 
         planned_conditions = {
             str(condition["condition_id"]): condition
@@ -3676,13 +3595,22 @@ def _execute_stage(
         manifest["status"] = "failed"
     finally:
         final_mute = leakage._call_mute(mute_boundary, serial, "final")
-        final_selector = _selector_cleanup(
-            selector_boundary,
-            selector_control,
-            "final_cleanup_all_off",
+        target_admitted = _target_image_passed(
+            manifest.get("target_image_preflight"),
+            selector_control=selector_control,
+        )
+        final_selector = (
+            _selector_cleanup(
+                selector_boundary,
+                selector_control,
+                "final_cleanup_all_off",
+            )
+            if target_admitted
+            else None
         )
         manifest["final_mute_attempts"].append(final_mute)
-        manifest["final_selector_cleanup_attempts"].append(final_selector)
+        if final_selector is not None:
+            manifest["final_selector_cleanup_attempts"].append(final_selector)
         manifest["final_mute"] = final_mute
         manifest["final_selector_cleanup"] = final_selector
         final_mute_passed = leakage._mute_passed(
@@ -3691,7 +3619,7 @@ def _execute_stage(
             purpose="final",
         )
         states = _state_map(selector_control)
-        final_selector_passed = _selector_passed(
+        final_selector_passed = not target_admitted or _selector_passed(
             final_selector,
             selector_control=selector_control,
             state_name=ALL_OFF_STATE,
@@ -3726,6 +3654,10 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--bench-manifest", type=Path, required=True)
     parser.add_argument("--openocd-config", type=Path, required=True)
     parser.add_argument("--profile", type=Path, required=True)
+    parser.add_argument("--campaign-id", required=True)
+    parser.add_argument("--selector-flash-evidence", type=Path, required=True)
+    parser.add_argument("--selector-flash-evidence-sha256", required=True)
+    parser.add_argument("--selector-flash-run-id", required=True)
     parser.add_argument("--feed-arm-id", required=True)
     parser.add_argument("--feed-cable-id", required=True)
     parser.add_argument("--termination-load-set-id", required=True)
@@ -3808,11 +3740,19 @@ def main() -> int:
         )
         dependency_attestation = attest_pluto_plus_utils_source()
         native_runtime_attestation = attest_runtime()
+        selector_flash_evidence = leakage._selector_flash_evidence_binding_from_file(
+            args.selector_flash_evidence,
+            expected_sha256=args.selector_flash_evidence_sha256,
+            campaign_id=args.campaign_id,
+            flash_run_id=args.selector_flash_run_id,
+            board_id=args.board_id,
+        )
         selector_control = _one_hot_selector_control_contract(
             bench_manifest_path=args.bench_manifest,
             openocd_config_path=args.openocd_config,
             profile_path=args.profile,
             source_commit=source_commit,
+            selector_flash_evidence=selector_flash_evidence,
         )
         fixture_identity = _fixture_identity_from_cli(
             feed_arm_id=args.feed_arm_id,
@@ -3821,6 +3761,7 @@ def main() -> int:
             rx1_reference_plane_id=args.rx1_reference_plane_id,
             rx2_reference_plane_id=args.rx2_reference_plane_id,
             setup_evidence_path=args.setup_evidence_file,
+            selector_flash_evidence=selector_flash_evidence,
         )
         contract = _build_plan_contract(
             run_id=args.run_id,
@@ -3844,6 +3785,12 @@ def main() -> int:
     run_root = board_root / "5g8-one-hot-path-ladder" / str(contract["run_id"])
     plan_path = run_root / PLAN_FILENAME
     manifest_path = run_root / MANIFEST_FILENAME
+    leakage._assert_local_rpi_storage(
+        selector_lock_root,
+        board_root,
+        run_root,
+        Path(str(contract["storage"]["run_capture_root"])),
+    )
     with leakage._board_lock(selector_lock_root), leakage._board_lock(board_root):
         if args.plan_only:
             try:
