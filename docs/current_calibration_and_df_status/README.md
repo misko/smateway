@@ -16,11 +16,11 @@ products:
    array at five exact 2.4 GHz centers.
 
 Both products are frequency-specific and setup-specific. Neither is by itself
-an angular direction-finding manifold. A new independent-source campaign now
-resolves the earlier hidden-`ALL_OFF` problem and supplies engineering complex
-corrections from 5.725 through 5.875 GHz. Those coefficients remain conducted-
-fixture-specific, ANT3/ANT6 retain large loss penalties, and a single path-
-length offset per antenna still does not explain the frequency response.
+an angular direction-finding manifold. Independent-source static campaigns now
+resolve the earlier hidden-`ALL_OFF` problem and supply engineering complex
+corrections from 2.1 through 5.8 GHz. Those coefficients remain conducted-
+fixture-specific, ANT3/ANT6 retain large high-band loss penalties, and held-out
+fits show that a single path-length offset explains only ANT1/ANT8 well.
 
 | Layer | Current state | Defensible use today |
 |---|---|---|
@@ -28,7 +28,8 @@ length offset per antenna still does not explain the frequency response.
 | Fast20 state alignment | Qualified for the reviewed conducted 2.1–2.5 GHz TX1 corpus | Strictly admit 145/150 captures; quarantine the other five |
 | Eight-path board calibration | Qualified at 2.400, 2.420, 2.440, 2.460, and 2.480 GHz | Correct the conducted selector/PCB path at those exact centers |
 | Six-element centered HexRay calibration | Qualified at 2.400, 2.423, 2.440, 2.472, and 2.483 GHz | Reproduce and normalize the centered TX1 manifold vector in the unchanged setup at those exact centers |
-| Broadband stability | Strong descriptive evidence, with fixture-transfer drift | Use as a repeatability envelope; reanalyse the full corpus with current v2 timing before promotion |
+| Independent-source static broadband calibration | 1,026/1,026 captures admitted from 2.1–5.8 GHz; raw replay exact | Use frequency-indexed corrections for controlled experiments; interleaved held-out closure remains pending |
+| Legacy autonomous broadband stability | Strong descriptive evidence, with fixture-transfer drift | Reanalyse the full timing-dependent corpus with current v2 timing before promotion |
 | Conducted 5.725-5.875 GHz | Engineering-qualified on the corrected independent-source fixture | Frequency-indexed board/fixture correction for controlled experiments; production confidence bounds and installed-array calibration remain pending |
 | Source bearing and position | Exploratory | No production angle or range result yet |
 
@@ -368,7 +369,21 @@ See the complete report in
 
 ![Historical same-radio 5.8 GHz failure localization](../hexray_tx_in_middle_calibration/png/fig11_v24_5g8_failure_localization.png)
 
-### 7. Direction finding is not yet production-ready
+### 7. Independent-source 2.1–5.8 GHz static sweep rejects a scalar delay model
+
+Three complete static-state sweeps added 1,026/1,026 admitted captures over 38 exact 100 MHz
+frequency points. Every raw NPZ was replayed; recomputed and stored transfers match exactly. At
+5.8 GHz, leakage-subtracted selected/`ALL_OFF` contrast is 29.39–39.23 dB and the former failure is
+absent. Across the full band, one individual 3.1 GHz ANT1 observation is just below 20 dB.
+
+Relative calibration is usually stable (median three-sweep span 0.054 dB / 0.480°), but tails reach
+0.797 dB / 9.676°. Two-fold held-out delay fits leave only 2.51° phase RMS for ANT1; ANT2–ANT7 leave
+18.4–23.5° and 2.6–4.0 dB gain RMS. The defensible broadband candidates are therefore raw and
+`ALL_OFF`-subtracted frequency-indexed complex tables; interleaved held-out closure must choose
+between them. See
+[`docs/broadband_external_fixture_campaign/`](../broadband_external_fixture_campaign/README.md).
+
+### 8. Direction finding is not yet production-ready
 
 Earlier multifrequency phase experiments support one conditional conclusion:
 with TX1 fixed to an experimental anchor, TX2 fell in a lower-right sector of
@@ -415,19 +430,22 @@ length from fitted phase, or report phase-likelihood radius as measured range.
 
 ## Prioritized next steps
 
-1. **Reanalyse the full stored broadband corpus with current v2 timing.** Write
+1. **Run interleaved independent-source held-out closure.** Bracket each tested path with ANT8 and
+   `ALL_OFF`, rotate state order across passes, include ascending and descending frequency order,
+   and score a later run without refitting.
+2. **Reanalyse the legacy stored broadband corpus with current v2 timing.** Write
    separate v2 sidecars, preserve canonical analyses, and update the broadband
    aggregator to consume current decoder and quality evidence. Parameterize the
    RX1 reference role so new conducted sidecars no longer inherit OTA-reference
    wording.
-2. **Localize the remaining ANT3/ANT6 loss.** With both radios muted, swap only
+3. **Localize the remaining ANT3/ANT6 loss.** With both radios muted, swap only
    the selector-end cables `ANT1 <-> ANT3` and `ANT8 <-> ANT6`, then repeat those
    four states. The loss following a cable implicates the splitter output/cable;
    the loss remaining on a selector state implicates that PCB launch/switch path.
-3. **Resolve the conducted phase branch.** Add one non-cyclic feed-to-port
+4. **Resolve the conducted phase branch.** Add one non-cyclic feed-to-port
    mapping, such as a single F1/F2 swap, and keep it blind while choosing among
    the eight equivalent 45° spatial-ramp branches.
-4. **Characterize 2.4 GHz frequency structure densely.** Acquire paired,
+5. **Characterize frequency structure densely.** Acquire paired,
    immutable 2.400–2.483 GHz sweeps at about 1–2 MHz spacing: one through the
    conducted board fixture and one with the centered HexRay. Fit group delay
    plus a dispersive residual and validate by held-out frequency. Their
@@ -435,16 +453,16 @@ length from fitted phase, or report phase-likelihood radius as measured range.
    assign a residual to antenna coupling or environment only after a dense
    permutation or characterized-through measurement establishes matched
    reference planes.
-5. **Build a surveyed angular manifold.** Immobilize and survey antenna and
+6. **Build a surveyed angular manifold.** Immobilize and survey antenna and
    emitter phase centers in x/y/z. Begin with at least four non-collinear
    positions as a geometry discriminator, then cover the intended 360° field at
    roughly 10–15° spacing, multiple frequencies, and repeated captures. Hold
    complete bearings—not repeated samples at fitted bearings—out of training.
-6. **Validate the bearing estimator.** Report median and p95 angular error,
+7. **Validate the bearing estimator.** Report median and p95 angular error,
    multimodal ambiguity, SNR dependence, interference sensitivity, and
    calibration-age drift. Inspect the ANT6-associated conducted fixture
    chain—feed arm, cable, connector, and board path—first.
-7. **Expand only after the baseline passes.** Test TX2, realistic or modulated
+8. **Expand only after the baseline passes.** Test TX2, realistic or modulated
    emitters, controlled interference, and a second board/Pluto without relaxing
    admission gates.
 
@@ -460,11 +478,14 @@ solve that signal-identification problem.
 - [Per-capture low-band evidence](../schedule_alignment_red_green/data/capture-evidence.json)
 - [Conducted eight-path calibration](../closed_loop_permutation_calibration/README.md)
 - [Broadband rotation-0 repeatability](../closed_loop_frequency_sweep_repeatability/README.md)
+- [Independent-source 2.1–5.8 GHz static campaign](../broadband_external_fixture_campaign/README.md)
 - [HexRay centered calibration and 5.8 GHz experiments](../hexray_tx_in_middle_calibration/README.md)
 - [Inverse path-length analysis](../hexray_tx_in_middle_calibration/path_length_inverse_report.md)
 - [Localization experiment report](../localization/phase-localization-experiment-report-20260825.md)
 
-At this snapshot the repository passes 463 tests, full Ruff checks, and strict
-mypy over the package and report tooling. The strict low-band evidence and its
-four source figures also regenerate successfully from the committed compact
-data.
+The broadband analyzer and the adjacent focused campaign tests pass 23/23 with
+Ruff clean. The repository-wide suite is not green on this workstation: 1,149
+tests pass, one is skipped, and 437 existing environment/authority tests fail,
+principally because they require the Raspberry Pi storage/security context.
+Do not represent the full repository suite as passing until those tests are
+made portable or run in their intended environment.

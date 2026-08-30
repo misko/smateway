@@ -43,12 +43,17 @@ belong outside Git under `~/.local/state/smateway/boards/<board-id>/`.
 
 ## Current calibration and direction-finding status
 
-The corrected independent-source 5.725-5.875 GHz campaign, 381-capture normalized evidence,
-frequency-indexed complex corrections, safety closure, and next hardware-attribution experiment are
-in [`docs/5g8_external_fixture_campaign/`](docs/5g8_external_fixture_campaign/README.md). This is the
-current 5.8 GHz engineering result: all paths work and clear the 20 dB point-estimate isolation
-screen, while ANT3/ANT6 loss attribution and held-out confidence-bound closure remain before
-production deployment.
+The current conducted result is the three-pass, 1,026-capture independent-source sweep from 2.1
+through 5.8 GHz in
+[`docs/broadband_external_fixture_campaign/`](docs/broadband_external_fixture_campaign/README.md).
+It includes raw-IQ replay and hashes, frequency-indexed complex corrections, two-fold held-out path-
+delay fits, safety closure, and a detailed next-experiment plan. The corrected fixture works at
+5.8 GHz. A simple path length describes only ANT1/ANT8 well; ANT2–ANT7 require frequency-specific
+calibration and held-out closure before production deployment.
+
+The earlier focused 5.725–5.875 GHz power/direction campaign remains in
+[`docs/5g8_external_fixture_campaign/`](docs/5g8_external_fixture_campaign/README.md). It independently
+established 5.8 GHz power linearity and short-term reverse-sweep closure.
 
 The present-state summary of firmware, acquisition, timing, conducted
 calibration, six-element HexRay calibration, known limitations, and prioritized
