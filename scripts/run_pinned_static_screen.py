@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import errno
 import json
 import math
 import subprocess
@@ -36,6 +37,8 @@ RX_GAIN_DB = 60
 DDS_SCALE = 0.25
 MAX_TX_GAIN_DB = -35.0
 SELECTOR_LEASE_MS = 5_000
+RX_BUSY_RETRIES = 3
+RX_BUSY_RETRY_DELAY_S = 0.25
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -156,6 +159,25 @@ def _readback_mute(device: Any) -> dict[str, Any]:
     return result
 
 
+def _receive_samples(device: Any, *, expected_shape: tuple[int, int]) -> np.ndarray:
+    """Read one RX buffer, tolerating short-lived open and empty-refill races."""
+
+    for attempt in range(1, RX_BUSY_RETRIES + 1):
+        try:
+            samples = np.asarray(device.rx(), dtype=np.complex64)
+        except OSError as error:
+            if error.errno != errno.EBUSY or attempt == RX_BUSY_RETRIES:
+                raise
+        else:
+            if samples.shape == expected_shape:
+                return samples
+            if samples.size or attempt == RX_BUSY_RETRIES:
+                raise RuntimeError(f"unexpected capture shape {samples.shape}")
+        device.rx_destroy_buffer()
+        time.sleep(RX_BUSY_RETRY_DELAY_S * attempt)
+    raise AssertionError("unreachable")
+
+
 def _capture(device: Any, *, muted: bool, tx_gain_db: float) -> tuple[np.ndarray, dict[str, Any]]:
     _mute_transmit(device)
     _readback_mute(device)
@@ -172,7 +194,7 @@ def _capture(device: Any, *, muted: bool, tx_gain_db: float) -> tuple[np.ndarray
             raise RuntimeError("DDS scale readback exceeds the requested bound")
     time.sleep(0.1)
     started = datetime.now(UTC).isoformat()
-    samples = np.asarray(device.rx(), dtype=np.complex64)
+    samples = _receive_samples(device, expected_shape=(2, SAMPLE_COUNT))
     completed = datetime.now(UTC).isoformat()
     if samples.shape != (2, SAMPLE_COUNT):
         raise RuntimeError(f"unexpected capture shape {samples.shape}")
@@ -208,7 +230,7 @@ def _capture_external(
     receiver.rx_destroy_buffer()
     time.sleep(0.1)
     started = datetime.now(UTC).isoformat()
-    samples = np.asarray(receiver.rx(), dtype=np.complex64)
+    samples = _receive_samples(receiver, expected_shape=(2, SAMPLE_COUNT))
     completed = datetime.now(UTC).isoformat()
     if samples.shape != (2, SAMPLE_COUNT):
         raise RuntimeError(f"unexpected capture shape {samples.shape}")

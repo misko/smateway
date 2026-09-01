@@ -43,13 +43,19 @@ belong outside Git under `~/.local/state/smateway/boards/<board-id>/`.
 
 ## Current calibration and direction-finding status
 
-The current conducted result is the three-pass, 1,026-capture independent-source sweep from 2.1
-through 5.8 GHz in
-[`docs/broadband_external_fixture_campaign/`](docs/broadband_external_fixture_campaign/README.md).
-It includes raw-IQ replay and hashes, frequency-indexed complex corrections, two-fold held-out path-
-delay fits, safety closure, and a detailed next-experiment plan. The corrected fixture works at
-5.8 GHz. A simple path length describes only ANT1/ANT8 well; ANT2–ANT7 require frequency-specific
-calibration and held-out closure before production deployment.
+The densest current conducted result is the completed 33,309-capture independent-source sweep from
+2.100 through 5.800 GHz at exact 1 MHz spacing in
+[`docs/dense_1mhz_campaign/`](docs/dense_1mhz_campaign/README.md). It validates a practical 10 MHz
+complex calibration table against omitted 1 MHz frequencies and includes all 371 admitted run
+hashes, final safety closure, compact-model comparisons, and the fixture/PCB/OTA experiment plan.
+It is one ascending sweep, so it does not replace the repeatability evidence below or qualify an
+intrinsic PCB/installed-array correction by itself.
+
+The three-pass, 1,026-capture independent-source sweep in
+[`docs/broadband_external_fixture_campaign/`](docs/broadband_external_fixture_campaign/README.md)
+remains the primary broad-band repeatability result. The corrected fixture works at 5.8 GHz. A
+simple path length describes only ANT1/ANT8 well; ANT2–ANT7 require frequency-specific calibration
+and held-out closure before production deployment.
 
 The earlier focused 5.725–5.875 GHz power/direction campaign remains in
 [`docs/5g8_external_fixture_campaign/`](docs/5g8_external_fixture_campaign/README.md). It independently

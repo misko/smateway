@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import errno
 import importlib.util
 import sys
 from pathlib import Path
@@ -56,6 +57,66 @@ def test_exact_mute_readback() -> None:
     device.dds_scales[3] = 0.01
     with pytest.raises(RuntimeError, match="exact radio mute readback failed"):
         runner._readback_mute(device)
+
+
+def test_receive_retries_transient_busy_buffer(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(runner.time, "sleep", lambda _seconds: None)
+
+    class Device:
+        attempts = 0
+        destroyed = 0
+
+        def rx(self) -> np.ndarray:
+            self.attempts += 1
+            if self.attempts < 3:
+                raise OSError(errno.EBUSY, "Device or resource busy")
+            return np.ones((2, 4), dtype=np.complex64)
+
+        def rx_destroy_buffer(self) -> None:
+            self.destroyed += 1
+
+    device = Device()
+    samples = runner._receive_samples(device, expected_shape=(2, 4))
+
+    assert samples.shape == (2, 4)
+    assert device.attempts == 3
+    assert device.destroyed == 2
+
+
+def test_receive_retries_transient_empty_buffer(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(runner.time, "sleep", lambda _seconds: None)
+    expected = np.ones((2, 4), dtype=np.complex64)
+
+    class Device:
+        attempts = 0
+        destroyed = 0
+
+        def rx(self) -> np.ndarray:
+            self.attempts += 1
+            return np.empty((2, 0), dtype=np.complex64) if self.attempts == 1 else expected
+
+        def rx_destroy_buffer(self) -> None:
+            self.destroyed += 1
+
+    device = Device()
+    samples = runner._receive_samples(device, expected_shape=(2, 4))
+
+    np.testing.assert_array_equal(samples, expected)
+    assert device.attempts == 2
+    assert device.destroyed == 1
+
+
+def test_receive_does_not_retry_non_busy_errors(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(runner.time, "sleep", lambda _seconds: None)
+    device = SimpleNamespace(
+        rx=lambda: (_ for _ in ()).throw(OSError(errno.EIO, "I/O error")),
+        rx_destroy_buffer=lambda: pytest.fail("must not destroy for non-EBUSY errors"),
+    )
+
+    with pytest.raises(OSError) as error:
+        runner._receive_samples(device, expected_shape=(2, 4))
+
+    assert error.value.errno == errno.EIO
 
 
 def test_coherent_transfer_projection(monkeypatch: pytest.MonkeyPatch) -> None:

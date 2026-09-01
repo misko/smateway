@@ -1,0 +1,2889 @@
+{
+  "aggregate_linear_complex_log_interpolation": {
+    "10": {
+      "mean_path_gain_abs_max_db": 0.9632276156420928,
+      "mean_path_gain_abs_p95_db": 0.14591886602003815,
+      "mean_path_gain_rms_db": 0.0755739145359152,
+      "mean_path_phase_abs_max_deg": 7.746679396770743,
+      "mean_path_phase_abs_p95_deg": 0.9101154274076791,
+      "mean_path_phase_rms_deg": 0.5549254382975951
+    },
+    "25": {
+      "mean_path_gain_abs_max_db": 0.9693181155507958,
+      "mean_path_gain_abs_p95_db": 0.39266117246551174,
+      "mean_path_gain_rms_db": 0.1755759210190991,
+      "mean_path_phase_abs_max_deg": 8.197767604961287,
+      "mean_path_phase_abs_p95_deg": 2.5586285929919717,
+      "mean_path_phase_rms_deg": 1.225381688961819
+    },
+    "5": {
+      "mean_path_gain_abs_max_db": 0.8138373988791564,
+      "mean_path_gain_abs_p95_db": 0.11930941295084499,
+      "mean_path_gain_rms_db": 0.06599741026523902,
+      "mean_path_phase_abs_max_deg": 7.640080143041906,
+      "mean_path_phase_abs_p95_deg": 0.7067129231594509,
+      "mean_path_phase_rms_deg": 0.47304839938247
+    },
+    "50": {
+      "mean_path_gain_abs_max_db": 2.395881285273465,
+      "mean_path_gain_abs_p95_db": 1.0348514925228869,
+      "mean_path_gain_rms_db": 0.4837038559283409,
+      "mean_path_phase_abs_max_deg": 18.703724689282005,
+      "mean_path_phase_abs_p95_deg": 7.8661408482441155,
+      "mean_path_phase_rms_deg": 3.5693124601221586
+    }
+  },
+  "aggregate_models": {
+    "delay": {
+      "mean_path_gain_abs_max_db": 6.823576808550038,
+      "mean_path_gain_abs_p95_db": 5.236203082923203,
+      "mean_path_gain_rms_db": 2.7647687387201048,
+      "mean_path_phase_abs_max_deg": 40.137017282465216,
+      "mean_path_phase_abs_p95_deg": 33.58978203168103,
+      "mean_path_phase_rms_deg": 18.084594504226494
+    },
+    "dual_ripple": {
+      "mean_path_gain_abs_max_db": 3.7896850596037033,
+      "mean_path_gain_abs_p95_db": 2.299485453069409,
+      "mean_path_gain_rms_db": 1.1731492243060464,
+      "mean_path_phase_abs_max_deg": 23.56932988289224,
+      "mean_path_phase_abs_p95_deg": 14.653923734611764,
+      "mean_path_phase_rms_deg": 7.5008293550381895
+    },
+    "ripple": {
+      "mean_path_gain_abs_max_db": 4.044539691974293,
+      "mean_path_gain_abs_p95_db": 2.58631123864431,
+      "mean_path_gain_rms_db": 1.3225079832387052,
+      "mean_path_phase_abs_max_deg": 26.979778244518002,
+      "mean_path_phase_abs_p95_deg": 16.28464396981845,
+      "mean_path_phase_rms_deg": 8.559779682643507
+    }
+  },
+  "campaign": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z",
+  "capture_count": 33309,
+  "cutoff_shard": 371,
+  "first_hz": 2100000000,
+  "frequency_count": 3701,
+  "last_hz": 5800000000,
+  "linear_complex_log_interpolation": {
+    "10": {
+      "ANT1": {
+        "evaluation_count": 3330,
+        "gain_abs_max_db": 0.7837444449428264,
+        "gain_abs_p95_db": 0.1417083156263795,
+        "gain_rms_db": 0.07216936022732937,
+        "phase_abs_max_deg": 7.326287228162809,
+        "phase_abs_p95_deg": 1.373490499987166,
+        "phase_rms_deg": 0.6970255975921216,
+        "training_knot_count": 371
+      },
+      "ANT2": {
+        "evaluation_count": 3330,
+        "gain_abs_max_db": 1.2837160967971146,
+        "gain_abs_p95_db": 0.15195952991260753,
+        "gain_rms_db": 0.0840778678504089,
+        "phase_abs_max_deg": 8.097854051468394,
+        "phase_abs_p95_deg": 1.0620959334230444,
+        "phase_rms_deg": 0.6028394379525212,
+        "training_knot_count": 371
+      },
+      "ANT3": {
+        "evaluation_count": 3330,
+        "gain_abs_max_db": 1.0177807635808946,
+        "gain_abs_p95_db": 0.1619888268671549,
+        "gain_rms_db": 0.08150371052900596,
+        "phase_abs_max_deg": 7.460048040418274,
+        "phase_abs_p95_deg": 0.9293373540534952,
+        "phase_rms_deg": 0.5156785604942,
+        "training_knot_count": 371
+      },
+      "ANT4": {
+        "evaluation_count": 3330,
+        "gain_abs_max_db": 1.1820563670073412,
+        "gain_abs_p95_db": 0.14205136985582947,
+        "gain_rms_db": 0.07465557966562429,
+        "phase_abs_max_deg": 7.902982958241268,
+        "phase_abs_p95_deg": 0.8352708563795782,
+        "phase_rms_deg": 0.5147701867874744,
+        "training_knot_count": 371
+      },
+      "ANT5": {
+        "evaluation_count": 3330,
+        "gain_abs_max_db": 0.6708778258468931,
+        "gain_abs_p95_db": 0.13534888794896452,
+        "gain_rms_db": 0.06816285270621758,
+        "phase_abs_max_deg": 5.390797739545279,
+        "phase_abs_p95_deg": 0.7191989891472101,
+        "phase_rms_deg": 0.48390228833426346,
+        "training_knot_count": 371
+      },
+      "ANT6": {
+        "evaluation_count": 3330,
+        "gain_abs_max_db": 0.9304116316508686,
+        "gain_abs_p95_db": 0.143098001293614,
+        "gain_rms_db": 0.07366112829343341,
+        "phase_abs_max_deg": 9.91866681004524,
+        "phase_abs_p95_deg": 0.7463903236842574,
+        "phase_rms_deg": 0.5565900716347678,
+        "training_knot_count": 371
+      },
+      "ANT7": {
+        "evaluation_count": 3330,
+        "gain_abs_max_db": 0.8740061796687111,
+        "gain_abs_p95_db": 0.14527713063571712,
+        "gain_rms_db": 0.0747869024793868,
+        "phase_abs_max_deg": 8.130118949513934,
+        "phase_abs_p95_deg": 0.705024035179003,
+        "phase_rms_deg": 0.5136719252878171,
+        "training_knot_count": 371
+      }
+    },
+    "25": {
+      "ANT1": {
+        "evaluation_count": 3552,
+        "gain_abs_max_db": 0.5835330616147457,
+        "gain_abs_p95_db": 0.17300011825937034,
+        "gain_rms_db": 0.07817048992225928,
+        "phase_abs_max_deg": 6.930085528525158,
+        "phase_abs_p95_deg": 1.1981005180567736,
+        "phase_rms_deg": 0.6474459579139057,
+        "training_knot_count": 149
+      },
+      "ANT2": {
+        "evaluation_count": 3552,
+        "gain_abs_max_db": 1.3047236428289946,
+        "gain_abs_p95_db": 0.44151966952474325,
+        "gain_rms_db": 0.19931766329620765,
+        "phase_abs_max_deg": 7.992010659737229,
+        "phase_abs_p95_deg": 2.818905132784046,
+        "phase_rms_deg": 1.326253762840193,
+        "training_knot_count": 149
+      },
+      "ANT3": {
+        "evaluation_count": 3552,
+        "gain_abs_max_db": 1.020981380407323,
+        "gain_abs_p95_db": 0.501909168332641,
+        "gain_rms_db": 0.21530464611715328,
+        "phase_abs_max_deg": 7.0600827823321,
+        "phase_abs_p95_deg": 2.9441681373908395,
+        "phase_rms_deg": 1.3788495144547384,
+        "training_knot_count": 149
+      },
+      "ANT4": {
+        "evaluation_count": 3552,
+        "gain_abs_max_db": 0.9645457810883652,
+        "gain_abs_p95_db": 0.36398356490712475,
+        "gain_rms_db": 0.167780925830721,
+        "phase_abs_max_deg": 9.101069050141357,
+        "phase_abs_p95_deg": 2.56066776054449,
+        "phase_rms_deg": 1.2808939844689717,
+        "training_knot_count": 149
+      },
+      "ANT5": {
+        "evaluation_count": 3552,
+        "gain_abs_max_db": 0.8771750094365713,
+        "gain_abs_p95_db": 0.37082391888344995,
+        "gain_rms_db": 0.1631681236700275,
+        "phase_abs_max_deg": 8.571721465045464,
+        "phase_abs_p95_deg": 2.7201051206484683,
+        "phase_rms_deg": 1.2822333183097967,
+        "training_knot_count": 149
+      },
+      "ANT6": {
+        "evaluation_count": 3552,
+        "gain_abs_max_db": 1.0598407364773839,
+        "gain_abs_p95_db": 0.4786474798615134,
+        "gain_rms_db": 0.21154690474154128,
+        "phase_abs_max_deg": 9.52056932799838,
+        "phase_abs_p95_deg": 2.90069243745888,
+        "phase_rms_deg": 1.3558890934015857,
+        "training_knot_count": 149
+      },
+      "ANT7": {
+        "evaluation_count": 3552,
+        "gain_abs_max_db": 0.9744271970021877,
+        "gain_abs_p95_db": 0.4187442874897398,
+        "gain_rms_db": 0.19374269355578386,
+        "phase_abs_max_deg": 8.208834420949314,
+        "phase_abs_p95_deg": 2.7677610440603058,
+        "phase_rms_deg": 1.3061061913435414,
+        "training_knot_count": 149
+      }
+    },
+    "5": {
+      "ANT1": {
+        "evaluation_count": 2960,
+        "gain_abs_max_db": 0.7519201229470998,
+        "gain_abs_p95_db": 0.1492421036673674,
+        "gain_rms_db": 0.07009286453317651,
+        "phase_abs_max_deg": 7.1193075038784235,
+        "phase_abs_p95_deg": 1.2484498319766637,
+        "phase_rms_deg": 0.6557558062822758,
+        "training_knot_count": 741
+      },
+      "ANT2": {
+        "evaluation_count": 2960,
+        "gain_abs_max_db": 0.9735202402849112,
+        "gain_abs_p95_db": 0.11908173077885394,
+        "gain_rms_db": 0.07155417812854832,
+        "phase_abs_max_deg": 7.934663913750418,
+        "phase_abs_p95_deg": 0.926395572041326,
+        "phase_rms_deg": 0.5162027079302757,
+        "training_knot_count": 741
+      },
+      "ANT3": {
+        "evaluation_count": 2960,
+        "gain_abs_max_db": 0.8137708652953637,
+        "gain_abs_p95_db": 0.1257954229190685,
+        "gain_rms_db": 0.07115278093902357,
+        "phase_abs_max_deg": 7.480835073451878,
+        "phase_abs_p95_deg": 0.7120270419821983,
+        "phase_rms_deg": 0.44923624208505614,
+        "training_knot_count": 741
+      },
+      "ANT4": {
+        "evaluation_count": 2960,
+        "gain_abs_max_db": 0.9083735667457079,
+        "gain_abs_p95_db": 0.11627847335255315,
+        "gain_rms_db": 0.06414002391100711,
+        "phase_abs_max_deg": 7.300537179541548,
+        "phase_abs_p95_deg": 0.6061580752105695,
+        "phase_rms_deg": 0.4026300984073806,
+        "training_knot_count": 741
+      },
+      "ANT5": {
+        "evaluation_count": 2960,
+        "gain_abs_max_db": 0.6581784292201684,
+        "gain_abs_p95_db": 0.10188430625046083,
+        "gain_rms_db": 0.06045941091810075,
+        "phase_abs_max_deg": 5.520339226559443,
+        "phase_abs_p95_deg": 0.4626186129585161,
+        "phase_rms_deg": 0.4033020603348943,
+        "training_knot_count": 741
+      },
+      "ANT6": {
+        "evaluation_count": 2960,
+        "gain_abs_max_db": 0.8709909276192035,
+        "gain_abs_p95_db": 0.11434573536318965,
+        "gain_rms_db": 0.06099026298035083,
+        "phase_abs_max_deg": 9.932798696473183,
+        "phase_abs_p95_deg": 0.5258892875052343,
+        "phase_rms_deg": 0.44522607971062567,
+        "training_knot_count": 741
+      },
+      "ANT7": {
+        "evaluation_count": 2960,
+        "gain_abs_max_db": 0.7201076400416401,
+        "gain_abs_p95_db": 0.10853811832442142,
+        "gain_rms_db": 0.06359235044646609,
+        "phase_abs_max_deg": 8.192079407638447,
+        "phase_abs_p95_deg": 0.465452040441648,
+        "phase_rms_deg": 0.4389858009267814,
+        "training_knot_count": 741
+      }
+    },
+    "50": {
+      "ANT1": {
+        "evaluation_count": 3626,
+        "gain_abs_max_db": 0.6264295899535507,
+        "gain_abs_p95_db": 0.2183531980722683,
+        "gain_rms_db": 0.0961652202515825,
+        "phase_abs_max_deg": 7.245398723581066,
+        "phase_abs_p95_deg": 1.2631815940215958,
+        "phase_rms_deg": 0.6965618693751006,
+        "training_knot_count": 75
+      },
+      "ANT2": {
+        "evaluation_count": 3626,
+        "gain_abs_max_db": 2.744494430199585,
+        "gain_abs_p95_db": 1.1403850931062518,
+        "gain_rms_db": 0.5364258968619668,
+        "phase_abs_max_deg": 21.439751082230327,
+        "phase_abs_p95_deg": 8.306004778739975,
+        "phase_rms_deg": 4.098219714073639,
+        "training_knot_count": 75
+      },
+      "ANT3": {
+        "evaluation_count": 3626,
+        "gain_abs_max_db": 2.311858769460653,
+        "gain_abs_p95_db": 1.259138038156665,
+        "gain_rms_db": 0.5811715164953909,
+        "phase_abs_max_deg": 20.796734962838322,
+        "phase_abs_p95_deg": 9.300184125825103,
+        "phase_rms_deg": 4.231379378057631,
+        "training_knot_count": 75
+      },
+      "ANT4": {
+        "evaluation_count": 3626,
+        "gain_abs_max_db": 2.9548543961175473,
+        "gain_abs_p95_db": 1.1268784286428963,
+        "gain_rms_db": 0.5276023255157265,
+        "phase_abs_max_deg": 19.565692615963854,
+        "phase_abs_p95_deg": 9.588981391327831,
+        "phase_rms_deg": 3.847000714658877,
+        "training_knot_count": 75
+      },
+      "ANT5": {
+        "evaluation_count": 3626,
+        "gain_abs_max_db": 2.9680845327992893,
+        "gain_abs_p95_db": 1.0679212792108155,
+        "gain_rms_db": 0.5238696090685905,
+        "phase_abs_max_deg": 18.97177188764358,
+        "phase_abs_p95_deg": 8.70525470682324,
+        "phase_rms_deg": 3.7030519687366654,
+        "training_knot_count": 75
+      },
+      "ANT6": {
+        "evaluation_count": 3626,
+        "gain_abs_max_db": 2.317296840034817,
+        "gain_abs_p95_db": 1.2788324425029947,
+        "gain_rms_db": 0.5754713810368213,
+        "phase_abs_max_deg": 21.14906365946797,
+        "phase_abs_p95_deg": 9.364416314449896,
+        "phase_rms_deg": 4.233235339944881,
+        "training_knot_count": 75
+      },
+      "ANT7": {
+        "evaluation_count": 3626,
+        "gain_abs_max_db": 2.8481504383488145,
+        "gain_abs_p95_db": 1.152451967968317,
+        "gain_rms_db": 0.5452210422683081,
+        "phase_abs_max_deg": 21.757659893248913,
+        "phase_abs_p95_deg": 8.534963026521162,
+        "phase_rms_deg": 4.175738236008317,
+        "training_knot_count": 75
+      }
+    }
+  },
+  "models": {
+    "ANT1": {
+      "delay": {
+        "gain_abs_max_db": 1.5197074551929028,
+        "gain_abs_p95_db": 0.896617803608442,
+        "gain_rms_db": 0.39958116948725236,
+        "harmonics": 0,
+        "path_delay_ns": 0.007034225505574326,
+        "phase_abs_max_deg": 9.434283928600246,
+        "phase_abs_p95_deg": 5.420597038329973,
+        "phase_rms_deg": 2.65674971948132,
+        "ripple_delay_ns": null,
+        "ripple_period_ghz": null
+      },
+      "dual_ripple": {
+        "fast_ripple_delay_ns": 3.0919999999999668,
+        "fast_ripple_period_ghz": 0.32341526520052094,
+        "gain_abs_max_db": 0.8806196805665636,
+        "gain_abs_p95_db": 0.5059683200051011,
+        "gain_rms_db": 0.2536400780633343,
+        "harmonics_per_ripple": 2,
+        "path_delay_ns": 0.006827787574593508,
+        "phase_abs_max_deg": 7.786363291739936,
+        "phase_abs_p95_deg": 3.319209920597058,
+        "phase_rms_deg": 1.638067763218856,
+        "slow_ripple_delay_ns": 1.5359999999999994,
+        "slow_ripple_period_ghz": 0.651041666666667
+      },
+      "ripple": {
+        "gain_abs_max_db": 1.1734029424284986,
+        "gain_abs_p95_db": 0.7172446202294721,
+        "gain_rms_db": 0.3249003075623707,
+        "harmonics": 2,
+        "path_delay_ns": 0.006797718855837534,
+        "phase_abs_max_deg": 8.471294586433464,
+        "phase_abs_p95_deg": 4.10326205752441,
+        "phase_rms_deg": 2.145633708262713,
+        "ripple_delay_ns": 1.4879999999999993,
+        "ripple_period_ghz": 0.6720430107526885
+      }
+    },
+    "ANT2": {
+      "delay": {
+        "gain_abs_max_db": 6.936820999497812,
+        "gain_abs_p95_db": 5.601889100977448,
+        "gain_rms_db": 3.083454232908648,
+        "harmonics": 0,
+        "path_delay_ns": 0.08311405396523737,
+        "phase_abs_max_deg": 41.915696454286234,
+        "phase_abs_p95_deg": 36.6615676746075,
+        "phase_rms_deg": 20.340422493076858,
+        "ripple_delay_ns": null,
+        "ripple_period_ghz": null
+      },
+      "dual_ripple": {
+        "fast_ripple_delay_ns": 7.523999999999871,
+        "fast_ripple_period_ghz": 0.13290802764487203,
+        "gain_abs_max_db": 3.1844932458913973,
+        "gain_abs_p95_db": 2.274072793198701,
+        "gain_rms_db": 1.1037238790483617,
+        "harmonics_per_ripple": 2,
+        "path_delay_ns": 0.07749690206258855,
+        "phase_abs_max_deg": 19.12896959821681,
+        "phase_abs_p95_deg": 13.162942602976104,
+        "phase_rms_deg": 6.664560817240575,
+        "slow_ripple_delay_ns": 0.6340000000000003,
+        "slow_ripple_period_ghz": 1.5772870662460559
+      },
+      "ripple": {
+        "gain_abs_max_db": 3.925070201772365,
+        "gain_abs_p95_db": 2.5490241660868382,
+        "gain_rms_db": 1.295533398320084,
+        "harmonics": 2,
+        "path_delay_ns": 0.07775089636610794,
+        "phase_abs_max_deg": 25.07146072863153,
+        "phase_abs_p95_deg": 16.263923090323704,
+        "phase_rms_deg": 7.982067168667608,
+        "ripple_delay_ns": 0.6340000000000001,
+        "ripple_period_ghz": 1.5772870662460565
+      }
+    },
+    "ANT3": {
+      "delay": {
+        "gain_abs_max_db": 9.203490352856342,
+        "gain_abs_p95_db": 6.564497740047756,
+        "gain_rms_db": 3.738362311075682,
+        "harmonics": 0,
+        "path_delay_ns": 0.08443760592041362,
+        "phase_abs_max_deg": 46.459162129627074,
+        "phase_abs_p95_deg": 39.72758380866217,
+        "phase_rms_deg": 23.365301400091926,
+        "ripple_delay_ns": null,
+        "ripple_period_ghz": null
+      },
+      "dual_ripple": {
+        "fast_ripple_delay_ns": 3.7739999999999503,
+        "fast_ripple_period_ghz": 0.2649708532061508,
+        "gain_abs_max_db": 4.8173907604372985,
+        "gain_abs_p95_db": 2.5115155107535094,
+        "gain_rms_db": 1.3080163423178586,
+        "harmonics_per_ripple": 2,
+        "path_delay_ns": 0.0823478230912387,
+        "phase_abs_max_deg": 25.67332591095931,
+        "phase_abs_p95_deg": 15.195040771992074,
+        "phase_rms_deg": 7.350070006041069,
+        "slow_ripple_delay_ns": 0.6510000000000004,
+        "slow_ripple_period_ghz": 1.536098310291858
+      },
+      "ripple": {
+        "gain_abs_max_db": 4.911934109168723,
+        "gain_abs_p95_db": 2.7901547864866716,
+        "gain_rms_db": 1.4664910851435409,
+        "harmonics": 2,
+        "path_delay_ns": 0.08259951654732055,
+        "phase_abs_max_deg": 30.93298135564768,
+        "phase_abs_p95_deg": 16.048577274333827,
+        "phase_rms_deg": 8.596795889135947,
+        "ripple_delay_ns": 0.6510000000000001,
+        "ripple_period_ghz": 1.5360983102918584
+      }
+    },
+    "ANT4": {
+      "delay": {
+        "gain_abs_max_db": 7.539521654837831,
+        "gain_abs_p95_db": 5.533681910353353,
+        "gain_rms_db": 2.5660003078113913,
+        "harmonics": 0,
+        "path_delay_ns": 0.11698415190997198,
+        "phase_abs_max_deg": 47.25457656887795,
+        "phase_abs_p95_deg": 36.035912457924056,
+        "phase_rms_deg": 17.192287804359182,
+        "ripple_delay_ns": null,
+        "ripple_period_ghz": null
+      },
+      "dual_ripple": {
+        "fast_ripple_delay_ns": 3.7719999999999505,
+        "fast_ripple_period_ghz": 0.2651113467656451,
+        "gain_abs_max_db": 4.773021510960595,
+        "gain_abs_p95_db": 3.021659492635143,
+        "gain_rms_db": 1.5754392599860971,
+        "harmonics_per_ripple": 2,
+        "path_delay_ns": 0.11952968784398965,
+        "phase_abs_max_deg": 37.022432534887194,
+        "phase_abs_p95_deg": 18.912374549091243,
+        "phase_rms_deg": 10.809623192851447,
+        "slow_ripple_delay_ns": 0.42100000000000026,
+        "slow_ripple_period_ghz": 2.375296912114013
+      },
+      "ripple": {
+        "gain_abs_max_db": 5.310425651406222,
+        "gain_abs_p95_db": 3.3611165780644727,
+        "gain_rms_db": 1.6964887999400584,
+        "harmonics": 2,
+        "path_delay_ns": 0.11969307011794082,
+        "phase_abs_max_deg": 36.43665032484202,
+        "phase_abs_p95_deg": 22.26362949822368,
+        "phase_rms_deg": 11.562667536775429,
+        "ripple_delay_ns": 0.42100000000000004,
+        "ripple_period_ghz": 2.375296912114014
+      }
+    },
+    "ANT5": {
+      "delay": {
+        "gain_abs_max_db": 7.104659759112472,
+        "gain_abs_p95_db": 5.794535540184447,
+        "gain_rms_db": 2.7357418715226114,
+        "harmonics": 0,
+        "path_delay_ns": 0.03847767961632425,
+        "phase_abs_max_deg": 45.45435337620841,
+        "phase_abs_p95_deg": 38.36448670908965,
+        "phase_rms_deg": 18.806868648208237,
+        "ripple_delay_ns": null,
+        "ripple_period_ghz": null
+      },
+      "dual_ripple": {
+        "fast_ripple_delay_ns": 2.8639999999999697,
+        "fast_ripple_period_ghz": 0.34916201117318807,
+        "gain_abs_max_db": 5.631409071142479,
+        "gain_abs_p95_db": 3.113343468291223,
+        "gain_rms_db": 1.6315023680897551,
+        "harmonics_per_ripple": 2,
+        "path_delay_ns": 0.038998169498255505,
+        "phase_abs_max_deg": 32.43783546596527,
+        "phase_abs_p95_deg": 22.442693786797935,
+        "phase_rms_deg": 11.691527398154218,
+        "slow_ripple_delay_ns": 0.4340000000000003,
+        "slow_ripple_period_ghz": 2.3041474654377865
+      },
+      "ripple": {
+        "gain_abs_max_db": 4.682251321441929,
+        "gain_abs_p95_db": 3.47014257989238,
+        "gain_rms_db": 1.7761541224741757,
+        "harmonics": 2,
+        "path_delay_ns": 0.038910780228709294,
+        "phase_abs_max_deg": 32.926879411799526,
+        "phase_abs_p95_deg": 23.376645889819795,
+        "phase_rms_deg": 12.749242514349742,
+        "ripple_delay_ns": 0.43400000000000005,
+        "ripple_period_ghz": 2.304147465437788
+      }
+    },
+    "ANT6": {
+      "delay": {
+        "gain_abs_max_db": 8.417639571100755,
+        "gain_abs_p95_db": 6.529274121940551,
+        "gain_rms_db": 3.6899149132917226,
+        "harmonics": 0,
+        "path_delay_ns": 0.08519489482085141,
+        "phase_abs_max_deg": 47.659613269831745,
+        "phase_abs_p95_deg": 40.69076715316727,
+        "phase_rms_deg": 23.451565282679745,
+        "ripple_delay_ns": null,
+        "ripple_period_ghz": null
+      },
+      "dual_ripple": {
+        "fast_ripple_delay_ns": 3.7719999999999505,
+        "fast_ripple_period_ghz": 0.2651113467656451,
+        "gain_abs_max_db": 4.020987587846473,
+        "gain_abs_p95_db": 2.3548793464767614,
+        "gain_rms_db": 1.2114306373272343,
+        "harmonics_per_ripple": 2,
+        "path_delay_ns": 0.08242516098190769,
+        "phase_abs_max_deg": 23.35290456351175,
+        "phase_abs_p95_deg": 14.820229246490262,
+        "phase_rms_deg": 7.332972016566278,
+        "slow_ripple_delay_ns": 0.3220000000000003,
+        "slow_ripple_period_ghz": 3.1055900621117987
+      },
+      "ripple": {
+        "gain_abs_max_db": 4.471210106189521,
+        "gain_abs_p95_db": 2.5853415685187118,
+        "gain_rms_db": 1.3802446675447555,
+        "harmonics": 2,
+        "path_delay_ns": 0.08261644137297976,
+        "phase_abs_max_deg": 29.38139675622913,
+        "phase_abs_p95_deg": 15.195117380919756,
+        "phase_rms_deg": 8.584955203299355,
+        "ripple_delay_ns": 0.32200000000000006,
+        "ripple_period_ghz": 3.1055900621118004
+      }
+    },
+    "ANT7": {
+      "delay": {
+        "gain_abs_max_db": 7.043197867252156,
+        "gain_abs_p95_db": 5.732925363350422,
+        "gain_rms_db": 3.1403263649434265,
+        "harmonics": 0,
+        "path_delay_ns": 0.09225075765978434,
+        "phase_abs_max_deg": 42.78143524982488,
+        "phase_abs_p95_deg": 38.227559379986616,
+        "phase_rms_deg": 20.77896618168819,
+        "ripple_delay_ns": null,
+        "ripple_period_ghz": null
+      },
+      "dual_ripple": {
+        "fast_ripple_delay_ns": 7.527999999999872,
+        "fast_ripple_period_ghz": 0.13283740701381735,
+        "gain_abs_max_db": 3.219873560381117,
+        "gain_abs_p95_db": 2.3149592401254266,
+        "gain_rms_db": 1.1282920053096832,
+        "harmonics_per_ripple": 2,
+        "path_delay_ns": 0.0864928611168386,
+        "phase_abs_max_deg": 19.583477814965413,
+        "phase_abs_p95_deg": 14.724975264337667,
+        "phase_rms_deg": 7.018984291194886,
+        "slow_ripple_delay_ns": 0.6340000000000003,
+        "slow_ripple_period_ghz": 1.5772870662460559
+      },
+      "ripple": {
+        "gain_abs_max_db": 3.8374835114127963,
+        "gain_abs_p95_db": 2.6311543712316188,
+        "gain_rms_db": 1.3177435016859516,
+        "harmonics": 2,
+        "path_delay_ns": 0.0867551327720412,
+        "phase_abs_max_deg": 25.637784548042664,
+        "phase_abs_p95_deg": 16.74135259758397,
+        "phase_rms_deg": 8.297095758013755,
+        "ripple_delay_ns": 0.6340000000000001,
+        "ripple_period_ghz": 1.5772870662460565
+      }
+    }
+  },
+  "path_ratio_definition": "(H_state - H_ALL_OFF) / (H_ANT8 - H_ALL_OFF)",
+  "provisional": false,
+  "run_provenance": [
+    {
+      "run_id": "20260831T054532.087061Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T054532.087061Z/run.json",
+      "run_json_sha256": "e48707ef6e399f9091c22ed08356be6002ca1a5df855ee787faf3d1752c89af2",
+      "shard": 1
+    },
+    {
+      "run_id": "20260831T055109.939674Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T055109.939674Z/run.json",
+      "run_json_sha256": "34f88944fcb77c4e7ab9cb392d30c14a217058404429eac75b7d6e1ae56a6d39",
+      "shard": 2
+    },
+    {
+      "run_id": "20260831T055447.964431Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T055447.964431Z/run.json",
+      "run_json_sha256": "6794c5fe066970e31a3627b4a200788b2536365474c48f3c81c00d4b6cc57805",
+      "shard": 3
+    },
+    {
+      "run_id": "20260831T055824.091778Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T055824.091778Z/run.json",
+      "run_json_sha256": "7ed3e8cbd05f97541be0ad13a1aa57bffdb9b4f92fe7fcd418574643b595075b",
+      "shard": 4
+    },
+    {
+      "run_id": "20260831T060159.966830Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T060159.966830Z/run.json",
+      "run_json_sha256": "a8c9eacf8c9c758c4a3828c0e834388e22d44c22011cdca6b4a2bbd804717ae8",
+      "shard": 5
+    },
+    {
+      "run_id": "20260831T060535.087703Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T060535.087703Z/run.json",
+      "run_json_sha256": "0726fdb1e02fd3d2aa3db969256766710aa48aa6bc7fd65359db7e79e76b9c56",
+      "shard": 6
+    },
+    {
+      "run_id": "20260831T060911.065634Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T060911.065634Z/run.json",
+      "run_json_sha256": "b33be8788b72cbbea6580ce2e94695bbc835cfc2e66f1dd9c9aa400daf967ba2",
+      "shard": 7
+    },
+    {
+      "run_id": "20260831T061245.855693Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T061245.855693Z/run.json",
+      "run_json_sha256": "077ddbe8d9dda392366baac9e561707e416529c0d025a5ebd31de0dc119fb924",
+      "shard": 8
+    },
+    {
+      "run_id": "20260831T061625.353307Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T061625.353307Z/run.json",
+      "run_json_sha256": "d072362804147db0ff21f09db84d0bcf8cf5d1273d429423588c13f573a8e4e0",
+      "shard": 9
+    },
+    {
+      "run_id": "20260831T062002.497750Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T062002.497750Z/run.json",
+      "run_json_sha256": "69be3b3894ce6f13916defc215a77d6510ceb50cf7f1a5dcf9b326b7ca4225b4",
+      "shard": 10
+    },
+    {
+      "run_id": "20260831T062339.194693Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T062339.194693Z/run.json",
+      "run_json_sha256": "2d6301d2b5de0c405da03d17a433b3c92f871cf7a415b1dc0092e593f1477f9d",
+      "shard": 11
+    },
+    {
+      "run_id": "20260831T062716.258824Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T062716.258824Z/run.json",
+      "run_json_sha256": "e20950a811bce040735e9ef7c4102414e499781e42214526fb4f1f9173766054",
+      "shard": 12
+    },
+    {
+      "run_id": "20260831T063053.181089Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T063053.181089Z/run.json",
+      "run_json_sha256": "183df152d872da55ea82b03cc1c09fe619e12b5d78c4423b63e2cef89aada163",
+      "shard": 13
+    },
+    {
+      "run_id": "20260831T063428.730625Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T063428.730625Z/run.json",
+      "run_json_sha256": "e1376b118676f5cd70d534784a610abfa6981da07c95f3b1e196ff01d85121c9",
+      "shard": 14
+    },
+    {
+      "run_id": "20260831T063804.713640Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T063804.713640Z/run.json",
+      "run_json_sha256": "5bf9642a2c851d10c6fcf353ce8af4f68234e95deaaf6b7a34200ce1faf7beb9",
+      "shard": 15
+    },
+    {
+      "run_id": "20260831T064140.299765Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T064140.299765Z/run.json",
+      "run_json_sha256": "cd0ae47bff3edf2d15f0952e4b4a2cca9d7cf3aa4d348cf601dac4157645d0e9",
+      "shard": 16
+    },
+    {
+      "run_id": "20260831T064517.155226Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T064517.155226Z/run.json",
+      "run_json_sha256": "15265a87af6edd7d06decf530105ab4c08e9734df747ab3a8875019166c31d2f",
+      "shard": 17
+    },
+    {
+      "run_id": "20260831T065629.062259Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T065629.062259Z/run.json",
+      "run_json_sha256": "f1379204984072a2051b9f017360e585cd68d0b2ff099b2bcbdeb1bc916abfd9",
+      "shard": 18
+    },
+    {
+      "run_id": "20260831T070006.604776Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T070006.604776Z/run.json",
+      "run_json_sha256": "456f7d0b89de78a9b454609e2bd69f13d1ecec04055ada488171a04bda8e7e0b",
+      "shard": 19
+    },
+    {
+      "run_id": "20260831T070343.675891Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T070343.675891Z/run.json",
+      "run_json_sha256": "4dad38699cc7e87bda75d3701428164a5f705e66db3714801451aa714e8ee61f",
+      "shard": 20
+    },
+    {
+      "run_id": "20260831T070720.077999Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T070720.077999Z/run.json",
+      "run_json_sha256": "1762f66c866828d1766af5f7e24386c796f337a2ef4c9ad1639c05b8f0bce824",
+      "shard": 21
+    },
+    {
+      "run_id": "20260831T071054.896620Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T071054.896620Z/run.json",
+      "run_json_sha256": "bfbfeb5c57aa188b220a52536d374e8c2ce7f73fc1996cb42f3dc7a5407d6a8a",
+      "shard": 22
+    },
+    {
+      "run_id": "20260831T071430.288152Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T071430.288152Z/run.json",
+      "run_json_sha256": "6315fc9b4144ef89c88f17d27a81ef774539d174bb5363833205000bde561f88",
+      "shard": 23
+    },
+    {
+      "run_id": "20260831T071807.834262Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T071807.834262Z/run.json",
+      "run_json_sha256": "ded7d8d80a54df3f3fa71f6aa216d4a0f0af9c5c45b48149cbe666b25cb39b6e",
+      "shard": 24
+    },
+    {
+      "run_id": "20260831T072146.877074Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T072146.877074Z/run.json",
+      "run_json_sha256": "cf0af71203c7bfb4d5a9e39f403c50eb9a2984c5b06520c1d677147ef3b00b1c",
+      "shard": 25
+    },
+    {
+      "run_id": "20260831T072523.864239Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T072523.864239Z/run.json",
+      "run_json_sha256": "aa9c73b75c4b56c0691ad7ec6e46740d7ad5481f09fb49e02c2216ebe9fd589b",
+      "shard": 26
+    },
+    {
+      "run_id": "20260831T072859.950251Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T072859.950251Z/run.json",
+      "run_json_sha256": "18a20cc53632aedf4a742f527ce13fd617619378b4e782270e92f8289d1a31dd",
+      "shard": 27
+    },
+    {
+      "run_id": "20260831T073236.077276Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T073236.077276Z/run.json",
+      "run_json_sha256": "daefd7a972cef8b603f22ec634769e35948140c00f66b19c0dc1df25477ebedb",
+      "shard": 28
+    },
+    {
+      "run_id": "20260831T073611.986084Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T073611.986084Z/run.json",
+      "run_json_sha256": "51b122159c385cf3363827a37a6f4c2a61ca5eabd9a9c307391e3f835f0333fd",
+      "shard": 29
+    },
+    {
+      "run_id": "20260831T073947.478499Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T073947.478499Z/run.json",
+      "run_json_sha256": "01849953e65931621e85e3d676f9f088539f942d216ddf70f338be7c71857fd8",
+      "shard": 30
+    },
+    {
+      "run_id": "20260831T074322.852576Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T074322.852576Z/run.json",
+      "run_json_sha256": "af58b9c7def7a4ece9386acc6e6a4676ea44c946a1952b79e68eab7d8f52755a",
+      "shard": 31
+    },
+    {
+      "run_id": "20260831T074659.744764Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T074659.744764Z/run.json",
+      "run_json_sha256": "e3a795dff15f69c9dd92053255881bc07b659f82fd44138bb4baea480347e545",
+      "shard": 32
+    },
+    {
+      "run_id": "20260831T075036.072546Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T075036.072546Z/run.json",
+      "run_json_sha256": "a6eee8b0f9541efca15b155a13863e2621bac2b3953e38913596b6246e561a63",
+      "shard": 33
+    },
+    {
+      "run_id": "20260831T075413.169429Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T075413.169429Z/run.json",
+      "run_json_sha256": "f87dc7516fb3fe6d7766a95f2a5fcfbe9484becbb4ca3bd778c86705e270a365",
+      "shard": 34
+    },
+    {
+      "run_id": "20260831T075751.444292Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T075751.444292Z/run.json",
+      "run_json_sha256": "15e6f4381b99596b7ed08cc7187ce2abe44b3cda0b3322eb437e3a9066517c44",
+      "shard": 35
+    },
+    {
+      "run_id": "20260831T080128.165683Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T080128.165683Z/run.json",
+      "run_json_sha256": "f04e6bd94a0bbaa14cbd73c6ba1da8d6ea5a585387c75e7922cb01db25e96a25",
+      "shard": 36
+    },
+    {
+      "run_id": "20260831T080506.345151Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T080506.345151Z/run.json",
+      "run_json_sha256": "2c6eb517adcd27263a017eb41c979310f78f862f2fe86129a0c32127c05a5084",
+      "shard": 37
+    },
+    {
+      "run_id": "20260831T080842.339777Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T080842.339777Z/run.json",
+      "run_json_sha256": "19f3118f85fc3424e6bd95aa2fc4778568cd33db1733408e7374e85289199c1c",
+      "shard": 38
+    },
+    {
+      "run_id": "20260831T081222.837020Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T081222.837020Z/run.json",
+      "run_json_sha256": "363a60a03783103aee54de474d828f113bd86e1af35aaf091128a9afaec49bec",
+      "shard": 39
+    },
+    {
+      "run_id": "20260831T081600.973073Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T081600.973073Z/run.json",
+      "run_json_sha256": "d2ad84dd5075dfda7c34f826291d5f831829e4057fb6448f41ef2fef9025a7ff",
+      "shard": 40
+    },
+    {
+      "run_id": "20260831T081936.725711Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T081936.725711Z/run.json",
+      "run_json_sha256": "c3dbe2ad11cc11299928376671c71301e53529e60837ed48f6110e79db276774",
+      "shard": 41
+    },
+    {
+      "run_id": "20260831T082315.109898Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T082315.109898Z/run.json",
+      "run_json_sha256": "9180e186f497ac6c34a1f09d69f735a49fc420e0d1d01583c4428462f8a62037",
+      "shard": 42
+    },
+    {
+      "run_id": "20260831T082653.278171Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T082653.278171Z/run.json",
+      "run_json_sha256": "cf0cdcd141db47466a37e082d0fc10546452d33258d2c6c3b61a7e31726a176b",
+      "shard": 43
+    },
+    {
+      "run_id": "20260831T083030.100925Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T083030.100925Z/run.json",
+      "run_json_sha256": "c5b94cb4e2763dded82179797f51771de4de21cbfbd9abe15c4d0b4d59770b75",
+      "shard": 44
+    },
+    {
+      "run_id": "20260831T083409.811242Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T083409.811242Z/run.json",
+      "run_json_sha256": "02d9d9eaee0037223e0a9d84f87cbbb5a9e73f620d73423d5d86f9c973804f5f",
+      "shard": 45
+    },
+    {
+      "run_id": "20260831T083746.536251Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T083746.536251Z/run.json",
+      "run_json_sha256": "2c57d668a67dfb3958b416596302f31b44d5e3dd772671eed5ffe66417a815e8",
+      "shard": 46
+    },
+    {
+      "run_id": "20260831T084123.530964Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T084123.530964Z/run.json",
+      "run_json_sha256": "b8c5dd7bc481c59ff590a94da4c7b27bcd7bf6c65cb387647202aa63c77a285a",
+      "shard": 47
+    },
+    {
+      "run_id": "20260831T084503.240116Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T084503.240116Z/run.json",
+      "run_json_sha256": "4f20f3228423c4a82a28902e0936993d9ab1c993065378e54d0a0efff3eb3619",
+      "shard": 48
+    },
+    {
+      "run_id": "20260831T084852.223941Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T084852.223941Z/run.json",
+      "run_json_sha256": "a0cbb94f222efe4a376a97502581fc5a39b640577e08f05921c0c0f301da89fd",
+      "shard": 49
+    },
+    {
+      "run_id": "20260831T085241.644936Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T085241.644936Z/run.json",
+      "run_json_sha256": "950fc94f9a06680cebdbd0131104d385006ed53493223e25260174d3eabfad7a",
+      "shard": 50
+    },
+    {
+      "run_id": "20260831T085628.121861Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T085628.121861Z/run.json",
+      "run_json_sha256": "2074a314326cca2e7a94e1cfcf0f462a862991f1a11bc3a1b43e4b0c99afbdcd",
+      "shard": 51
+    },
+    {
+      "run_id": "20260831T090037.518285Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T090037.518285Z/run.json",
+      "run_json_sha256": "3e79001a176d2177e005a80ff4d49677498b79e0d3e310bf66b2d57c71918da1",
+      "shard": 52
+    },
+    {
+      "run_id": "20260831T090439.153379Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T090439.153379Z/run.json",
+      "run_json_sha256": "5328a1b8919a5ede53054224d42bbccde30f6f23b0aa3d08e19ce71a38bdf922",
+      "shard": 53
+    },
+    {
+      "run_id": "20260831T090815.543617Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T090815.543617Z/run.json",
+      "run_json_sha256": "69d246575f8a9c48f0e1f82fd0d5f06cc8e292b622b5fc880a0be7648e45d1cb",
+      "shard": 54
+    },
+    {
+      "run_id": "20260831T091157.029672Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T091157.029672Z/run.json",
+      "run_json_sha256": "9ec2fcffaa9c0bec7445f43e19a093e9315e89c47c648c11614295b987f0124a",
+      "shard": 55
+    },
+    {
+      "run_id": "20260831T091551.660002Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T091551.660002Z/run.json",
+      "run_json_sha256": "cd22e1f8703de24e88d25b8a36b5d99010d693b974aa239244435b8cf40eb058",
+      "shard": 56
+    },
+    {
+      "run_id": "20260831T091941.600895Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T091941.600895Z/run.json",
+      "run_json_sha256": "388a93d4a55c4f96b928689f0176ad031522ece166b9bec049b7cf8214efd40a",
+      "shard": 57
+    },
+    {
+      "run_id": "20260831T092317.433631Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T092317.433631Z/run.json",
+      "run_json_sha256": "6a7bfea6bc128dc200e7ee6daceb22748eb8ba555f28ae11c0b2990041c96bab",
+      "shard": 58
+    },
+    {
+      "run_id": "20260831T092652.901897Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T092652.901897Z/run.json",
+      "run_json_sha256": "ba94f8d13694d71092f3ebe2b0edf871937708ba203f733af5dc26529b9c8f88",
+      "shard": 59
+    },
+    {
+      "run_id": "20260831T093028.642081Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T093028.642081Z/run.json",
+      "run_json_sha256": "4db2b53d42088ac91cdfa11f239222f9ed42f76e659acb3d3ed464f134fc0ee8",
+      "shard": 60
+    },
+    {
+      "run_id": "20260831T093404.008054Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T093404.008054Z/run.json",
+      "run_json_sha256": "ddad71d3bede7386266c4dcc86808518189b781a4d670368c0f2c2c215b43c7d",
+      "shard": 61
+    },
+    {
+      "run_id": "20260831T093739.617959Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T093739.617959Z/run.json",
+      "run_json_sha256": "b75150a02da0ecba93898a6f4e3ffdcb3664d5ba4fb0ae05d79fbbf817d0306d",
+      "shard": 62
+    },
+    {
+      "run_id": "20260831T094115.345429Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T094115.345429Z/run.json",
+      "run_json_sha256": "20ec99e9bdc8a4ec171543c74b5d9c8506e8c117e5941897f8338274610ab531",
+      "shard": 63
+    },
+    {
+      "run_id": "20260831T094452.212992Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T094452.212992Z/run.json",
+      "run_json_sha256": "a50074c2189981538cb3af31293ab7d8a53f3ad8967b4c539c4cce39c3c093a5",
+      "shard": 64
+    },
+    {
+      "run_id": "20260831T094829.372105Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T094829.372105Z/run.json",
+      "run_json_sha256": "f7d4e6ea5d099362144ca00aa246232fdf4de47263bf7b96f823f2adadf3678c",
+      "shard": 65
+    },
+    {
+      "run_id": "20260831T095206.825973Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T095206.825973Z/run.json",
+      "run_json_sha256": "1b33f9783c16bfe72361d47e3af21abade1abde63e4429ba881f7470686d8fa1",
+      "shard": 66
+    },
+    {
+      "run_id": "20260831T095544.497122Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T095544.497122Z/run.json",
+      "run_json_sha256": "63985f5b69f2be7a0550490d1b70d81a8f5ef4bcc5983e4bbef555d6fdd928ce",
+      "shard": 67
+    },
+    {
+      "run_id": "20260831T095923.781746Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T095923.781746Z/run.json",
+      "run_json_sha256": "e7b55c99cb202c9a93c07a17fa63230e5a59e6fc5b869eff6a281acf1f22dd64",
+      "shard": 68
+    },
+    {
+      "run_id": "20260831T100303.420349Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T100303.420349Z/run.json",
+      "run_json_sha256": "9bb78c36ddcc7b84b9526df94928dd9f0a0c5567557666023fc3a9ea6df1c897",
+      "shard": 69
+    },
+    {
+      "run_id": "20260831T100642.404287Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T100642.404287Z/run.json",
+      "run_json_sha256": "4c7b8b748a8bd436b30417c1865649fe1389a83b8954e16b32bd0bdb69b94114",
+      "shard": 70
+    },
+    {
+      "run_id": "20260831T101022.299481Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T101022.299481Z/run.json",
+      "run_json_sha256": "4f339871551a3097e65e95f19d8f99f80965626275bbe293272b2fc4040e25df",
+      "shard": 71
+    },
+    {
+      "run_id": "20260831T101402.538723Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T101402.538723Z/run.json",
+      "run_json_sha256": "01f37877342e9f07cce15bd6357bce08573923671ddb88f1915f2e71259d289e",
+      "shard": 72
+    },
+    {
+      "run_id": "20260831T101742.050067Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T101742.050067Z/run.json",
+      "run_json_sha256": "72a2809d495622c305bd6c9e9711972424f6b3039b46acef4c1e08f8aa18e572",
+      "shard": 73
+    },
+    {
+      "run_id": "20260831T102122.160251Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T102122.160251Z/run.json",
+      "run_json_sha256": "e28c430447153af8d12ec88ad530e05b566a9f86c225bfee9409a9205f352eea",
+      "shard": 74
+    },
+    {
+      "run_id": "20260831T102502.019531Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T102502.019531Z/run.json",
+      "run_json_sha256": "d19bd4f6a199fe98f08be18e84d200457377a204267503c21e9c770566cc26e0",
+      "shard": 75
+    },
+    {
+      "run_id": "20260831T102841.085191Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T102841.085191Z/run.json",
+      "run_json_sha256": "1886f6edbd8d2cf9e60ca87d8bb410078cb845fac3cc9e9583a0ff35d13652d0",
+      "shard": 76
+    },
+    {
+      "run_id": "20260831T103220.464899Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T103220.464899Z/run.json",
+      "run_json_sha256": "469f190d744becafbaf819011be6bc6509d67446770a069ad402bb4ebeaa345d",
+      "shard": 77
+    },
+    {
+      "run_id": "20260831T103559.995103Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T103559.995103Z/run.json",
+      "run_json_sha256": "78a0f17e205b0a459aba8f2d83290c4bda01f5583c7f37bed53e743b29046ee5",
+      "shard": 78
+    },
+    {
+      "run_id": "20260831T103939.411689Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T103939.411689Z/run.json",
+      "run_json_sha256": "864fd78e5764d3ecc133ab09525a0b1d4316da6c07b63b9ef7cf936e13ae94f7",
+      "shard": 79
+    },
+    {
+      "run_id": "20260831T104318.771200Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T104318.771200Z/run.json",
+      "run_json_sha256": "a12360e27340b26534e8925fb2a9e114540a9354186302b82af034be96c8dd7f",
+      "shard": 80
+    },
+    {
+      "run_id": "20260831T104657.586353Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T104657.586353Z/run.json",
+      "run_json_sha256": "998c125abb9652d3fc8905c7e89f171d1b1160e8e2b6c05a2358c8debe7fd97b",
+      "shard": 81
+    },
+    {
+      "run_id": "20260831T105036.991328Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T105036.991328Z/run.json",
+      "run_json_sha256": "42573754700b29f6a09775413cf3724af52aaa283be86ea1a9e0295211c834a1",
+      "shard": 82
+    },
+    {
+      "run_id": "20260831T105416.432297Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T105416.432297Z/run.json",
+      "run_json_sha256": "efffac95b1bfe46aea4bd0baf7087097a7001449e72947e0ba61e289d21af1a0",
+      "shard": 83
+    },
+    {
+      "run_id": "20260831T105755.546400Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T105755.546400Z/run.json",
+      "run_json_sha256": "98778ef6b8dd31edd9ac562b587a14111e186ef1826aedb0db9a5b139e06b6ba",
+      "shard": 84
+    },
+    {
+      "run_id": "20260831T110135.312740Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T110135.312740Z/run.json",
+      "run_json_sha256": "1f1358e5b3951c089ff125a7917d51cd74fea50b5965aa84d3d0913b49be5c77",
+      "shard": 85
+    },
+    {
+      "run_id": "20260831T110514.241165Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T110514.241165Z/run.json",
+      "run_json_sha256": "409b35db42a73b20a419649dd144c5fdaa4a3943e8556104b510bd586b998843",
+      "shard": 86
+    },
+    {
+      "run_id": "20260831T110853.243311Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T110853.243311Z/run.json",
+      "run_json_sha256": "a8e145676ce308f3fe1f6d0cfc04e136626711594aa470fa7523f7bfdab716f5",
+      "shard": 87
+    },
+    {
+      "run_id": "20260831T111232.665084Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T111232.665084Z/run.json",
+      "run_json_sha256": "bb0045af21d7fff386291977eb1c143c89f0f12c8c79fb1a6c48b04346160aeb",
+      "shard": 88
+    },
+    {
+      "run_id": "20260831T111611.895966Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T111611.895966Z/run.json",
+      "run_json_sha256": "f992948df53ca84bb8ab60f7d82a29c2e92882cdd5d9abafca38379519be29b0",
+      "shard": 89
+    },
+    {
+      "run_id": "20260831T111951.680059Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T111951.680059Z/run.json",
+      "run_json_sha256": "dd58993208ce3bc7851ec668241f57a3e50530124efe9b1a87d0580e50dd5221",
+      "shard": 90
+    },
+    {
+      "run_id": "20260831T112330.956708Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T112330.956708Z/run.json",
+      "run_json_sha256": "7a42cbc9527ff8cd2da61b97076a47f915951e79430fb0fb2b6e3d65e4db7418",
+      "shard": 91
+    },
+    {
+      "run_id": "20260831T112710.842472Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T112710.842472Z/run.json",
+      "run_json_sha256": "636715cd5ee6f9921787c060934b584400d9d7244b4bd8b14a35dc0360bd5670",
+      "shard": 92
+    },
+    {
+      "run_id": "20260831T113050.803513Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T113050.803513Z/run.json",
+      "run_json_sha256": "819910c7569b1b212344d727ab311c3cc8ee133fc2dbc3c7601a1d9534c9c2a1",
+      "shard": 93
+    },
+    {
+      "run_id": "20260831T113430.420570Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T113430.420570Z/run.json",
+      "run_json_sha256": "95b41f32b117d51d48c475e34ec5cc701587768e2816d09a76c7c6d8ff52f653",
+      "shard": 94
+    },
+    {
+      "run_id": "20260831T113809.981146Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T113809.981146Z/run.json",
+      "run_json_sha256": "0bdda92321c0f79070fd5c0af3f3df0037c6045ba9822a4f3de981d0c6ba9459",
+      "shard": 95
+    },
+    {
+      "run_id": "20260831T114149.724911Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T114149.724911Z/run.json",
+      "run_json_sha256": "b8ef5e053b02149ef049e65c6c9414903c732db118b9cfe25f0f1732917c1231",
+      "shard": 96
+    },
+    {
+      "run_id": "20260831T114528.340117Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T114528.340117Z/run.json",
+      "run_json_sha256": "8d8bd81da51c58d284392127e09e6c7e516c8d565d2c930e6113a9d7dff0ac3e",
+      "shard": 97
+    },
+    {
+      "run_id": "20260831T114907.739620Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T114907.739620Z/run.json",
+      "run_json_sha256": "7d1612040d9f5436095d356320d4975e55778d79603754ce580589dfbe85b294",
+      "shard": 98
+    },
+    {
+      "run_id": "20260831T115246.816562Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T115246.816562Z/run.json",
+      "run_json_sha256": "60920340a05f6cc64b720259158eb3c4b357c9fa7d02d1c9c0c878cff5ddd18e",
+      "shard": 99
+    },
+    {
+      "run_id": "20260831T115626.313593Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T115626.313593Z/run.json",
+      "run_json_sha256": "7ad22c5f16fbf06c85c91624fe9eaa66a55becb12d15c5d6525548266b5fad75",
+      "shard": 100
+    },
+    {
+      "run_id": "20260831T120006.347137Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T120006.347137Z/run.json",
+      "run_json_sha256": "4b5877332e25c546f1ddd2fc68cd3bda20432de796e6694aca3fe7d6ab602b9c",
+      "shard": 101
+    },
+    {
+      "run_id": "20260831T120345.821240Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T120345.821240Z/run.json",
+      "run_json_sha256": "9cded4942e2ec125cba95ffd80d3ca6e5542a9ffd4f676b598e2f6cf82d3cf22",
+      "shard": 102
+    },
+    {
+      "run_id": "20260831T120725.254914Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T120725.254914Z/run.json",
+      "run_json_sha256": "72ad94d0f54e2b5ce1d1bf6bceac93ec35adc0542feb213415f4b645cb646fd5",
+      "shard": 103
+    },
+    {
+      "run_id": "20260831T121104.963911Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T121104.963911Z/run.json",
+      "run_json_sha256": "e22681f4e2acd98a0b75d379decccd54a15b780018fdcf08874ed27151aeebdf",
+      "shard": 104
+    },
+    {
+      "run_id": "20260831T121444.495578Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T121444.495578Z/run.json",
+      "run_json_sha256": "bd6822700898d2b246eac232829dc53c82f8fc8f23b000f20ce5a67ca445a4f1",
+      "shard": 105
+    },
+    {
+      "run_id": "20260831T121824.382580Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T121824.382580Z/run.json",
+      "run_json_sha256": "d540caead3ed4d822dccf96c46717554a1aa5587547e8da7036c13fb374a49d7",
+      "shard": 106
+    },
+    {
+      "run_id": "20260831T122204.195061Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T122204.195061Z/run.json",
+      "run_json_sha256": "7388cc95ccbb0111cecc01d982e6e584d9b8458cd6834ed7c1c04597e0b766f2",
+      "shard": 107
+    },
+    {
+      "run_id": "20260831T122543.426203Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T122543.426203Z/run.json",
+      "run_json_sha256": "ea4c359bc4efa892b873e0b6c2558ee66b00e480b214a19bc5eca8304e26ec6e",
+      "shard": 108
+    },
+    {
+      "run_id": "20260831T122922.467684Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T122922.467684Z/run.json",
+      "run_json_sha256": "2a59f7f6ae61a7c6dc9cc1f1d606169496795594f6f552a327ba8fb9627d21bc",
+      "shard": 109
+    },
+    {
+      "run_id": "20260831T123302.580595Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T123302.580595Z/run.json",
+      "run_json_sha256": "87a3a8841e7ffa65b43aa46f14454adf06a7630f996e98d5b0954699ed45ec1b",
+      "shard": 110
+    },
+    {
+      "run_id": "20260831T123641.908718Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T123641.908718Z/run.json",
+      "run_json_sha256": "871d5d131c1e7a04f02b2a64183d0ca5a33b735d2e0b752427292cbebbf1c545",
+      "shard": 111
+    },
+    {
+      "run_id": "20260831T124021.837921Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T124021.837921Z/run.json",
+      "run_json_sha256": "62319e21dfbe1396864d2969bc70bdbad2544c34159c20f0a3a7b5ba8c07c617",
+      "shard": 112
+    },
+    {
+      "run_id": "20260831T124401.693350Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T124401.693350Z/run.json",
+      "run_json_sha256": "bf34c2cca5d9ed18bbfa0efb047667fdcdc2e172b736a7d89f829ba1e51aa645",
+      "shard": 113
+    },
+    {
+      "run_id": "20260831T124741.407295Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T124741.407295Z/run.json",
+      "run_json_sha256": "9bb7cdca2d0981fda79d5ff3e4a62dd8bd07a1fb12aafcd327f31507141c7451",
+      "shard": 114
+    },
+    {
+      "run_id": "20260831T125120.966159Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T125120.966159Z/run.json",
+      "run_json_sha256": "52d6c6f1bc4953d48a38c1a0a15b355d5057bb066ef48e616a6feae2ca7754f6",
+      "shard": 115
+    },
+    {
+      "run_id": "20260831T125500.087267Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T125500.087267Z/run.json",
+      "run_json_sha256": "3d25abca92e2e73f7b51271a330c7b7bd096e49284c79916a98775ca5c1efe52",
+      "shard": 116
+    },
+    {
+      "run_id": "20260831T125839.554986Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T125839.554986Z/run.json",
+      "run_json_sha256": "b5eee698bd01d398e0e8a4fd8e79631641bbb8d18895a97bbb4a3fd1308d80be",
+      "shard": 117
+    },
+    {
+      "run_id": "20260831T130218.829553Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T130218.829553Z/run.json",
+      "run_json_sha256": "0ddd8769d9487641315b055ecee05ee34d88ce3433e3d8273a3bbdaa1b2d648f",
+      "shard": 118
+    },
+    {
+      "run_id": "20260831T130559.001181Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T130559.001181Z/run.json",
+      "run_json_sha256": "5038a8b14bf5a4a102828bc17bf9b23da6ee0342db180cafac6b908c6bd7632b",
+      "shard": 119
+    },
+    {
+      "run_id": "20260831T130938.907898Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T130938.907898Z/run.json",
+      "run_json_sha256": "d2205793b752229001303d4a0d3d15ae8c19ee03c3a340c3dd2064b13377ac33",
+      "shard": 120
+    },
+    {
+      "run_id": "20260831T131318.489281Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T131318.489281Z/run.json",
+      "run_json_sha256": "df9d6161bf8646af484506e26a89614272f7f9d9b0530685605ebbd7b444bb7d",
+      "shard": 121
+    },
+    {
+      "run_id": "20260831T131657.688698Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T131657.688698Z/run.json",
+      "run_json_sha256": "b2b001fea2aa4cf929d37b228b4fd45a8ce0fce4b50930ffce2dde69445fc3fe",
+      "shard": 122
+    },
+    {
+      "run_id": "20260831T132036.939151Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T132036.939151Z/run.json",
+      "run_json_sha256": "f4596e063d432f251ab053fc072dc1d0504051ee09a23fb053882ef34f889fff",
+      "shard": 123
+    },
+    {
+      "run_id": "20260831T132416.775668Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T132416.775668Z/run.json",
+      "run_json_sha256": "8cbb3a35c2cd22b94d0eaa1e1821621a16010a1ec0c7e9350d1777a2f041c679",
+      "shard": 124
+    },
+    {
+      "run_id": "20260831T132756.309173Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T132756.309173Z/run.json",
+      "run_json_sha256": "1c5b4382382f898f4c868655c218af997b547ac039136bcb2a50532c6389d96b",
+      "shard": 125
+    },
+    {
+      "run_id": "20260831T133135.533684Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T133135.533684Z/run.json",
+      "run_json_sha256": "70044737a5b2d0051cc011c874233ce486856600a87afe88d15ba7b1adf7995e",
+      "shard": 126
+    },
+    {
+      "run_id": "20260831T133514.791872Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T133514.791872Z/run.json",
+      "run_json_sha256": "c33fe6c46969f40da7b791f8dd1e746fc7efe0337593956637728cc311d4dd2d",
+      "shard": 127
+    },
+    {
+      "run_id": "20260831T133854.554854Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T133854.554854Z/run.json",
+      "run_json_sha256": "7b09697cd51fe85a6c2b5f8353f67893ce5d0efd12ae1180fae03a16c9803320",
+      "shard": 128
+    },
+    {
+      "run_id": "20260831T134234.398915Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T134234.398915Z/run.json",
+      "run_json_sha256": "3bbecf4d3dddb76bac4c21dd20f88fd13fdc837178c7603356f7cf96989b6ea5",
+      "shard": 129
+    },
+    {
+      "run_id": "20260831T134613.823647Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T134613.823647Z/run.json",
+      "run_json_sha256": "63e9a14f5f0d1fbafd0ec3ada4c05561393c110c71711e7e47fc2ba7e5adfe63",
+      "shard": 130
+    },
+    {
+      "run_id": "20260831T134953.498525Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T134953.498525Z/run.json",
+      "run_json_sha256": "b421ad7f8446f06a882cdca41313e622444a4c52d59b6cfb719541e591d34593",
+      "shard": 131
+    },
+    {
+      "run_id": "20260831T135333.135175Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T135333.135175Z/run.json",
+      "run_json_sha256": "8b5e9842c81b3137562345dfc6850b40025db68dd33efd99e601dfa8fd344359",
+      "shard": 132
+    },
+    {
+      "run_id": "20260831T135713.031711Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T135713.031711Z/run.json",
+      "run_json_sha256": "6a5cc7d57a30900456217be23c1119f6e875733f4a6f722ba9031316e38f6a0e",
+      "shard": 133
+    },
+    {
+      "run_id": "20260831T140052.416868Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T140052.416868Z/run.json",
+      "run_json_sha256": "7e92e88899fea6bdc84f26565b384fade931b17eafda7a88423b3e1b3392550d",
+      "shard": 134
+    },
+    {
+      "run_id": "20260831T140432.049161Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T140432.049161Z/run.json",
+      "run_json_sha256": "0b6c45ed830edd21ec6c8d9c52fd50d625acffadb64910b3bc4e1994863504a4",
+      "shard": 135
+    },
+    {
+      "run_id": "20260831T140811.424372Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T140811.424372Z/run.json",
+      "run_json_sha256": "f02fc9bf938ded87393afd3c10e89dbe02024bfaf87d38ac8fd2aadf2524c1de",
+      "shard": 136
+    },
+    {
+      "run_id": "20260831T141151.487491Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T141151.487491Z/run.json",
+      "run_json_sha256": "81176457801b95cf311a48d44654384d0080b1db03097436b05c57e085170b13",
+      "shard": 137
+    },
+    {
+      "run_id": "20260831T141530.634056Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T141530.634056Z/run.json",
+      "run_json_sha256": "18a20fe382d851f2645b1b41f27a2f8311e7e6d49f7bbb72c7016e1e58bebaca",
+      "shard": 138
+    },
+    {
+      "run_id": "20260831T141909.891886Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T141909.891886Z/run.json",
+      "run_json_sha256": "6596094be71d79769a1f7c8cee6ac3b64b1ab9ba0053fa5a0859ed6ee50d3d20",
+      "shard": 139
+    },
+    {
+      "run_id": "20260831T142249.659493Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T142249.659493Z/run.json",
+      "run_json_sha256": "53ddd528b2f24d2bed3cd2604311561bf5e42f13b6db361489c414abdf232d73",
+      "shard": 140
+    },
+    {
+      "run_id": "20260831T142629.913192Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T142629.913192Z/run.json",
+      "run_json_sha256": "4792cdccfea857bdf53e8bcad99685f00bd4d1b41855764e705dda027d4a788f",
+      "shard": 141
+    },
+    {
+      "run_id": "20260831T143009.042208Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T143009.042208Z/run.json",
+      "run_json_sha256": "51a293a2dc7e8f2982967921b2bdb9ce716c32555047e4e2da4c8982c4428ddd",
+      "shard": 142
+    },
+    {
+      "run_id": "20260831T143348.709272Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T143348.709272Z/run.json",
+      "run_json_sha256": "0c21475c7822650868a060e2dcf952221df896c8f9060fc396db666b79073907",
+      "shard": 143
+    },
+    {
+      "run_id": "20260831T143728.631352Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T143728.631352Z/run.json",
+      "run_json_sha256": "ff48a9cd76cf2b82ee1056caabe16c58c8abd93aba3e5381de1784bffdd41c8f",
+      "shard": 144
+    },
+    {
+      "run_id": "20260831T144108.456960Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T144108.456960Z/run.json",
+      "run_json_sha256": "dbf3ceded599cf5dcc54167d84c5f3961384d357c1b534d806dad372deee3131",
+      "shard": 145
+    },
+    {
+      "run_id": "20260831T144448.253462Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T144448.253462Z/run.json",
+      "run_json_sha256": "6cb01999baee55ab02e1353f881c29930a472707ca61d7a668d2355f776798fe",
+      "shard": 146
+    },
+    {
+      "run_id": "20260831T144827.934736Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T144827.934736Z/run.json",
+      "run_json_sha256": "0cc28d1f2b1fb4d1dd043985339421f23ad416635357266ecd9d4a28d5184086",
+      "shard": 147
+    },
+    {
+      "run_id": "20260831T145206.887465Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T145206.887465Z/run.json",
+      "run_json_sha256": "abd7a443aa3d905de7692b32863339a087e7518920f7e9fa1a83cecd9235bdc0",
+      "shard": 148
+    },
+    {
+      "run_id": "20260831T145546.255781Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T145546.255781Z/run.json",
+      "run_json_sha256": "2d8820fb0902d5a1d3183dd218817f69ed937d3d896eaa9bcf83c8deafe0bead",
+      "shard": 149
+    },
+    {
+      "run_id": "20260831T145925.516149Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T145925.516149Z/run.json",
+      "run_json_sha256": "4e6a0abe6b0fabc58aef849d00c1c11dfb86ae1af8588d4ef1b703de825aae16",
+      "shard": 150
+    },
+    {
+      "run_id": "20260831T150304.242011Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T150304.242011Z/run.json",
+      "run_json_sha256": "27aef567cdf2b9a1efa0554de36131898d2593db8f528db24aeeab5ab116a844",
+      "shard": 151
+    },
+    {
+      "run_id": "20260831T150643.670769Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T150643.670769Z/run.json",
+      "run_json_sha256": "53b9bf7ac722a7cbd53a85a6fc89f39080269cb740b1fe41ac61371742e33295",
+      "shard": 152
+    },
+    {
+      "run_id": "20260831T151023.042262Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T151023.042262Z/run.json",
+      "run_json_sha256": "8a7424bf87f6c110d2e49dbd6218ea574cbcedb3e49bac974f4243cff2cd8188",
+      "shard": 153
+    },
+    {
+      "run_id": "20260831T151402.601072Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T151402.601072Z/run.json",
+      "run_json_sha256": "99482858d0a46c74e5660ebc7fc3799515a59f49de7803fd346ec41909777a45",
+      "shard": 154
+    },
+    {
+      "run_id": "20260831T151741.827450Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T151741.827450Z/run.json",
+      "run_json_sha256": "596d4f386663e48c912f5d400b7247a5036a8a14c5c0fd1fc37d54821e9427cc",
+      "shard": 155
+    },
+    {
+      "run_id": "20260831T152121.465608Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T152121.465608Z/run.json",
+      "run_json_sha256": "71b86f279941b8a01c01838de81c8cd24e4683cd21f1241a296d930d1d1fdeb0",
+      "shard": 156
+    },
+    {
+      "run_id": "20260831T152500.692514Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T152500.692514Z/run.json",
+      "run_json_sha256": "846c22fd8d95109b18aaebd372e3cb46805a8c2001bd9b35576d85ea1778f783",
+      "shard": 157
+    },
+    {
+      "run_id": "20260831T152839.635438Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T152839.635438Z/run.json",
+      "run_json_sha256": "98697674efb2a98670162ef667eda92e2a9c261fccb6cd5ab11b57c1ed6682d0",
+      "shard": 158
+    },
+    {
+      "run_id": "20260831T153218.705947Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T153218.705947Z/run.json",
+      "run_json_sha256": "4423099eab4e2066bf1e1ab42823e3619a50506b66b187f9d169d84db3f0b10c",
+      "shard": 159
+    },
+    {
+      "run_id": "20260831T153558.416590Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T153558.416590Z/run.json",
+      "run_json_sha256": "f2da44e9002ce6c2576e41e211d4d1059ad0f024d6486306668c7f3ef780c67f",
+      "shard": 160
+    },
+    {
+      "run_id": "20260831T153937.700557Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T153937.700557Z/run.json",
+      "run_json_sha256": "7dd28b6b6cddd919849b73d1136ad8383d0159512bd891458884482fb78bd899",
+      "shard": 161
+    },
+    {
+      "run_id": "20260831T154317.285602Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T154317.285602Z/run.json",
+      "run_json_sha256": "057d4cd1fc3720bc2a031fd82f15f2c885947e69bc33ab7e3a3b1b46ccb8c573",
+      "shard": 162
+    },
+    {
+      "run_id": "20260831T154656.526978Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T154656.526978Z/run.json",
+      "run_json_sha256": "0a2f6073459c154a3ea6b7cbecbb07f1a2d30be0ca733effa1a151edfe49c6f4",
+      "shard": 163
+    },
+    {
+      "run_id": "20260831T155035.333941Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T155035.333941Z/run.json",
+      "run_json_sha256": "000e28386c09f021f694992ee2dbedba0456e834f2f42c1a68658a81bf1a8d16",
+      "shard": 164
+    },
+    {
+      "run_id": "20260831T155413.883956Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T155413.883956Z/run.json",
+      "run_json_sha256": "f70a0a374c76160c6057ead51c6e106c448f45faa7567a2e992f07ffeb1c142a",
+      "shard": 165
+    },
+    {
+      "run_id": "20260831T155752.788160Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T155752.788160Z/run.json",
+      "run_json_sha256": "6ea20b71e16f3fbb452ea75bc10b202b52f7bd75eed580115455489342d5fe8e",
+      "shard": 166
+    },
+    {
+      "run_id": "20260831T160131.482209Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T160131.482209Z/run.json",
+      "run_json_sha256": "55904aaad5af32b365df75f42e4a121ecdc4a3be97ffb7e9054bba700a978212",
+      "shard": 167
+    },
+    {
+      "run_id": "20260831T160510.652625Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T160510.652625Z/run.json",
+      "run_json_sha256": "4778059998ed3459864a2b48a7a82d154be7926497efbc02679f4a456586d548",
+      "shard": 168
+    },
+    {
+      "run_id": "20260831T160848.751785Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T160848.751785Z/run.json",
+      "run_json_sha256": "047bf643c0ae08e10b391095669313691e31ca58acc29c3088661f13fc367e01",
+      "shard": 169
+    },
+    {
+      "run_id": "20260831T161228.183459Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T161228.183459Z/run.json",
+      "run_json_sha256": "afc3d0629dbdc744bd3b3e62589b10dd4c9a7c1efdf857ce1fd0c466547aec4d",
+      "shard": 170
+    },
+    {
+      "run_id": "20260831T161608.199981Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T161608.199981Z/run.json",
+      "run_json_sha256": "ff4af655319c871e2b1702dfba9a6785ddd7132a90c527bee0613496f338fdc2",
+      "shard": 171
+    },
+    {
+      "run_id": "20260831T161947.205517Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T161947.205517Z/run.json",
+      "run_json_sha256": "3ef92ee413f3e069d4d2b463c2d8a5e67647e1d9fb4316de9a7f3ed25038ff35",
+      "shard": 172
+    },
+    {
+      "run_id": "20260831T162327.776105Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T162327.776105Z/run.json",
+      "run_json_sha256": "1b01837edd25ed2ac9857d26341565643865f48e75cf922dcf4c48b980ed91cd",
+      "shard": 173
+    },
+    {
+      "run_id": "20260831T162711.141581Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T162711.141581Z/run.json",
+      "run_json_sha256": "a1963316dff23e08c12bab846de9f043a9dd2c6b3fc3f5896bcac85d25bb9c60",
+      "shard": 174
+    },
+    {
+      "run_id": "20260831T163055.258296Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T163055.258296Z/run.json",
+      "run_json_sha256": "c00492fe9ccd71ef7a9ad387d98d5121695a0af29665cebb836629bc4a08a985",
+      "shard": 175
+    },
+    {
+      "run_id": "20260831T163443.867184Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T163443.867184Z/run.json",
+      "run_json_sha256": "b1788a83f64bcff85e480c94cd4ee036741f3ea7e5d8f869ffa9e23f54e9bbb7",
+      "shard": 176
+    },
+    {
+      "run_id": "20260831T163827.953474Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T163827.953474Z/run.json",
+      "run_json_sha256": "b97ff9d40d4a7175cfde81af44b011130ab5cf5a9379cc8cefac5083368d0ed0",
+      "shard": 177
+    },
+    {
+      "run_id": "20260831T164208.004054Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T164208.004054Z/run.json",
+      "run_json_sha256": "b749fc91550827fec4a42530f4e699d53aab76e792d188106d1f8d71b205b327",
+      "shard": 178
+    },
+    {
+      "run_id": "20260831T164547.374165Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T164547.374165Z/run.json",
+      "run_json_sha256": "abdeff07dc42ce8b5631c5eac2a533fd7b34f3cbd1d30ac3056820f8f2deaa70",
+      "shard": 179
+    },
+    {
+      "run_id": "20260831T164926.840409Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T164926.840409Z/run.json",
+      "run_json_sha256": "4931b340fcee6ba1ee969220f220b17bda088242737fc499885924b319052689",
+      "shard": 180
+    },
+    {
+      "run_id": "20260831T165306.637171Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T165306.637171Z/run.json",
+      "run_json_sha256": "82897f59b7f6049011c0d71c24552b65d90d2bbfeef92c5c7fe1f598edb64728",
+      "shard": 181
+    },
+    {
+      "run_id": "20260831T165645.745224Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T165645.745224Z/run.json",
+      "run_json_sha256": "8a6f00963fd8e94723af77ba178bdb8f081b9d3c8e016c02e81df1942c2eef6d",
+      "shard": 182
+    },
+    {
+      "run_id": "20260831T170024.941524Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T170024.941524Z/run.json",
+      "run_json_sha256": "ee305843d28bb4589fcca09a4cf581e6dac0b2e8ca1a03c2431f4f72fbe75d7e",
+      "shard": 183
+    },
+    {
+      "run_id": "20260831T170404.937492Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T170404.937492Z/run.json",
+      "run_json_sha256": "f63422be04ca47218d78d5fd64e78e30b07062e77cf5a822f8238018f05e215a",
+      "shard": 184
+    },
+    {
+      "run_id": "20260831T170744.256107Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T170744.256107Z/run.json",
+      "run_json_sha256": "2928bd0f4f66cb517a73e669b51f1aca0c046ff2a8c559bfcd754c983bd37344",
+      "shard": 185
+    },
+    {
+      "run_id": "20260831T171123.114635Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T171123.114635Z/run.json",
+      "run_json_sha256": "977c95a26e12e4d4cc6123985850131c3414b6b087d064ba05d96dab20aabdbb",
+      "shard": 186
+    },
+    {
+      "run_id": "20260831T171502.143201Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T171502.143201Z/run.json",
+      "run_json_sha256": "dcfae9e1566d2e7ae0f33e9304d612f1e7cdd3b908f3b740483b38e4074fd808",
+      "shard": 187
+    },
+    {
+      "run_id": "20260831T171840.033495Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T171840.033495Z/run.json",
+      "run_json_sha256": "334fed61b517b5305fcaa5565ac3a0674d86ef23c701321455527b6014b79211",
+      "shard": 188
+    },
+    {
+      "run_id": "20260831T172219.450506Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T172219.450506Z/run.json",
+      "run_json_sha256": "dcf07919220b40a270ad5e575c371af514860619cda94768ae75547195af302e",
+      "shard": 189
+    },
+    {
+      "run_id": "20260831T172558.384933Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T172558.384933Z/run.json",
+      "run_json_sha256": "c8c1f8189f964f794c223b6675ebf31be8967675f63a4bdf12bebfd530c874a0",
+      "shard": 190
+    },
+    {
+      "run_id": "20260831T172937.465228Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T172937.465228Z/run.json",
+      "run_json_sha256": "a92229a7909a91129598a3ebc2d6fcb54481cf046a76aec0f9005790733c3852",
+      "shard": 191
+    },
+    {
+      "run_id": "20260831T173316.584578Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T173316.584578Z/run.json",
+      "run_json_sha256": "090018fd8c0dc0c6233491a471f70b204caf707d7a0496efab9d0000c232e5f9",
+      "shard": 192
+    },
+    {
+      "run_id": "20260831T173655.398270Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T173655.398270Z/run.json",
+      "run_json_sha256": "ff7e3eff3ba2cd92580b33f4d469698491f43c54e8c945c19b2c899d42d3cd7e",
+      "shard": 193
+    },
+    {
+      "run_id": "20260831T174034.377039Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T174034.377039Z/run.json",
+      "run_json_sha256": "2988d7fc191e6dabe9526ea308e4a724258175783610521b05b5d8497e164bb0",
+      "shard": 194
+    },
+    {
+      "run_id": "20260831T174414.428807Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T174414.428807Z/run.json",
+      "run_json_sha256": "89b2a38d6a62b4eddebdb542f633e11c810db0c8143811ed15eaeb05bbcc4efb",
+      "shard": 195
+    },
+    {
+      "run_id": "20260831T174753.704137Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T174753.704137Z/run.json",
+      "run_json_sha256": "d5273c6113b04a00d45deceaa746fcd48083526992ec6309befaf6279e66b244",
+      "shard": 196
+    },
+    {
+      "run_id": "20260831T175132.252682Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T175132.252682Z/run.json",
+      "run_json_sha256": "8708b86739fcd5fb7ea80238d56bf9d86a07218c2345a3dbf630e2bcb03a15ea",
+      "shard": 197
+    },
+    {
+      "run_id": "20260831T175511.283793Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T175511.283793Z/run.json",
+      "run_json_sha256": "ee0de728ae6ba0ccfd2da70a35d47fd3c2249bb59b755e432c945fc85fa8daba",
+      "shard": 198
+    },
+    {
+      "run_id": "20260831T175849.614285Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T175849.614285Z/run.json",
+      "run_json_sha256": "874c807a4a840e1b63cd6e6d966777c0d1310d2d31ec9be5454857b858f8b06e",
+      "shard": 199
+    },
+    {
+      "run_id": "20260831T180228.485987Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T180228.485987Z/run.json",
+      "run_json_sha256": "d1b471d40c367c90fe96765a094cd6f4d2d0b1ce306f718685969249b0e01ee7",
+      "shard": 200
+    },
+    {
+      "run_id": "20260831T180607.009228Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T180607.009228Z/run.json",
+      "run_json_sha256": "9c9a4eb10d2bfb09787afe7d380b9948754e999cabffd956e1d8dbcc9a820daa",
+      "shard": 201
+    },
+    {
+      "run_id": "20260831T180942.748117Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T180942.748117Z/run.json",
+      "run_json_sha256": "bd28654ae940608a0499242efe5011e16fe82e53e6521628a6bf2da7c07a0a06",
+      "shard": 202
+    },
+    {
+      "run_id": "20260831T181319.361208Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T181319.361208Z/run.json",
+      "run_json_sha256": "2c1f25058b91c67e61bb52669f79f5ae6db437b4a473636ea7e5925556f72de6",
+      "shard": 203
+    },
+    {
+      "run_id": "20260831T181656.332893Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T181656.332893Z/run.json",
+      "run_json_sha256": "c6c809b27ea22917f4dbce1fd4ba058ee1e1e87892d0c6b7c049ac588d1ea0a5",
+      "shard": 204
+    },
+    {
+      "run_id": "20260831T182033.132416Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T182033.132416Z/run.json",
+      "run_json_sha256": "33c67d148927922687b32b55d09f035325ae5ffc598c710197e908ba232f17b7",
+      "shard": 205
+    },
+    {
+      "run_id": "20260831T182414.567387Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T182414.567387Z/run.json",
+      "run_json_sha256": "3a30d89eeffba81e0c993881dd45f50ed4ca0f78b2851a1b5603aafb47cbc75b",
+      "shard": 206
+    },
+    {
+      "run_id": "20260831T182751.839413Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T182751.839413Z/run.json",
+      "run_json_sha256": "62aefd10d77db8fa6725c655596de08326bccc9af4137a68c749497dc4428065",
+      "shard": 207
+    },
+    {
+      "run_id": "20260831T183130.649193Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T183130.649193Z/run.json",
+      "run_json_sha256": "fe1ceedcf4820ce4ecfaa67f3507f55a2c9a7cfa1ca015b2487df79ad91af900",
+      "shard": 208
+    },
+    {
+      "run_id": "20260831T183510.546244Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T183510.546244Z/run.json",
+      "run_json_sha256": "2b6926402c33c04f3f935d2b195cf68b63baf0950c217b0e20cf27a540f676a0",
+      "shard": 209
+    },
+    {
+      "run_id": "20260831T183849.174822Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T183849.174822Z/run.json",
+      "run_json_sha256": "287654bc60b34294edcf7e797086a5a22a4f26a7d2bdfb05e7638a1cb30b24d3",
+      "shard": 210
+    },
+    {
+      "run_id": "20260831T184227.861201Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T184227.861201Z/run.json",
+      "run_json_sha256": "c78c4e4912fad085eaa3c864fcb497b95be38d3045747ea3ec5b488845c5d8c2",
+      "shard": 211
+    },
+    {
+      "run_id": "20260831T184606.907437Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T184606.907437Z/run.json",
+      "run_json_sha256": "e4ae4af2bd738189e9fb81f7497a5f5740bcf640e60c1f51d6f712d20f01fb96",
+      "shard": 212
+    },
+    {
+      "run_id": "20260831T184944.917198Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T184944.917198Z/run.json",
+      "run_json_sha256": "d94e3174113f633127f27f9e871fb6ce6db4862bc113603ce43e23c17f6e1529",
+      "shard": 213
+    },
+    {
+      "run_id": "20260831T185323.533703Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T185323.533703Z/run.json",
+      "run_json_sha256": "23d40b517c3dcca7c543cdb5e4d2e2d781faed33ab920c39fd578d265ba81e5e",
+      "shard": 214
+    },
+    {
+      "run_id": "20260831T185702.308117Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T185702.308117Z/run.json",
+      "run_json_sha256": "0fdd13db94c93fef7c782f4a9b6bbd9ccf97978e907d3bcc56590fc7dd59f334",
+      "shard": 215
+    },
+    {
+      "run_id": "20260831T190041.560429Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T190041.560429Z/run.json",
+      "run_json_sha256": "794a1d33837ee2c75167dda6a9a98cd18fc241f418f40852b580bf6731608c75",
+      "shard": 216
+    },
+    {
+      "run_id": "20260831T190420.663748Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T190420.663748Z/run.json",
+      "run_json_sha256": "4c5d08860db35e5ad072c1555dff946e8210ca79b7e69649219b870244460754",
+      "shard": 217
+    },
+    {
+      "run_id": "20260831T190759.735202Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T190759.735202Z/run.json",
+      "run_json_sha256": "a68182bd8439b1c18c9af9c129dad8e57bcca3ecfa75cae9bf97f2f4ad4d0fd5",
+      "shard": 218
+    },
+    {
+      "run_id": "20260831T191138.372543Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T191138.372543Z/run.json",
+      "run_json_sha256": "7b7a474f4154ca4bdfa58a606ae06ec8c993f1d43ec8d40ad42f3375abc3d393",
+      "shard": 219
+    },
+    {
+      "run_id": "20260831T191516.975167Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T191516.975167Z/run.json",
+      "run_json_sha256": "167401552c627113c90a5a027793a2671a101d4bdf631c568ac807c60e130230",
+      "shard": 220
+    },
+    {
+      "run_id": "20260831T191855.196146Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T191855.196146Z/run.json",
+      "run_json_sha256": "485921f20fee8aa56e3f82d19305f9ea75295bb37ff42af3602a15d06ed35bb8",
+      "shard": 221
+    },
+    {
+      "run_id": "20260831T192234.061235Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T192234.061235Z/run.json",
+      "run_json_sha256": "a20b888a32eb2e8f06da4a8a4e05fe62f3e20ed539bfab9b55c5f51d38ad7529",
+      "shard": 222
+    },
+    {
+      "run_id": "20260831T192612.234275Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T192612.234275Z/run.json",
+      "run_json_sha256": "4ef71e2a418c4cc10fba0bc30328f0e3a9158aa28cb8f53694f1fe923379adc4",
+      "shard": 223
+    },
+    {
+      "run_id": "20260831T192951.123824Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T192951.123824Z/run.json",
+      "run_json_sha256": "92c308bbe068cc510b794f136fd157263ed7d4912cade4b203ce20271ba6a604",
+      "shard": 224
+    },
+    {
+      "run_id": "20260831T193329.789361Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T193329.789361Z/run.json",
+      "run_json_sha256": "7ae9df01d46cac02693b8bfb3981d15d4613c46c7d26450103ecbd951e0ca424",
+      "shard": 225
+    },
+    {
+      "run_id": "20260831T193708.517261Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T193708.517261Z/run.json",
+      "run_json_sha256": "9d32cd316bee4df53be7bb7bcb798caf3dc062e015c6d9a1ea52218fa7b059de",
+      "shard": 226
+    },
+    {
+      "run_id": "20260831T194049.649788Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T194049.649788Z/run.json",
+      "run_json_sha256": "697b8924d9c5d4795ebd03bf60b0af6583446bdda8f68a04ea58f5e7cc12ad46",
+      "shard": 227
+    },
+    {
+      "run_id": "20260831T194428.859379Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T194428.859379Z/run.json",
+      "run_json_sha256": "25bdc78ba32b5e6373f815cbfc7e06bdf7ad5fbb4a4ba8ed2e9fb94bae0e1361",
+      "shard": 228
+    },
+    {
+      "run_id": "20260831T194806.900248Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T194806.900248Z/run.json",
+      "run_json_sha256": "c10e1ca19ad6ceafc26d67c7ba0702f4e8a459a430b3c9bb22d6a48d222413bb",
+      "shard": 229
+    },
+    {
+      "run_id": "20260831T195146.208413Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T195146.208413Z/run.json",
+      "run_json_sha256": "da87c8401bbefaed1a6d26c41dc76e82e7eceb6f54531f0d3c89a41b99d000f7",
+      "shard": 230
+    },
+    {
+      "run_id": "20260831T195525.186707Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T195525.186707Z/run.json",
+      "run_json_sha256": "f4d72b31fa14bc8c4145351e8fb7c208f613332b6c6123f79f31ef6a6e285767",
+      "shard": 231
+    },
+    {
+      "run_id": "20260831T195904.758818Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T195904.758818Z/run.json",
+      "run_json_sha256": "db1f8a6b6c4a094e1ec3993ea449040e566c0e569aba46bb63ef6e4aad7dbfaf",
+      "shard": 232
+    },
+    {
+      "run_id": "20260831T200247.286416Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T200247.286416Z/run.json",
+      "run_json_sha256": "23ba7993aed80bdf71504a21230abcb56500ad67cb2ac1c9484d820b1f24ab58",
+      "shard": 233
+    },
+    {
+      "run_id": "20260831T200627.646931Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T200627.646931Z/run.json",
+      "run_json_sha256": "70b5be8b868e7b96b80f92de8b8df91ef442f0c66bac06933ed780fffe6bf67a",
+      "shard": 234
+    },
+    {
+      "run_id": "20260831T201004.201808Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T201004.201808Z/run.json",
+      "run_json_sha256": "38823b98baf2b2c5ad3967999225bed893f1517f86c7b9fa8768f6a1da148c0f",
+      "shard": 235
+    },
+    {
+      "run_id": "20260831T201343.405562Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T201343.405562Z/run.json",
+      "run_json_sha256": "8ebf48802a2b42d28237a785eb74b37828f8d780d084fb1d5e42804e8417597a",
+      "shard": 236
+    },
+    {
+      "run_id": "20260831T201723.814992Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T201723.814992Z/run.json",
+      "run_json_sha256": "bf11ecbdb1b649998f57d9831a7e7283f2e8e2b1aa92c7fc649e789129bb9468",
+      "shard": 237
+    },
+    {
+      "run_id": "20260831T202102.703626Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T202102.703626Z/run.json",
+      "run_json_sha256": "799e94f6e96597a5665b8d427b32a5ed3d886deb64f16512de6629cb491de04f",
+      "shard": 238
+    },
+    {
+      "run_id": "20260831T202437.646845Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T202437.646845Z/run.json",
+      "run_json_sha256": "36aa1cd128a87b57d0697f94f1fa050e376490fecd0f23d46bef7c9f658371c3",
+      "shard": 239
+    },
+    {
+      "run_id": "20260831T202812.954846Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T202812.954846Z/run.json",
+      "run_json_sha256": "f6a6d1c5ac97a9806fe1554a1e27e99334e216174e4e07801b05f26f3dccf263",
+      "shard": 240
+    },
+    {
+      "run_id": "20260831T203149.626466Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T203149.626466Z/run.json",
+      "run_json_sha256": "0ecfeb4b09e4d0c0eecc96f2a6e344c90c572d4043d258c64623758c59ca2925",
+      "shard": 241
+    },
+    {
+      "run_id": "20260831T203525.996841Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T203525.996841Z/run.json",
+      "run_json_sha256": "6125ed33641be19fb1cf77ea197f26a11c2ee47afe37d53b229f7716f1c751e4",
+      "shard": 242
+    },
+    {
+      "run_id": "20260831T203902.814928Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T203902.814928Z/run.json",
+      "run_json_sha256": "4e622e4c8c6a2f0fcb17f35062b1a76ffdaa1f22bc9b4e82ce358ca9fc2fe851",
+      "shard": 243
+    },
+    {
+      "run_id": "20260831T204240.427426Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T204240.427426Z/run.json",
+      "run_json_sha256": "4992a0675bdcec8a87eb75bd86af2d3c93606dbdecf95410514f2765bfc77d37",
+      "shard": 244
+    },
+    {
+      "run_id": "20260831T204616.126775Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T204616.126775Z/run.json",
+      "run_json_sha256": "1c662b9dd9aab28033d1833d73be700b124e7720351606fa7bdac7fe17bd991e",
+      "shard": 245
+    },
+    {
+      "run_id": "20260831T204951.970678Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T204951.970678Z/run.json",
+      "run_json_sha256": "b09b0d99d95cb010112c1021bebf2d07fa289be59dd888fcf3962444a61a9f92",
+      "shard": 246
+    },
+    {
+      "run_id": "20260831T205327.664755Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T205327.664755Z/run.json",
+      "run_json_sha256": "810f9f136de3162041a70441c4e15277c7de14085cdd86a828f5c5ac9696d4d9",
+      "shard": 247
+    },
+    {
+      "run_id": "20260831T205705.711355Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T205705.711355Z/run.json",
+      "run_json_sha256": "04a0dcb9d5a5fe27d276a504b88429bcc63cfe8efcfcafc777f6176798951ca8",
+      "shard": 248
+    },
+    {
+      "run_id": "20260831T210044.658004Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T210044.658004Z/run.json",
+      "run_json_sha256": "2884569c9ea40dcb337058a1071d1f1ff5f0abcad1520397847dd2231b357630",
+      "shard": 249
+    },
+    {
+      "run_id": "20260831T210423.251967Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T210423.251967Z/run.json",
+      "run_json_sha256": "3b6a861046c8c395d0684afacb3373d48626951a9bc9c9229024b6ef3131363d",
+      "shard": 250
+    },
+    {
+      "run_id": "20260831T210801.197041Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T210801.197041Z/run.json",
+      "run_json_sha256": "3f410a3495792224fa9fc09fa87b74ff012615ae55c988a3d2374533394428bc",
+      "shard": 251
+    },
+    {
+      "run_id": "20260831T211140.413100Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T211140.413100Z/run.json",
+      "run_json_sha256": "40291402b211252fd710a91a1641cf96bf7959c8ba00d65b0c43c0368b9bb50d",
+      "shard": 252
+    },
+    {
+      "run_id": "20260831T211519.830896Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T211519.830896Z/run.json",
+      "run_json_sha256": "a4d9f404ab92636a88efaae7887677b2e1dec6661f8068dd4a5b286ada307417",
+      "shard": 253
+    },
+    {
+      "run_id": "20260831T211858.944650Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T211858.944650Z/run.json",
+      "run_json_sha256": "d513a9402b1b431d33686a8754e1c467838e5ae254c0fdc27d59cb90bfd0e724",
+      "shard": 254
+    },
+    {
+      "run_id": "20260831T212238.688285Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T212238.688285Z/run.json",
+      "run_json_sha256": "35f631232760297a5eab6ef769b382cfbdeb0859b6c8415433faf2f2e1ea74b7",
+      "shard": 255
+    },
+    {
+      "run_id": "20260831T212617.702466Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T212617.702466Z/run.json",
+      "run_json_sha256": "1af7b425e7eb9213c29104557cf2da1b8a51afc845436ef9373af4fd698e815d",
+      "shard": 256
+    },
+    {
+      "run_id": "20260831T212956.755947Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T212956.755947Z/run.json",
+      "run_json_sha256": "1325ca30739c3816fd51da4388ce19c5d7944e5f17b0b589d83067cfb2e80fe3",
+      "shard": 257
+    },
+    {
+      "run_id": "20260831T213335.677211Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T213335.677211Z/run.json",
+      "run_json_sha256": "a21f87a675cb48f9f6e8d9c45eef517b7025a3a27d5c3abcae0835d103ed36d2",
+      "shard": 258
+    },
+    {
+      "run_id": "20260831T213713.743211Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T213713.743211Z/run.json",
+      "run_json_sha256": "bfa24d6e70e676e8f886f2c91f7904edd7ebc18c5ae4ee7a7e470a04bceaad54",
+      "shard": 259
+    },
+    {
+      "run_id": "20260831T214049.292139Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T214049.292139Z/run.json",
+      "run_json_sha256": "bb9eda8e1908ef3e4ad992afd46510a9ece6b743775635af1ff7cbe41638a860",
+      "shard": 260
+    },
+    {
+      "run_id": "20260831T214425.093805Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T214425.093805Z/run.json",
+      "run_json_sha256": "527d5f20b643f70503136359f84e1d7f4a5b57bc52d9338958971ed7c2082024",
+      "shard": 261
+    },
+    {
+      "run_id": "20260831T214800.689411Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T214800.689411Z/run.json",
+      "run_json_sha256": "de010e85b0f6612e0fd7d7da8a94a94b932c8db58c206c0b98243c12cde2388a",
+      "shard": 262
+    },
+    {
+      "run_id": "20260831T215138.139710Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T215138.139710Z/run.json",
+      "run_json_sha256": "3f665ce69b01c4a32a48b9d959d02acb52098e4a47678b2f48486154805ad665",
+      "shard": 263
+    },
+    {
+      "run_id": "20260831T215516.113266Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T215516.113266Z/run.json",
+      "run_json_sha256": "b2574ec396585364d40c1a711fbc76c419e0e45f5141fccfc4b79b1e09555318",
+      "shard": 264
+    },
+    {
+      "run_id": "20260831T215853.417025Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T215853.417025Z/run.json",
+      "run_json_sha256": "1462ce6895e64238eaa00dccc72f86a27385011a1d05bd0730c297024585cc4e",
+      "shard": 265
+    },
+    {
+      "run_id": "20260831T220232.480481Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T220232.480481Z/run.json",
+      "run_json_sha256": "5e601518cb673154815c8348f299dffe15f6691cd361b4d0fcf25282d3ad92a1",
+      "shard": 266
+    },
+    {
+      "run_id": "20260831T220611.469243Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T220611.469243Z/run.json",
+      "run_json_sha256": "1df8c26d9366cc144b2363d750d7a422f7bd5e768a600b3e5f107bc2e8431970",
+      "shard": 267
+    },
+    {
+      "run_id": "20260831T220951.213795Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T220951.213795Z/run.json",
+      "run_json_sha256": "926378797f2e33a939c987bdba0aa3df507da6afb936692f96d418aa5f1205c0",
+      "shard": 268
+    },
+    {
+      "run_id": "20260831T221330.633130Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T221330.633130Z/run.json",
+      "run_json_sha256": "a62910a1d3fba15fa36e412939ac561135a6f8860404774ce5cd0eeb0a21980d",
+      "shard": 269
+    },
+    {
+      "run_id": "20260831T221709.744179Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T221709.744179Z/run.json",
+      "run_json_sha256": "d1bed74d05e44ade6158aae3aebde8c06c5b3cef7a92a69beddf0a855b5f25cc",
+      "shard": 270
+    },
+    {
+      "run_id": "20260831T222049.221416Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T222049.221416Z/run.json",
+      "run_json_sha256": "6caa8864517f39e2d3a5a56db96eb8fec00ad0903ef6c6c551bc0d89fac07fdb",
+      "shard": 271
+    },
+    {
+      "run_id": "20260831T222426.843142Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T222426.843142Z/run.json",
+      "run_json_sha256": "97a62a7d4b3d7789d82a8da595c3617de6028aea99d05e78f2a1836547ba47e4",
+      "shard": 272
+    },
+    {
+      "run_id": "20260831T222804.619902Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T222804.619902Z/run.json",
+      "run_json_sha256": "374806ded24e4648d1aee7b7101823356f4aaa8b2206a4e4543b264a90d254f8",
+      "shard": 273
+    },
+    {
+      "run_id": "20260831T223140.153586Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T223140.153586Z/run.json",
+      "run_json_sha256": "7952fc18845dbbc80c90b7fe61987665631c914ce53220079ca9ceea4395ddfc",
+      "shard": 274
+    },
+    {
+      "run_id": "20260831T223518.331477Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T223518.331477Z/run.json",
+      "run_json_sha256": "2dd7484e43d4ae409824e7c03195de148b16d17a0ebecc908c3a96217b0c50f0",
+      "shard": 275
+    },
+    {
+      "run_id": "20260831T223857.085916Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T223857.085916Z/run.json",
+      "run_json_sha256": "62146392dd2d695cb20f3bd0f8f4c2b25786dca399476def002f9eb380ce9733",
+      "shard": 276
+    },
+    {
+      "run_id": "20260831T224236.185821Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T224236.185821Z/run.json",
+      "run_json_sha256": "22e31c2fd4343451aaf69e641adf7578425e46419e815e837f6dbb209b29c10e",
+      "shard": 277
+    },
+    {
+      "run_id": "20260831T224614.872720Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T224614.872720Z/run.json",
+      "run_json_sha256": "ca9ef6b547195e70b605fec4b589372a3604df7f639be0dac9253d39b59ac4bc",
+      "shard": 278
+    },
+    {
+      "run_id": "20260831T224954.446273Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T224954.446273Z/run.json",
+      "run_json_sha256": "a21b76199f9b2972aa8a13e0b6c38a849d97c52413a921657d69e01c6c029416",
+      "shard": 279
+    },
+    {
+      "run_id": "20260831T225333.674357Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T225333.674357Z/run.json",
+      "run_json_sha256": "4697a2776a181db0c480f637b1ac890ef81d4019eb4343c48cb399dd9b0b69d6",
+      "shard": 280
+    },
+    {
+      "run_id": "20260831T225712.801576Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T225712.801576Z/run.json",
+      "run_json_sha256": "bc4c6a712ff445d8e321853c1b5db5d4193d751e6cfc8589fe007a02bf243021",
+      "shard": 281
+    },
+    {
+      "run_id": "20260831T230051.736037Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T230051.736037Z/run.json",
+      "run_json_sha256": "e507399726a069eaed10941081a0a75e43254040e626850e6fa495bfb381e0ba",
+      "shard": 282
+    },
+    {
+      "run_id": "20260831T230431.434649Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T230431.434649Z/run.json",
+      "run_json_sha256": "a38ff30bace4c71a995924eb52cb84b24112630ab756db84b698d9b151128be9",
+      "shard": 283
+    },
+    {
+      "run_id": "20260831T230810.871957Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T230810.871957Z/run.json",
+      "run_json_sha256": "2b4ab92b1e7ca8f1b633689c91ed5c5dfb5dcc474c95249e6b0aa55286e42a0d",
+      "shard": 284
+    },
+    {
+      "run_id": "20260831T231149.808027Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T231149.808027Z/run.json",
+      "run_json_sha256": "86baa0410c6fe3d538dfc6e39b296c0b9667d75eb7fec6b6d0d83928aa7b499d",
+      "shard": 285
+    },
+    {
+      "run_id": "20260831T231528.734699Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T231528.734699Z/run.json",
+      "run_json_sha256": "fd0b470109b8af4792dc5697765661cfdc474b3a1a3ec908d52ba033f43ead3c",
+      "shard": 286
+    },
+    {
+      "run_id": "20260831T231908.116368Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T231908.116368Z/run.json",
+      "run_json_sha256": "3602a52a34cf7e6318848c6dca5f535aeefc515326af43e2f868be74c92654f8",
+      "shard": 287
+    },
+    {
+      "run_id": "20260831T232247.446675Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T232247.446675Z/run.json",
+      "run_json_sha256": "b9802655b2601c2a9637512bb8af886bce38fae32cdd7f4294f767a51fd468d5",
+      "shard": 288
+    },
+    {
+      "run_id": "20260831T232627.307293Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T232627.307293Z/run.json",
+      "run_json_sha256": "7dfe6c42755692a87dd9fc6c7b67c59a0f31116eb601f6eeab7ea52582128968",
+      "shard": 289
+    },
+    {
+      "run_id": "20260831T233006.393317Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T233006.393317Z/run.json",
+      "run_json_sha256": "1ea442615b99c530d0e9e372f1f333095e72ebae3f39d016b9318df46dfe2412",
+      "shard": 290
+    },
+    {
+      "run_id": "20260831T233345.618839Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T233345.618839Z/run.json",
+      "run_json_sha256": "20b86b5ed4f3ae221cec239d23fd4062c60aab89764f439a1a37ba252c43fb9e",
+      "shard": 291
+    },
+    {
+      "run_id": "20260831T233725.301050Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T233725.301050Z/run.json",
+      "run_json_sha256": "088ee9892b75d7257a08779e3d8bad21eaae3afef97cb0ff37327b461d387e3e",
+      "shard": 292
+    },
+    {
+      "run_id": "20260831T234106.574648Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T234106.574648Z/run.json",
+      "run_json_sha256": "ad0cf246011bf6d3051b17cdd5281f949a0a2ec67469c1bfecfef432a6632912",
+      "shard": 293
+    },
+    {
+      "run_id": "20260831T234451.358178Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T234451.358178Z/run.json",
+      "run_json_sha256": "217e5d5fc66ac008bfd56cfc6e9fb5a34ed074a58c4120d74581e1d3f62fb77a",
+      "shard": 294
+    },
+    {
+      "run_id": "20260831T234839.253136Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T234839.253136Z/run.json",
+      "run_json_sha256": "8a850765078c5876f6abb8f03d6aa7d99b2fec9b07966692fc0d4f93b17b052f",
+      "shard": 295
+    },
+    {
+      "run_id": "20260831T235229.311781Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T235229.311781Z/run.json",
+      "run_json_sha256": "a160c511b6ebba0ac6550560c161dbe3e23faf01071875f6eb578485ca4780f5",
+      "shard": 296
+    },
+    {
+      "run_id": "20260831T235618.540865Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260831T235618.540865Z/run.json",
+      "run_json_sha256": "41668a04f88fb0d7e76f1b1a7abe325a3bba83c2b1adc9414016ee7cd76f1c96",
+      "shard": 297
+    },
+    {
+      "run_id": "20260901T000008.333887Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T000008.333887Z/run.json",
+      "run_json_sha256": "5e21bde45476cb327b6a612a742f575c31909fbee8215320afdfab4d2daf8cdb",
+      "shard": 298
+    },
+    {
+      "run_id": "20260901T000357.827388Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T000357.827388Z/run.json",
+      "run_json_sha256": "ac385c461754da3ed9351a70a3fdcf7c59b5f1163cdfe1fede8d8371120b9762",
+      "shard": 299
+    },
+    {
+      "run_id": "20260901T000747.968922Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T000747.968922Z/run.json",
+      "run_json_sha256": "ba46a6985917f14c184413600458642173e18dbfaae72afe4213ed0bab79a9a6",
+      "shard": 300
+    },
+    {
+      "run_id": "20260901T001137.453874Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T001137.453874Z/run.json",
+      "run_json_sha256": "d44cc3691f4777ba368a1b5d91304c224b2e773aeb3e64b4d5263f35af9461f8",
+      "shard": 301
+    },
+    {
+      "run_id": "20260901T001527.424661Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T001527.424661Z/run.json",
+      "run_json_sha256": "2f583c15ab2cc26589033121139fc60e715f93133735333dd629312be1c1c0fe",
+      "shard": 302
+    },
+    {
+      "run_id": "20260901T001918.303138Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T001918.303138Z/run.json",
+      "run_json_sha256": "d4c2fcdd610acda511b387e838946d85458eb5141c9e7f5c2b6f89ab430288d0",
+      "shard": 303
+    },
+    {
+      "run_id": "20260901T002318.364779Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T002318.364779Z/run.json",
+      "run_json_sha256": "cb218d55a12ea88570b23e59de8d2137a08987acbe8e479704213a018ff04de6",
+      "shard": 304
+    },
+    {
+      "run_id": "20260901T002719.654005Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T002719.654005Z/run.json",
+      "run_json_sha256": "fccd0e072c7ac3dbc9a71dab9dad58ef79b7c5041c0221e5718ce46e1c0cd5ed",
+      "shard": 305
+    },
+    {
+      "run_id": "20260901T003125.450828Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T003125.450828Z/run.json",
+      "run_json_sha256": "7e8887962a1dcf65f858357c756bea4c84542950034be65e94ca0fcbe33fbd6d",
+      "shard": 306
+    },
+    {
+      "run_id": "20260901T003532.510108Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T003532.510108Z/run.json",
+      "run_json_sha256": "1b929c78eaa28b1059834aaf71be2ad2ebd4144fc23e2f257af8a58651c5dd9b",
+      "shard": 307
+    },
+    {
+      "run_id": "20260901T003941.007392Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T003941.007392Z/run.json",
+      "run_json_sha256": "0a84345f9d1f27c8b0786c742381ba4218e86513e7f62873106c7f148d6645eb",
+      "shard": 308
+    },
+    {
+      "run_id": "20260901T004350.111374Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T004350.111374Z/run.json",
+      "run_json_sha256": "d8bde7be271e6a06f35c3f4c197996f07c0eff9fa5a5538fac0799119aee4a94",
+      "shard": 309
+    },
+    {
+      "run_id": "20260901T004750.464659Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T004750.464659Z/run.json",
+      "run_json_sha256": "fbdd719df04533ae6ef56127d378751f5332ba16c2c8c904dbb7d8d69fde30a0",
+      "shard": 310
+    },
+    {
+      "run_id": "20260901T005149.440867Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T005149.440867Z/run.json",
+      "run_json_sha256": "854868becf64e65178f2583e87fee70cebfd316cf0f0ed5d1007bd683571ce7e",
+      "shard": 311
+    },
+    {
+      "run_id": "20260901T005548.409818Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T005548.409818Z/run.json",
+      "run_json_sha256": "14fa94e67b0a339f78b836ff5c3b97cad5f46b1863f9e669e5030d804aeff688",
+      "shard": 312
+    },
+    {
+      "run_id": "20260901T005949.700358Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T005949.700358Z/run.json",
+      "run_json_sha256": "586bc670ca28ac243076e3cf016e0fa1255bb884f71f3fa205288e8afc6923ce",
+      "shard": 313
+    },
+    {
+      "run_id": "20260901T010350.943815Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T010350.943815Z/run.json",
+      "run_json_sha256": "60a3e8225997a1d14098f2ece13394058c5875675ee081746eac29fb65f10d37",
+      "shard": 314
+    },
+    {
+      "run_id": "20260901T010749.062648Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T010749.062648Z/run.json",
+      "run_json_sha256": "2e9da0e06f1d7a58a42cd51a1fc8d401c4bb0d67f9999d82aecfd17e98fcffba",
+      "shard": 315
+    },
+    {
+      "run_id": "20260901T011144.450835Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T011144.450835Z/run.json",
+      "run_json_sha256": "b39d40ec65c0e1f4d7d0088e30f92c40e9e85766ecae4dacdb6594939417374e",
+      "shard": 316
+    },
+    {
+      "run_id": "20260901T011537.754685Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T011537.754685Z/run.json",
+      "run_json_sha256": "fbe10e04c324584f69cff12729b1c06f70bebc0e5daaeb4eec45184618af2333",
+      "shard": 317
+    },
+    {
+      "run_id": "20260901T011927.585628Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T011927.585628Z/run.json",
+      "run_json_sha256": "214f6732bce19dbc97e8c0dca3899e6e753e3e4e5c46c966d1c99c1064e5a9f6",
+      "shard": 318
+    },
+    {
+      "run_id": "20260901T012316.604290Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T012316.604290Z/run.json",
+      "run_json_sha256": "1e577b0b0f85eff2f764440af98031826d334e67ba1871827bbe521812119d8f",
+      "shard": 319
+    },
+    {
+      "run_id": "20260901T012706.152915Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T012706.152915Z/run.json",
+      "run_json_sha256": "64d2b5cb0b22e8010ce41b00b273be56c6f476465232d82dc7df02dfe45cc503",
+      "shard": 320
+    },
+    {
+      "run_id": "20260901T013056.421915Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T013056.421915Z/run.json",
+      "run_json_sha256": "b1c317f1df801a98cb1d396c67a1e9a8918283bd9633a86d532d94a049df47a6",
+      "shard": 321
+    },
+    {
+      "run_id": "20260901T013446.396067Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T013446.396067Z/run.json",
+      "run_json_sha256": "64a055ec64eaf52a53fe35f04aed08d707c19d1881514f8e49a4651a57369e91",
+      "shard": 322
+    },
+    {
+      "run_id": "20260901T013836.392755Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T013836.392755Z/run.json",
+      "run_json_sha256": "9aba66214f4f9534a27e14e77572cedc5d738db2c2f5ace931500d84b574ed5e",
+      "shard": 323
+    },
+    {
+      "run_id": "20260901T014226.146137Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T014226.146137Z/run.json",
+      "run_json_sha256": "6166e969695e62f793d946707c686032d7af9514d4e0aaeff381069bbf8709d2",
+      "shard": 324
+    },
+    {
+      "run_id": "20260901T014615.596146Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T014615.596146Z/run.json",
+      "run_json_sha256": "edccb9a18fd8d781a158a8f55c8f762db9320ea73a91b2fd57bc0c09fdb57ab0",
+      "shard": 325
+    },
+    {
+      "run_id": "20260901T015004.631664Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T015004.631664Z/run.json",
+      "run_json_sha256": "01912501ee1bcaf6ec1b0e80b50c307c01d9ca6573e958638106eb5d2b656382",
+      "shard": 326
+    },
+    {
+      "run_id": "20260901T015353.516163Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T015353.516163Z/run.json",
+      "run_json_sha256": "b9f3027dfb5c48be0b2d1755e34c062387137b8b9335b348f2807b138cd25474",
+      "shard": 327
+    },
+    {
+      "run_id": "20260901T015743.734718Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T015743.734718Z/run.json",
+      "run_json_sha256": "d287ede6e21086b9dd6030e9f5faac1c01e564a2f1ef81d4df32857fdbe1bd2b",
+      "shard": 328
+    },
+    {
+      "run_id": "20260901T020132.761250Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T020132.761250Z/run.json",
+      "run_json_sha256": "f201e39803e4b83e937416ceada88d126e2ab81a0a21e1ff07b00a6d6bf0cd39",
+      "shard": 329
+    },
+    {
+      "run_id": "20260901T020518.711084Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T020518.711084Z/run.json",
+      "run_json_sha256": "adf4ce252c2604cc4d376a140289ba03af5720d4af2d98c657869607a4df7cfd",
+      "shard": 330
+    },
+    {
+      "run_id": "20260901T020906.235825Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T020906.235825Z/run.json",
+      "run_json_sha256": "3faa5d44317102ecfb091708a096c68956127d843ad33c76fb8dcf0bd75dda57",
+      "shard": 331
+    },
+    {
+      "run_id": "20260901T021252.342647Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T021252.342647Z/run.json",
+      "run_json_sha256": "36f872b19712e24ae77ed96587fe69c3a04e2b2efa823b418b6ab7578a2513d1",
+      "shard": 332
+    },
+    {
+      "run_id": "20260901T021635.426960Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T021635.426960Z/run.json",
+      "run_json_sha256": "c4d92a832b361d74922ba071af69301e1f14783b1cd3454db3b80c9080be9158",
+      "shard": 333
+    },
+    {
+      "run_id": "20260901T022017.025066Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T022017.025066Z/run.json",
+      "run_json_sha256": "44252c8cd7589c0f7d8e9b9547ee2f4b9d839d46d3a1501f94764c4609d008cc",
+      "shard": 334
+    },
+    {
+      "run_id": "20260901T022358.380770Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T022358.380770Z/run.json",
+      "run_json_sha256": "df65c08db4d2daa24e0e411d1c9388a30054d6e00624c7a93dddbb867d8ae76e",
+      "shard": 335
+    },
+    {
+      "run_id": "20260901T022740.027319Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T022740.027319Z/run.json",
+      "run_json_sha256": "145e6a5bab3aba461383fb8f37148921340c099e25f4edebbe98c136ab1a84ff",
+      "shard": 336
+    },
+    {
+      "run_id": "20260901T023122.346306Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T023122.346306Z/run.json",
+      "run_json_sha256": "a2d6594bb2073febf6f025b879ec9fc1a3262948a57e105f45ec9bb6a5a0881a",
+      "shard": 337
+    },
+    {
+      "run_id": "20260901T023501.898017Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T023501.898017Z/run.json",
+      "run_json_sha256": "116837deafe110ab900ceb77bbd95dab9d2b951027117274a3db1356dcd42c09",
+      "shard": 338
+    },
+    {
+      "run_id": "20260901T023841.766125Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T023841.766125Z/run.json",
+      "run_json_sha256": "06778b696859023b4ec5d57b9b358d0194eb2c1fa1814ff578e6e70210b03264",
+      "shard": 339
+    },
+    {
+      "run_id": "20260901T024221.590188Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T024221.590188Z/run.json",
+      "run_json_sha256": "b6a0a9085ef4541643639f3a03b6e1c03e2055cf60c496b430a164dd328714fc",
+      "shard": 340
+    },
+    {
+      "run_id": "20260901T024602.704602Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T024602.704602Z/run.json",
+      "run_json_sha256": "11582ab8415c73311c0e689b78dba2e4862c8100b311c6ab34d7db9f26286135",
+      "shard": 341
+    },
+    {
+      "run_id": "20260901T024942.437831Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T024942.437831Z/run.json",
+      "run_json_sha256": "273a92a78c954d8474c8c58ad4a2f02261c719501366f874ada6f04789195b36",
+      "shard": 342
+    },
+    {
+      "run_id": "20260901T025322.180869Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T025322.180869Z/run.json",
+      "run_json_sha256": "a781b9d32c41c86eee1c5bd60c5ce6af7cd7606103f0c16aacf2c7da284e7be7",
+      "shard": 343
+    },
+    {
+      "run_id": "20260901T025701.707753Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T025701.707753Z/run.json",
+      "run_json_sha256": "993be3f8c9b4dc0beae08547b7f4ceb308eceb01903b4f1e0004dcf95bb3a6a5",
+      "shard": 344
+    },
+    {
+      "run_id": "20260901T030041.014895Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T030041.014895Z/run.json",
+      "run_json_sha256": "9b2a56c99eee528dd2c3bb3271521fed63baad9f7b30fa5cf6e62f4b60731e27",
+      "shard": 345
+    },
+    {
+      "run_id": "20260901T030420.320787Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T030420.320787Z/run.json",
+      "run_json_sha256": "46eb8bf180dbf12b5164014c43ab2234e0a43c76df97ec6d534d54466534eacd",
+      "shard": 346
+    },
+    {
+      "run_id": "20260901T030800.045685Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T030800.045685Z/run.json",
+      "run_json_sha256": "fdf2c48f4a722ed01023f39efb87bb1515878c36b73c12dd89648edd0a7ff02a",
+      "shard": 347
+    },
+    {
+      "run_id": "20260901T031138.359209Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T031138.359209Z/run.json",
+      "run_json_sha256": "2c85cd84debeaf5154e7316a5088929a05594a30f919133b79e64d3306aa8459",
+      "shard": 348
+    },
+    {
+      "run_id": "20260901T031517.578115Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T031517.578115Z/run.json",
+      "run_json_sha256": "ccded277ce700949edce97b50047424b128f1b11331444db08961327221f4275",
+      "shard": 349
+    },
+    {
+      "run_id": "20260901T031855.826471Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T031855.826471Z/run.json",
+      "run_json_sha256": "e2370fabf13590aa8b1ae611f2379d34c435030781a8e755fc7b496241fe9645",
+      "shard": 350
+    },
+    {
+      "run_id": "20260901T032235.345516Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T032235.345516Z/run.json",
+      "run_json_sha256": "92a0a7f298138820ff03b1507da5926314bc6ff7fe1611d0449002b755dd9ef8",
+      "shard": 351
+    },
+    {
+      "run_id": "20260901T032614.564633Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T032614.564633Z/run.json",
+      "run_json_sha256": "05816371b240ee27dc5ad32a78f681c6b7e34b452a824bc2c6337a06c1941fda",
+      "shard": 352
+    },
+    {
+      "run_id": "20260901T032953.394424Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T032953.394424Z/run.json",
+      "run_json_sha256": "92b64bbc4a25acc9820031ce317324d8ce223839947ce6d3ca4753db7a680deb",
+      "shard": 353
+    },
+    {
+      "run_id": "20260901T033332.431561Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T033332.431561Z/run.json",
+      "run_json_sha256": "5a46d4063b30b0fabb8b0028c0d505353ca0013190cdba7d0ef78bd179ee4588",
+      "shard": 354
+    },
+    {
+      "run_id": "20260901T033711.269518Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T033711.269518Z/run.json",
+      "run_json_sha256": "72df28aada041d06ada59278ed41409fe3021678c97b551052358c55f7717363",
+      "shard": 355
+    },
+    {
+      "run_id": "20260901T034050.733703Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T034050.733703Z/run.json",
+      "run_json_sha256": "17024caab474ac32759505d35f39ae7ecdd44f6d9b1fbfbb4a0fc17d99bab777",
+      "shard": 356
+    },
+    {
+      "run_id": "20260901T034429.971452Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T034429.971452Z/run.json",
+      "run_json_sha256": "1b950798f4e2c101d32b3b208c2c2b867ecaf33b062cb93b905e0310eb6c843e",
+      "shard": 357
+    },
+    {
+      "run_id": "20260901T034809.188449Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T034809.188449Z/run.json",
+      "run_json_sha256": "b086110419e1829539afde52bdfe2ca4900bebf94ceff7171028d9924b1dc1eb",
+      "shard": 358
+    },
+    {
+      "run_id": "20260901T035148.148560Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T035148.148560Z/run.json",
+      "run_json_sha256": "9be72b69558fc9675af917557e5d2238307640333dcda2a05ad47e5ec5ac0d13",
+      "shard": 359
+    },
+    {
+      "run_id": "20260901T035528.369638Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T035528.369638Z/run.json",
+      "run_json_sha256": "faadfba81f46e8bda5040ba5cd8932e2b94d32508e993d8082ab512012e58718",
+      "shard": 360
+    },
+    {
+      "run_id": "20260901T035907.265356Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T035907.265356Z/run.json",
+      "run_json_sha256": "2128670261b22e3a3619d6babaa9a16ba4df58fd8f834ad4edd02b0f1e840e5c",
+      "shard": 361
+    },
+    {
+      "run_id": "20260901T040246.484290Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T040246.484290Z/run.json",
+      "run_json_sha256": "c2876148914070c16e16867ab1edd7394d4e697681c265d1d95b07699554bcc5",
+      "shard": 362
+    },
+    {
+      "run_id": "20260901T040623.437090Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T040623.437090Z/run.json",
+      "run_json_sha256": "48ad5a7a7f2818ee08abd941de534123bad2b4e1d30519cdffb57fac93813010",
+      "shard": 363
+    },
+    {
+      "run_id": "20260901T041000.893636Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T041000.893636Z/run.json",
+      "run_json_sha256": "9b1227ada002c4a676e05921e985541424e13bee6f094dd7dc3ac926c86aa162",
+      "shard": 364
+    },
+    {
+      "run_id": "20260901T041338.204692Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T041338.204692Z/run.json",
+      "run_json_sha256": "80414831bede37c9df1f6dcf566b069e7295bb1b028e1ea7cd95ad0dc622e4d1",
+      "shard": 365
+    },
+    {
+      "run_id": "20260901T041715.629175Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T041715.629175Z/run.json",
+      "run_json_sha256": "149e34c12c159ea35683512a619f5855afe0bca9e48a36144d57a49f7c925903",
+      "shard": 366
+    },
+    {
+      "run_id": "20260901T042051.813087Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T042051.813087Z/run.json",
+      "run_json_sha256": "1d7f9ae53242d4e99665d36943cbe1a64e798af5c25086ad08efd63fee1168b7",
+      "shard": 367
+    },
+    {
+      "run_id": "20260901T042428.576976Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T042428.576976Z/run.json",
+      "run_json_sha256": "62e633ae279935aaa84350f01a926ab50f8d19caad8cb59b3b6c6fba0cc8033c",
+      "shard": 368
+    },
+    {
+      "run_id": "20260901T042805.661714Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T042805.661714Z/run.json",
+      "run_json_sha256": "3afcb47f3c161da9522f252e3d374a79b5d577bb8af7e95cab143b828f9f43b9",
+      "shard": 369
+    },
+    {
+      "run_id": "20260901T043144.001736Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T043144.001736Z/run.json",
+      "run_json_sha256": "35acfb485edbf3e8341dfb763c7287cc25fdf1aed629ec261b9d8c0529f89224",
+      "shard": 370
+    },
+    {
+      "run_id": "20260901T043522.988137Z",
+      "run_json": "/home/mouse9911/.local/state/smateway/lab-runs/network-192.168.1.15/dense-1mhz/20260831T054513.429239269Z/runs/20260901T043522.988137Z/run.json",
+      "run_json_sha256": "d7626babc6464dd9e558b33e56b2b60bc90f5c80158cacf9074bf1493c89b026",
+      "shard": 371
+    }
+  ],
+  "schema": "smateway.dense-1mhz-campaign/v1",
+  "step_hz": 1000000,
+  "validation": {
+    "all_final_safety_passed": true,
+    "analysis_error_count": 0,
+    "excluded_attempts": [
+      {
+        "reason": "unexpected empty IIO buffer after 78 captures; exact final safety passed",
+        "run_id": "20260831T064854.716967Z",
+        "shard": 18
+      }
+    ],
+    "manifest_sha256": "d67b12d1965ed5ac0ea1efcc79d57369af7e28ec3ca3d38dff85a2c9804f4536",
+    "maximum_peak_component_counts": 1697.0,
+    "plan_sha256": "fe5ca98010e7dc68c26a4e745c67ce18fe5d00047102b28dc05a217ad912ccf9",
+    "raw_iq_bytes": 139724659818,
+    "raw_iq_file_count": 33309,
+    "shard_count": 371
+  }
+}
