@@ -1,0 +1,519 @@
+{
+  "campaign": "pcb_direct_injection_ant1_ant8_20260901_20260902",
+  "canonical_manifest_sha256": "1e3d5b23dc8093ec908277a1c9a4086a0501e0c68207d378b9039d6e7e5501b9",
+  "evidence_boundary": {
+    "machine_attested": "run identity, radio identities, board identity, RF configuration, observations, per-capture cleanup, final safety, raw IQ artifact content",
+    "operator_attested": "direct-cable placement, unchanged cable shape, 8-way input termination, disconnected-output termination, and unchanged RX1/common cabling"
+  },
+  "raw_hashing_completed": true,
+  "raw_replay_completed": true,
+  "runs": [
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant1-0500-6000-12p5mhz-selected/20260902T154313.787163Z/run.json",
+      "artifact_manifest_sha256": "70a4dc8cdcd98f618d9eba299ab3aaafb6b0e2598a8993009c38f24554bbab7d",
+      "first_capture_started_utc": "2026-09-02T15:43:17.868272+00:00",
+      "last_capture_completed_utc": "2026-09-02T16:15:34.482407+00:00",
+      "observation_count": 441,
+      "port": "ANT1",
+      "quality": {
+        "maximum_peak_component_counts": 813.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.9991125907175896
+      },
+      "raw_iq_bytes": 1849907682,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant1-0500-6000-12p5mhz-selected/20260902T154313.787163Z/run.json",
+      "role": "full",
+      "run_id": "20260902T154313.787163Z",
+      "run_json_sha256": "0c452f278df193f99b032417df2786ecab1fec033c081ea4085e675265846337"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant1-5000-6000-missing-6p25mhz-selected/20260902T161602.438628Z/run.json",
+      "artifact_manifest_sha256": "ff364e1a1c4cddb6ad8b82ffe276864f5a7e4301e214464c24d350bb6dce4df0",
+      "first_capture_started_utc": "2026-09-02T16:16:06.597335+00:00",
+      "last_capture_completed_utc": "2026-09-02T16:22:34.265160+00:00",
+      "observation_count": 80,
+      "port": "ANT1",
+      "quality": {
+        "maximum_peak_component_counts": 813.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.9999360745214092
+      },
+      "raw_iq_bytes": 335584160,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant1-5000-6000-missing-6p25mhz-selected/20260902T161602.438628Z/run.json",
+      "role": "holdout",
+      "run_id": "20260902T161602.438628Z",
+      "run_json_sha256": "1b1f7c6cbc5daf6b0027b951a73cf3e7134b58f712634253257dfcae953962f3"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant1-5g8-qualification/20260902T154018.580959Z/run.json",
+      "artifact_manifest_sha256": "beba7adf4697d0ea23b9322c35ab223cee2db3c08e60c68e879dabe901170770",
+      "first_capture_started_utc": "2026-09-02T15:40:22.617095+00:00",
+      "last_capture_completed_utc": "2026-09-02T15:41:56.303577+00:00",
+      "observation_count": 45,
+      "port": "ANT1",
+      "quality": {
+        "maximum_peak_component_counts": 140.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.9999113417602719
+      },
+      "raw_iq_bytes": 188766090,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant1-5g8-qualification/20260902T154018.580959Z/run.json",
+      "role": "qualification",
+      "run_id": "20260902T154018.580959Z",
+      "run_json_sha256": "30adc713198aa3b3ca51f1f92a8a7646486cd84f7ff7d8d1cc38f4f925c8d2ff"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant2-0500-6000-25mhz-selected/20260901T185155.319303Z/run.json",
+      "artifact_manifest_sha256": "03e21ff3dc6564a8171fb1edd7b39d5ac72ef953bce821d112013d824eb85b3c",
+      "first_capture_started_utc": "2026-09-01T18:51:59.416968+00:00",
+      "last_capture_completed_utc": "2026-09-01T19:08:08.420690+00:00",
+      "observation_count": 221,
+      "port": "ANT2",
+      "quality": {
+        "maximum_peak_component_counts": 377.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.9995648408119273
+      },
+      "raw_iq_bytes": 927051242,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant2-0500-6000-25mhz-selected/20260901T185155.319303Z/run.json",
+      "role": "full",
+      "run_id": "20260901T185155.319303Z",
+      "run_json_sha256": "32291846295f02c8b4af5aca64647bcc225b6c24255b93f1bae52f66312ea7fc"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant2-0500-6000-missing-12p5mhz-selected/20260901T191536.025518Z/run.json",
+      "artifact_manifest_sha256": "1e906a26290a14f777bdc5181f0114b302576a95e4aa6ee11aff1823c57363c8",
+      "first_capture_started_utc": "2026-09-01T19:15:40.248622+00:00",
+      "last_capture_completed_utc": "2026-09-01T19:31:57.485883+00:00",
+      "observation_count": 220,
+      "port": "ANT2",
+      "quality": {
+        "maximum_peak_component_counts": 921.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.9995698246524424
+      },
+      "raw_iq_bytes": 922856440,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant2-0500-6000-missing-12p5mhz-selected/20260901T191536.025518Z/run.json",
+      "role": "full",
+      "run_id": "20260901T191536.025518Z",
+      "run_json_sha256": "8748098b153edf7573b9c9f89c682bca31b8f7bb9ca0f93837c74a4cb17d3b82"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant2-5000-6000-missing-6p25mhz-selected/20260901T193325.229080Z/run.json",
+      "artifact_manifest_sha256": "fca01ead7b83337817f11382b16c4c5a418953b958360301ddc65f9b04006a2e",
+      "first_capture_started_utc": "2026-09-01T19:33:29.417466+00:00",
+      "last_capture_completed_utc": "2026-09-01T19:40:04.446922+00:00",
+      "observation_count": 80,
+      "port": "ANT2",
+      "quality": {
+        "maximum_peak_component_counts": 613.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.9996101072520543
+      },
+      "raw_iq_bytes": 335584160,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant2-5000-6000-missing-6p25mhz-selected/20260901T193325.229080Z/run.json",
+      "role": "holdout",
+      "run_id": "20260901T193325.229080Z",
+      "run_json_sha256": "d0b5694526195ff5b4bb2de5e7c4c886de2a0079c6c6297ee39dc8b084980218"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant2-5g8-qualification/20260901T183905.680262Z/run.json",
+      "artifact_manifest_sha256": "49e6497c47a138a52c57e2b5b300601c82ddfa9d74602ee6b10c5b0e0d3b377d",
+      "first_capture_started_utc": "2026-09-01T18:39:09.756896+00:00",
+      "last_capture_completed_utc": "2026-09-01T18:40:44.376626+00:00",
+      "observation_count": 45,
+      "port": "ANT2",
+      "quality": {
+        "maximum_peak_component_counts": 140.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.999913541456236
+      },
+      "raw_iq_bytes": 188766090,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant2-5g8-qualification/20260901T183905.680262Z/run.json",
+      "role": "qualification",
+      "run_id": "20260901T183905.680262Z",
+      "run_json_sha256": "4190d0430b28fbdb3e93b873fc116d6f474a1d94844c78f5d4b0f136f94f07f3"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant3-0500-6000-12p5mhz-selected/20260901T200112.536069Z/run.json",
+      "artifact_manifest_sha256": "cc5bb15e35fd1c880be633e1ebc36d373c61e3379fe788d9ffec3f4817d68f14",
+      "first_capture_started_utc": "2026-09-01T20:01:16.666419+00:00",
+      "last_capture_completed_utc": "2026-09-01T20:33:46.638340+00:00",
+      "observation_count": 441,
+      "port": "ANT3",
+      "quality": {
+        "maximum_peak_component_counts": 993.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.9989673558129416
+      },
+      "raw_iq_bytes": 1849907682,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant3-0500-6000-12p5mhz-selected/20260901T200112.536069Z/run.json",
+      "role": "full",
+      "run_id": "20260901T200112.536069Z",
+      "run_json_sha256": "88eecf7f34c7a8975d083d1b547e1f32cdf513752b2bf292afe7de1315e19126"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant3-5000-6000-missing-6p25mhz-selected/20260901T203528.526192Z/run.json",
+      "artifact_manifest_sha256": "2e2fc65329d502143ae84a6098d616731af8014fa934f130c7a38a9631e883cc",
+      "first_capture_started_utc": "2026-09-01T20:35:35.971636+00:00",
+      "last_capture_completed_utc": "2026-09-01T20:42:07.471264+00:00",
+      "observation_count": 80,
+      "port": "ANT3",
+      "quality": {
+        "maximum_peak_component_counts": 656.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.999919738883565
+      },
+      "raw_iq_bytes": 335584160,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant3-5000-6000-missing-6p25mhz-selected/20260901T203528.526192Z/run.json",
+      "role": "holdout",
+      "run_id": "20260901T203528.526192Z",
+      "run_json_sha256": "7bef9e60f5c055fb426aa10231a0496d03472c3cebcde91043c658deebb69706"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant3-5g8-qualification/20260901T195821.480816Z/run.json",
+      "artifact_manifest_sha256": "dde87428a5272446d15561125ab00362534cec2aebe8e1e5acb6ca8ca9b7da73",
+      "first_capture_started_utc": "2026-09-01T19:58:25.614291+00:00",
+      "last_capture_completed_utc": "2026-09-01T20:00:00.079132+00:00",
+      "observation_count": 45,
+      "port": "ANT3",
+      "quality": {
+        "maximum_peak_component_counts": 136.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.999920897173574
+      },
+      "raw_iq_bytes": 188766090,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant3-5g8-qualification/20260901T195821.480816Z/run.json",
+      "role": "qualification",
+      "run_id": "20260901T195821.480816Z",
+      "run_json_sha256": "5acb021dacc31b2654498124107eeb3ea1940cbe03c4f67af960669a993aac30"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant4-0500-6000-12p5mhz-selected/20260901T215731.607881Z/run.json",
+      "artifact_manifest_sha256": "ffac478286625b06528bfe763ab8431a993929bd5907ba3ceafcb3e4123fc79e",
+      "first_capture_started_utc": "2026-09-01T21:57:35.818282+00:00",
+      "last_capture_completed_utc": "2026-09-01T22:30:45.415724+00:00",
+      "observation_count": 441,
+      "port": "ANT4",
+      "quality": {
+        "maximum_peak_component_counts": 619.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.9996137299725095
+      },
+      "raw_iq_bytes": 1849907682,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant4-0500-6000-12p5mhz-selected/20260901T215731.607881Z/run.json",
+      "role": "full",
+      "run_id": "20260901T215731.607881Z",
+      "run_json_sha256": "823676e016c0c92ca83cf884208ae0c7c557a7123b152e987ac7215298cf0ac9"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant4-5000-6000-missing-6p25mhz-selected/20260901T223116.040837Z/run.json",
+      "artifact_manifest_sha256": "35264d0cf857b2fab970c58ae66b19e0d97c538836b9295a4279a897e22004f9",
+      "first_capture_started_utc": "2026-09-01T22:31:20.153796+00:00",
+      "last_capture_completed_utc": "2026-09-01T22:37:51.701903+00:00",
+      "observation_count": 80,
+      "port": "ANT4",
+      "quality": {
+        "maximum_peak_component_counts": 727.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.9999194568641313
+      },
+      "raw_iq_bytes": 335584160,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant4-5000-6000-missing-6p25mhz-selected/20260901T223116.040837Z/run.json",
+      "role": "holdout",
+      "run_id": "20260901T223116.040837Z",
+      "run_json_sha256": "b45d03838066ea9151a8bbfd91f650626968dcc051f1343075760ef5a40d0922"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant4-5g8-qualification/20260901T215456.814904Z/run.json",
+      "artifact_manifest_sha256": "ef38dd77111dfa555a97df58bfeff08a26616edbb2600ba0b6b4ee4dbb8ba0e9",
+      "first_capture_started_utc": "2026-09-01T21:55:00.893703+00:00",
+      "last_capture_completed_utc": "2026-09-01T21:56:35.442355+00:00",
+      "observation_count": 45,
+      "port": "ANT4",
+      "quality": {
+        "maximum_peak_component_counts": 136.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.9999135073051653
+      },
+      "raw_iq_bytes": 188766090,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant4-5g8-qualification/20260901T215456.814904Z/run.json",
+      "role": "qualification",
+      "run_id": "20260901T215456.814904Z",
+      "run_json_sha256": "e0453cc205917fd126d92b01f882e5e3b71732483bd1012272cdb34f63dbfe28"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant5-0500-6000-12p5mhz-selected/20260901T224436.038957Z/run.json",
+      "artifact_manifest_sha256": "fd5a9096417802237e4c0d5fdfda84dfa3bbc10f5f2eb2ebcf0620aba7a53520",
+      "first_capture_started_utc": "2026-09-01T22:44:40.195394+00:00",
+      "last_capture_completed_utc": "2026-09-01T23:17:08.611217+00:00",
+      "observation_count": 441,
+      "port": "ANT5",
+      "quality": {
+        "maximum_peak_component_counts": 1282.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.9988444427636053
+      },
+      "raw_iq_bytes": 1849907682,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant5-0500-6000-12p5mhz-selected/20260901T224436.038957Z/run.json",
+      "role": "full",
+      "run_id": "20260901T224436.038957Z",
+      "run_json_sha256": "94c1fb4f84802c1b2594c0741b3a0a3753aad4cbd46b58d4d43d35851b312982"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant5-5000-6000-missing-6p25mhz-selected/20260901T231735.061003Z/run.json",
+      "artifact_manifest_sha256": "0c4b0cdbf3c22e93bd222e8da78aa944dad2de90bb7da91250d124320c19b45c",
+      "first_capture_started_utc": "2026-09-01T23:17:39.289967+00:00",
+      "last_capture_completed_utc": "2026-09-01T23:24:11.934343+00:00",
+      "observation_count": 80,
+      "port": "ANT5",
+      "quality": {
+        "maximum_peak_component_counts": 1227.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.9999284315780175
+      },
+      "raw_iq_bytes": 335584160,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant5-5000-6000-missing-6p25mhz-selected/20260901T231735.061003Z/run.json",
+      "role": "holdout",
+      "run_id": "20260901T231735.061003Z",
+      "run_json_sha256": "2aa0dc1b0d0a8b55c2d7e30467f506be7f45423de827edbb2828190f9231a042"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant5-5g8-qualification/20260901T224153.862197Z/run.json",
+      "artifact_manifest_sha256": "1140adeee0238f59ac11e6add2d299622c22e4af2afa458058b36ad0d7270c79",
+      "first_capture_started_utc": "2026-09-01T22:41:57.942985+00:00",
+      "last_capture_completed_utc": "2026-09-01T22:43:37.875681+00:00",
+      "observation_count": 45,
+      "port": "ANT5",
+      "quality": {
+        "maximum_peak_component_counts": 140.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.999916609106673
+      },
+      "raw_iq_bytes": 188766090,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant5-5g8-qualification/20260901T224153.862197Z/run.json",
+      "role": "qualification",
+      "run_id": "20260901T224153.862197Z",
+      "run_json_sha256": "ba59f5a2a7ce8750011f5a1dcf913c5b2322a7dd20148921a4ee52f00727b76b"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant6-0500-6000-12p5mhz-selected/20260901T234445.232953Z/run.json",
+      "artifact_manifest_sha256": "c024b28e729bde3caace2196992bebf747f79cb609a31e1dbd9d49fee3a30dd9",
+      "first_capture_started_utc": "2026-09-01T23:44:49.365172+00:00",
+      "last_capture_completed_utc": "2026-09-02T00:18:19.594051+00:00",
+      "observation_count": 441,
+      "port": "ANT6",
+      "quality": {
+        "maximum_peak_component_counts": 609.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.9995549445593916
+      },
+      "raw_iq_bytes": 1849907682,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant6-0500-6000-12p5mhz-selected/20260901T234445.232953Z/run.json",
+      "role": "full",
+      "run_id": "20260901T234445.232953Z",
+      "run_json_sha256": "3b9f488163d9d3a49635080d890d5f15906a4e00ef2baa4d3632dc6738f200ce"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant6-5000-6000-missing-6p25mhz-selected/20260902T001838.405070Z/run.json",
+      "artifact_manifest_sha256": "684042f22f1bb474460f1c7da674bc0964357f3a2f7f09f6afb6000b0c90700b",
+      "first_capture_started_utc": "2026-09-02T00:18:42.540059+00:00",
+      "last_capture_completed_utc": "2026-09-02T00:25:21.515368+00:00",
+      "observation_count": 80,
+      "port": "ANT6",
+      "quality": {
+        "maximum_peak_component_counts": 529.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.9999061955641358
+      },
+      "raw_iq_bytes": 335584160,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant6-5000-6000-missing-6p25mhz-selected/20260902T001838.405070Z/run.json",
+      "role": "holdout",
+      "run_id": "20260902T001838.405070Z",
+      "run_json_sha256": "fac740edbe6a12092e297d4b3a1a95ec9639c93eb3fb91095d57845578f104e2"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant6-5g8-qualification/20260901T234206.442911Z/run.json",
+      "artifact_manifest_sha256": "613218df920c59034cedd334c03b76c00c7331a482028b047c84c3dc81708ee3",
+      "first_capture_started_utc": "2026-09-01T23:42:10.513318+00:00",
+      "last_capture_completed_utc": "2026-09-01T23:43:44.739312+00:00",
+      "observation_count": 45,
+      "port": "ANT6",
+      "quality": {
+        "maximum_peak_component_counts": 136.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.9999384856325142
+      },
+      "raw_iq_bytes": 188766090,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant6-5g8-qualification/20260901T234206.442911Z/run.json",
+      "role": "qualification",
+      "run_id": "20260901T234206.442911Z",
+      "run_json_sha256": "14760d37aef2093330af6c92fea83977b3c6e6d8079431a6787ade22526e001c"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant7-0500-6000-12p5mhz-selected/20260902T013045.276130Z/run.json",
+      "artifact_manifest_sha256": "daad103e03d68a5e7fa99e71c216c9aacbf89a1e65abcb39d32a5382607a5dba",
+      "first_capture_started_utc": "2026-09-02T01:30:49.455929+00:00",
+      "last_capture_completed_utc": "2026-09-02T02:03:18.966293+00:00",
+      "observation_count": 441,
+      "port": "ANT7",
+      "quality": {
+        "maximum_peak_component_counts": 497.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.9996129184628577
+      },
+      "raw_iq_bytes": 1849907682,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant7-0500-6000-12p5mhz-selected/20260902T013045.276130Z/run.json",
+      "role": "full",
+      "run_id": "20260902T013045.276130Z",
+      "run_json_sha256": "9ae74a5fffe66dc04eb8fbe779c5c0807d2e93718fa25d2c6932b5b10210a730"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant7-5000-6000-missing-6p25mhz-selected/20260902T020402.732673Z/run.json",
+      "artifact_manifest_sha256": "c8e5cc0f0298a21015eb6323a0e77647ceba5fc8df55e31420d9cd7b2fa7a1e6",
+      "first_capture_started_utc": "2026-09-02T02:04:06.974353+00:00",
+      "last_capture_completed_utc": "2026-09-02T02:10:42.820984+00:00",
+      "observation_count": 80,
+      "port": "ANT7",
+      "quality": {
+        "maximum_peak_component_counts": 563.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.9999201317365903
+      },
+      "raw_iq_bytes": 335584160,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant7-5000-6000-missing-6p25mhz-selected/20260902T020402.732673Z/run.json",
+      "role": "holdout",
+      "run_id": "20260902T020402.732673Z",
+      "run_json_sha256": "bc6c522384bd2f01296a45325d61e75a241da5137113d5ef5ef509f85049a5c7"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant7-5g8-qualification/20260902T012802.189572Z/run.json",
+      "artifact_manifest_sha256": "45bc8e568491b6166f6cbbf0127fb86851835fedcc7b3f91b2708c647dfbdd9e",
+      "first_capture_started_utc": "2026-09-02T01:28:06.179194+00:00",
+      "last_capture_completed_utc": "2026-09-02T01:29:40.065258+00:00",
+      "observation_count": 45,
+      "port": "ANT7",
+      "quality": {
+        "maximum_peak_component_counts": 140.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.999911141519875
+      },
+      "raw_iq_bytes": 188766090,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant7-5g8-qualification/20260902T012802.189572Z/run.json",
+      "role": "qualification",
+      "run_id": "20260902T012802.189572Z",
+      "run_json_sha256": "c1773e438179caf66a778ca3a0dc36fd62835f5b4e48fadfffde6f9fa6aab292"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant8-0500-6000-12p5mhz-selected/20260902T021837.563992Z/run.json",
+      "artifact_manifest_sha256": "c366dff0b09f437f40210957b5c8b8766692b2fa72b144728c7752c15bcec6c7",
+      "first_capture_started_utc": "2026-09-02T02:18:41.933986+00:00",
+      "last_capture_completed_utc": "2026-09-02T02:53:13.442130+00:00",
+      "observation_count": 441,
+      "port": "ANT8",
+      "quality": {
+        "maximum_peak_component_counts": 843.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.9973692886486475
+      },
+      "raw_iq_bytes": 1849907682,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant8-0500-6000-12p5mhz-selected/20260902T021837.563992Z/run.json",
+      "role": "full",
+      "run_id": "20260902T021837.563992Z",
+      "run_json_sha256": "c0db5147ed8bb100dad92f3889fbb027fb33c87e051ac68c4ed88ec95ce99937"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant8-5000-6000-missing-6p25mhz-selected/20260902T025336.217277Z/run.json",
+      "artifact_manifest_sha256": "1170b705944488bde34192c31114f9119d702915d1d0fa9019491511b30a6afa",
+      "first_capture_started_utc": "2026-09-02T02:53:40.792358+00:00",
+      "last_capture_completed_utc": "2026-09-02T03:00:35.767471+00:00",
+      "observation_count": 80,
+      "port": "ANT8",
+      "quality": {
+        "maximum_peak_component_counts": 576.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.9999389158211799
+      },
+      "raw_iq_bytes": 335584160,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant8-5000-6000-missing-6p25mhz-selected/20260902T025336.217277Z/run.json",
+      "role": "holdout",
+      "run_id": "20260902T025336.217277Z",
+      "run_json_sha256": "7e8ead8915d0af505627a867cacd7e797c4f82b2a87077eeeb3c57960f37f37f"
+    },
+    {
+      "absolute_path": "/srv/bulk/samteway/state/lab-runs/network-192.168.1.15/pcb-direct-injection/ant8-5g8-qualification/20260902T021519.885275Z/run.json",
+      "artifact_manifest_sha256": "ba672899ec47438f837203fa2869b736da55c84a0829026d050b4d9518cb2fa3",
+      "first_capture_started_utc": "2026-09-02T02:15:24.103993+00:00",
+      "last_capture_completed_utc": "2026-09-02T02:17:15.566877+00:00",
+      "observation_count": 45,
+      "port": "ANT8",
+      "quality": {
+        "maximum_peak_component_counts": 140.0,
+        "maximum_raw_replay_absolute_delta": 0.0,
+        "minimum_phase_step_coherence": 0.9999154162287521
+      },
+      "raw_iq_bytes": 188766090,
+      "raw_replay_completed": true,
+      "raw_sha256_included": true,
+      "relative_path": "ant8-5g8-qualification/20260902T021519.885275Z/run.json",
+      "role": "qualification",
+      "run_id": "20260902T021519.885275Z",
+      "run_json_sha256": "fabb1e35acf8352b5e13fa735dda0b431d1b117f26d0e7e2b634b44215c7b757"
+    }
+  ],
+  "schema": 1,
+  "source_hashes": {
+    "analyzer_sha256": "a5be5631f97d73bdc041dd9fe7e7f1318bb84e8cf9ad2f8ce90a252267c58aa1",
+    "capture_runner_sha256": "7b2d5dc8b494693edce9d3140519304745c918bc1e62ab4a97485e4c443115ca",
+    "raw_replay_analyzer_sha256": "4ed4db5c31e44ae69a88a05c844a91792d8ee1d17b477a52f2baa4a2cd410371",
+    "uv_lock_sha256": "1a79ca57c67e8d51f1d340d99654237a40ce183cc3b97151866ef5b2328c3030"
+  }
+}

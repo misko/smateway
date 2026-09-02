@@ -1,0 +1,269 @@
+{
+  "band_warning": "a 6 GHz alias-safe circle has progressively less electrical aperture at low frequency; the board LUT bandwidth does not imply useful 0.5-6 GHz bearing resolution from one fixed compact array or one antenna type",
+  "board_lut_subset_regauge": "optional for C6: C6_i(f) = C8_i(f) / geometric_mean_selected(C8_i(f)); this is a common complex gauge change and cannot change bearing",
+  "c6": {
+    "adjacent_spacing_mm": 24.982704833333333,
+    "diameter_mm": 49.96540966666667,
+    "element_count": 6,
+    "elements_clockwise_from_forward": [
+      {
+        "bearing_deg_clockwise_from_forward": 0.0,
+        "port": "ANT1",
+        "position_mm": {
+          "x_right": 0.0,
+          "y_forward": 24.982704833333337
+        }
+      },
+      {
+        "bearing_deg_clockwise_from_forward": 60.0,
+        "port": "ANT2",
+        "position_mm": {
+          "x_right": 21.63565704091495,
+          "y_forward": 12.491352416666672
+        }
+      },
+      {
+        "bearing_deg_clockwise_from_forward": 120.0,
+        "port": "ANT4",
+        "position_mm": {
+          "x_right": 21.63565704091495,
+          "y_forward": -12.491352416666663
+        }
+      },
+      {
+        "bearing_deg_clockwise_from_forward": 180.0,
+        "port": "ANT8",
+        "position_mm": {
+          "x_right": 3.0594989508184782e-15,
+          "y_forward": -24.982704833333337
+        }
+      },
+      {
+        "bearing_deg_clockwise_from_forward": 240.0,
+        "port": "ANT7",
+        "position_mm": {
+          "x_right": -21.635657040914943,
+          "y_forward": -12.491352416666679
+        }
+      },
+      {
+        "bearing_deg_clockwise_from_forward": 300.0,
+        "port": "ANT5",
+        "position_mm": {
+          "x_right": -21.63565704091495,
+          "y_forward": 12.491352416666672
+        }
+      }
+    ],
+    "maximum_frequency_hz": 6000000000,
+    "omitted_ports": [
+      "ANT3",
+      "ANT6"
+    ],
+    "port_order_clockwise": [
+      "ANT1",
+      "ANT2",
+      "ANT4",
+      "ANT8",
+      "ANT7",
+      "ANT5"
+    ],
+    "port_selection_basis": {
+      "ANT1": {
+        "pchip_holdout_phase_p95_abs_deg_5_to_6_ghz": 1.8942003093096422,
+        "selected_mean_db_at_5p8_ghz": -9.483222440794318,
+        "selected_over_strongest_wrong_db_at_5p8_ghz": 34.361583159902736
+      },
+      "ANT2": {
+        "pchip_holdout_phase_p95_abs_deg_5_to_6_ghz": 2.8114826070696575,
+        "selected_mean_db_at_5p8_ghz": -11.343321367232411,
+        "selected_over_strongest_wrong_db_at_5p8_ghz": 29.50085414398405
+      },
+      "ANT3": {
+        "pchip_holdout_phase_p95_abs_deg_5_to_6_ghz": 4.493188034736145,
+        "selected_mean_db_at_5p8_ghz": -18.374756487314606,
+        "selected_over_strongest_wrong_db_at_5p8_ghz": 20.933296766538156
+      },
+      "ANT4": {
+        "pchip_holdout_phase_p95_abs_deg_5_to_6_ghz": 1.9167033433385374,
+        "selected_mean_db_at_5p8_ghz": -10.715065230246559,
+        "selected_over_strongest_wrong_db_at_5p8_ghz": 35.441115481332815
+      },
+      "ANT5": {
+        "pchip_holdout_phase_p95_abs_deg_5_to_6_ghz": 1.64858783445156,
+        "selected_mean_db_at_5p8_ghz": -11.136683379425396,
+        "selected_over_strongest_wrong_db_at_5p8_ghz": 34.40052319412507
+      },
+      "ANT6": {
+        "pchip_holdout_phase_p95_abs_deg_5_to_6_ghz": 1.565715135956893,
+        "selected_mean_db_at_5p8_ghz": -17.876189114571776,
+        "selected_over_strongest_wrong_db_at_5p8_ghz": 21.712121981682113
+      },
+      "ANT7": {
+        "pchip_holdout_phase_p95_abs_deg_5_to_6_ghz": 2.035268994679331,
+        "selected_mean_db_at_5p8_ghz": -11.573044091266574,
+        "selected_over_strongest_wrong_db_at_5p8_ghz": 30.360484902286494
+      },
+      "ANT8": {
+        "pchip_holdout_phase_p95_abs_deg_5_to_6_ghz": 2.147775756907359,
+        "selected_mean_db_at_5p8_ghz": -9.349267011658565,
+        "selected_over_strongest_wrong_db_at_5p8_ghz": 34.534084969962905
+      }
+    },
+    "radius_mm": 24.982704833333337,
+    "selection_rationale": "omit ANT3 and ANT6 for the first 5.8 GHz C6 article because both are 6-9 dB weaker and have the lowest driven/wrong isolation margins; ANT3 also has the largest independent interpolation residual; place the three retained electrically matched PCB-path pairs on array diameters",
+    "temporal_scan": {
+      "forward_opposite_pair_order": [
+        "ANT1",
+        "ANT8",
+        "ANT2",
+        "ANT7",
+        "ANT4",
+        "ANT5"
+      ],
+      "rationale": "sample the widest baselines close together in time and alternate direction to expose or cancel first-order motion bias",
+      "reverse_order_next_cycle": [
+        "ANT5",
+        "ANT4",
+        "ANT7",
+        "ANT2",
+        "ANT8",
+        "ANT1"
+      ]
+    },
+    "wavelength_at_maximum_frequency_mm": 49.965409666666666
+  },
+  "c8": {
+    "adjacent_spacing_mm": 24.982704833333333,
+    "diameter_mm": 65.28295379534276,
+    "element_count": 8,
+    "elements_clockwise_from_forward": [
+      {
+        "bearing_deg_clockwise_from_forward": 0.0,
+        "port": "ANT1",
+        "position_mm": {
+          "x_right": 0.0,
+          "y_forward": 32.64147689767138
+        }
+      },
+      {
+        "bearing_deg_clockwise_from_forward": 45.0,
+        "port": "ANT2",
+        "position_mm": {
+          "x_right": 23.081009662287464,
+          "y_forward": 23.081009662287467
+        }
+      },
+      {
+        "bearing_deg_clockwise_from_forward": 90.0,
+        "port": "ANT3",
+        "position_mm": {
+          "x_right": 32.64147689767138,
+          "y_forward": 1.998714010108777e-15
+        }
+      },
+      {
+        "bearing_deg_clockwise_from_forward": 135.0,
+        "port": "ANT4",
+        "position_mm": {
+          "x_right": 23.081009662287467,
+          "y_forward": -23.081009662287464
+        }
+      },
+      {
+        "bearing_deg_clockwise_from_forward": 180.0,
+        "port": "ANT8",
+        "position_mm": {
+          "x_right": 3.997428020217554e-15,
+          "y_forward": -32.64147689767138
+        }
+      },
+      {
+        "bearing_deg_clockwise_from_forward": 225.0,
+        "port": "ANT7",
+        "position_mm": {
+          "x_right": -23.081009662287464,
+          "y_forward": -23.08100966228747
+        }
+      },
+      {
+        "bearing_deg_clockwise_from_forward": 270.0,
+        "port": "ANT6",
+        "position_mm": {
+          "x_right": -32.64147689767138,
+          "y_forward": -5.9961420303263305e-15
+        }
+      },
+      {
+        "bearing_deg_clockwise_from_forward": 315.0,
+        "port": "ANT5",
+        "position_mm": {
+          "x_right": -23.08100966228747,
+          "y_forward": 23.08100966228746
+        }
+      }
+    ],
+    "mapping_rationale": "place the measured PCB-path pairs ANT1/ANT8, ANT2/ANT7, ANT3/ANT6, and ANT4/ANT5 on array diameters to minimize electronics mismatch on the longest baselines",
+    "maximum_frequency_hz": 6000000000,
+    "port_order_clockwise": [
+      "ANT1",
+      "ANT2",
+      "ANT3",
+      "ANT4",
+      "ANT8",
+      "ANT7",
+      "ANT6",
+      "ANT5"
+    ],
+    "radius_mm": 32.64147689767138,
+    "temporal_scan": {
+      "forward_opposite_pair_order": [
+        "ANT1",
+        "ANT8",
+        "ANT2",
+        "ANT7",
+        "ANT3",
+        "ANT6",
+        "ANT4",
+        "ANT5"
+      ],
+      "rationale": "sample diametric baselines close together in time and alternate direction to expose or cancel first-order motion bias",
+      "reverse_order_next_cycle": [
+        "ANT5",
+        "ANT4",
+        "ANT6",
+        "ANT3",
+        "ANT7",
+        "ANT2",
+        "ANT8",
+        "ANT1"
+      ]
+    },
+    "wavelength_at_maximum_frequency_mm": 49.965409666666666,
+    "weak_port_policy": "retain ANT3 and ANT6 for aperture, but propagate measured per-port noise/SNR weights after complex correction; repeat ANT3 before promotion"
+  },
+  "calibration_stack": [
+    "simultaneous RX2/RX1 temporal-reference ratio for every selector dwell",
+    "board-path complex LUT C_board_i(f) from calibration-lut.json",
+    "final installed cable complex correction C_cable_i(f)",
+    "surveyed element coordinates and array yaw",
+    "known-angle installed-array OTA steering manifold including stable coupling/patterns",
+    "per-port noise covariance or SNR whitening before the direction solver"
+  ],
+  "coordinate_system": {
+    "bearing_positive": "clockwise when viewed from above",
+    "bearing_zero": "forward through the first listed element",
+    "origin": "surveyed array center",
+    "x_positive": "right when viewed from above",
+    "y_positive": "forward"
+  },
+  "legacy_profile_warning": "hexcal-v1 assumes ANT1 through ANT6 clockwise; the recommended C6 mapping requires a new profile/geometry identity and must not reuse hexcal-v1 metadata",
+  "mechanical_notes": {
+    "coordinate_tolerance_target_mm": 0.25,
+    "phase_error_per_mm_at_6_ghz_deg": 7.204984456280084,
+    "warning": "electrical phase centers, not enclosure or connector centers, define the useful coordinates; estimate residual phase-center behavior with OTA calibration"
+  },
+  "schema": 1,
+  "scope": "first 5.8 GHz circular-array build, mechanically sized to avoid spatial aliasing through the board LUT upper support at 6.0 GHz",
+  "status": "engineering_recommendation_requires_installed_array_ota_qualification"
+}

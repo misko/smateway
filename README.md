@@ -43,6 +43,16 @@ belong outside Git under `~/.local/state/smateway/boards/<board-id>/`.
 
 ## Current calibration and direction-finding status
 
+The new controlled PCB direct-injection result is in
+[`docs/pcb_direct_injection_calibration/`](docs/pcb_direct_injection_calibration/README.md). It
+contains the isolated ANT1–ANT8 board-plane campaign, 4,528 raw-replayed observations, a
+0.5–6.0 GHz complex calibration LUT, independent 5–6 GHz interpolation validation, complete 5.8
+GHz isolation and pairwise matrices, fifteen figures, concrete C6/C8 port maps and calibration
+workflow, candidate-array error propagation, and the ordered experiments required for an installed
+UCA8 direction-finding calibration. It is the current
+starting point for PCB-path calibration; its LUT remains reconnect-, thermal-, cable-, and
+OTA-unqualified.
+
 The densest current conducted result is the completed 33,309-capture independent-source sweep from
 2.100 through 5.800 GHz at exact 1 MHz spacing in
 [`docs/dense_1mhz_campaign/`](docs/dense_1mhz_campaign/README.md). It validates a practical 10 MHz

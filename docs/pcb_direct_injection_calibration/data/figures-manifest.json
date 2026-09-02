@@ -1,0 +1,111 @@
+{
+  "canonical_manifest_sha256": "31e058f94e000e8a84eb1ea69cdc305aba061100ea39b0beb24828893aef8615",
+  "figures": [
+    {
+      "filename": "fig01_campaign_setup_and_reference_planes.png",
+      "height_px": 1260,
+      "sha256": "9e22d17683c0998be8009c3666d9ad0071ecf033c92ce881967c82eefb31017d",
+      "size_bytes": 165152,
+      "width_px": 2520
+    },
+    {
+      "filename": "fig02_frequency_coverage_and_chronology.png",
+      "height_px": 1440,
+      "sha256": "a56ada0d62a27aa846373eb0eee5b76042d6c4c46643600ab69d543e1ffb5881",
+      "size_bytes": 113166,
+      "width_px": 2520
+    },
+    {
+      "filename": "fig03_acquisition_quality_and_safety.png",
+      "height_px": 1620,
+      "sha256": "4bd012b1ea8ae445c6c6094cc5c62b107389ec4aaf31769f6c919519ebed31c0",
+      "size_bytes": 188054,
+      "width_px": 2340
+    },
+    {
+      "filename": "fig04_5g8_selector_isolation_matrix.png",
+      "height_px": 1260,
+      "sha256": "d3b1c00623a0546e4367b0bec67de9e9476af6be3554c6c966d8926097054b5c",
+      "size_bytes": 301615,
+      "width_px": 3240
+    },
+    {
+      "filename": "fig05_port_magnitude_response.png",
+      "height_px": 1620,
+      "sha256": "484494556f66d956a7d73e5cb6f93414af98d31bca8369314333623bd7dbc935",
+      "size_bytes": 717365,
+      "width_px": 2340
+    },
+    {
+      "filename": "fig06_port_unwrapped_phase.png",
+      "height_px": 1620,
+      "sha256": "11571570fe827e25941323ce28baa8a14a424f0891d8f30e6d3e1bcb3c2ed18f",
+      "size_bytes": 443141,
+      "width_px": 2340
+    },
+    {
+      "filename": "fig07_relative_gain_correction_heatmap.png",
+      "height_px": 1080,
+      "sha256": "e7fc2c987b0b3a35e123c8c6f036c62bc5dbfc6c7067e35e7e354e43f6e18aca",
+      "size_bytes": 106059,
+      "width_px": 2520
+    },
+    {
+      "filename": "fig08_relative_phase_correction_heatmap.png",
+      "height_px": 1080,
+      "sha256": "69dbcb008246550b2452eb8a26a1344a4804859cad7f04d747b52e469c687df7",
+      "size_bytes": 110220,
+      "width_px": 2520
+    },
+    {
+      "filename": "fig09_pairwise_5g8_correction_matrices.png",
+      "height_px": 1260,
+      "sha256": "a18207768ac07a1a1c56e1cf5cf552bad32191e554e712303a1d4c45b7aef9cf",
+      "size_bytes": 239064,
+      "width_px": 2880
+    },
+    {
+      "filename": "fig10_delay_models_and_residuals.png",
+      "height_px": 1800,
+      "sha256": "444d5dc72b9458e857532fec7dd355ac87a1c4bccd400c32c9aa8d85b81f761d",
+      "size_bytes": 786767,
+      "width_px": 2700
+    },
+    {
+      "filename": "fig11_holdout_error_by_port.png",
+      "height_px": 1620,
+      "sha256": "b29fa3302b25457d52856fb0a6a5685aa2328307a2b377c41f0aa91d8e7152dc",
+      "size_bytes": 114145,
+      "width_px": 2520
+    },
+    {
+      "filename": "fig12_holdout_residual_heatmaps.png",
+      "height_px": 1440,
+      "sha256": "2ae0e62103abc1f68041f2c72952549b23d83bfaeb68d27eea816d268ca8b095",
+      "size_bytes": 145655,
+      "width_px": 2520
+    },
+    {
+      "filename": "fig13_model_and_lut_comparison.png",
+      "height_px": 900,
+      "sha256": "ac0033ac7e8bc3c5bb7011b51a4d133860774a72d44e88c063a9eeb9154d749e",
+      "size_bytes": 151747,
+      "width_px": 2880
+    },
+    {
+      "filename": "fig14_df_error_budget_and_array_geometry.png",
+      "height_px": 1260,
+      "sha256": "4a418ca0237525b37f655061dd061a777138d7b524b8eea762dfde28e618d3e0",
+      "size_bytes": 302074,
+      "width_px": 3780
+    },
+    {
+      "filename": "fig15_recommended_c6_c8_layout_and_port_map.png",
+      "height_px": 1260,
+      "sha256": "79ecbf64dd60f74037440dda5f2130deb5eb65367778d8b23e9dbb28e8f38be8",
+      "size_bytes": 337083,
+      "width_px": 3780
+    }
+  ],
+  "schema": 1
+}
