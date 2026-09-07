@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "evidence_kind": "receive_lo_acceptance_with_all_transmitters_muted",
+  "captured_at_utc": "2026-09-03T17:36:00Z",
+  "status": "passed",
+  "acceptance_tolerance_hz": 5,
+  "receiver": {
+    "uri": "ip:192.168.1.15",
+    "serial": "104000b29905000e17000800065934759d"
+  },
+  "source": {
+    "uri": "ip:192.168.1.179",
+    "serial": "104473b80a16000de6ff2000f8a6beca79"
+  },
+  "safety": {
+    "receiver_transmit_muted_throughout": true,
+    "source_transmit_muted_throughout": true,
+    "ota_energy_emitted": false,
+    "receiver_restored_hz": 5800000000
+  },
+  "observations": [
+    {"requested_hz": 433500000, "readback_hz": 433499998, "error_hz": -2, "accepted": true},
+    {"requested_hz": 433920000, "readback_hz": 433920000, "error_hz": 0, "accepted": true},
+    {"requested_hz": 434350000, "readback_hz": 434350000, "error_hz": 0, "accepted": true},
+    {"requested_hz": 905000000, "readback_hz": 905000000, "error_hz": 0, "accepted": true},
+    {"requested_hz": 915000000, "readback_hz": 915000000, "error_hz": 0, "accepted": true},
+    {"requested_hz": 925000000, "readback_hz": 925000000, "error_hz": 0, "accepted": true},
+    {"requested_hz": 2425000000, "readback_hz": 2424999998, "error_hz": -2, "accepted": true},
+    {"requested_hz": 2450000000, "readback_hz": 2450000000, "error_hz": 0, "accepted": true},
+    {"requested_hz": 2475000000, "readback_hz": 2475000000, "error_hz": 0, "accepted": true},
+    {"requested_hz": 5750000000, "readback_hz": 5750000000, "error_hz": 0, "accepted": true},
+    {"requested_hz": 5775000000, "readback_hz": 5774999998, "error_hz": -2, "accepted": true},
+    {"requested_hz": 5800000000, "readback_hz": 5800000000, "error_hz": 0, "accepted": true},
+    {"requested_hz": 5825000000, "readback_hz": 5825000000, "error_hz": 0, "accepted": true},
+    {"requested_hz": 5850000000, "readback_hz": 5849999998, "error_hz": -2, "accepted": true}
+  ],
+  "limitations": [
+    "This proves receive-LO acceptance only; it does not qualify gain, phase, antennas, transmit authorization, or direction finding.",
+    "The 433 MHz frequencies remain outside the released 500 MHz to 6 GHz PCB calibration LUT."
+  ]
+}

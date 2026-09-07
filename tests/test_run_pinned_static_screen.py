@@ -146,3 +146,27 @@ def test_pinned_bench_identities() -> None:
     assert runner.SOURCE_URI == "ip:192.168.1.173"
     assert runner.SOURCE_SERIAL == "104473b80a16000de6ff2000f8a6beca79"
     assert runner.STLINK_SERIAL == "002D003A3335511035383531"
+
+
+def test_parser_accepts_pinned_source_at_new_address_and_tx2(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            str(SCRIPT),
+            "external",
+            "--frequency-hz",
+            "5800000000",
+            "--source-uri",
+            "ip:192.168.1.179",
+            "--tx-channel",
+            "1",
+        ],
+    )
+
+    args = runner._parser().parse_args()
+
+    assert args.source_uri == "ip:192.168.1.179"
+    assert args.tx_channel == 1

@@ -1,0 +1,126 @@
+{
+  "array_order": {
+    "direction": "clockwise",
+    "forward_reference": "ANT1"
+  },
+  "clock": {
+    "decoder_window_pct": 5,
+    "manufacturer_error_full_temperature_pct": [
+      -2.5,
+      2.0
+    ],
+    "rationale": "5% windows cover characterized full-temperature controller error and reserve at least 2.5% for timer/capture estimation",
+    "source": "STM32C011_HSI48",
+    "timer_nominal_hz": 1000000,
+    "timer_resolution_us": 1
+  },
+  "contract_sha256": "649d3b565fab0afbc0b3ab7c191aa3a1d7a70870b070910f8959b4638232bbb2",
+  "decoder": {
+    "accept": "bounded ALL_OFF marker followed by six clockwise C6 slots with an ALL_OFF guard before every slot",
+    "sync": "200 us nominal continuous ALL_OFF marker, then 25 us ANT1, ANT2, ANT4, ANT8, ANT7, ANT5 slots"
+  },
+  "frame": {
+    "all_off_guard_us": 20,
+    "guard_window_us": [
+      19.0,
+      21.0
+    ],
+    "guards_per_cycle": 6,
+    "marker": {
+      "body_nominal_us": 180,
+      "contiguous_pre_ANT1_guard_us": 20,
+      "observable_nominal_us": 200,
+      "state": "ALL_OFF"
+    },
+    "minimum_capture_for_guaranteed_complete_frame_us": 900,
+    "nominal_cycle_us": 450,
+    "order": [
+      "ANT1",
+      "ANT2",
+      "ANT4",
+      "ANT8",
+      "ANT7",
+      "ANT5"
+    ],
+    "recommended_capture_us": 2000000
+  },
+  "generated_from": "profiles/tracking-c6-timing-v1/profile_spec.json",
+  "profile": {
+    "id": "tracking-c6-25us-v1",
+    "revision": 1
+  },
+  "protocol": "framed_guarded_equal_dwell_tracking_c6_timing_v1",
+  "release_contract": {
+    "conformant": false,
+    "profile_transition_guard_us": 20,
+    "released_transition_guard_us": 5000,
+    "status": "experimental timing campaign; 20 us break-before-make does not supersede the released 5 ms guard"
+  },
+  "safety": {
+    "all_off_code": "1000",
+    "maximum_deadline_lateness_us": 5,
+    "on_excessive_lateness": "apply ALL_OFF and restart the marker",
+    "unused_states": [
+      "ANT3",
+      "ANT6"
+    ]
+  },
+  "schema": 1,
+  "states": [
+    {
+      "dwell_us": 25,
+      "gpio_code_pa3_pa0": "0000",
+      "name": "ANT1",
+      "window_us": [
+        23.75,
+        26.25
+      ]
+    },
+    {
+      "dwell_us": 25,
+      "gpio_code_pa3_pa0": "0100",
+      "name": "ANT2",
+      "window_us": [
+        23.75,
+        26.25
+      ]
+    },
+    {
+      "dwell_us": 25,
+      "gpio_code_pa3_pa0": "0110",
+      "name": "ANT4",
+      "window_us": [
+        23.75,
+        26.25
+      ]
+    },
+    {
+      "dwell_us": 25,
+      "gpio_code_pa3_pa0": "0111",
+      "name": "ANT8",
+      "window_us": [
+        23.75,
+        26.25
+      ]
+    },
+    {
+      "dwell_us": 25,
+      "gpio_code_pa3_pa0": "0011",
+      "name": "ANT7",
+      "window_us": [
+        23.75,
+        26.25
+      ]
+    },
+    {
+      "dwell_us": 25,
+      "gpio_code_pa3_pa0": "0001",
+      "name": "ANT5",
+      "window_us": [
+        23.75,
+        26.25
+      ]
+    }
+  ],
+  "time_unit": "microseconds"
+}

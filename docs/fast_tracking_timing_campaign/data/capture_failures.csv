@@ -1,0 +1,4 @@
+dwell_us,frequency_hz,tx_port,attempt,error_type,error_message,run_json,run_sha256
+25,5825000000,TX2,1,ValueError,autonomous C6 harmonic frequency estimates are inconsistent,/srv/bulk/samteway/lab-data/tracking-fast-timing-20260903-v6/captures/fast-25us-5825000000-tx2-20260903T205035.430303Z/run.json,f31a0a3b434c69d54ef921ce64f44e4dc66766cf6028dbccb6db1189a6e39658
+200,5785000000,TX1,1,OSError,[Errno 61] No data available,/srv/bulk/samteway/lab-data/tracking-fast-timing-20260903-v6/captures/fast-200us-5785000000-tx1-20260903T211931.134460Z/run.json,20bb34cc6a6beb3c2b65c4a20281f50cfc4a0fca53611055398189ec09f64d88
+200,5874000000,TX1,1,OSError,[Errno 61] No data available,/srv/bulk/samteway/lab-data/tracking-fast-timing-20260903-v6/captures/fast-200us-5874000000-tx1-20260903T220016.873783Z/run.json,55af1bd905fe8c28e2c1bd4dcc594c2df09e878ade42693b70b7395fb03b3893

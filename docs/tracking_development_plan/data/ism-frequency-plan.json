@@ -1,0 +1,221 @@
+{
+  "schema": 1,
+  "status": "engineering_plan_requires_jurisdiction_specific_tx_authorization",
+  "interpretation": {
+    "frequency_spread": "sequential centre-frequency spacing",
+    "nominal_spacing_hz": 50000000,
+    "instantaneous_occupied_bandwidth_hz": null,
+    "edge_policy": "reject an OTA centre unless the complete occupied signal and required regulatory guard remain inside the enabled jurisdiction profile",
+    "edge_anchor_policy": "for full-band support, add lower_edge + required_guard and upper_edge - required_guard as trained manifold anchors; withhold an interstitial frequency between each edge anchor and its nearest 50 MHz centre; reject extrapolation until those holdouts pass"
+  },
+  "hardware_scope_hz": {
+    "radio_candidate_min": 70000000,
+    "radio_candidate_max": 6000000000,
+    "board_lut_min": 500000000,
+    "board_lut_max": 6000000000
+  },
+  "qualification_order": [
+    "ism5800-c6-v1",
+    "ism2450-c6-v1",
+    "ism915-c6-v1",
+    "ism433-c6-v1"
+  ],
+  "profiles": [
+    {
+      "id": "ism433-c6-v1",
+      "allocation_hz": {
+        "min": 433050000,
+        "max": 434790000,
+        "itu_region": 1
+      },
+      "primary_centres_hz": [
+        433920000
+      ],
+      "blind_frequency_holdouts_hz": [
+        433500000,
+        434350000
+      ],
+      "holdout_role": "auxiliary within-band closure because the allocation is much narrower than 50 MHz",
+      "pcb_lut_status": "outside the released 500 MHz to 6 GHz LUT; acquisition and bearing output must fail closed until direct-injection calibration is extended",
+      "current_fixture_ready": false,
+      "current_fixture_blocker": "requires a 433 MHz PCB-LUT extension, Region-1 transmit authorization, suitable antennas, and a surveyed approximately 310 mm-radius C6 aperture",
+      "recommended_array": {
+        "elements": 6,
+        "radius_mm": 310.0,
+        "maximum_alias_safe_radius_mm_at_band_top": 344.75,
+        "ports_clockwise": [
+          "ANT1",
+          "ANT2",
+          "ANT4",
+          "ANT8",
+          "ANT7",
+          "ANT5"
+        ]
+      }
+    },
+    {
+      "id": "ism915-c6-v1",
+      "allocation_hz": {
+        "min": 902000000,
+        "max": 928000000,
+        "itu_region": 2
+      },
+      "primary_centres_hz": [
+        915000000
+      ],
+      "blind_frequency_holdouts_hz": [
+        905000000,
+        925000000
+      ],
+      "holdout_role": "auxiliary 10 MHz within-band closure because the allocation is narrower than 50 MHz",
+      "pcb_lut_status": "in range but 915 MHz is interpolated and low-band interstitial holdout is pending",
+      "current_fixture_ready": false,
+      "current_fixture_blocker": "requires regional transmit authorization, a low-band PCB holdout, suitable antennas, and a surveyed approximately 145 mm-radius C6 aperture",
+      "recommended_array": {
+        "elements": 6,
+        "radius_mm": 145.0,
+        "maximum_alias_safe_radius_mm_at_band_top": 161.5,
+        "ports_clockwise": [
+          "ANT1",
+          "ANT2",
+          "ANT4",
+          "ANT8",
+          "ANT7",
+          "ANT5"
+        ]
+      }
+    },
+    {
+      "id": "ism2450-c6-v1",
+      "allocation_hz": {
+        "min": 2400000000,
+        "max": 2500000000,
+        "itu_region": "all"
+      },
+      "primary_centres_hz": [
+        2425000000,
+        2475000000
+      ],
+      "blind_frequency_holdouts_hz": [
+        2450000000
+      ],
+      "holdout_role": "midpoint OTA-manifold interpolation closure",
+      "pcb_lut_status": "primary centres and holdout are exact 12.5 MHz LUT knots",
+      "current_fixture_ready": false,
+      "current_fixture_blocker": "requires suitable 2.4 GHz antennas and a surveyed approximately 54 mm-radius C6 aperture",
+      "recommended_array": {
+        "elements": 6,
+        "radius_mm": 54.0,
+        "maximum_alias_safe_radius_mm_at_band_top": 60.0,
+        "ports_clockwise": [
+          "ANT1",
+          "ANT2",
+          "ANT4",
+          "ANT8",
+          "ANT7",
+          "ANT5"
+        ]
+      }
+    },
+    {
+      "id": "ism5800-c6-v1",
+      "allocation_hz": {
+        "min": 5725000000,
+        "max": 5875000000,
+        "itu_region": "all"
+      },
+      "primary_centres_hz": [
+        5750000000,
+        5800000000,
+        5850000000
+      ],
+      "blind_frequency_holdouts_hz": [
+        5775000000,
+        5825000000
+      ],
+      "holdout_role": "interleaved OTA-manifold frequency interpolation closure",
+      "pcb_lut_status": "exact 12.5 MHz LUT knots inside the independently held-out 5-6 GHz region",
+      "current_fixture_ready": true,
+      "current_fixture_blocker": null,
+      "recommended_array": {
+        "elements": 6,
+        "radius_mm": 24.982704833333337,
+        "maximum_alias_safe_radius_mm_at_6_ghz": 24.982704833333337,
+        "ports_clockwise": [
+          "ANT1",
+          "ANT2",
+          "ANT4",
+          "ANT8",
+          "ANT7",
+          "ANT5"
+        ]
+      }
+    }
+  ],
+  "all_considered_ism_allocations": [
+    {
+      "centre_hz": 6780000,
+      "allocation_hz": [6765000, 6795000],
+      "tracking_status": "outside radio tuning range"
+    },
+    {
+      "centre_hz": 13560000,
+      "allocation_hz": [13553000, 13567000],
+      "tracking_status": "outside radio tuning range"
+    },
+    {
+      "centre_hz": 27120000,
+      "allocation_hz": [26957000, 27283000],
+      "tracking_status": "outside radio tuning range"
+    },
+    {
+      "centre_hz": 40680000,
+      "allocation_hz": [40660000, 40700000],
+      "tracking_status": "outside radio tuning range"
+    },
+    {
+      "centre_hz": 433920000,
+      "allocation_hz": [433050000, 434790000],
+      "tracking_status": "candidate Region 1 profile; board LUT extension required"
+    },
+    {
+      "centre_hz": 915000000,
+      "allocation_hz": [902000000, 928000000],
+      "tracking_status": "candidate Region 2 profile"
+    },
+    {
+      "centre_hz": 2450000000,
+      "allocation_hz": [2400000000, 2500000000],
+      "tracking_status": "candidate worldwide profile"
+    },
+    {
+      "centre_hz": 5800000000,
+      "allocation_hz": [5725000000, 5875000000],
+      "tracking_status": "candidate worldwide profile"
+    },
+    {
+      "centre_hz": 24125000000,
+      "allocation_hz": [24000000000, 24250000000],
+      "tracking_status": "outside radio tuning range"
+    },
+    {
+      "centre_hz": 61250000000,
+      "allocation_hz": [61000000000, 61500000000],
+      "tracking_status": "outside radio tuning range"
+    },
+    {
+      "centre_hz": 122500000000,
+      "allocation_hz": [122000000000, 123000000000],
+      "tracking_status": "outside radio tuning range"
+    },
+    {
+      "centre_hz": 245000000000,
+      "allocation_hz": [244000000000, 246000000000],
+      "tracking_status": "outside radio tuning range"
+    }
+  ],
+  "regulatory_sources": [
+    "https://www.itu.int/hub/publication/r-reg-rr-2024/",
+    "https://www.ecfr.gov/current/title-47/chapter-I/subchapter-A/part-18/subpart-C/section-18.301"
+  ]
+}

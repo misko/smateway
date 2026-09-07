@@ -1,0 +1,379 @@
+{
+  "baseline_campaign_id": "tracking-dense-1mhz-20260903-v1",
+  "campaign_id": "tracking-fast-timing-20260903-v6",
+  "capture_failure_count": 3,
+  "dense_by_source": {
+    "TX1": {
+      "frequency_count": 149,
+      "frequency_difference_qualified_count": 149,
+      "full_capture_bearing_error_to_approximate_setup_deg": {
+        "count": 149,
+        "maximum": 179.5,
+        "median": -6.75,
+        "p95": 169.65
+      },
+      "full_capture_valid_bearing_percent": 48.99328859060403,
+      "phase_10deg_frequency_pass_count": 147,
+      "phase_10deg_frequency_pass_percent": 98.65771812080537,
+      "phase_10deg_wall_latency_ms": {
+        "count": 147,
+        "maximum": 382.464,
+        "median": 47.808,
+        "p95": 191.232
+      },
+      "phase_only_settling_frequency_pass_count": 27,
+      "phase_only_settling_us": {
+        "count": 27,
+        "maximum": 27.0,
+        "median": 21.0,
+        "p95": 26.0
+      },
+      "rf_settling_us": {
+        "count": 11,
+        "maximum": 29.0,
+        "median": 28.0,
+        "p95": 29.0
+      },
+      "single_cycle_phase_rms_maximum_port_deg": {
+        "count": 149,
+        "maximum": 103.05702007145614,
+        "median": 89.06046615571051,
+        "p95": 100.15136331221787
+      },
+      "single_cycle_phase_rms_power_weighted_deg": {
+        "count": 149,
+        "maximum": 74.59789829203191,
+        "median": 50.470581244914214,
+        "p95": 69.8743164696794
+      },
+      "strict_rf_settling_frequency_pass_count": 11
+    },
+    "TX2": {
+      "frequency_count": 149,
+      "frequency_difference_qualified_count": 149,
+      "full_capture_bearing_error_to_approximate_setup_deg": {
+        "count": 149,
+        "maximum": 123.25,
+        "median": 2.0,
+        "p95": 5.0
+      },
+      "full_capture_valid_bearing_percent": 44.29530201342282,
+      "phase_10deg_frequency_pass_count": 144,
+      "phase_10deg_frequency_pass_percent": 96.64429530201342,
+      "phase_10deg_wall_latency_ms": {
+        "count": 144,
+        "maximum": 191.232,
+        "median": 2.988,
+        "p95": 5.98
+      },
+      "phase_only_settling_frequency_pass_count": 96,
+      "phase_only_settling_us": {
+        "count": 96,
+        "maximum": 27.0,
+        "median": 16.0,
+        "p95": 24.25
+      },
+      "rf_settling_us": {
+        "count": 79,
+        "maximum": 29.0,
+        "median": 21.0,
+        "p95": 29.0
+      },
+      "single_cycle_phase_rms_maximum_port_deg": {
+        "count": 149,
+        "maximum": 98.00983335487639,
+        "median": 63.024004669745956,
+        "p95": 93.61846874005408
+      },
+      "single_cycle_phase_rms_power_weighted_deg": {
+        "count": 149,
+        "maximum": 29.614772334709688,
+        "median": 11.114093594231651,
+        "p95": 19.651816658034985
+      },
+      "strict_rf_settling_frequency_pass_count": 79
+    }
+  },
+  "frequency_grid_hz": {
+    "count": 149,
+    "start": 5726000000,
+    "step": 1000000,
+    "stop": 5874000000
+  },
+  "ladder_summary": [
+    {
+      "dwell_us": 25,
+      "frequency_difference_qualified_count": 7,
+      "phase_10deg_frequency_pass_count": 0,
+      "phase_10deg_wall_latency_median_ms": null,
+      "phase_10deg_wall_latency_worst_ms": null,
+      "phase_only_settling_frequency_pass_count": 3,
+      "phase_only_settling_p95_us": 9.9,
+      "rf_settling_p95_us": null,
+      "sentinel_frequency_count": 7,
+      "single_cycle_phase_rms_p95_deg": 103.84662502142982,
+      "single_cycle_power_weighted_phase_rms_p95_deg": 99.62351861478453,
+      "strict_rf_settling_frequency_pass_count": 0,
+      "theoretical_scans_per_second": 2222.222222222222,
+      "tx_port": "TX1"
+    },
+    {
+      "dwell_us": 25,
+      "frequency_difference_qualified_count": 0,
+      "phase_10deg_frequency_pass_count": 0,
+      "phase_10deg_wall_latency_median_ms": null,
+      "phase_10deg_wall_latency_worst_ms": null,
+      "phase_only_settling_frequency_pass_count": 7,
+      "phase_only_settling_p95_us": 13.7,
+      "rf_settling_p95_us": null,
+      "sentinel_frequency_count": 7,
+      "single_cycle_phase_rms_p95_deg": 103.33701082364173,
+      "single_cycle_power_weighted_phase_rms_p95_deg": 98.84462318682965,
+      "strict_rf_settling_frequency_pass_count": 0,
+      "theoretical_scans_per_second": 2222.222222222222,
+      "tx_port": "TX2"
+    },
+    {
+      "dwell_us": 50,
+      "frequency_difference_qualified_count": 7,
+      "phase_10deg_frequency_pass_count": 1,
+      "phase_10deg_wall_latency_median_ms": 76.544,
+      "phase_10deg_wall_latency_worst_ms": 76.544,
+      "phase_only_settling_frequency_pass_count": 4,
+      "phase_only_settling_p95_us": 17.65,
+      "rf_settling_p95_us": 27.85,
+      "sentinel_frequency_count": 7,
+      "single_cycle_phase_rms_p95_deg": 102.3839349957723,
+      "single_cycle_power_weighted_phase_rms_p95_deg": 93.07775283771736,
+      "strict_rf_settling_frequency_pass_count": 2,
+      "theoretical_scans_per_second": 1666.6666666666667,
+      "tx_port": "TX1"
+    },
+    {
+      "dwell_us": 50,
+      "frequency_difference_qualified_count": 4,
+      "phase_10deg_frequency_pass_count": 0,
+      "phase_10deg_wall_latency_median_ms": null,
+      "phase_10deg_wall_latency_worst_ms": null,
+      "phase_only_settling_frequency_pass_count": 7,
+      "phase_only_settling_p95_us": 18.099999999999998,
+      "rf_settling_p95_us": 28.0,
+      "sentinel_frequency_count": 7,
+      "single_cycle_phase_rms_p95_deg": 98.73971145580701,
+      "single_cycle_power_weighted_phase_rms_p95_deg": 88.93208320321818,
+      "strict_rf_settling_frequency_pass_count": 6,
+      "theoretical_scans_per_second": 1666.6666666666667,
+      "tx_port": "TX2"
+    },
+    {
+      "dwell_us": 100,
+      "frequency_difference_qualified_count": 7,
+      "phase_10deg_frequency_pass_count": 6,
+      "phase_10deg_wall_latency_median_ms": 57.408,
+      "phase_10deg_wall_latency_worst_ms": 229.632,
+      "phase_only_settling_frequency_pass_count": 4,
+      "phase_only_settling_p95_us": 16.549999999999997,
+      "rf_settling_p95_us": 27.9,
+      "sentinel_frequency_count": 7,
+      "single_cycle_phase_rms_p95_deg": 103.01584808257981,
+      "single_cycle_power_weighted_phase_rms_p95_deg": 79.9330591112689,
+      "strict_rf_settling_frequency_pass_count": 2,
+      "theoretical_scans_per_second": 1111.111111111111,
+      "tx_port": "TX1"
+    },
+    {
+      "dwell_us": 100,
+      "frequency_difference_qualified_count": 7,
+      "phase_10deg_frequency_pass_count": 6,
+      "phase_10deg_wall_latency_median_ms": 5.378,
+      "phase_10deg_wall_latency_worst_ms": 458.752,
+      "phase_only_settling_frequency_pass_count": 6,
+      "phase_only_settling_p95_us": 23.0,
+      "rf_settling_p95_us": 28.75,
+      "sentinel_frequency_count": 7,
+      "single_cycle_phase_rms_p95_deg": 93.47214352674183,
+      "single_cycle_power_weighted_phase_rms_p95_deg": 42.5135761804599,
+      "strict_rf_settling_frequency_pass_count": 6,
+      "theoretical_scans_per_second": 1111.111111111111,
+      "tx_port": "TX2"
+    },
+    {
+      "dwell_us": 200,
+      "frequency_difference_qualified_count": 7,
+      "phase_10deg_frequency_pass_count": 7,
+      "phase_10deg_wall_latency_median_ms": 47.808,
+      "phase_10deg_wall_latency_worst_ms": 191.36,
+      "phase_only_settling_frequency_pass_count": 1,
+      "phase_only_settling_p95_us": 18.0,
+      "rf_settling_p95_us": null,
+      "sentinel_frequency_count": 7,
+      "single_cycle_phase_rms_p95_deg": 101.24894778323649,
+      "single_cycle_power_weighted_phase_rms_p95_deg": 71.14207549023699,
+      "strict_rf_settling_frequency_pass_count": 0,
+      "theoretical_scans_per_second": 666.6666666666666,
+      "tx_port": "TX1"
+    },
+    {
+      "dwell_us": 200,
+      "frequency_difference_qualified_count": 7,
+      "phase_10deg_frequency_pass_count": 7,
+      "phase_10deg_wall_latency_median_ms": 1.494,
+      "phase_10deg_wall_latency_worst_ms": 11.952,
+      "phase_only_settling_frequency_pass_count": 5,
+      "phase_only_settling_p95_us": 15.8,
+      "rf_settling_p95_us": 23.85,
+      "sentinel_frequency_count": 7,
+      "single_cycle_phase_rms_p95_deg": 89.32079471607192,
+      "single_cycle_power_weighted_phase_rms_p95_deg": 28.637866735203012,
+      "strict_rf_settling_frequency_pass_count": 4,
+      "theoretical_scans_per_second": 666.6666666666666,
+      "tx_port": "TX2"
+    }
+  ],
+  "schema": 1,
+  "selected_dwell_us": 200,
+  "selection": {
+    "by_dwell_us": {
+      "100": {
+        "all_conditions_reach_timing_quality_gate": false,
+        "condition_count": 14,
+        "theoretical_c6_scans_per_second": 1111.111111111111,
+        "worst_condition_wall_latency_ms": null
+      },
+      "200": {
+        "all_conditions_reach_timing_quality_gate": true,
+        "condition_count": 14,
+        "theoretical_c6_scans_per_second": 666.6666666666666,
+        "worst_condition_wall_latency_ms": 191.36
+      },
+      "25": {
+        "all_conditions_reach_timing_quality_gate": false,
+        "condition_count": 14,
+        "theoretical_c6_scans_per_second": 2222.222222222222,
+        "worst_condition_wall_latency_ms": null
+      },
+      "50": {
+        "all_conditions_reach_timing_quality_gate": false,
+        "condition_count": 14,
+        "theoretical_c6_scans_per_second": 1666.6666666666667,
+        "worst_condition_wall_latency_ms": null
+      }
+    },
+    "criterion": "minimize the worst sentinel-frequency wall latency at which both TX modes reach 10 degree received-power-weighted phase RMS with at least eight independent groups; null-port, observable-port maximum, settling, and ideal-manifold bearing metrics remain separately reported diagnostics; tie-break toward shorter dwell",
+    "selected_dwell_us": 200,
+    "selected_worst_wall_latency_ms": 191.36
+  },
+  "source_evidence": {
+    "baseline_summary": {
+      "path": "/srv/bulk/samteway/lab-data/tracking-dense-1mhz-20260903-v1/analysis/summary.json",
+      "sha256": "b7cce53ea2115564ea8840cbdfbf1949cc6d85140abb9e9cd753cbdb5b0f885e"
+    },
+    "fast_campaign": {
+      "path": "/srv/bulk/samteway/lab-data/tracking-fast-timing-20260903-v6/campaign.json",
+      "sha256": "397b16a3136d73b1a7cde2bca30d7496054c36d05f20f471102a49a481b61a34"
+    },
+    "selector_restore": {
+      "path": "/srv/bulk/samteway/lab-data/tracking-fast-timing-20260903-v6/restores/restore-bench-20260903T220048.804095Z/restore.json",
+      "sha256": "fc264bad394c89c24828781a9df1b3f4e5cceb062453e3472f9e282cda4a6a83"
+    },
+    "trim_sensitivity": {
+      "path": "/srv/bulk/samteway/repository/docs/fast_tracking_timing_campaign/data/trim_sensitivity.json",
+      "sha256": "51ce6cac7683de06786ea430b7e784136f734c74ff22affaf56f1a4c705dfd0d"
+    }
+  },
+  "trim_sensitivity": {
+    "online_5us_crosscheck": {
+      "condition_count": 149,
+      "maximum_latency_absolute_error_ms": 0.0,
+      "passed": true,
+      "qualification_mismatch_count": 0
+    },
+    "summary": [
+      {
+        "first_qualified_wall_latency_ms": {
+          "count": 147,
+          "maximum": 382.464,
+          "median": 47.808,
+          "p95": 191.232
+        },
+        "frequency_count": 149,
+        "median_samples_per_dwell": 378.0,
+        "phase_10deg_frequency_pass_count": 147,
+        "phase_10deg_frequency_pass_percent": 98.65771812080537,
+        "post_select_discard_us": 5,
+        "single_cycle_power_weighted_phase_rms_p95_deg": 69.87431646967941
+      },
+      {
+        "first_qualified_wall_latency_ms": {
+          "count": 147,
+          "maximum": 382.464,
+          "median": 47.808,
+          "p95": 191.232
+        },
+        "frequency_count": 149,
+        "median_samples_per_dwell": 368.0,
+        "phase_10deg_frequency_pass_count": 147,
+        "phase_10deg_frequency_pass_percent": 98.65771812080537,
+        "post_select_discard_us": 10,
+        "single_cycle_power_weighted_phase_rms_p95_deg": 69.53798516588448
+      },
+      {
+        "first_qualified_wall_latency_ms": {
+          "count": 147,
+          "maximum": 382.464,
+          "median": 47.808,
+          "p95": 191.232
+        },
+        "frequency_count": 149,
+        "median_samples_per_dwell": 358.0,
+        "phase_10deg_frequency_pass_count": 147,
+        "phase_10deg_frequency_pass_percent": 98.65771812080537,
+        "post_select_discard_us": 15,
+        "single_cycle_power_weighted_phase_rms_p95_deg": 69.45189167714815
+      },
+      {
+        "first_qualified_wall_latency_ms": {
+          "count": 147,
+          "maximum": 382.464,
+          "median": 47.808,
+          "p95": 191.232
+        },
+        "frequency_count": 149,
+        "median_samples_per_dwell": 348.0,
+        "phase_10deg_frequency_pass_count": 147,
+        "phase_10deg_frequency_pass_percent": 98.65771812080537,
+        "post_select_discard_us": 20,
+        "single_cycle_power_weighted_phase_rms_p95_deg": 69.22863942391668
+      },
+      {
+        "first_qualified_wall_latency_ms": {
+          "count": 147,
+          "maximum": 191.36,
+          "median": 47.808,
+          "p95": 191.232
+        },
+        "frequency_count": 149,
+        "median_samples_per_dwell": 338.0,
+        "phase_10deg_frequency_pass_count": 147,
+        "phase_10deg_frequency_pass_percent": 98.65771812080537,
+        "post_select_discard_us": 25,
+        "single_cycle_power_weighted_phase_rms_p95_deg": 69.16524523695439
+      },
+      {
+        "first_qualified_wall_latency_ms": {
+          "count": 147,
+          "maximum": 382.464,
+          "median": 47.808,
+          "p95": 191.232
+        },
+        "frequency_count": 149,
+        "median_samples_per_dwell": 328.0,
+        "phase_10deg_frequency_pass_count": 147,
+        "phase_10deg_frequency_pass_percent": 98.65771812080537,
+        "post_select_discard_us": 30,
+        "single_cycle_power_weighted_phase_rms_p95_deg": 69.17338766984183
+      }
+    ],
+    "trailing_trim_us": 5
+  }
+}

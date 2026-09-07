@@ -114,6 +114,15 @@ class BenchStatus:
         }
 
 
+@dataclass(frozen=True, slots=True)
+class TimedBenchStatus:
+    """Verified command plus a host-time bracket around its SWD sequence write."""
+
+    status: BenchStatus
+    command_write_realtime_start_ns: int
+    command_write_realtime_end_ns: int
+
+
 def decode_mailbox(data: bytes, manifest: BenchManifest) -> BenchStatus:
     if len(data) != manifest.size:
         raise ValueError(f"expected {manifest.size} mailbox bytes, received {len(data)}")
@@ -155,6 +164,41 @@ class OpenOcdBench:
             text=True,
         )
         return result.stdout + result.stderr
+
+    def _run_with_marker(self, commands: str, marker: str) -> tuple[str, int, int]:
+        process = subprocess.Popen(
+            ["openocd", "-f", str(self.openocd_config), "-c", commands],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+        )
+        if process.stdout is None:
+            process.kill()
+            raise RuntimeError("OpenOCD timing process has no output pipe")
+        lines: list[str] = []
+        marker_times: tuple[int, int] | None = None
+        try:
+            while True:
+                before = time.time_ns()
+                line = process.stdout.readline()
+                after = time.time_ns()
+                if not line:
+                    break
+                lines.append(line)
+                if line.strip() == marker:
+                    marker_times = (before, after)
+            return_code = process.wait(timeout=5.0)
+        except BaseException:
+            process.kill()
+            process.wait()
+            raise
+        output = "".join(lines)
+        if return_code != 0:
+            raise subprocess.CalledProcessError(return_code, process.args, output=output)
+        if marker_times is None:
+            raise RuntimeError("OpenOCD did not emit the command timing marker")
+        return output, marker_times[0], marker_times[1]
 
     def status(self) -> BenchStatus:
         with tempfile.TemporaryDirectory(prefix="smateway-mailbox-") as temporary:
@@ -199,3 +243,101 @@ class OpenOcdBench:
                     raise TimeoutError("bench firmware did not acknowledge the command")
                 raise TimeoutError("bench firmware did not apply the requested code")
             time.sleep(0.01)
+
+    def request_from_known_sequence(
+        self,
+        code: int,
+        lease_ms: int,
+        *,
+        acknowledged_sequence: int,
+        settle_ms: int = 50,
+    ) -> BenchStatus:
+        """Apply and verify one command in one OpenOCD process.
+
+        The caller must hold exclusive ownership of the mailbox from the
+        status read that supplied ``acknowledged_sequence`` through this call.
+        Combining write, bounded settling, and readback avoids three separate
+        OpenOCD startups per tracking dwell while retaining exact application
+        evidence.
+        """
+
+        if code < 0 or code > 0xFF:
+            raise ValueError("code must fit in one byte")
+        if lease_ms < 0 or lease_ms > self.manifest.max_lease_ms:
+            raise ValueError(f"lease must be 0..{self.manifest.max_lease_ms} ms")
+        if acknowledged_sequence < 0 or acknowledged_sequence > 0xFFFFFFFF:
+            raise ValueError("acknowledged sequence must fit uint32")
+        if settle_ms < 1 or settle_ms > 2000:
+            raise ValueError("settle time must be 1..2000 ms")
+        sequence = next_sequence(acknowledged_sequence)
+        command_address = self.manifest.field_address("command_code")
+        lease_address = self.manifest.field_address("command_lease_ms")
+        sequence_address = self.manifest.field_address("command_sequence")
+        with tempfile.TemporaryDirectory(prefix="smateway-mailbox-") as temporary:
+            dump_path = Path(temporary) / "mailbox.bin"
+            self._run(
+                "init; "
+                f"mww 0x{command_address:08x} 0x{code:08x}; "
+                f"mww 0x{lease_address:08x} 0x{lease_ms:08x}; "
+                f"mww 0x{sequence_address:08x} 0x{sequence:08x}; "
+                f"sleep {settle_ms}; "
+                f"dump_image {{{dump_path}}} 0x{self.manifest.address:08x} "
+                f"0x{self.manifest.size:x}; shutdown"
+            )
+            observed = decode_mailbox(dump_path.read_bytes(), self.manifest)
+        if observed.acknowledged_sequence != sequence:
+            raise RuntimeError("bench firmware did not acknowledge the fast command")
+        if observed.invalid_command:
+            raise RuntimeError("bench firmware rejected the fast command")
+        if observed.applied_code != code or observed.guard_active:
+            raise RuntimeError("bench firmware did not finish applying the fast command")
+        if lease_ms > 0 and not observed.lease_active:
+            raise RuntimeError("bench firmware did not retain the requested active lease")
+        return observed
+
+    def request_from_known_sequence_timed(
+        self,
+        code: int,
+        lease_ms: int,
+        *,
+        acknowledged_sequence: int,
+        settle_ms: int = 50,
+    ) -> TimedBenchStatus:
+        """Apply one command with exact readback and bracket its sequence write."""
+
+        if code < 0 or code > 0xFF:
+            raise ValueError("code must fit in one byte")
+        if lease_ms < 0 or lease_ms > self.manifest.max_lease_ms:
+            raise ValueError(f"lease must be 0..{self.manifest.max_lease_ms} ms")
+        if acknowledged_sequence < 0 or acknowledged_sequence > 0xFFFFFFFF:
+            raise ValueError("acknowledged sequence must fit uint32")
+        if settle_ms < 1 or settle_ms > 2000:
+            raise ValueError("settle time must be 1..2000 ms")
+        sequence = next_sequence(acknowledged_sequence)
+        command_address = self.manifest.field_address("command_code")
+        lease_address = self.manifest.field_address("command_lease_ms")
+        sequence_address = self.manifest.field_address("command_sequence")
+        marker = f"SMATEWAY_COMMAND_WRITTEN_{sequence}"
+        with tempfile.TemporaryDirectory(prefix="smateway-mailbox-") as temporary:
+            dump_path = Path(temporary) / "mailbox.bin"
+            _, marker_start, marker_end = self._run_with_marker(
+                "init; "
+                f"mww 0x{command_address:08x} 0x{code:08x}; "
+                f"mww 0x{lease_address:08x} 0x{lease_ms:08x}; "
+                f"mww 0x{sequence_address:08x} 0x{sequence:08x}; "
+                f"echo {marker}; "
+                f"sleep {settle_ms}; "
+                f"dump_image {{{dump_path}}} 0x{self.manifest.address:08x} "
+                f"0x{self.manifest.size:x}; shutdown",
+                marker,
+            )
+            observed = decode_mailbox(dump_path.read_bytes(), self.manifest)
+        if observed.acknowledged_sequence != sequence:
+            raise RuntimeError("bench firmware did not acknowledge the timed command")
+        if observed.invalid_command:
+            raise RuntimeError("bench firmware rejected the timed command")
+        if observed.applied_code != code or observed.guard_active:
+            raise RuntimeError("bench firmware did not finish applying the timed command")
+        if lease_ms > 0 and not observed.lease_active:
+            raise RuntimeError("bench firmware did not retain the requested active lease")
+        return TimedBenchStatus(observed, marker_start, marker_end)

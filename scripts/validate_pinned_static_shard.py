@@ -38,6 +38,11 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--first-hz", type=int, required=True)
     parser.add_argument("--last-hz", type=int, required=True)
     parser.add_argument("--step-hz", type=int, default=1_000_000)
+    parser.add_argument(
+        "--direction",
+        choices=("ascending", "descending"),
+        default="ascending",
+    )
     return parser
 
 
@@ -60,10 +65,19 @@ def _exact_mute(value: object) -> bool:
     )
 
 
-def validate(path: Path, first_hz: int, last_hz: int, step_hz: int) -> dict[str, Any]:
+def validate(
+    path: Path,
+    first_hz: int,
+    last_hz: int,
+    step_hz: int,
+    *,
+    descending: bool = False,
+) -> dict[str, Any]:
     if step_hz <= 0 or first_hz > last_hz or (last_hz - first_hz) % step_hz:
         raise ValueError("invalid frequency interval")
     frequencies = list(range(first_hz, last_hz + 1, step_hz))
+    if descending:
+        frequencies.reverse()
     run = _load(path)
     for key, expected in EXPECTED_FIXTURE.items():
         if run.get(key) != expected:
@@ -131,7 +145,13 @@ def main() -> int:
     args = _parser().parse_args()
     print(
         json.dumps(
-            validate(args.run_json, args.first_hz, args.last_hz, args.step_hz),
+            validate(
+                args.run_json,
+                args.first_hz,
+                args.last_hz,
+                args.step_hz,
+                descending=args.direction == "descending",
+            ),
             sort_keys=True,
         )
     )

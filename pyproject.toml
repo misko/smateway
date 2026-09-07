@@ -14,6 +14,7 @@ dependencies = [
 
 [project.scripts]
 smateway = "smateway.cli:main"
+smateway-track = "smateway.tracking.cli:main"
 
 [project.optional-dependencies]
 dev = [

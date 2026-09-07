@@ -78,6 +78,28 @@ direction-finding work is in
 It is the best starting point for deciding what is usable now and which evidence
 still needs to be acquired.
 
+The staged implementation and experiment plan for turning that calibration into
+a tracker is in
+[`docs/tracking_development_plan/`](docs/tracking_development_plan/README.md).
+It defines the TX1 truth-source campaign, TX2 blind-target extension, C6/C8 port
+maps, band-scaled 433 MHz/915 MHz/2.4 GHz/5.8 GHz ISM profiles on a 50 MHz
+centre lattice, continuous-phase strategies, fast-switching budget, minimal
+runtime architecture, and predeclared bearing acceptance gates.
+
+The implemented ten-run TX1/TX2 hardware verification is in
+[`docs/tracking_verification_campaign/`](docs/tracking_verification_campaign/README.md).
+It covers the complete installed 5.8 GHz primary/holdout grid, proves the new
+frequency-separated coherent-pilot TX2 estimator, records sample/cleanup
+closure, compares individual and fused bearings, replays 0.25–200 ms dwells,
+and separates the working electronics from the still-missing empirical OTA
+manifold.
+
+The autonomous selector timing campaign and dense 1 MHz result are in
+[`docs/fast_tracking_timing_campaign/`](docs/fast_tracking_timing_campaign/README.md).
+It compares 25/50/100/200 µs C6 dwells, selects the only all-sentinel-qualified
+schedule, maps phase RMS and bearing diagnostics over 5.726–5.874 GHz, and
+replays the retained raw IQ to choose a conservative post-select sample discard.
+
 ## Conducted closed-loop calibration
 
 The completed three-permutation splitter calibration, reconnect closure, released 2.4 GHz

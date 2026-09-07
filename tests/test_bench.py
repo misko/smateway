@@ -139,3 +139,88 @@ def test_request_can_wait_for_guard_to_finish(
 
     assert observed.applied_code == 6
     assert not observed.guard_active
+
+
+def test_fast_request_uses_one_process_and_verifies_application(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    manifest = write_manifest(tmp_path / "manifest.json")
+    config = tmp_path / "openocd.cfg"
+    config.write_text("# test\n", encoding="utf-8")
+    controller = OpenOcdBench(manifest, config)
+    commands_seen: list[str] = []
+
+    def fake_run(commands: str) -> str:
+        commands_seen.append(commands)
+        dump = re.search(r"dump_image \{([^}]+)\}", commands)
+        assert dump is not None
+        Path(dump.group(1)).write_bytes(
+            struct.pack(
+                "<9I",
+                manifest.magic,
+                manifest.version,
+                42,
+                6,
+                5000,
+                42,
+                6,
+                4950,
+                STATUS_COMMAND_VALID | STATUS_LEASE_ACTIVE,
+            )
+        )
+        return ""
+
+    monkeypatch.setattr(controller, "_run", fake_run)
+
+    observed = controller.request_from_known_sequence(
+        6,
+        5000,
+        acknowledged_sequence=41,
+        settle_ms=50,
+    )
+
+    assert observed.acknowledged_sequence == 42
+    assert observed.applied_code == 6
+    assert len(commands_seen) == 1
+    assert "sleep 50" in commands_seen[0]
+
+
+def test_timed_fast_request_returns_sequence_write_bracket(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    manifest = write_manifest(tmp_path / "manifest.json")
+    config = tmp_path / "openocd.cfg"
+    config.write_text("# test\n", encoding="utf-8")
+    controller = OpenOcdBench(manifest, config)
+
+    def fake_run(commands: str, marker: str) -> tuple[str, int, int]:
+        dump = re.search(r"dump_image \{([^}]+)\}", commands)
+        assert dump is not None
+        assert marker == "SMATEWAY_COMMAND_WRITTEN_42"
+        Path(dump.group(1)).write_bytes(
+            struct.pack(
+                "<9I",
+                manifest.magic,
+                manifest.version,
+                42,
+                6,
+                5000,
+                42,
+                6,
+                4950,
+                STATUS_COMMAND_VALID | STATUS_LEASE_ACTIVE,
+            )
+        )
+        return "", 1_000_000_000, 1_000_400_000
+
+    monkeypatch.setattr(controller, "_run_with_marker", fake_run)
+
+    observed = controller.request_from_known_sequence_timed(
+        6,
+        5000,
+        acknowledged_sequence=41,
+    )
+
+    assert observed.status.acknowledged_sequence == 42
+    assert observed.command_write_realtime_start_ns == 1_000_000_000
+    assert observed.command_write_realtime_end_ns == 1_000_400_000

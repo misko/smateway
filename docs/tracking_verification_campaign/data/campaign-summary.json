@@ -1,0 +1,937 @@
+{
+  "all_admitted_dwells_unclipped": true,
+  "all_cleanup_passed": true,
+  "all_sample_timelines_continuous": true,
+  "campaign_id": "ism5800-two-source-continuous-v1",
+  "expected_sources": {
+    "TX1": {
+      "bearing_deg_clockwise_from_forward": 90.0,
+      "description": "approximately 30 cm from the array, between ANT2 and ANT4 in the array plane",
+      "range_m": 0.3
+    },
+    "TX2": {
+      "bearing_deg_clockwise_from_forward": 180.0,
+      "description": "approximately 20 cm behind ANT8",
+      "range_m": 0.2
+    }
+  },
+  "frequency_grid_hz": [
+    5750000000,
+    5775000000,
+    5800000000,
+    5825000000,
+    5850000000
+  ],
+  "fused_valid_frequency_results": {
+    "TX1": {
+      "ambiguity_margin_db": 1.8510745757748874,
+      "bearing_deg_clockwise_from_forward": 81.5,
+      "error_deg": -8.5,
+      "frequencies_hz": [
+        5800000000,
+        5825000000
+      ],
+      "valid": true,
+      "valid_frequency_count": 2
+    },
+    "TX2": {
+      "ambiguity_margin_db": 2.130257791450057,
+      "bearing_deg_clockwise_from_forward": 183.25,
+      "error_deg": 3.25,
+      "frequencies_hz": [
+        5750000000,
+        5775000000,
+        5800000000
+      ],
+      "valid": true,
+      "valid_frequency_count": 3
+    }
+  },
+  "offline_dwell_length_study": {
+    "TX1": [
+      {
+        "absolute_phase_error_p95_deg": 136.5290641940274,
+        "chunk_count": 129683,
+        "coherent_snr_db_median": 1.816698082826391,
+        "coherent_snr_db_p05": -9.519342722531281,
+        "duration_ms": 0.25,
+        "joint_phase_and_snr_admission_percent": 8.425930923868203,
+        "phase_error_rms_deg": 58.59491698916701
+      },
+      {
+        "absolute_phase_error_p95_deg": 117.56518688882065,
+        "chunk_count": 64829,
+        "coherent_snr_db_median": 3.7432138698280797,
+        "coherent_snr_db_p05": -7.679061540603607,
+        "duration_ms": 0.5,
+        "joint_phase_and_snr_admission_percent": 16.130126949359084,
+        "phase_error_rms_deg": 49.18569311114564
+      },
+      {
+        "absolute_phase_error_p95_deg": 93.44218541224306,
+        "chunk_count": 32399,
+        "coherent_snr_db_median": 6.0262606178437395,
+        "coherent_snr_db_p05": -5.537948654848578,
+        "duration_ms": 1.0,
+        "joint_phase_and_snr_admission_percent": 27.895922713664,
+        "phase_error_rms_deg": 40.03209653735099
+      },
+      {
+        "absolute_phase_error_p95_deg": 70.86509886964846,
+        "chunk_count": 16183,
+        "coherent_snr_db_median": 8.645840625877542,
+        "coherent_snr_db_p05": -3.81322385242881,
+        "duration_ms": 2.0,
+        "joint_phase_and_snr_admission_percent": 42.71766668726441,
+        "phase_error_rms_deg": 32.25477987809331
+      },
+      {
+        "absolute_phase_error_p95_deg": 45.17595256006022,
+        "chunk_count": 6457,
+        "coherent_snr_db_median": 12.418581697569735,
+        "coherent_snr_db_p05": -0.8544794123648672,
+        "duration_ms": 5.0,
+        "joint_phase_and_snr_admission_percent": 61.88632491869289,
+        "phase_error_rms_deg": 23.193416793224518
+      },
+      {
+        "absolute_phase_error_p95_deg": 31.008715195134478,
+        "chunk_count": 3217,
+        "coherent_snr_db_median": 15.327696005633133,
+        "coherent_snr_db_p05": 1.6474451250528706,
+        "duration_ms": 10.0,
+        "joint_phase_and_snr_admission_percent": 74.10631022691949,
+        "phase_error_rms_deg": 16.8796405472057
+      },
+      {
+        "absolute_phase_error_p95_deg": 22.699660403464396,
+        "chunk_count": 1597,
+        "coherent_snr_db_median": 18.2965212569038,
+        "coherent_snr_db_p05": 4.386826041702897,
+        "duration_ms": 20.0,
+        "joint_phase_and_snr_admission_percent": 83.53162179085786,
+        "phase_error_rms_deg": 13.373437159968312
+      },
+      {
+        "absolute_phase_error_p95_deg": 11.993878609036944,
+        "chunk_count": 600,
+        "coherent_snr_db_median": 22.039423996266212,
+        "coherent_snr_db_p05": 8.526348603189007,
+        "duration_ms": 50.0,
+        "joint_phase_and_snr_admission_percent": 91.33333333333333,
+        "phase_error_rms_deg": 6.09208103491617
+      },
+      {
+        "absolute_phase_error_p95_deg": 9.721044366300962,
+        "chunk_count": 300,
+        "coherent_snr_db_median": 24.901083649320565,
+        "coherent_snr_db_p05": 11.551323884572344,
+        "duration_ms": 100.0,
+        "joint_phase_and_snr_admission_percent": 94.66666666666667,
+        "phase_error_rms_deg": 4.481034464405089
+      },
+      {
+        "absolute_phase_error_p95_deg": 4.234805984586288,
+        "chunk_count": 120,
+        "coherent_snr_db_median": 27.79434618712792,
+        "coherent_snr_db_p05": 14.764492280463415,
+        "duration_ms": 200.0,
+        "joint_phase_and_snr_admission_percent": 100.0,
+        "phase_error_rms_deg": 2.1687131706754146
+      }
+    ],
+    "TX2": [
+      {
+        "absolute_phase_error_p95_deg": 53.081874014843976,
+        "chunk_count": 129687,
+        "coherent_snr_db_median": 12.32268531015672,
+        "coherent_snr_db_p05": -2.2205205441362708,
+        "duration_ms": 0.25,
+        "joint_phase_and_snr_admission_percent": 61.71937048431994,
+        "phase_error_rms_deg": 25.956135617742735
+      },
+      {
+        "absolute_phase_error_p95_deg": 37.23786610067734,
+        "chunk_count": 64826,
+        "coherent_snr_db_median": 15.198920420833193,
+        "coherent_snr_db_p05": 0.16292139188648425,
+        "duration_ms": 0.5,
+        "joint_phase_and_snr_admission_percent": 73.07407521673403,
+        "phase_error_rms_deg": 20.314894687945717
+      },
+      {
+        "absolute_phase_error_p95_deg": 26.659809064904582,
+        "chunk_count": 32399,
+        "coherent_snr_db_median": 18.067601749061147,
+        "coherent_snr_db_p05": 2.8979988485229353,
+        "duration_ms": 1.0,
+        "joint_phase_and_snr_admission_percent": 81.90067594678848,
+        "phase_error_rms_deg": 15.472278165481727
+      },
+      {
+        "absolute_phase_error_p95_deg": 18.415741501473207,
+        "chunk_count": 16185,
+        "coherent_snr_db_median": 20.957906729022806,
+        "coherent_snr_db_p05": 5.828466729399162,
+        "duration_ms": 2.0,
+        "joint_phase_and_snr_admission_percent": 87.92709298733395,
+        "phase_error_rms_deg": 11.578297332470726
+      },
+      {
+        "absolute_phase_error_p95_deg": 11.90201013298777,
+        "chunk_count": 6458,
+        "coherent_snr_db_median": 24.81637141505437,
+        "coherent_snr_db_p05": 10.000336689927067,
+        "duration_ms": 5.0,
+        "joint_phase_and_snr_admission_percent": 93.01641375038712,
+        "phase_error_rms_deg": 6.901958447382403
+      },
+      {
+        "absolute_phase_error_p95_deg": 7.769600103363816,
+        "chunk_count": 3218,
+        "coherent_snr_db_median": 27.765463048421804,
+        "coherent_snr_db_p05": 13.398843385676527,
+        "duration_ms": 10.0,
+        "joint_phase_and_snr_admission_percent": 96.4263517712865,
+        "phase_error_rms_deg": 4.511620288205657
+      },
+      {
+        "absolute_phase_error_p95_deg": 5.525655309991954,
+        "chunk_count": 1598,
+        "coherent_snr_db_median": 30.766752695520832,
+        "coherent_snr_db_p05": 16.547552167500747,
+        "duration_ms": 20.0,
+        "joint_phase_and_snr_admission_percent": 98.87359198998749,
+        "phase_error_rms_deg": 2.911123467718447
+      },
+      {
+        "absolute_phase_error_p95_deg": 3.17016706014871,
+        "chunk_count": 600,
+        "coherent_snr_db_median": 34.82962288425554,
+        "coherent_snr_db_p05": 20.697667526051408,
+        "duration_ms": 50.0,
+        "joint_phase_and_snr_admission_percent": 99.66666666666667,
+        "phase_error_rms_deg": 1.5786780327064935
+      },
+      {
+        "absolute_phase_error_p95_deg": 2.2089163197246378,
+        "chunk_count": 300,
+        "coherent_snr_db_median": 37.88961862368009,
+        "coherent_snr_db_p05": 23.698046179926337,
+        "duration_ms": 100.0,
+        "joint_phase_and_snr_admission_percent": 99.66666666666667,
+        "phase_error_rms_deg": 1.1073030397007941
+      },
+      {
+        "absolute_phase_error_p95_deg": 1.2841126222169166,
+        "chunk_count": 120,
+        "coherent_snr_db_median": 40.89159298269569,
+        "coherent_snr_db_p05": 26.80180016739289,
+        "duration_ms": 200.0,
+        "joint_phase_and_snr_admission_percent": 100.0,
+        "phase_error_rms_deg": 0.7631532962622886
+      }
+    ]
+  },
+  "profile_id": "ism5800-c6-v1",
+  "records": [
+    {
+      "admitted_full_scale_sample_counts": [
+        0,
+        0
+      ],
+      "admitted_peak_component_counts": [
+        214.0,
+        39.0
+      ],
+      "capture_peak_component_counts": [
+        214.0,
+        39.0
+      ],
+      "cleanup_passed": true,
+      "expected_bearing_deg": 90.0,
+      "far_field": {
+        "ambiguity_margin_db": 0.10030176404611206,
+        "bearing_deg_clockwise_from_forward": 113.25,
+        "reasons": [
+          "score_below_gate",
+          "ambiguous_peak",
+          "phase_residual_above_gate"
+        ],
+        "residual_phase_rms_deg": 49.217038650538235,
+        "score": 0.38351700840263847,
+        "second_bearing_deg_clockwise_from_forward": 352.5,
+        "valid": false
+      },
+      "frame_count": 87,
+      "frequency_estimate": {
+        "adjacent_pair_count": 6729848,
+        "adjacent_product_coherence": 0.9991174572985173,
+        "frequency_hz": 99261.71346152193,
+        "kind": "single_tone"
+      },
+      "frequency_hz": 5750000000,
+      "frequency_role": "primary",
+      "magnitude_db_relative_strongest_port": [
+        -3.301849353633724,
+        0.0,
+        -10.273477247146232,
+        -11.606132806729725,
+        -12.075653051365203,
+        -5.1993313922630655
+      ],
+      "maximum_repeat_phase_rms_deg": 2.1667751143952154,
+      "minimum_coherent_estimator_snr_db": 20.864837332973728,
+      "near_field_at_declared_range": {
+        "ambiguity_margin_db": 0.2592753644614061,
+        "bearing_deg_clockwise_from_forward": 353.0,
+        "reasons": [
+          "score_below_gate",
+          "ambiguous_peak",
+          "phase_residual_above_gate"
+        ],
+        "residual_phase_rms_deg": 70.34637798080097,
+        "score": 0.4193938969876617,
+        "valid": false
+      },
+      "phase_deg_relative_ant1": [
+        3.171381455284824e-15,
+        -87.19110575430875,
+        -42.232338770884716,
+        123.00225763760493,
+        82.82623750057304,
+        -44.39837962687341
+      ],
+      "phase_estimator": "simultaneous_rx2_over_rx1_least_squares",
+      "run_id": "tracking-20260903T180851.755868Z",
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-continuous/tracking-20260903T180851.755868Z/run.json",
+      "sample_timeline_continuous": true,
+      "samples_per_channel": 8700000,
+      "tx_port": "TX1"
+    },
+    {
+      "admitted_full_scale_sample_counts": [
+        0,
+        0
+      ],
+      "admitted_peak_component_counts": [
+        187.0,
+        38.0
+      ],
+      "capture_peak_component_counts": [
+        189.0,
+        38.0
+      ],
+      "cleanup_passed": true,
+      "expected_bearing_deg": 90.0,
+      "far_field": {
+        "ambiguity_margin_db": 1.0113940660443157,
+        "bearing_deg_clockwise_from_forward": 98.0,
+        "reasons": [
+          "phase_residual_above_gate"
+        ],
+        "residual_phase_rms_deg": 45.144058537454804,
+        "score": 0.5155552435869628,
+        "second_bearing_deg_clockwise_from_forward": 259.0,
+        "valid": false
+      },
+      "frame_count": 87,
+      "frequency_estimate": {
+        "adjacent_pair_count": 6724326,
+        "adjacent_product_coherence": 0.998981020221052,
+        "frequency_hz": 99246.20995685947,
+        "kind": "single_tone"
+      },
+      "frequency_hz": 5775000000,
+      "frequency_role": "blind_frequency_holdout",
+      "magnitude_db_relative_strongest_port": [
+        -6.187446205835274,
+        0.0,
+        -2.836272359456144,
+        -6.594947027496562,
+        -11.938158850130936,
+        -4.713896198456185
+      ],
+      "maximum_repeat_phase_rms_deg": 1.9855163945269139,
+      "minimum_coherent_estimator_snr_db": 23.26503357838343,
+      "near_field_at_declared_range": {
+        "ambiguity_margin_db": 1.8412913867059697,
+        "bearing_deg_clockwise_from_forward": 98.5,
+        "reasons": [],
+        "residual_phase_rms_deg": 43.6008872105497,
+        "score": 0.5673508603092614,
+        "valid": true
+      },
+      "phase_deg_relative_ant1": [
+        -1.017603145388686e-15,
+        -115.74963930806183,
+        -63.7944826784288,
+        83.56924877833167,
+        -99.06813486045267,
+        -37.76212180302746
+      ],
+      "phase_estimator": "simultaneous_rx2_over_rx1_least_squares",
+      "run_id": "tracking-20260903T180905.090836Z",
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-continuous/tracking-20260903T180905.090836Z/run.json",
+      "sample_timeline_continuous": true,
+      "samples_per_channel": 8700000,
+      "tx_port": "TX1"
+    },
+    {
+      "admitted_full_scale_sample_counts": [
+        0,
+        0
+      ],
+      "admitted_peak_component_counts": [
+        214.0,
+        44.0
+      ],
+      "capture_peak_component_counts": [
+        215.0,
+        44.0
+      ],
+      "cleanup_passed": true,
+      "expected_bearing_deg": 90.0,
+      "far_field": {
+        "ambiguity_margin_db": 1.8306532768934323,
+        "bearing_deg_clockwise_from_forward": 83.25,
+        "reasons": [],
+        "residual_phase_rms_deg": 17.545302321861303,
+        "score": 0.6859771380744731,
+        "second_bearing_deg_clockwise_from_forward": 63.25,
+        "valid": true
+      },
+      "frame_count": 87,
+      "frequency_estimate": {
+        "adjacent_pair_count": 6728476,
+        "adjacent_product_coherence": 0.9990654501495945,
+        "frequency_hz": 99282.65856920839,
+        "kind": "single_tone"
+      },
+      "frequency_hz": 5800000000,
+      "frequency_role": "primary",
+      "magnitude_db_relative_strongest_port": [
+        -27.51620541891498,
+        0.0,
+        -5.45444555975009,
+        -6.630511685192367,
+        -2.8556839048975653,
+        -8.177028496609806
+      ],
+      "maximum_repeat_phase_rms_deg": 1.2623351953141957,
+      "minimum_coherent_estimator_snr_db": 12.130977040094265,
+      "near_field_at_declared_range": {
+        "ambiguity_margin_db": 1.773839371356877,
+        "bearing_deg_clockwise_from_forward": 85.0,
+        "reasons": [],
+        "residual_phase_rms_deg": 18.697864482526317,
+        "score": 0.6949440594263625,
+        "valid": true
+      },
+      "phase_deg_relative_ant1": [
+        -0.0,
+        132.21651120353593,
+        146.79947725426948,
+        -43.84790192655167,
+        151.5951132306199,
+        -147.30064017183494
+      ],
+      "phase_estimator": "simultaneous_rx2_over_rx1_least_squares",
+      "run_id": "tracking-20260903T180918.440243Z",
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-continuous/tracking-20260903T180918.440243Z/run.json",
+      "sample_timeline_continuous": true,
+      "samples_per_channel": 8700000,
+      "tx_port": "TX1"
+    },
+    {
+      "admitted_full_scale_sample_counts": [
+        0,
+        0
+      ],
+      "admitted_peak_component_counts": [
+        198.0,
+        48.0
+      ],
+      "capture_peak_component_counts": [
+        203.0,
+        48.0
+      ],
+      "cleanup_passed": true,
+      "expected_bearing_deg": 90.0,
+      "far_field": {
+        "ambiguity_margin_db": 1.8101957204771075,
+        "bearing_deg_clockwise_from_forward": 80.0,
+        "reasons": [],
+        "residual_phase_rms_deg": 33.24898495258482,
+        "score": 0.6251626535830408,
+        "second_bearing_deg_clockwise_from_forward": 60.0,
+        "valid": true
+      },
+      "frame_count": 86,
+      "frequency_estimate": {
+        "adjacent_pair_count": 6719895,
+        "adjacent_product_coherence": 0.999068890975449,
+        "frequency_hz": 99257.41614066184,
+        "kind": "single_tone"
+      },
+      "frequency_hz": 5825000000,
+      "frequency_role": "blind_frequency_holdout",
+      "magnitude_db_relative_strongest_port": [
+        -8.47806072539791,
+        0.0,
+        -5.392950530825688,
+        -8.90166798145512,
+        -0.9041816256358476,
+        -10.882389663275685
+      ],
+      "maximum_repeat_phase_rms_deg": 1.4990063322033302,
+      "minimum_coherent_estimator_snr_db": 28.119389742849464,
+      "near_field_at_declared_range": {
+        "ambiguity_margin_db": 1.834819254974953,
+        "bearing_deg_clockwise_from_forward": 81.25,
+        "reasons": [],
+        "residual_phase_rms_deg": 33.5855872856452,
+        "score": 0.6300335941672122,
+        "valid": true
+      },
+      "phase_deg_relative_ant1": [
+        -0.0,
+        130.4040510399242,
+        159.56280988763427,
+        -67.34342661092127,
+        147.1998773114793,
+        -101.16838431625297
+      ],
+      "phase_estimator": "simultaneous_rx2_over_rx1_least_squares",
+      "run_id": "tracking-20260903T180932.048358Z",
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-continuous/tracking-20260903T180932.048358Z/run.json",
+      "sample_timeline_continuous": true,
+      "samples_per_channel": 8600000,
+      "tx_port": "TX1"
+    },
+    {
+      "admitted_full_scale_sample_counts": [
+        0,
+        0
+      ],
+      "admitted_peak_component_counts": [
+        186.0,
+        37.0
+      ],
+      "capture_peak_component_counts": [
+        186.0,
+        37.0
+      ],
+      "cleanup_passed": true,
+      "expected_bearing_deg": 90.0,
+      "far_field": {
+        "ambiguity_margin_db": 0.25430643137011055,
+        "bearing_deg_clockwise_from_forward": 40.25,
+        "reasons": [
+          "score_below_gate",
+          "ambiguous_peak",
+          "phase_residual_above_gate"
+        ],
+        "residual_phase_rms_deg": 55.92432322477874,
+        "score": 0.45211910925808396,
+        "second_bearing_deg_clockwise_from_forward": 269.25,
+        "valid": false
+      },
+      "frame_count": 87,
+      "frequency_estimate": {
+        "adjacent_pair_count": 6725680,
+        "adjacent_product_coherence": 0.9990218107991103,
+        "frequency_hz": 99268.95969052453,
+        "kind": "single_tone"
+      },
+      "frequency_hz": 5850000000,
+      "frequency_role": "primary",
+      "magnitude_db_relative_strongest_port": [
+        -19.30287140719441,
+        -2.492229942331998,
+        -6.38362042447349,
+        0.0,
+        -6.337643133269937,
+        -2.1180215479500872
+      ],
+      "maximum_repeat_phase_rms_deg": 6.919866650662841,
+      "minimum_coherent_estimator_snr_db": 18.7065387883896,
+      "near_field_at_declared_range": {
+        "ambiguity_margin_db": 0.19014320026692838,
+        "bearing_deg_clockwise_from_forward": 266.25,
+        "reasons": [
+          "score_below_gate",
+          "ambiguous_peak",
+          "phase_residual_above_gate"
+        ],
+        "residual_phase_rms_deg": 80.00786758642666,
+        "score": 0.4195448970590913,
+        "valid": false
+      },
+      "phase_deg_relative_ant1": [
+        -0.0,
+        79.10133178673735,
+        40.60245606038167,
+        -153.5897242270729,
+        110.3411065643177,
+        -26.960194502215664
+      ],
+      "phase_estimator": "simultaneous_rx2_over_rx1_least_squares",
+      "run_id": "tracking-20260903T180945.319145Z",
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-continuous/tracking-20260903T180945.319145Z/run.json",
+      "sample_timeline_continuous": true,
+      "samples_per_channel": 8700000,
+      "tx_port": "TX1"
+    },
+    {
+      "admitted_full_scale_sample_counts": [
+        0,
+        0
+      ],
+      "admitted_peak_component_counts": [
+        213.0,
+        38.0
+      ],
+      "capture_peak_component_counts": [
+        219.0,
+        38.0
+      ],
+      "cleanup_passed": true,
+      "expected_bearing_deg": 180.0,
+      "far_field": {
+        "ambiguity_margin_db": 2.276848025264438,
+        "bearing_deg_clockwise_from_forward": 181.0,
+        "reasons": [],
+        "residual_phase_rms_deg": 20.079433182425515,
+        "score": 0.7665344821039834,
+        "second_bearing_deg_clockwise_from_forward": 161.0,
+        "valid": true
+      },
+      "frame_count": 87,
+      "frequency_estimate": {
+        "bin_count": 64891,
+        "frequency_difference_hz": 199981.6712,
+        "frequency_error_hz": -2.3288,
+        "kind": "cross_frequency",
+        "search_objective": 0.8442041486216985
+      },
+      "frequency_hz": 5750000000,
+      "frequency_role": "primary",
+      "magnitude_db_relative_strongest_port": [
+        -8.29499478237034,
+        -11.672273062012808,
+        -4.364306763320371,
+        0.0,
+        -5.190178909341614,
+        -6.001705984175886
+      ],
+      "maximum_repeat_phase_rms_deg": 0.2197612909844622,
+      "minimum_coherent_estimator_snr_db": 38.403689973435135,
+      "near_field_at_declared_range": {
+        "ambiguity_margin_db": 2.320794671273856,
+        "bearing_deg_clockwise_from_forward": 181.25,
+        "reasons": [],
+        "residual_phase_rms_deg": 20.86012562949508,
+        "score": 0.8225832243953174,
+        "valid": true
+      },
+      "phase_deg_relative_ant1": [
+        -0.0,
+        140.12265104629128,
+        -92.02534703875149,
+        30.830706763094163,
+        -83.05124375569146,
+        126.04864675071738
+      ],
+      "phase_estimator": "tx2_over_frequency_separated_coherent_tx1_pilot",
+      "run_id": "tracking-20260903T180958.590389Z",
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-continuous/tracking-20260903T180958.590389Z/run.json",
+      "sample_timeline_continuous": true,
+      "samples_per_channel": 8700000,
+      "tx_port": "TX2"
+    },
+    {
+      "admitted_full_scale_sample_counts": [
+        0,
+        0
+      ],
+      "admitted_peak_component_counts": [
+        189.0,
+        37.0
+      ],
+      "capture_peak_component_counts": [
+        189.0,
+        37.0
+      ],
+      "cleanup_passed": true,
+      "expected_bearing_deg": 180.0,
+      "far_field": {
+        "ambiguity_margin_db": 2.390541545588942,
+        "bearing_deg_clockwise_from_forward": 183.5,
+        "reasons": [],
+        "residual_phase_rms_deg": 20.011514252256813,
+        "score": 0.7457169322186146,
+        "second_bearing_deg_clockwise_from_forward": 163.5,
+        "valid": true
+      },
+      "frame_count": 86,
+      "frequency_estimate": {
+        "bin_count": 64769,
+        "frequency_difference_hz": 199981.6728,
+        "frequency_error_hz": -2.3272000000000004,
+        "kind": "cross_frequency",
+        "search_objective": 0.7491131169600038
+      },
+      "frequency_hz": 5775000000,
+      "frequency_role": "blind_frequency_holdout",
+      "magnitude_db_relative_strongest_port": [
+        -7.237799799409133,
+        -13.281950830698566,
+        -5.921102806152002,
+        0.0,
+        -3.7388850619005125,
+        -3.0298086343927144
+      ],
+      "maximum_repeat_phase_rms_deg": 2.096826241221885,
+      "minimum_coherent_estimator_snr_db": 33.721098430070896,
+      "near_field_at_declared_range": {
+        "ambiguity_margin_db": 2.4589942826233844,
+        "bearing_deg_clockwise_from_forward": 184.25,
+        "reasons": [],
+        "residual_phase_rms_deg": 19.73727557764374,
+        "score": 0.7981896007892925,
+        "valid": true
+      },
+      "phase_deg_relative_ant1": [
+        -0.0,
+        117.8576130812165,
+        -105.93615338159474,
+        41.91349135963359,
+        -62.653300199678334,
+        114.16141312106346
+      ],
+      "phase_estimator": "tx2_over_frequency_separated_coherent_tx1_pilot",
+      "run_id": "tracking-20260903T181012.802867Z",
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-continuous/tracking-20260903T181012.802867Z/run.json",
+      "sample_timeline_continuous": true,
+      "samples_per_channel": 8600000,
+      "tx_port": "TX2"
+    },
+    {
+      "admitted_full_scale_sample_counts": [
+        0,
+        0
+      ],
+      "admitted_peak_component_counts": [
+        217.0,
+        37.0
+      ],
+      "capture_peak_component_counts": [
+        2048.0,
+        100.0
+      ],
+      "cleanup_passed": true,
+      "expected_bearing_deg": 180.0,
+      "far_field": {
+        "ambiguity_margin_db": 1.151613629084269,
+        "bearing_deg_clockwise_from_forward": 185.5,
+        "reasons": [],
+        "residual_phase_rms_deg": 30.02198077348783,
+        "score": 0.6063399063293258,
+        "second_bearing_deg_clockwise_from_forward": 45.5,
+        "valid": true
+      },
+      "frame_count": 88,
+      "frequency_estimate": {
+        "bin_count": 64853,
+        "frequency_difference_hz": 199981.6688,
+        "frequency_error_hz": -2.3312,
+        "kind": "cross_frequency",
+        "search_objective": 0.6597199431288158
+      },
+      "frequency_hz": 5800000000,
+      "frequency_role": "primary",
+      "magnitude_db_relative_strongest_port": [
+        -5.621801543048004,
+        -16.49567422056311,
+        -16.98365299511436,
+        0.0,
+        -3.202811997700615,
+        -2.9846333290428233
+      ],
+      "maximum_repeat_phase_rms_deg": 2.1482889609960925,
+      "minimum_coherent_estimator_snr_db": 31.224865952257097,
+      "near_field_at_declared_range": {
+        "ambiguity_margin_db": 1.905310837742321,
+        "bearing_deg_clockwise_from_forward": 187.0,
+        "reasons": [],
+        "residual_phase_rms_deg": 27.70176951176633,
+        "score": 0.6490658568304425,
+        "valid": true
+      },
+      "phase_deg_relative_ant1": [
+        0.0,
+        54.29579729911453,
+        -120.1426257576932,
+        43.5910970217537,
+        -43.60334380485781,
+        108.26375276125813
+      ],
+      "phase_estimator": "tx2_over_frequency_separated_coherent_tx1_pilot",
+      "run_id": "tracking-20260903T180813.843469Z",
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-continuous/tracking-20260903T180813.843469Z/run.json",
+      "sample_timeline_continuous": true,
+      "samples_per_channel": 8800000,
+      "tx_port": "TX2"
+    },
+    {
+      "admitted_full_scale_sample_counts": [
+        0,
+        0
+      ],
+      "admitted_peak_component_counts": [
+        198.0,
+        38.0
+      ],
+      "capture_peak_component_counts": [
+        198.0,
+        38.0
+      ],
+      "cleanup_passed": true,
+      "expected_bearing_deg": 180.0,
+      "far_field": {
+        "ambiguity_margin_db": 0.3592666609625337,
+        "bearing_deg_clockwise_from_forward": 183.25,
+        "reasons": [
+          "ambiguous_peak",
+          "phase_residual_above_gate"
+        ],
+        "residual_phase_rms_deg": 51.995962078922034,
+        "score": 0.5149864812489464,
+        "second_bearing_deg_clockwise_from_forward": 44.0,
+        "valid": false
+      },
+      "frame_count": 87,
+      "frequency_estimate": {
+        "bin_count": 64804,
+        "frequency_difference_hz": 199981.672,
+        "frequency_error_hz": -2.3280000000000003,
+        "kind": "cross_frequency",
+        "search_objective": 0.7021656615016556
+      },
+      "frequency_hz": 5825000000,
+      "frequency_role": "blind_frequency_holdout",
+      "magnitude_db_relative_strongest_port": [
+        -6.337550170147815,
+        -16.218161828227444,
+        -27.557384619330275,
+        0.0,
+        -3.3960495815574347,
+        -3.46449082470514
+      ],
+      "maximum_repeat_phase_rms_deg": 1.0018922271131407,
+      "minimum_coherent_estimator_snr_db": 23.227461387246034,
+      "near_field_at_declared_range": {
+        "ambiguity_margin_db": 1.3102858567638918,
+        "bearing_deg_clockwise_from_forward": 185.5,
+        "reasons": [
+          "phase_residual_above_gate"
+        ],
+        "residual_phase_rms_deg": 49.73754305081675,
+        "score": 0.5481141876914417,
+        "valid": false
+      },
+      "phase_deg_relative_ant1": [
+        0.0,
+        163.04961198430266,
+        -147.49964441836505,
+        73.16251274378526,
+        -8.632849131854384,
+        147.81608167980775
+      ],
+      "phase_estimator": "tx2_over_frequency_separated_coherent_tx1_pilot",
+      "run_id": "tracking-20260903T181027.124088Z",
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-continuous/tracking-20260903T181027.124088Z/run.json",
+      "sample_timeline_continuous": true,
+      "samples_per_channel": 8700000,
+      "tx_port": "TX2"
+    },
+    {
+      "admitted_full_scale_sample_counts": [
+        0,
+        0
+      ],
+      "admitted_peak_component_counts": [
+        187.0,
+        38.0
+      ],
+      "capture_peak_component_counts": [
+        187.0,
+        38.0
+      ],
+      "cleanup_passed": true,
+      "expected_bearing_deg": 180.0,
+      "far_field": {
+        "ambiguity_margin_db": 0.568429521624186,
+        "bearing_deg_clockwise_from_forward": 182.75,
+        "reasons": [
+          "score_below_gate",
+          "ambiguous_peak",
+          "phase_residual_above_gate"
+        ],
+        "residual_phase_rms_deg": 74.86224379968495,
+        "score": 0.4923147398576502,
+        "second_bearing_deg_clockwise_from_forward": 113.75,
+        "valid": false
+      },
+      "frame_count": 87,
+      "frequency_estimate": {
+        "bin_count": 64935,
+        "frequency_difference_hz": 199981.6712,
+        "frequency_error_hz": -2.3288,
+        "kind": "cross_frequency",
+        "search_objective": 0.8849247071810579
+      },
+      "frequency_hz": 5850000000,
+      "frequency_role": "primary",
+      "magnitude_db_relative_strongest_port": [
+        -6.641418579499543,
+        -7.738714897065363,
+        -15.661728382675292,
+        0.0,
+        -2.2794873054154867,
+        -1.1909056363211832
+      ],
+      "maximum_repeat_phase_rms_deg": 2.332321829665192,
+      "minimum_coherent_estimator_snr_db": 36.85370645661037,
+      "near_field_at_declared_range": {
+        "ambiguity_margin_db": 1.1562456414232023,
+        "bearing_deg_clockwise_from_forward": 185.0,
+        "reasons": [
+          "phase_residual_above_gate"
+        ],
+        "residual_phase_rms_deg": 71.83929933410725,
+        "score": 0.5153892008132875,
+        "valid": false
+      },
+      "phase_deg_relative_ant1": [
+        0.0,
+        172.3377048136694,
+        176.8133931613515,
+        95.53148967963658,
+        3.7112526336446074,
+        172.48968274680593
+      ],
+      "phase_estimator": "tx2_over_frequency_separated_coherent_tx1_pilot",
+      "run_id": "tracking-20260903T181041.636382Z",
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-continuous/tracking-20260903T181041.636382Z/run.json",
+      "sample_timeline_continuous": true,
+      "samples_per_channel": 8700000,
+      "tx_port": "TX2"
+    }
+  ],
+  "run_count": 10,
+  "schema": 1,
+  "status": "capture_complete_bearing_model_partially_qualified",
+  "total_samples_both_channels": 173800000
+}

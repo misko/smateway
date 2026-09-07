@@ -1,0 +1,12 @@
+{
+  "artifacts": {
+    "control_profile.h": "87bc5bae71edad4929faad501c101a753b21ed3c228db90a32d83d7b2b468cb9",
+    "control_profile.json": "a94213db8e67191c67c466fd7d4cfeb15b595bfc50ba043a02748c1c6352fd75"
+  },
+  "schema": 1,
+  "sources": {
+    "profiles/fast20-v1/control_profile.h": "839a1eced9eaf168bb8128301a8509709bb42a09c89ce5d6fbf26b216e79bfd3",
+    "profiles/fast20-v1/control_profile.json": "c8f3de200573d90d1b87b623770cd9253649c634a22cea1a9ca980042ae40f11",
+    "profiles/tracking-c6-timing-v1/profile_spec.json": "c63268b016bfb64e4e17aa9dcdecebdab3723402fbe6f38089aba9af1246b864"
+  }
+}

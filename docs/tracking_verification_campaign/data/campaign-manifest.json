@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "campaign_id": "ism5800-two-source-continuous-v1",
+  "captured_at_utc": "2026-09-03",
+  "profile_id": "ism5800-c6-v1",
+  "frequency_role": "50 MHz primary lattice plus 25 MHz interleaved blind holdouts",
+  "expected_sources": {
+    "TX1": {
+      "bearing_deg_clockwise_from_forward": 90.0,
+      "range_m": 0.3,
+      "description": "approximately 30 cm from the array, between ANT2 and ANT4 in the array plane"
+    },
+    "TX2": {
+      "bearing_deg_clockwise_from_forward": 180.0,
+      "range_m": 0.2,
+      "description": "approximately 20 cm behind ANT8"
+    }
+  },
+  "records": [
+    {
+      "tx_port": "TX1",
+      "frequency_hz": 5750000000,
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-continuous/tracking-20260903T180851.755868Z/run.json"
+    },
+    {
+      "tx_port": "TX1",
+      "frequency_hz": 5775000000,
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-continuous/tracking-20260903T180905.090836Z/run.json"
+    },
+    {
+      "tx_port": "TX1",
+      "frequency_hz": 5800000000,
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-continuous/tracking-20260903T180918.440243Z/run.json"
+    },
+    {
+      "tx_port": "TX1",
+      "frequency_hz": 5825000000,
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-continuous/tracking-20260903T180932.048358Z/run.json"
+    },
+    {
+      "tx_port": "TX1",
+      "frequency_hz": 5850000000,
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-continuous/tracking-20260903T180945.319145Z/run.json"
+    },
+    {
+      "tx_port": "TX2",
+      "frequency_hz": 5750000000,
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-continuous/tracking-20260903T180958.590389Z/run.json"
+    },
+    {
+      "tx_port": "TX2",
+      "frequency_hz": 5775000000,
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-continuous/tracking-20260903T181012.802867Z/run.json"
+    },
+    {
+      "tx_port": "TX2",
+      "frequency_hz": 5800000000,
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-continuous/tracking-20260903T180813.843469Z/run.json"
+    },
+    {
+      "tx_port": "TX2",
+      "frequency_hz": 5825000000,
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-continuous/tracking-20260903T181027.124088Z/run.json"
+    },
+    {
+      "tx_port": "TX2",
+      "frequency_hz": 5850000000,
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-continuous/tracking-20260903T181041.636382Z/run.json"
+    }
+  ]
+}

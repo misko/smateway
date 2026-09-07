@@ -60,6 +60,18 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--repeats", type=int, default=1)
     parser.add_argument("--tx-gain-db", type=float, default=MAX_TX_GAIN_DB)
     parser.add_argument(
+        "--tx-channel",
+        type=int,
+        choices=(0, 1),
+        default=0,
+        help="transmit channel to excite (0=TX1, 1=TX2)",
+    )
+    parser.add_argument(
+        "--source-uri",
+        default=SOURCE_URI,
+        help="source IIO URI; the immutable source serial is still verified after opening",
+    )
+    parser.add_argument(
         "--manifest",
         type=Path,
         default=Path("build/STM32C011F4P6/bench/pluto_bench.manifest.json"),
@@ -178,7 +190,13 @@ def _receive_samples(device: Any, *, expected_shape: tuple[int, int]) -> np.ndar
     raise AssertionError("unreachable")
 
 
-def _capture(device: Any, *, muted: bool, tx_gain_db: float) -> tuple[np.ndarray, dict[str, Any]]:
+def _capture(
+    device: Any,
+    *,
+    muted: bool,
+    tx_gain_db: float,
+    tx_channel: int,
+) -> tuple[np.ndarray, dict[str, Any]]:
     _mute_transmit(device)
     _readback_mute(device)
     # The pyadi RX buffer continues filling between calls. Recreate it only
@@ -186,10 +204,12 @@ def _capture(device: Any, *, muted: bool, tx_gain_db: float) -> tuple[np.ndarray
     # return samples accumulated during the preceding muted cleanup interval.
     device.rx_destroy_buffer()
     if not muted:
-        device.tx_hardwaregain_chan0 = tx_gain_db
-        device.dds_single_tone(TONE_OFFSET_HZ, DDS_SCALE, channel=0)
-        if float(device.tx_hardwaregain_chan0) > tx_gain_db + 0.25:
-            raise RuntimeError("TX1 hardware-gain readback exceeds the requested bound")
+        setattr(device, f"tx_hardwaregain_chan{tx_channel}", tx_gain_db)
+        device.dds_single_tone(TONE_OFFSET_HZ, DDS_SCALE, channel=tx_channel)
+        if float(getattr(device, f"tx_hardwaregain_chan{tx_channel}")) > tx_gain_db + 0.25:
+            raise RuntimeError(
+                f"TX{tx_channel + 1} hardware-gain readback exceeds the requested bound"
+            )
         if max(abs(float(value)) for value in device.dds_scales) > DDS_SCALE + 1e-6:
             raise RuntimeError("DDS scale readback exceeds the requested bound")
     time.sleep(0.1)
@@ -215,15 +235,18 @@ def _capture_external(
     source: Any,
     *,
     tx_gain_db: float,
+    tx_channel: int,
 ) -> tuple[np.ndarray, dict[str, Any]]:
     _mute_transmit(receiver)
     receiver_mute = _readback_mute(receiver)
     _mute_transmit(source)
     _readback_mute(source)
-    source.tx_hardwaregain_chan0 = tx_gain_db
-    source.dds_single_tone(TONE_OFFSET_HZ, DDS_SCALE, channel=0)
-    if float(source.tx_hardwaregain_chan0) > tx_gain_db + 0.25:
-        raise RuntimeError("source TX1 hardware-gain readback exceeds the requested bound")
+    setattr(source, f"tx_hardwaregain_chan{tx_channel}", tx_gain_db)
+    source.dds_single_tone(TONE_OFFSET_HZ, DDS_SCALE, channel=tx_channel)
+    if float(getattr(source, f"tx_hardwaregain_chan{tx_channel}")) > tx_gain_db + 0.25:
+        raise RuntimeError(
+            f"source TX{tx_channel + 1} hardware-gain readback exceeds the requested bound"
+        )
     if max(abs(float(value)) for value in source.dds_scales) > DDS_SCALE + 1e-6:
         raise RuntimeError("source DDS scale readback exceeds the requested bound")
     # Discard anything accumulated before the selector and external source were fixed.
@@ -335,7 +358,7 @@ def main() -> int:
         "mode": args.mode,
         "radio_uri": RADIO_URI,
         "radio_serial": RADIO_SERIAL,
-        "source_radio_uri": SOURCE_URI if args.mode == "external" else None,
+        "source_radio_uri": args.source_uri if args.mode == "external" else None,
         "source_radio_serial": SOURCE_SERIAL if args.mode == "external" else None,
         "board_id": BOARD_ID,
         "stlink_serial": STLINK_SERIAL,
@@ -350,6 +373,7 @@ def main() -> int:
             "tone_offset_hz": TONE_OFFSET_HZ,
             "rx_gain_db": RX_GAIN_DB,
             "tx_gain_db": None if args.mode == "muted" else args.tx_gain_db,
+            "tx_channel": args.tx_channel,
             "dds_scale": None if args.mode == "muted" else DDS_SCALE,
         },
         "observations": [],
@@ -371,10 +395,10 @@ def main() -> int:
         _mute_transmit(device)
         _readback_mute(device)
         if args.mode == "external":
-            source = adi.ad9361(uri=SOURCE_URI)
+            source = adi.ad9361(uri=args.source_uri)
             run["source_radio_facts"] = _radio_facts(
                 source,
-                expected_uri=SOURCE_URI,
+                expected_uri=args.source_uri,
                 expected_serial=SOURCE_SERIAL,
             )
             _mute_transmit(source)
@@ -395,12 +419,14 @@ def main() -> int:
                                 device,
                                 muted=args.mode == "muted",
                                 tx_gain_db=args.tx_gain_db,
+                                tx_channel=args.tx_channel,
                             )
                         else:
                             samples, radio_readback = _capture_external(
                                 device,
                                 source,
                                 tx_gain_db=args.tx_gain_db,
+                                tx_channel=args.tx_channel,
                             )
                     finally:
                         source_mute = None

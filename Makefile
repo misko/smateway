@@ -48,6 +48,18 @@ HEXCAL_ELF := $(HEXCAL_DIR)/pluto_hexcal.elf
 HEXCAL_BIN := $(HEXCAL_DIR)/pluto_hexcal.bin
 HEXCAL_MAP := $(HEXCAL_DIR)/pluto_hexcal.map
 HEXCAL_LST := $(HEXCAL_DIR)/pluto_hexcal.lst
+TRACKING_C6_DWELL_US ?= 200
+TRACKING_C6_ALLOWED_DWELLS := 25 50 100 200
+ifeq ($(filter $(TRACKING_C6_DWELL_US),$(TRACKING_C6_ALLOWED_DWELLS)),)
+$(error Unsupported TRACKING_C6_DWELL_US '$(TRACKING_C6_DWELL_US)')
+endif
+TRACKING_C6_PROFILE_DIR := profiles/tracking-c6-$(TRACKING_C6_DWELL_US)us-v1
+TRACKING_C6_DIR := $(BUILD_DIR)/$(MCU)/tracking-c6-$(TRACKING_C6_DWELL_US)us
+TRACKING_C6_ELF := $(TRACKING_C6_DIR)/pluto_tracking_c6.elf
+TRACKING_C6_BIN := $(TRACKING_C6_DIR)/pluto_tracking_c6.bin
+TRACKING_C6_MAP := $(TRACKING_C6_DIR)/pluto_tracking_c6.map
+TRACKING_C6_LST := $(TRACKING_C6_DIR)/pluto_tracking_c6.lst
+TRACKING_C6_HOST_TEST := $(BUILD_DIR)/host/tracking_c6_$(TRACKING_C6_DWELL_US)us_core_test
 DEVICE_ROOT := firmware/stm32c011/vendor/cmsis-device-c0
 CMSIS_ROOT := firmware/stm32c011/vendor/CMSIS_5/CMSIS/Core
 TARGET_SOURCES := \
@@ -88,12 +100,14 @@ TARGET_LDFLAGS := $(TARGET_LDFLAGS_COMMON) -Wl,-Map,$(TARGET_MAP)
 
 .PHONY: all test test-c test-phase20-core test-hexcal-core test-python \
 	profile-check phase-profile-check hexcal-profile-check safe-hold bench \
-	fast20 phase20 hexcal clean
+	fast20 phase20 hexcal tracking-c6-profile-check test-tracking-c6-core \
+	tracking-c6 clean
 
 all: test
 
-test: profile-check phase-profile-check hexcal-profile-check test-c \
-	test-phase20-core test-hexcal-core test-python
+test: profile-check phase-profile-check hexcal-profile-check \
+	tracking-c6-profile-check test-c test-phase20-core test-hexcal-core \
+	test-tracking-c6-core test-python
 
 profile-check:
 	$(PYTHON) scripts/sync_control_profile.py \
@@ -104,6 +118,9 @@ phase-profile-check:
 
 hexcal-profile-check:
 	$(PYTHON) scripts/generate_hexcal_profile.py --check
+
+tracking-c6-profile-check:
+	$(PYTHON) scripts/generate_tracking_c6_profiles.py --check
 
 $(HOST_TEST): tests/firmware_core/control_core_test.c $(CORE_SOURCES) $(CORE_HEADERS)
 	mkdir -p $(dir $@)
@@ -138,6 +155,19 @@ $(HEXCAL_HOST_TEST): tests/firmware_core/hexcal_core_test.c \
 
 test-hexcal-core: $(HEXCAL_HOST_TEST)
 	$(HEXCAL_HOST_TEST)
+
+$(TRACKING_C6_HOST_TEST): tests/firmware_core/tracking_c6_core_test.c \
+		firmware/stm32c011/core/high_rate_autonomous_core.c \
+		firmware/stm32c011/core/high_rate_autonomous_core.h \
+		$(TRACKING_C6_PROFILE_DIR)/control_profile.h
+	mkdir -p $(dir $@)
+	$(CC) -std=c11 -O2 -Wall -Wextra -Werror -Wconversion -Wshadow \
+		-pedantic -Ifirmware/stm32c011/core -I$(TRACKING_C6_PROFILE_DIR) \
+		firmware/stm32c011/core/high_rate_autonomous_core.c \
+		tests/firmware_core/tracking_c6_core_test.c -o $@
+
+test-tracking-c6-core: $(TRACKING_C6_HOST_TEST)
+	$(TRACKING_C6_HOST_TEST)
 
 test-python:
 	$(UV) run pytest
@@ -369,6 +399,69 @@ $(HEXCAL_LST): $(HEXCAL_ELF)
 hexcal: profile-check hexcal-profile-check test-hexcal-core \
 		$(HEXCAL_BIN) $(HEXCAL_LST)
 	$(PYTHON) scripts/verify_hexcal_elf.py $(HEXCAL_ELF)
+
+$(TRACKING_C6_DIR)/main.o: firmware/stm32c011/apps/hexcal/main.c \
+		firmware/stm32c011/core/high_rate_autonomous_core.h \
+		$(TRACKING_C6_PROFILE_DIR)/control_profile.h
+	mkdir -p $(dir $@)
+	$(TARGET_CC) -DSTM32C011xx -I$(DEVICE_ROOT)/Include \
+		-I$(CMSIS_ROOT)/Include -I$(TRACKING_C6_PROFILE_DIR) \
+		-Ifirmware/stm32c011/core $(TARGET_CFLAGS) -c $< -o $@
+
+$(TRACKING_C6_DIR)/high_rate_autonomous_core.o: \
+		firmware/stm32c011/core/high_rate_autonomous_core.c \
+		firmware/stm32c011/core/high_rate_autonomous_core.h \
+		$(TRACKING_C6_PROFILE_DIR)/control_profile.h
+	mkdir -p $(dir $@)
+	$(TARGET_CC) -DSTM32C011xx -I$(DEVICE_ROOT)/Include \
+		-I$(CMSIS_ROOT)/Include -I$(TRACKING_C6_PROFILE_DIR) \
+		-Ifirmware/stm32c011/core $(TARGET_CFLAGS) -c $< -o $@
+
+$(TRACKING_C6_DIR)/safe_runtime.o: firmware/stm32c011/apps/safe_hold/safe_runtime.c
+	mkdir -p $(dir $@)
+	$(TARGET_CC) -DSTM32C011xx -I$(DEVICE_ROOT)/Include \
+		-I$(CMSIS_ROOT)/Include -I$(TRACKING_C6_PROFILE_DIR) \
+		$(TARGET_CFLAGS) -c $< -o $@
+
+$(TRACKING_C6_DIR)/system_stm32c0xx.o: \
+		$(DEVICE_ROOT)/Source/Templates/system_stm32c0xx.c
+	mkdir -p $(dir $@)
+	$(TARGET_CC) -DSTM32C011xx -I$(DEVICE_ROOT)/Include \
+		-I$(CMSIS_ROOT)/Include -I$(TRACKING_C6_PROFILE_DIR) \
+		$(TARGET_CFLAGS) -c $< -o $@
+
+$(TRACKING_C6_DIR)/startup_stm32c011xx.o: \
+		firmware/stm32c011/apps/hexcal/startup_stm32c011xx.S \
+		$(DEVICE_ROOT)/Source/Templates/gcc/startup_stm32c011xx.s
+	mkdir -p $(dir $@)
+	$(TARGET_CC) -DSTM32C011xx -I$(DEVICE_ROOT)/Include \
+		-I$(CMSIS_ROOT)/Include -I$(TRACKING_C6_PROFILE_DIR) \
+		-mcpu=cortex-m0plus -mthumb -g3 -c $< -o $@
+
+$(TRACKING_C6_ELF): \
+		$(TRACKING_C6_DIR)/main.o \
+		$(TRACKING_C6_DIR)/high_rate_autonomous_core.o \
+		$(TRACKING_C6_DIR)/safe_runtime.o \
+		$(TRACKING_C6_DIR)/system_stm32c0xx.o \
+		$(TRACKING_C6_DIR)/startup_stm32c011xx.o \
+		firmware/stm32c011/linker/stm32c011f4p6.ld
+	$(TARGET_CC) $(filter %.o,$^) $(TARGET_LDFLAGS_COMMON) \
+		-Wl,-Map,$(TRACKING_C6_MAP) -o $@
+	$(TARGET_SIZE) $@
+	sha256sum $@ > $@.sha256
+
+$(TRACKING_C6_BIN): $(TRACKING_C6_ELF)
+	$(TARGET_OBJCOPY) -O binary $< $@
+	sha256sum $@ > $@.sha256
+
+$(TRACKING_C6_LST): $(TRACKING_C6_ELF)
+	$(TARGET_OBJDUMP) -d -S -h $< > $@
+
+tracking-c6: tracking-c6-profile-check test-tracking-c6-core \
+		$(TRACKING_C6_BIN) $(TRACKING_C6_LST)
+	$(PYTHON) scripts/verify_tracking_c6_firmware.py $(TRACKING_C6_ELF) \
+		--profile $(TRACKING_C6_PROFILE_DIR)/control_profile.json \
+		--binary $(TRACKING_C6_BIN)
 
 clean:
 	test "$(BUILD_DIR)" = "build"
