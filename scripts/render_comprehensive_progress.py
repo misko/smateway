@@ -677,6 +677,28 @@ def main():
                 f"| {row['frame_samples']} | {row['frame_samples'] / 2000:.0f} | {row['strongest_power_modulation_hz_not_necessarily_fundamental']:.1f} | {row['peak_component_counts_rx2']:.0f} | {row['source_muted']} |"
             )
         text.append("")
+    quiet = [r for r in static if r["frequency_mhz"] == 2475 and r["port"] == "ANT1"]
+    if quiet:
+        row = quiet[-1]
+        text.extend(
+            [
+                "## Same-fixture frequency control",
+                "",
+                f"A separate unchanged ANT1 static check at 2.475 GHz and RX40 dB gave {row['phase_rms_10ms_deg']:.3f}° full-band 10 ms phase RMS (coherence {row['coherence']:.3f}), without clipping. This is a single diagnostic, not a repeatability-qualified frequency. It contrasts sharply with the approximately 140° RMS at 2.450 GHz using the same port/gain. It supports a frequency-dependent signal/interference limitation, not a universal ANT1 phase-measurement failure.",
+                "",
+            ]
+        )
+    handoff_path = data / "pre-swap-hardware-handoff.json"
+    if handoff_path.is_file():
+        handoff = load(handoff_path)
+        text.extend(
+            [
+                "## Operator intervention boundary",
+                "",
+                f"Hardware captures paused at {handoff['checked_at']} for a proposed ANT1/ANT2 feed swap. Both serial-pinned radios were verified at −80 dB TX gain and zero DDS scales; the restored bench selector was lease-free ALL_OFF. The swap was not assumed performed. [Readback evidence](data/pre-swap-hardware-handoff.json). Any resumed intervention requires an explicit operator confirmation and a separate fixture binding; current report data precede the swap.",
+                "",
+            ]
+        )
     (args.output / "README.md").write_text("\n".join(text))
     print(f"report={args.output / 'README.md'}")
 
