@@ -100,7 +100,9 @@ def admit_capture(
         "fixture_id": fixture["fixture_id"],
         "kind": fixture["kind"],
         "positions_m": None if diagnostic_only else coordinates.tolist(),
-        "geometry_status": "unconfirmed" if diagnostic_only else "fixture_attested",
+        "geometry_status": "unconfirmed" if diagnostic_only else fixture.get(
+            "geometry_status", "fixture_attested"
+        ),
         "capture_scope": "diagnostic_no_geometry" if diagnostic_only else "geometry_bound",
         "surveyed_angle_accuracy_available": False,
     }

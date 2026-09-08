@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "fixture_id": "unchanged-c6-51mm-dual-band-us-20260908-v2",
+  "ready": true,
+  "kind": "ota",
+  "confirmed_at": "2026-09-08T16:41:27+00:00",
+  "timestamp_scope": "time the relayed current user confirmation was recorded",
+  "protocol_sha256": "18d5cbdeea722634df856efa692868571b6bbc250eb71648f77065f49ef8ef5b",
+  "receiver_serial": "104000b29905000e17000800065934759d",
+  "source_serial": "104473b80a16000de6ff2000f8a6beca79",
+  "ports": ["ANT1", "ANT2", "ANT4", "ANT8", "ANT7", "ANT5"],
+  "positions_m": [[0.0, 0.0255], [0.02208364779650318, 0.01275], [0.02208364779650318, -0.01275], [0.0, -0.0255], [-0.02208364779650318, -0.01275], [-0.02208364779650318, 0.01275]],
+  "geometry_status": "user_confirmed_nominal",
+  "capture_scope": "geometry_bound",
+  "coordinate_system": "metres; x right, y forward; ANT1 forward; bearing clockwise from forward",
+  "diameter_mm": 51.0,
+  "geometry_uncertainty": "User measured between centres of opposite antennas; no surveyed precision or frequency-dependent RF phase-centre calibration is asserted.",
+  "operator_confirmation": "User confirmed unchanged wiring, dual-band antennas, US lab, current 51 mm opposite-antenna-centre diameter, and physical order by reference to our recommended C6 report. Relayed by task 01a08195-4439-7fb0-8692-7e74693d867a on 2026-09-08.",
+  "authorization_description": "User-authorized bounded low-power campaign on unchanged OTA fixture; retain TX hardware gain -35 dB and DDS scale 0.25. US 15.249 candidate frequency limits with frozen 1 MHz edge guard. Not an emissions certification or permission for increased power.",
+  "approved_intervals_hz": [[2400000000, 2483500000], [5725000000, 5875000000]],
+  "surveyed_transmitter_angles_deg": null,
+  "transmitter_angle_status": "User confirms approximate, not measured/surveyed.",
+  "wiring": {
+    "source_tx1": "splitter to RX1 reference and first OTA test antenna",
+    "source_tx2": "separate OTA test antenna",
+    "receiver_rx2": "C6 selector common"
+  },
+  "limitations": [
+    "No matching current STL located; geometry is user-confirmed nominal, not CAD-derived or surveyed.",
+    "Use the same physical geometry in both bands.",
+    "Model bearing acceptance/repeatability is not surveyed angular accuracy.",
+    "Clockwise physical order is distinct from pair-first scan order; reproduction uses clockwise temporal scanning."
+  ]
+}
