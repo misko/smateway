@@ -46,6 +46,7 @@ from capture_fast_tracking_timing import (
     _write_json_atomic,
 )
 from smateway.bench import BenchManifest, OpenOcdBench
+from smateway.campaign_protocol import admit_capture
 from smateway.fast_tracking import FastTrackingProfile
 from smateway.rate_timing import (
     CONFIGURATIONS,
@@ -66,6 +67,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--mode", choices=("muted", "static", "fast"), required=True)
     result.add_argument("--duration-s", type=float, default=4)
     result.add_argument("--frame-samples", type=int)
+    result.add_argument("--gain-db", type=int, default=60, choices=range(0, 61))
     result.add_argument("--frequency-hz", type=int, default=5_800_000_000)
     result.add_argument("--port", choices=PORTS)
     result.add_argument("--tx-channel", type=int, choices=(0, 1), default=0)
@@ -75,6 +77,8 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--receiver-uri", default="ip:192.168.1.15")
     result.add_argument("--source-uri", default="ip:192.168.1.179")
     result.add_argument("--tag", default="capture")
+    result.add_argument("--protocol-json", type=Path)
+    result.add_argument("--fixture-json", type=Path)
     result.add_argument("--acknowledge-ota-authorization", action="store_true")
     return result
 
@@ -123,7 +127,15 @@ def main() -> int:
         if not 1 <= args.frame_samples <= 250_000 or total % args.frame_samples:
             raise SystemExit("frame override must divide the capture and be at most 250000")
         frame_samples, frames = args.frame_samples, total // args.frame_samples
-    if not 5_726_000_000 <= args.frequency_hz <= 5_874_000_000:
+    campaign_binding = None
+    if args.protocol_json is not None:
+        campaign_binding = admit_capture(
+            args.protocol_json,
+            args.frequency_hz,
+            muted=args.mode == "muted",
+            fixture_path=args.fixture_json,
+        )
+    elif not 5_726_000_000 <= args.frequency_hz <= 5_874_000_000:
         raise SystemExit("frequency outside the existing 5.8 GHz campaign")
     if args.mode != "muted" and not args.acknowledge_ota_authorization:
         raise SystemExit("RF capture requires acknowledgement")
@@ -159,6 +171,7 @@ def main() -> int:
             "dwell_us": profile.dwell_us if profile else None,
             "source_sample_rate_hz": 2_000_000,
             "source_bandwidth_hz": 1_600_000,
+            "receiver_gain_db": args.gain_db,
         },
         "identities": {
             "receiver_serial": RECEIVER_SERIAL,
@@ -166,11 +179,13 @@ def main() -> int:
             "source_serial": SOURCE_SERIAL,
             "source_uri": args.source_uri,
         },
+        "campaign_binding": campaign_binding,
         "source_contract": {
             str(p.relative_to(ROOT)): sha256(p)
             for p in (
                 Path(__file__).resolve(),
                 ROOT / "src/smateway/rate_timing.py",
+                ROOT / "src/smateway/campaign_protocol.py",
                 ROOT / "scripts/capture_fast_tracking_timing.py",
             )
         },
@@ -215,7 +230,7 @@ def main() -> int:
                     sample_rate_hz=cfg.sample_rate_hz,
                     bandwidth_hz=cfg.bandwidth_hz,
                     gain_mode=GainMode.MANUAL,
-                    gain_db=60,
+                    gain_db=args.gain_db,
                     channels=(0, 1),
                 )
             )
@@ -224,6 +239,7 @@ def main() -> int:
                 or actual.bandwidth_hz != cfg.bandwidth_hz
                 or abs(actual.center_frequency_hz - args.frequency_hz) > 5
                 or actual.channels != (0, 1)
+                or actual.gain_db != args.gain_db
             ):
                 raise RuntimeError("RX settings readback differs")
             record["receiver_settings"] = actual.model_dump(mode="json")
@@ -273,7 +289,9 @@ def main() -> int:
             session = radio.begin_metadata_capture(
                 frame_samples,
                 kernel_buffers=64,
-                tandem_request=TandemSessionRequestV1(mode=TandemMode.HOLD, initial_gain_db=60),
+                tandem_request=TandemSessionRequestV1(
+                    mode=TandemMode.HOLD, initial_gain_db=args.gain_db
+                ),
             )
             paths = [output / "rx1.cf32", output / "rx2.cf32"]
             started = time.monotonic()
@@ -300,19 +318,24 @@ def main() -> int:
                         raise
                     received = time.monotonic()
                     chunk_times.append(received - before)
+                    block_peaks = []
+                    block_clips = []
                     for channel in (0, 1):
                         values = block.samples[channel]
                         if streams:
                             np.asarray(values, dtype=np.complex64).tofile(streams[channel])
-                        component_peak[channel] = max(
-                            component_peak[channel],
-                            float(max(np.max(np.abs(values.real)), np.max(np.abs(values.imag)))),
+                        block_peaks.append(
+                            float(max(np.max(np.abs(values.real)), np.max(np.abs(values.imag))))
                         )
-                        clips[channel] += int(
-                            np.count_nonzero(
-                                (np.abs(values.real) >= 2047) | (np.abs(values.imag) >= 2047)
+                        block_clips.append(
+                            int(
+                                np.count_nonzero(
+                                    (np.abs(values.real) >= 2047) | (np.abs(values.imag) >= 2047)
+                                )
                             )
                         )
+                        component_peak[channel] = max(component_peak[channel], block_peaks[-1])
+                        clips[channel] += block_clips[-1]
                     timeline.append(
                         {
                             "buffer_sequence": block.buffer_sequence,
@@ -322,6 +345,8 @@ def main() -> int:
                             "missing_samples_before": block.missing_samples_before,
                             "overflow_observed": block.overflow_observed,
                             "arrival_elapsed_s": received - started,
+                            "peak_component_counts": block_peaks,
+                            "clipped_samples": block_clips,
                         }
                     )
                     previous = block

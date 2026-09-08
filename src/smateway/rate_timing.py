@@ -365,6 +365,7 @@ def analyze_rate_capture(
             or r["configuration"]["name"] != cfg["name"]
             or r["configuration"]["frequency_hz"] != cfg["frequency_hz"]
             or r["configuration"]["port"] != p
+            or r["configuration"].get("receiver_gain_db", 60) != cfg.get("receiver_gain_db", 60)
         ):
             raise ValueError("independent reference identity/configuration mismatch")
     weight_records = {p: load(weight_paths[p]) for p in PORTS}
@@ -375,6 +376,7 @@ def analyze_rate_capture(
             or r["configuration"]["name"] != "A"
             or r["configuration"]["frequency_hz"] != cfg["frequency_hz"]
             or r["configuration"]["port"] != p
+            or r["configuration"].get("receiver_gain_db", 60) != cfg.get("receiver_gain_db", 60)
         ):
             raise ValueError("independent weight reference identity/configuration mismatch")
     frozen = frozen_reference({p: weight_records[p]["reference"] for p in PORTS})
