@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "unique_admitted_raw_captures": 78,
+  "raw_bytes_rehashed": 14592000000,
+  "capture_source_contract_variants": 1,
+  "scope": "raw hashes, identities, sample continuity, ledger hashes and per-run mute"
+}

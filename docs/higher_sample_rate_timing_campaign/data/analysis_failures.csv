@@ -1,0 +1,5 @@
+configuration,dwell_us,round,control,error,run_json
+D,25,1,False,selector marker chain is not locally continuous,/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-v2/captures/screen-r1-D-25us-20260908T071850.887345Z/run.json
+B,25,2,False,selector marker chain is not locally continuous,/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-v2/captures/screen-r2-B-25us-20260908T072000.157985Z/run.json
+A,25,3,False,selector marker chain is not locally continuous,/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-v2/captures/screen-r3-A-25us-20260908T072405.776464Z/run.json
+B,25,3,False,selector marker chain is not locally continuous,/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-v2/captures/screen-r3-B-25us-20260908T072429.611712Z/run.json

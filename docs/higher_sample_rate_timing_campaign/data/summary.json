@@ -1,0 +1,716 @@
+{
+  "campaign_id": "tracking-rate-timing-20260908-v2",
+  "status": "completed-screen",
+  "campaign_path": "/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-v2/campaign.json",
+  "campaign_sha256": "9651cc2ee855f84abf32f506b29a2e6c54cea77d32bee5ab7101d0811ee00500",
+  "switching_runs": 36,
+  "controls": 6,
+  "reference_count": 36,
+  "analysis_failures": [
+    {
+      "configuration": "D",
+      "dwell_us": 25,
+      "round": 1,
+      "control": false,
+      "error": "selector marker chain is not locally continuous",
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-v2/captures/screen-r1-D-25us-20260908T071850.887345Z/run.json"
+    },
+    {
+      "configuration": "B",
+      "dwell_us": 25,
+      "round": 2,
+      "control": false,
+      "error": "selector marker chain is not locally continuous",
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-v2/captures/screen-r2-B-25us-20260908T072000.157985Z/run.json"
+    },
+    {
+      "configuration": "A",
+      "dwell_us": 25,
+      "round": 3,
+      "control": false,
+      "error": "selector marker chain is not locally continuous",
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-v2/captures/screen-r3-A-25us-20260908T072405.776464Z/run.json"
+    },
+    {
+      "configuration": "B",
+      "dwell_us": 25,
+      "round": 3,
+      "control": false,
+      "error": "selector marker chain is not locally continuous",
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-v2/captures/screen-r3-B-25us-20260908T072429.611712Z/run.json"
+    }
+  ],
+  "selection": {
+    "configuration": "A",
+    "dwell_us": 200,
+    "leading_discard_us": 0,
+    "method": "native_refined",
+    "training_latency_ms": 20.92334781619069
+  },
+  "validation": {
+    "candidate": {
+      "configuration": "A",
+      "dwell_us": 200,
+      "leading_discard_us": 0,
+      "method": "native_refined",
+      "training_latency_ms": 20.92334781619069
+    },
+    "passed": false,
+    "reference_drift_failure": true,
+    "validation": [
+      {
+        "metrics": {
+          "closure": {
+            "common_rotation_deg": -0.8113394259086609,
+            "gain_error_db": [
+              -2.1397722790848244,
+              -0.13825517501148776,
+              0.07105654643011844,
+              0.1254008225682591,
+              -0.010284395474708434,
+              0.27843420106177474
+            ],
+            "maximum_observable_gain_error_db": 2.1397722790848244,
+            "maximum_observable_phase_bias_deg": 1.0687668296073458,
+            "passed": false,
+            "raw_phase_bias_deg": [
+              -0.8368419380466952,
+              -0.897729361987537,
+              -0.8686398618528514,
+              -0.5849002021220029,
+              -0.2981378646338916,
+              -1.8801062555160069
+            ],
+            "relative_phase_bias_deg": [
+              -0.025502512138034183,
+              -0.08638993607887593,
+              -0.05730043594419046,
+              0.226439223786658,
+              0.5132015612747693,
+              -1.0687668296073458
+            ],
+            "weighted_phase_bias_deg": 0.38414898127123737
+          },
+          "first_phase_pass_ms": 50.819239871162786,
+          "mean_transfer": [
+            {
+              "imag": -0.0001567730671073953,
+              "real": -0.00036120748137346816
+            },
+            {
+              "imag": -0.003333187760909465,
+              "real": 0.003023917230782268
+            },
+            {
+              "imag": -0.0027866421366494107,
+              "real": -0.002013219915278709
+            },
+            {
+              "imag": -0.0017990060024503304,
+              "real": 0.0013034905635313408
+            },
+            {
+              "imag": -0.0012332685083814461,
+              "real": 0.0030401790263941183
+            },
+            {
+              "imag": -0.001990481438520467,
+              "real": 0.00041472406349039273
+            }
+          ],
+          "passed": false,
+          "studies": [
+            {
+              "cycles": 1,
+              "groups": 2675,
+              "passed": false,
+              "per_port_phase_rms_deg": [
+                99.78445405675035,
+                53.096285318607165,
+                67.44708518148096,
+                77.45502014783342,
+                65.58711547452418,
+                80.68813140789797
+              ],
+              "wall_ms": 1.494683525622435,
+              "weighted_phase_rms_deg": 64.11443345291354
+            },
+            {
+              "cycles": 2,
+              "groups": 1337,
+              "passed": false,
+              "per_port_phase_rms_deg": [
+                95.08659041089173,
+                29.035870567735813,
+                43.095650296601505,
+                59.51536441454795,
+                40.14113023890232,
+                64.38261455345187
+              ],
+              "wall_ms": 2.98936705124487,
+              "weighted_phase_rms_deg": 41.9511849762103
+            },
+            {
+              "cycles": 4,
+              "groups": 668,
+              "passed": false,
+              "per_port_phase_rms_deg": [
+                91.13859867950536,
+                16.887399158831787,
+                22.851737127767546,
+                40.83290862972044,
+                23.589209615730326,
+                45.281709663833524
+              ],
+              "wall_ms": 5.97873410248974,
+              "weighted_phase_rms_deg": 26.28156456758293
+            },
+            {
+              "cycles": 7,
+              "groups": 382,
+              "passed": false,
+              "per_port_phase_rms_deg": [
+                87.63588102528587,
+                11.26165416048351,
+                14.919028071151432,
+                26.075641141709617,
+                15.863375741231653,
+                27.621610866101502
+              ],
+              "wall_ms": 10.462784679357044,
+              "weighted_phase_rms_deg": 17.565643126169668
+            },
+            {
+              "cycles": 14,
+              "groups": 191,
+              "passed": false,
+              "per_port_phase_rms_deg": [
+                76.57871446488413,
+                7.100518695961923,
+                8.963152205855001,
+                14.051032586636827,
+                10.089682750612853,
+                15.2775298640117
+              ],
+              "wall_ms": 20.92556935871409,
+              "weighted_phase_rms_deg": 11.090164336697757
+            },
+            {
+              "cycles": 34,
+              "groups": 78,
+              "passed": true,
+              "per_port_phase_rms_deg": [
+                56.07406152716362,
+                4.509180528459614,
+                6.304720085006382,
+                8.012744916012872,
+                5.95881833366106,
+                9.864162688075979
+              ],
+              "wall_ms": 50.819239871162786,
+              "weighted_phase_rms_deg": 7.259236175652486
+            },
+            {
+              "cycles": 67,
+              "groups": 39,
+              "passed": true,
+              "per_port_phase_rms_deg": [
+                48.856888505200814,
+                3.7456462028077313,
+                4.86146394752607,
+                5.372727259578996,
+                4.389550638843213,
+                7.291185134669326
+              ],
+              "wall_ms": 100.14379621670314,
+              "weighted_phase_rms_deg": 5.747933747820373
+            },
+            {
+              "cycles": 134,
+              "groups": 19,
+              "passed": true,
+              "per_port_phase_rms_deg": [
+                31.978571191929976,
+                3.3986090304389394,
+                3.751898732432329,
+                4.804602620786883,
+                3.6764943120578497,
+                5.5014189236315945
+              ],
+              "wall_ms": 200.28759243340627,
+              "weighted_phase_rms_deg": 4.458294034156963
+            },
+            {
+              "cycles": 268,
+              "groups": 9,
+              "passed": true,
+              "per_port_phase_rms_deg": [
+                25.087275993793394,
+                3.043805594824665,
+                2.8321336319013755,
+                2.588103641334157,
+                2.541600220984227,
+                3.9299872544032004
+              ],
+              "wall_ms": 400.57518486681255,
+              "weighted_phase_rms_deg": 3.4122699151521734
+            }
+          ]
+        },
+        "passed": false,
+        "round": 2,
+        "run_json": "/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-v2/captures/screen-r2-A-200us-20260908T072240.677278Z/run.json"
+      },
+      {
+        "metrics": {
+          "closure": {
+            "common_rotation_deg": 0.07402025845322878,
+            "gain_error_db": [
+              -1.5842262823152984,
+              -0.6453966933105787,
+              -0.5897852643186992,
+              0.23789859179956796,
+              -0.27648845086215834,
+              0.14181063171110192
+            ],
+            "maximum_observable_gain_error_db": 1.5842262823152984,
+            "maximum_observable_phase_bias_deg": 35.48468193894221,
+            "passed": false,
+            "raw_phase_bias_deg": [
+              35.558702197395434,
+              -0.6814902438695616,
+              1.688045302175852,
+              -1.0736804181260016,
+              -1.5565628543875254,
+              3.0894790928557168
+            ],
+            "relative_phase_bias_deg": [
+              35.48468193894221,
+              -0.7555105023227903,
+              1.6140250437226231,
+              -1.1477006765792306,
+              -1.6305831128407544,
+              3.015458834402488
+            ],
+            "weighted_phase_bias_deg": 2.8754450315759823
+          },
+          "first_phase_pass_ms": 50.82795068504108,
+          "mean_transfer": [
+            {
+              "imag": -0.0003630085947395622,
+              "real": -0.00021078784892608916
+            },
+            {
+              "imag": -0.0031333583609997654,
+              "real": 0.0028642616669645707
+            },
+            {
+              "imag": -0.0026631481826858913,
+              "real": -0.0017486750043631
+            },
+            {
+              "imag": -0.0018336562406198857,
+              "real": 0.0013048879673471935
+            },
+            {
+              "imag": -0.0012605091296926851,
+              "real": 0.002921438792795306
+            },
+            {
+              "imag": -0.0019166859835467566,
+              "real": 0.0005764553422502448
+            }
+          ],
+          "passed": false,
+          "studies": [
+            {
+              "cycles": 1,
+              "groups": 2675,
+              "passed": false,
+              "per_port_phase_rms_deg": [
+                100.45494938405105,
+                71.11712269286951,
+                80.68130164180141,
+                85.85035403751812,
+                79.30841602245236,
+                83.23975865981706
+              ],
+              "wall_ms": 1.49493972603062,
+              "weighted_phase_rms_deg": 77.52839899781164
+            },
+            {
+              "cycles": 2,
+              "groups": 1337,
+              "passed": false,
+              "per_port_phase_rms_deg": [
+                97.00935866781202,
+                45.21511545192761,
+                59.552335755575406,
+                71.93901549036326,
+                58.679532781347845,
+                70.2943155512773
+              ],
+              "wall_ms": 2.98987945206124,
+              "weighted_phase_rms_deg": 56.6174820075437
+            },
+            {
+              "cycles": 4,
+              "groups": 668,
+              "passed": false,
+              "per_port_phase_rms_deg": [
+                91.85838245508921,
+                19.754505734830808,
+                29.82092038687303,
+                43.0659663185808,
+                28.22955915896029,
+                46.00459015192461
+              ],
+              "wall_ms": 5.97975890412248,
+              "weighted_phase_rms_deg": 29.77957452811997
+            },
+            {
+              "cycles": 7,
+              "groups": 382,
+              "passed": false,
+              "per_port_phase_rms_deg": [
+                83.55000052922823,
+                12.55617906686881,
+                19.293082408640043,
+                25.60678464499543,
+                17.376521136476903,
+                27.829820689861968
+              ],
+              "wall_ms": 10.464578082214341,
+              "weighted_phase_rms_deg": 18.968657420621
+            },
+            {
+              "cycles": 14,
+              "groups": 191,
+              "passed": false,
+              "per_port_phase_rms_deg": [
+                73.95530116275498,
+                7.589131076643621,
+                13.659212516275701,
+                16.619971461264885,
+                11.893525583089518,
+                17.53289837869166
+              ],
+              "wall_ms": 20.929156164428683,
+              "weighted_phase_rms_deg": 12.980553944311918
+            },
+            {
+              "cycles": 34,
+              "groups": 78,
+              "passed": true,
+              "per_port_phase_rms_deg": [
+                66.71995294682614,
+                4.862827301291874,
+                8.149159928348597,
+                10.101285176610721,
+                7.491294219381614,
+                9.87843192028661
+              ],
+              "wall_ms": 50.82795068504108,
+              "weighted_phase_rms_deg": 8.605388054082647
+            },
+            {
+              "cycles": 67,
+              "groups": 39,
+              "passed": true,
+              "per_port_phase_rms_deg": [
+                41.474909638566835,
+                3.925447477789978,
+                6.99286754239991,
+                6.775611746365364,
+                4.781974066103266,
+                6.4238599370861005
+              ],
+              "wall_ms": 100.16096164405154,
+              "weighted_phase_rms_deg": 6.115442250026929
+            },
+            {
+              "cycles": 134,
+              "groups": 19,
+              "passed": true,
+              "per_port_phase_rms_deg": [
+                36.31840062755826,
+                3.281128390555729,
+                5.858784488617991,
+                5.743037567672685,
+                3.9251145845994166,
+                4.368758735580832
+              ],
+              "wall_ms": 200.32192328810308,
+              "weighted_phase_rms_deg": 5.096715534826156
+            },
+            {
+              "cycles": 268,
+              "groups": 9,
+              "passed": true,
+              "per_port_phase_rms_deg": [
+                23.96833824641818,
+                3.274782435672814,
+                4.9239760927280205,
+                5.059135858173914,
+                3.1703668234666145,
+                2.8867146263885792
+              ],
+              "wall_ms": 400.64384657620616,
+              "weighted_phase_rms_deg": 4.185594818863804
+            }
+          ]
+        },
+        "passed": false,
+        "round": 3,
+        "run_json": "/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-v2/captures/screen-r3-A-200us-20260908T072446.255272Z/run.json"
+      }
+    ]
+  },
+  "reference_drift": {
+    "A": {
+      "common_rotation_deg": -0.11653474926338223,
+      "gain_error_db": [
+        0.75593023466469,
+        -0.012888445753866069,
+        0.030729533921498797,
+        0.4701050567921864,
+        0.06310356231849276,
+        0.14408741522003182
+      ],
+      "maximum_observable_gain_error_db": 0.75593023466469,
+      "maximum_observable_phase_bias_deg": 7.251319393285158,
+      "passed": true,
+      "raw_phase_bias_deg": [
+        -7.36785414254854,
+        0.12538649896133733,
+        -0.9397044692535713,
+        -0.6242056255505694,
+        0.5310133972898703,
+        0.34646293853590826
+      ],
+      "relative_phase_bias_deg": [
+        -7.251319393285158,
+        0.24192124822471953,
+        -0.823169719990189,
+        -0.5076708762871871,
+        0.6475481465532524,
+        0.4629976877992906
+      ],
+      "weighted_phase_bias_deg": 0.7454643086077032
+    },
+    "B": {
+      "common_rotation_deg": -2.6400108429744464,
+      "gain_error_db": [
+        1.7835096687515328,
+        0.34055707019035425,
+        0.5837104347610687,
+        -0.04980988946832211,
+        -0.007931891046606746,
+        -0.22710739107490666
+      ],
+      "maximum_observable_gain_error_db": 1.7835096687515328,
+      "maximum_observable_phase_bias_deg": 10.553504117198575,
+      "passed": false,
+      "raw_phase_bias_deg": [
+        7.913493274224127,
+        -6.301608813213987,
+        -2.7839264402615034,
+        -5.2948220673933415,
+        5.461864170693803,
+        -2.3501828701532013
+      ],
+      "relative_phase_bias_deg": [
+        10.553504117198575,
+        -3.6615979702395403,
+        -0.14391559728705725,
+        -2.654811224418895,
+        8.10187501366825,
+        0.28982797282124495
+      ],
+      "weighted_phase_bias_deg": 4.485262528794621
+    },
+    "D": {
+      "common_rotation_deg": -0.12154937770905119,
+      "gain_error_db": [
+        -0.6780019525862664,
+        -0.5477983828994717,
+        0.11960914432990666,
+        0.47882207508881314,
+        0.028226661560864643,
+        -0.37621030287167645
+      ],
+      "maximum_observable_gain_error_db": 0.6780019525862664,
+      "maximum_observable_phase_bias_deg": 7.359463202371393,
+      "passed": true,
+      "raw_phase_bias_deg": [
+        5.396184984361386,
+        3.8614101965085723,
+        -2.446648082017892,
+        -2.8039497624351895,
+        -1.6299651782738556,
+        -7.481012580080445
+      ],
+      "relative_phase_bias_deg": [
+        5.517734362070438,
+        3.9829595742176243,
+        -2.3250987043088407,
+        -2.6824003847261384,
+        -1.508415800564804,
+        -7.359463202371393
+      ],
+      "weighted_phase_bias_deg": 3.5844456375484666
+    }
+  },
+  "unavailable": {
+    "C": {
+      "reason": "capture child failed (1):\nrun_dir=/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-v2/captures/preflight-C-20260908T071154.964691Z\n{'type': 'ValueError', 'message': 'sample loss or overflow'}\n"
+    },
+    "E": {
+      "reason": "capture child failed (1):\nrun_dir=/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-v2/captures/preflight-C-20260908T071154.964691Z\n{'type': 'ValueError', 'message': 'sample loss or overflow'}\n"
+    }
+  },
+  "restores": [
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-v2/restores/restore-bench-20260908T072623.237119Z/restore.json",
+      "sha256": "e3b71e52517d83899346ebbb8a626f4cbc159b6ebde6930173e2c6021ecb3fe4"
+    }
+  ],
+  "final_mutes": [
+    {
+      "dds_scales": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "serial": "104000b29905000e17000800065934759d",
+      "tx_gain_db": [
+        -80.0,
+        -80.0
+      ],
+      "uri": "ip:192.168.1.15"
+    },
+    {
+      "dds_scales": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "serial": "104473b80a16000de6ff2000f8a6beca79",
+      "tx_gain_db": [
+        -80.0,
+        -80.0
+      ],
+      "uri": "ip:192.168.1.179"
+    }
+  ],
+  "frozen_reference": {
+    "ports": [
+      "ANT1",
+      "ANT2",
+      "ANT4",
+      "ANT8",
+      "ANT7",
+      "ANT5"
+    ],
+    "weights": [
+      0.004856779269690009,
+      0.40016963902304875,
+      0.2225139630784298,
+      0.09176882159378176,
+      0.2064860763221705,
+      0.07420472071287906
+    ],
+    "observable": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "transfers": [
+      {
+        "real": -0.0004591313835649031,
+        "imag": -0.00020729505540956924
+      },
+      {
+        "real": 0.003125118811482135,
+        "imag": -0.003338113661946019
+      },
+      {
+        "real": -0.0019546866697423737,
+        "imag": -0.0027938926932338745
+      },
+      {
+        "real": 0.0013028414083827529,
+        "imag": -0.001760011763346272
+      },
+      {
+        "real": 0.0030501644998971395,
+        "imag": -0.0012188746864730913
+      },
+      {
+        "real": 0.00046466814958060116,
+        "imag": -0.0019134717503581588
+      }
+    ]
+  },
+  "integrity": {
+    "passed": true,
+    "unique_admitted_raw_captures": 78,
+    "raw_bytes_rehashed": 14592000000,
+    "capture_source_contract_variants": 1,
+    "scope": "raw hashes, identities, sample continuity, ledger hashes and per-run mute"
+  },
+  "preflight": [
+    {
+      "run_id": "preflight-A-20260908T071044.508847Z",
+      "configuration": "A",
+      "status": "passed",
+      "sample_rate_msps": 2.0,
+      "frame_samples": 100000,
+      "accepted_samples": 60000000,
+      "accepted_rf_seconds": 30.0,
+      "wall_seconds": 29.982556388014928,
+      "effective_msps": 2.0011635840359525,
+      "error": "None",
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-v2/captures/preflight-A-20260908T071044.508847Z/run.json"
+    },
+    {
+      "run_id": "preflight-B-20260908T071119.624782Z",
+      "configuration": "B",
+      "status": "passed",
+      "sample_rate_msps": 5.0,
+      "frame_samples": 250000,
+      "accepted_samples": 150000000,
+      "accepted_rf_seconds": 30.0,
+      "wall_seconds": 29.99531938706059,
+      "effective_msps": 5.000780223887436,
+      "error": "None",
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-v2/captures/preflight-B-20260908T071119.624782Z/run.json"
+    },
+    {
+      "run_id": "preflight-C-20260908T071154.964691Z",
+      "configuration": "C",
+      "status": "failed",
+      "sample_rate_msps": 10.0,
+      "frame_samples": 250000,
+      "accepted_samples": 17500000,
+      "accepted_rf_seconds": 1.75,
+      "wall_seconds": 2.9753401529742405,
+      "effective_msps": 5.881680446689925,
+      "error": "{'message': 'sample loss or overflow', 'type': 'ValueError'}",
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-v2/captures/preflight-C-20260908T071154.964691Z/run.json"
+    }
+  ]
+}

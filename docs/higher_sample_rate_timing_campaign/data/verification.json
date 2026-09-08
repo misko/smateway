@@ -1,0 +1,234 @@
+{
+  "verified_at": "2026-09-08T07:39:41.486895+00:00",
+  "radios": [
+    {
+      "uri": "ip:192.168.1.15",
+      "serial": "104000b29905000e17000800065934759d",
+      "dds_scales": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "tx_gains_db": [
+        -80,
+        -80
+      ]
+    },
+    {
+      "uri": "ip:192.168.1.179",
+      "serial": "104473b80a16000de6ff2000f8a6beca79",
+      "dds_scales": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "tx_gains_db": [
+        -80,
+        -80
+      ]
+    }
+  ],
+  "post_campaign_checks": [
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-verification/captures/final-muted-A-retry-20260908T073622.843019Z/run.json",
+      "sha256": "2329095c5eb2a254b538ef8026b54299a23f65996f5fc6281f5e042a36dda846",
+      "configuration": {
+        "bandwidth_hz": 1600000,
+        "duration_s": 30,
+        "dwell_us": null,
+        "frame_samples": 100000,
+        "frames": 600,
+        "frequency_hz": 5800000000,
+        "mode": "muted",
+        "name": "A",
+        "port": null,
+        "sample_rate_hz": 2000000,
+        "source_bandwidth_hz": 1600000,
+        "source_sample_rate_hz": 2000000,
+        "tx_channel": 0
+      },
+      "status": "passed",
+      "samples_per_channel": 60000000,
+      "wall_seconds": 30.01108019205276,
+      "partial_blocks": 0,
+      "error": null,
+      "final_source_mute": {
+        "dds_scales": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "passed": true,
+        "tx_gain_db": [
+          -80,
+          -80
+        ]
+      }
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-verification/captures/final-muted-A-retry-20260908T073734.299611Z/run.json",
+      "sha256": "bb9ff2ee310cf258cb92c46cf114c3e01e92dc0e91a11c998a5bd345866b0132",
+      "configuration": {
+        "bandwidth_hz": 1600000,
+        "duration_s": 30,
+        "dwell_us": null,
+        "frame_samples": 100000,
+        "frames": 600,
+        "frequency_hz": 5800000000,
+        "mode": "muted",
+        "name": "A",
+        "port": null,
+        "sample_rate_hz": 2000000,
+        "source_bandwidth_hz": 1600000,
+        "source_sample_rate_hz": 2000000,
+        "tx_channel": 0
+      },
+      "status": "passed",
+      "samples_per_channel": 60000000,
+      "wall_seconds": 29.979910842957906,
+      "partial_blocks": 0,
+      "error": null,
+      "final_source_mute": {
+        "dds_scales": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "passed": true,
+        "tx_gain_db": [
+          -80,
+          -80
+        ]
+      }
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-verification/captures/final-muted-B-retry-20260908T073658.434873Z/run.json",
+      "sha256": "fa41d9d0dbbbf122c115450c9b043b184cdbec3e39b37b30ae86eefebae5e029",
+      "configuration": {
+        "bandwidth_hz": 1600000,
+        "duration_s": 30,
+        "dwell_us": null,
+        "frame_samples": 250000,
+        "frames": 600,
+        "frequency_hz": 5800000000,
+        "mode": "muted",
+        "name": "B",
+        "port": null,
+        "sample_rate_hz": 5000000,
+        "source_bandwidth_hz": 1600000,
+        "source_sample_rate_hz": 2000000,
+        "tx_channel": 0
+      },
+      "status": "passed",
+      "samples_per_channel": 150000000,
+      "wall_seconds": 30.014097103034146,
+      "partial_blocks": 0,
+      "error": null,
+      "final_source_mute": {
+        "dds_scales": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "passed": true,
+        "tx_gain_db": [
+          -80,
+          -80
+        ]
+      }
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-verification/captures/final-muted-smoke-20260908T073451.808552Z/run.json",
+      "sha256": "1e4c137858322310295fb1ba093aa3d173ff98f594abc9603fdc23eea2b0ae8e",
+      "configuration": {
+        "bandwidth_hz": 1600000,
+        "duration_s": 2,
+        "dwell_us": null,
+        "frame_samples": 100000,
+        "frames": 40,
+        "frequency_hz": 5800000000,
+        "mode": "muted",
+        "name": "A",
+        "port": null,
+        "sample_rate_hz": 2000000,
+        "source_bandwidth_hz": 1600000,
+        "source_sample_rate_hz": 2000000,
+        "tx_channel": 0
+      },
+      "status": "failed",
+      "samples_per_channel": null,
+      "wall_seconds": null,
+      "partial_blocks": 11,
+      "error": {
+        "message": "[Errno 61] No data available",
+        "type": "OSError"
+      },
+      "final_source_mute": {
+        "dds_scales": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "passed": true,
+        "tx_gain_db": [
+          -80,
+          -80
+        ]
+      }
+    }
+  ],
+  "selector": {
+    "command_sequence": 122,
+    "command_code": 8,
+    "command_lease_ms": 0,
+    "acknowledged_sequence": 122,
+    "applied_code": 8,
+    "remaining_lease_ms": 0,
+    "status_flags": 1,
+    "command_valid": true,
+    "lease_active": false,
+    "guard_active": false,
+    "invalid_command": false
+  },
+  "targeted_tests": {
+    "passed": 52,
+    "failed": 0
+  },
+  "broad_suite": {
+    "passed": 1245,
+    "failed": 437,
+    "skipped": 1,
+    "note": "Legacy suite not green; representative environment failures reproduced independently; not every failure triaged."
+  },
+  "scope": "Final read-only radio/selector status and separately retained post-campaign muted captures; no phase samples pooled."
+}

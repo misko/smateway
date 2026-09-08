@@ -100,6 +100,18 @@ It compares 25/50/100/200 µs C6 dwells, selects the only all-sentinel-qualified
 schedule, maps phase RMS and bearing diagnostics over 5.726–5.874 GHz, and
 replays the retained raw IQ to choose a conservative post-select sample discard.
 
+The follow-up [higher-sample-rate timing plan](docs/higher_sample_rate_timing_plan/README.md)
+compares 2/5/10 MS/s and fixed/wider receive bandwidths, with independent phase
+references, finer timing analysis, a staged dwell ladder and 1 MHz validation.
+It defines the measurements needed to decide whether shorter dwells improve
+usable direction-finding latency.
+
+The [implemented higher-rate campaign](docs/higher_sample_rate_timing_campaign/README.md)
+records fresh 5.8 GHz static references, three dwell-screening rounds,
+continuous-acquisition qualification and independent phase/gain closure.
+Its [findings and next experiment](docs/higher_sample_rate_timing_campaign/FINDINGS.md)
+separate transport limits, weak-port stability and switching/integration trade-offs.
+
 ## Conducted closed-loop calibration
 
 The completed three-permutation splitter calibration, reconnect closure, released 2.4 GHz

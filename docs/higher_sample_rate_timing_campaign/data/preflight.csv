@@ -1,0 +1,4 @@
+run_id,configuration,status,sample_rate_msps,frame_samples,accepted_samples,accepted_rf_seconds,wall_seconds,effective_msps,error,run_json
+preflight-A-20260908T071044.508847Z,A,passed,2.0,100000,60000000,30.0,29.982556388014928,2.0011635840359525,None,/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-v2/captures/preflight-A-20260908T071044.508847Z/run.json
+preflight-B-20260908T071119.624782Z,B,passed,5.0,250000,150000000,30.0,29.99531938706059,5.000780223887436,None,/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-v2/captures/preflight-B-20260908T071119.624782Z/run.json
+preflight-C-20260908T071154.964691Z,C,failed,10.0,250000,17500000,1.75,2.9753401529742405,5.881680446689925,"{'message': 'sample loss or overflow', 'type': 'ValueError'}",/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-v2/captures/preflight-C-20260908T071154.964691Z/run.json
