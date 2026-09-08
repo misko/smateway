@@ -64,6 +64,89 @@ def acquisition_row(path):
     }
 
 
+def reference_timing_outputs(campaign_root, data, png):
+    records, rows = [], []
+    for path in sorted(campaign_root.glob("block-*-reference-timing.json")):
+        report = load(path)
+        records.append({"path": str(path), "sha256": sha256(path), "analysis": report})
+        for item in report["rows"]:
+            if "retrospective_reference_labeled" not in item:
+                continue
+            cfg = item["configuration"]
+            full = item["retrospective_reference_labeled"]
+            methods = {
+                "whole-record reference-labeled": full["metrics"],
+                "past-only frozen": item["heldout"],
+                "past-only rolling 50 ms": item.get("rolling_past_only", {}).get("metrics"),
+            }
+            for name, metrics in methods.items():
+                if metrics is None:
+                    continue
+                rows.append(
+                    {
+                        "run_json": item["run_json"],
+                        "frequency_mhz": cfg["frequency_hz"] / 1e6,
+                        "configuration": cfg["name"],
+                        "dwell_us": cfg["dwell_us"],
+                        "round": item["round"],
+                        "control": item["control"],
+                        "method": name,
+                        "origin_shift_us": full["alignment"]["shift_nominal_us"],
+                        "maximum_phase_deg": metrics["closure"][
+                            "maximum_observable_phase_bias_deg"
+                        ],
+                        "maximum_gain_db": metrics["closure"]["maximum_observable_gain_error_db"],
+                        "phase_closure_pass_diagnostic_only": metrics["passed"],
+                        "report_status": report["status"],
+                    }
+                )
+    if not rows:
+        return []
+    csv_file(data / "reference-timing-comparison.csv", rows)
+    (data / "reference-timing-studies.json").write_text(
+        json.dumps({"schema": 1, "reports": records}, indent=2, allow_nan=False) + "\n"
+    )
+    selected = list(dict.fromkeys(r["run_json"] for r in rows))
+    fig, axes = plt.subplots(1, 3, figsize=(16, 5.5))
+    labels = []
+    for index, path in enumerate(selected):
+        group = [r for r in rows if r["run_json"] == path]
+        row = group[0]
+        labels.append(
+            f"{row['frequency_mhz']:g}/{row['configuration']}\n{row['dwell_us']}us r{row['round']}"
+            + (" C" if row["control"] else "")
+        )
+        axes[0].bar(index, row["origin_shift_us"], color="#475569")
+    for method, marker in (
+        ("whole-record reference-labeled", "o"),
+        ("past-only frozen", "x"),
+        ("past-only rolling 50 ms", "s"),
+    ):
+        group = [r for r in rows if r["method"] == method]
+        for ax, key in zip(axes[1:], ("maximum_phase_deg", "maximum_gain_db"), strict=True):
+            ax.scatter(
+                [selected.index(r["run_json"]) for r in group],
+                [max(r[key], 0.01) for r in group],
+                marker=marker,
+                label=method,
+            )
+    axes[0].set_ylabel("Whole-record origin shift (us)")
+    axes[1].set_ylabel("Maximum observable phase error (degrees)")
+    axes[2].set_ylabel("Maximum observable gain error (dB)")
+    for ax, threshold in zip(axes[1:], (10, 1), strict=True):
+        ax.set_yscale("log")
+        ax.axhline(threshold, color="gray", linestyle=":")
+    for ax in axes:
+        ax.set_xticks(range(len(selected)), labels, rotation=60, ha="right", fontsize=7)
+        ax.grid(alpha=0.2)
+    axes[1].legend(fontsize=7)
+    fig.suptitle(
+        "Exploratory timing diagnosis: old policy unchanged; no fresh-validation or live claim"
+    )
+    save(fig, png / "fig11_reference_timing_diagnosis.png")
+    return rows
+
+
 def fresh_outputs(campaign_root, blocks, data, png):
     phases, bearings, per_port = [], [], []
     fig, axes = plt.subplots(1, 2, figsize=(12, 4.7))
@@ -87,6 +170,7 @@ def fresh_outputs(campaign_root, blocks, data, png):
             phases.append(
                 {
                     "frequency_mhz": frequency,
+                    "configuration": row.get("configuration", block["configuration"]),
                     "dwell_us": row["dwell_us"],
                     "round": row["round"],
                     "control": row["control"],
@@ -106,6 +190,7 @@ def fresh_outputs(campaign_root, blocks, data, png):
                 per_port.append(
                     {
                         "frequency_mhz": frequency,
+                        "configuration": row.get("configuration", block["configuration"]),
                         "dwell_us": row["dwell_us"],
                         "round": row["round"],
                         "control": row["control"],
@@ -130,7 +215,7 @@ def fresh_outputs(campaign_root, blocks, data, png):
                     [s["weighted_phase_rms_deg"] for s in study],
                     "o-",
                     alpha=0.6,
-                    label=f"{frequency:g} MHz / {row['dwell_us']} µs / r{row['round']}",
+                    label=f"{frequency:g} MHz / {row.get('configuration', block['configuration'])} / {row['dwell_us']} µs / r{row['round']}",
                 )
     for ax, label in zip(axes, ("Lower-band blocks", "5.8 GHz"), strict=True):
         ax.set(
@@ -151,7 +236,7 @@ def fresh_outputs(campaign_root, blocks, data, png):
     if per_port:
         fig, axes = plt.subplots(1, 2, figsize=(12, max(4, len(per_port) / 6 * 0.4)))
         labels = [
-            f"{r['frequency_mhz']:.0f} / {r['dwell_us']}µs / r{r['round']}"
+            f"{r['frequency_mhz']:.0f} / {r['configuration']} / {r['dwell_us']}µs / r{r['round']}"
             + (" control" if r["control"] else "")
             for r in per_port[::6]
         ]
@@ -208,6 +293,7 @@ def fresh_outputs(campaign_root, blocks, data, png):
                 bearings.append(
                     {
                         "frequency_mhz": frequency,
+                        "configuration": cfg["name"],
                         "dwell_us": cfg["dwell_us"],
                         "round": row["round"],
                         "method": method,
@@ -216,7 +302,7 @@ def fresh_outputs(campaign_root, blocks, data, png):
                 )
                 color = "#2563eb" if cfg["dwell_us"] == 200 else "#d97706"
                 label = (
-                    f"{frequency:g} MHz / {cfg['dwell_us']} µs {method}"
+                    f"{frequency:g} MHz / {cfg['name']} / {cfg['dwell_us']} µs {method}"
                     if row["round"] == 1
                     else None
                 )
@@ -632,9 +718,10 @@ def main():
     blocks = [
         load(p)
         for p in sorted(args.campaign_root.glob("block-*.json"))
-        if not p.name.endswith("-bearings.json")
+        if not p.name.endswith(("-bearings.json", "-reference-timing.json"))
     ]
     phases, bearings = fresh_outputs(args.campaign_root, blocks, data, png)
+    timing_rows = reference_timing_outputs(args.campaign_root, data, png)
     ideal_gate_outputs(data, png)
     ambient = ambient_outputs(paths, data, png)
     matched_rows, matched_changes = matched_ant1_outputs(blocks, data, png)
@@ -648,6 +735,7 @@ def main():
         "historical_reproduction_passed": replay["reproduction_passed"],
         "fresh_blocks": blocks,
         "fixture_sha256": sha256(data / "fixture-c6-51mm-v2.json"),
+        "exploratory_reference_timing_rows": len(timing_rows),
     }
     (data / "progress-summary.json").write_text(
         json.dumps(summary, indent=2, allow_nan=False) + "\n"
@@ -719,21 +807,21 @@ def main():
             "200 µs controls, with per-port static references. The 1 ms profile changes only the six dwell "
             "words in the existing executable; its bounded watchdog proof was checked before deployment.",
             "",
-            "| Frequency MHz | Block status | Captures collected | Exact restores |",
-            "|---:|---|---:|---:|",
+            "| Frequency MHz | Rate configuration | Block status | Captures collected | Exact restores |",
+            "|---:|---|---|---:|---:|",
         ]
     )
     for block in blocks:
         text.append(
-            f"| {block['frequency_hz'] / 1e6:.0f} | {block['status']} | {len(block['captures'])} | {len(block['restores'])} |"
+            f"| {block['frequency_hz'] / 1e6:.0f} | {block['configuration']} | {block['status']} | {len(block['captures'])} | {len(block['restores'])} |"
         )
     text.extend(
         [
             "",
             "![Fresh phase integration](png/fig05_fresh_phase_integration.png)",
             "",
-            "| MHz | Dwell µs | Round | Control | Observable-port phase/closure pass | First phase window ms | Max observable phase bias ° | Max observable gain dB |",
-            "|---:|---:|---:|---|---|---:|---:|---:|",
+            "| MHz | Configuration | Dwell µs | Round | Control | Observable-port phase/closure pass | First phase window ms | Max observable phase bias ° | Max observable gain dB |",
+            "|---:|---|---:|---:|---|---|---:|---:|---:|",
         ]
     )
     for row in phases:
@@ -742,7 +830,7 @@ def main():
             return "—" if row[key] is None else f"{row[key]:.2f}"
 
         text.append(
-            f"| {row['frequency_mhz']:.0f} | {row['dwell_us']} | {row['round']} | {row['control']} | {row['phase_and_closure_pass']} | {number('first_phase_pass_ms')} | {number('maximum_observable_phase_bias_deg')} | {number('maximum_observable_gain_error_db')} |"
+            f"| {row['frequency_mhz']:.0f} | {row['configuration']} | {row['dwell_us']} | {row['round']} | {row['control']} | {row['phase_and_closure_pass']} | {number('first_phase_pass_ms')} | {number('maximum_observable_phase_bias_deg')} | {number('maximum_observable_gain_error_db')} |"
         )
     text.extend(
         [
@@ -861,6 +949,66 @@ def main():
                     "",
                 ]
             )
+    drift_rows = []
+    for path in sorted(args.campaign_root.glob("block-*-bearings.json")):
+        report = load(path)
+        block = load(Path(report["block_path"]))
+        for name, drift in report.get("independent_reference_drift", {}).items():
+            drift_rows.append(
+                {
+                    "frequency_mhz": block["frequency_hz"] / 1e6,
+                    "configuration": name,
+                    "block_path": report["block_path"],
+                    **drift,
+                }
+            )
+    if drift_rows:
+        # Incomplete brackets have fewer fields: use a common machine-readable schema.
+        fields = list(dict.fromkeys(k for row in drift_rows for k in row))
+        csv_file(
+            data / "independent-reference-drift.csv",
+            [{k: r.get(k) for k in fields} for r in drift_rows],
+        )
+        text.extend(
+            [
+                "## Independent before/after reference drift",
+                "",
+                "Phase below removes only one common rotation; all-port errors remain in the CSV. A missing bracket is not a pass.",
+                "",
+                "| MHz | Configuration | Complete bracket | Phase/gain drift pass | Max observable phase ° | Max observable gain dB |",
+                "|---:|---|---|---|---:|---:|",
+            ]
+        )
+        for row in drift_rows:
+            phase = row.get("maximum_observable_phase_bias_deg")
+            gain = row.get("maximum_observable_gain_error_db")
+            text.append(
+                f"| {row['frequency_mhz']:g} | {row['configuration']} | {row['available']} | {row['passed']} | "
+                + (f"{phase:.3f}" if phase is not None else "—")
+                + " | "
+                + (f"{gain:.3f}" if gain is not None else "—")
+                + " |"
+            )
+        text.append("")
+    if timing_rows:
+        text.extend(
+            [
+                "## 2.475 GHz: timing labels versus physical switch settling",
+                "",
+                "The complete 2.475 GHz block has all six ports observable and a passing independent before/after reference bracket. All three 1 ms captures pass phase/gain closure; nominal-model bearing repeatability is approximately 0.63–0.74° at 25 ms, but the unchanged legacy model-valid percentage is zero. This is not a qualified bearing setting.",
+                "",
+                "The legacy 200 µs whole-record decoder places nearly zero in ANT1, the independently measured ANT1 level in ANT2, ANT2 in ANT4, and so on. A separately labeled reference-template fit moves the origin by approximately 219 µs—one 200 µs dwell plus guard—and restores phase/gain closure in all three main captures. Two interleaved controls still fail gain closure. This strongly supports a decoder-origin contribution; it does not prove that every short-dwell error is software or exclude physical settling.",
+                "",
+                "The prototype below keeps whole-record diagnosis, one-second-prefix/frozen-clock evaluation, and rolling past-only evaluation separate. Rolling uses a one-second lookback and 50 ms output windows, includes boundary discards in the observation budget, and retains failed windows. No old failure is relabeled. These are exploratory replays of existing captures, not newly acquired validation or live delivery measurements.",
+                "",
+                "Importantly, its template uses this test source's separately measured six-port complex response. That is a laboratory label/timing aid, not yet a general tracker for an unknown moving source. A deployable design needs reliable source-independent marker/selector timing or an independently validated causal synchronization scheme. Host replay compute time, where present, is separate from RF observation and radio/network delivery latency.",
+                "",
+                "![Reference-labeled timing diagnosis](png/fig11_reference_timing_diagnosis.png)",
+                "",
+                "[Method comparison](data/reference-timing-comparison.csv), [full timing studies and provenance](data/reference-timing-studies.json). Partially processed studies remain explicitly marked running; absent rows are not successful measurements.",
+                "",
+            ]
+        )
     (args.output / "README.md").write_text("\n".join(text))
     print(f"report={args.output / 'README.md'}")
 

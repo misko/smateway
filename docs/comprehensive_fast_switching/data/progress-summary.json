@@ -1,9 +1,9 @@
 {
   "schema": 1,
-  "generated_at": "2026-09-08T17:17:24.126621+00:00",
+  "generated_at": "2026-09-08T22:36:53.989617+00:00",
   "scope": "progress only; full campaign not complete",
   "campaign_root": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1",
-  "completed_attempts": 80,
+  "completed_attempts": 145,
   "failed_attempts": 6,
   "historical_reproduction_passed": true,
   "fresh_blocks": [
@@ -645,9 +645,140 @@
         },
         "surveyed_angle_accuracy_available": false
       },
-      "captures": [],
+      "captures": [
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-r1-200us-20260908T171801.183781Z/independent-analysis.json",
+          "analysis_sha256": "094abaac4f795b03bd9047ee0fbaa6d8f8569e3527aeb3adf2dcdc44810944dd",
+          "control": false,
+          "dwell_us": 200,
+          "error": null,
+          "round": 1,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-r1-200us-20260908T171801.183781Z/run.json",
+          "sha256": "0b0c5514a8778252232b60219a4dc6f202506b989ac007e1dd7ea303bf468067",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-r1-200us-control-20260908T171810.417243Z/independent-analysis.json",
+          "analysis_sha256": "32b386b6ddd354e11e328174622af766feba3f57ead42c81a1eff31095826582",
+          "control": true,
+          "dwell_us": 200,
+          "error": null,
+          "round": 1,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-r1-200us-control-20260908T171810.417243Z/run.json",
+          "sha256": "2870c3709b80602a90628ef02c4e4377e72493706e6ceb2499e3aea92def30d6",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-r1-1000us-20260908T171825.016120Z/independent-analysis.json",
+          "analysis_sha256": "c305b46177a917aa413b64923c22a3268b0848148323d8111d4ffed8acf42385",
+          "control": false,
+          "dwell_us": 1000,
+          "error": null,
+          "round": 1,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-r1-1000us-20260908T171825.016120Z/run.json",
+          "sha256": "c77653bb624e52a644865a3d117817384a03bce50cd07e22ddd4eb96dec8ddda",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-r2-200us-control-20260908T171839.680101Z/independent-analysis.json",
+          "analysis_sha256": "e1fc164d94304a849e4f81cfea8c0cfb053827d6e68342f80d763eebfb0bc85e",
+          "control": true,
+          "dwell_us": 200,
+          "error": null,
+          "round": 2,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-r2-200us-control-20260908T171839.680101Z/run.json",
+          "sha256": "d42e3460c1213e1c0b4df3fcce93c50b175a32a0a8a907f9267157d966a8173b",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-r2-200us-20260908T171848.835237Z/independent-analysis.json",
+          "analysis_sha256": "c17c6f32dafb348272552a7f2e4aa7328e0349de556b3b586a5eb7d320d671cc",
+          "control": false,
+          "dwell_us": 200,
+          "error": null,
+          "round": 2,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-r2-200us-20260908T171848.835237Z/run.json",
+          "sha256": "d2158d5e799d333b99eaaf85636cb34b7e537aa949fae850cba790f520c231be",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-r2-1000us-20260908T171903.465535Z/independent-analysis.json",
+          "analysis_sha256": "584cabf7c540c4a9398a70ce7986c46c72c6d96587694539e9350392930fd85e",
+          "control": false,
+          "dwell_us": 1000,
+          "error": null,
+          "round": 2,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-r2-1000us-20260908T171903.465535Z/run.json",
+          "sha256": "5d51a5ae44cfbeb44e48e8ae0dc0cb0c5d7480970412deb90d242d02c43a77df",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-r3-200us-20260908T171918.291318Z/independent-analysis.json",
+          "analysis_sha256": "406324cf832eabe5afc39a051f12d8b4379833b2556ca1ee707918ab58aa63c2",
+          "control": false,
+          "dwell_us": 200,
+          "error": null,
+          "round": 3,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-r3-200us-20260908T171918.291318Z/run.json",
+          "sha256": "3e4c369ec6d92665a41a9ee32d748f152f14bae1bc53b107d5fdceda6cc78c5d",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-r3-200us-control-20260908T171927.665074Z/independent-analysis.json",
+          "analysis_sha256": "a534609e1dd8a54f50341b751ab66056fae0764cfe52f414d8593d7b2487b8cc",
+          "control": true,
+          "dwell_us": 200,
+          "error": null,
+          "round": 3,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-r3-200us-control-20260908T171927.665074Z/run.json",
+          "sha256": "b2a51fd257b895514b016d75eaaec5a0a5ff12abc135e92ccc9acac94b7280e4",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-r3-1000us-20260908T171942.631329Z/independent-analysis.json",
+          "analysis_sha256": "85e987f6db8062381a18ef83d2af4c90357984ca38287b906d4c8da5ae856d21",
+          "control": false,
+          "dwell_us": 1000,
+          "error": null,
+          "round": 3,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-r3-1000us-20260908T171942.631329Z/run.json",
+          "sha256": "5543e4fbad64627abbdeeb2c88b5b2b372d11338dfbbbf08076f137898b2d6f7",
+          "status": "passed"
+        }
+      ],
       "configuration": "A",
-      "flashes": [],
+      "flashes": [
+        {
+          "dwell_us": 200,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-200us-20260908T171755.661455Z/flash.json",
+          "sha256": "54255b83fca8faf76d4a49358cf9652423abc48b52fe959e80df7948ce144716"
+        },
+        {
+          "dwell_us": 1000,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-1000us-20260908T171819.459439Z/flash.json",
+          "sha256": "ddb933e597421374cc4290c71b327e63da042f7d9a0cccafc65474f54582f3fa"
+        },
+        {
+          "dwell_us": 200,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-200us-20260908T171834.157649Z/flash.json",
+          "sha256": "8c316ce651f76bb5f7540d1316997035a54ef210d7199d32ac71f8edf90091a1"
+        },
+        {
+          "dwell_us": 1000,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-1000us-20260908T171857.957230Z/flash.json",
+          "sha256": "49a985601401e7147d75790cef99fd350e3178108b0858b01d4d42ee8ff5a276"
+        },
+        {
+          "dwell_us": 200,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-200us-20260908T171912.755133Z/flash.json",
+          "sha256": "433483b79963395a9ffada8e56987cab3e45312c19fec424a68aff5244a9734c"
+        },
+        {
+          "dwell_us": 1000,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-1000us-20260908T171936.947222Z/flash.json",
+          "sha256": "fc4f1d89ebc514d409b092a91eb2381ef36bdc2b4644adbf4212dbac303319a8"
+        }
+      ],
       "frequency_hz": 2475000000,
       "gain_db": 40,
       "planned_rows": [
@@ -721,17 +852,1007 @@
           "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-ref-before-ANT4-20260908T171642.695893Z/run.json",
           "sha256": "dffa6bacbbe30aea4733bcebbf35bb841f969e55ecfd8ccafc8ff59630bfae5f",
           "status": "passed"
+        },
+        {
+          "error": null,
+          "port": "ANT8",
+          "position": "before",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-ref-before-ANT8-20260908T171705.027648Z/run.json",
+          "sha256": "9ead898ed54a509a9fcc99d6aa3adb04edc1f7f954c2cdd95f0a6438c653de50",
+          "status": "passed"
+        },
+        {
+          "error": null,
+          "port": "ANT7",
+          "position": "before",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-ref-before-ANT7-20260908T171728.117352Z/run.json",
+          "sha256": "7def71a09cb4b1246e263e2ee1e11fb0b5a1f9830acbd3df47e885f9ec2c9d2a",
+          "status": "passed"
+        },
+        {
+          "error": null,
+          "port": "ANT5",
+          "position": "before",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-ref-before-ANT5-20260908T171741.992629Z/run.json",
+          "sha256": "9bbd5b41a2771934bb2c575bfdbf67bac1fcf93af1a3e2414b061634f3255793",
+          "status": "passed"
+        },
+        {
+          "error": null,
+          "port": "ANT5",
+          "position": "after",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-ref-after-ANT5-20260908T172010.753303Z/run.json",
+          "sha256": "b41a6d6f483ddaa846a2c52a02202b4d21fc02432a5838358a02ae7c9cb4456c",
+          "status": "passed"
+        },
+        {
+          "error": null,
+          "port": "ANT7",
+          "position": "after",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-ref-after-ANT7-20260908T172025.401605Z/run.json",
+          "sha256": "b824497b2331660f1f898e8fe3d24742146c34b85ea06bee21d16e0474e48b5e",
+          "status": "passed"
+        },
+        {
+          "error": null,
+          "port": "ANT8",
+          "position": "after",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-ref-after-ANT8-20260908T172040.593401Z/run.json",
+          "sha256": "b30b631dbd42780f89cc765c695bdad5ce322eacc263a22cb96f4c545960ca6c",
+          "status": "passed"
+        },
+        {
+          "error": null,
+          "port": "ANT4",
+          "position": "after",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-ref-after-ANT4-20260908T172055.076573Z/run.json",
+          "sha256": "6de171d5c71662eba80619551a010efc54c3bb14e640daa776e166abdacfaf78",
+          "status": "passed"
+        },
+        {
+          "error": null,
+          "port": "ANT2",
+          "position": "after",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-ref-after-ANT2-20260908T172110.608998Z/run.json",
+          "sha256": "b9ee84f2390df5fd929c4eefbadb7a4e265a3e2bc95586c14276de4fee4177f2",
+          "status": "passed"
+        },
+        {
+          "error": null,
+          "port": "ANT1",
+          "position": "after",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T171600754199Z-ref-after-ANT1-20260908T172127.405434Z/run.json",
+          "sha256": "6f321f6558ed67f28d1407aea226973d0b87efcd6d33b1aba735b3e41d725cc9",
+          "status": "passed"
+        }
+      ],
+      "restores": [
+        {
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/restores/restore-bench-20260908T171951.851099Z/restore.json",
+          "sha256": "feca376e4568fd73125afb4ccc8a3a13963d16352d73e1f5a4dd4ffb63db6297"
+        }
+      ],
+      "schema": 1,
+      "scope": "fresh TX1 phase/gain diagnostic block",
+      "source_sha256": "cc5c75f4e40f577d7e09ec3628a2ab703feddbad8332d51122b974d5c529d6a7",
+      "started_at": "2026-09-08T17:16:00.754232+00:00",
+      "status": "diagnostic-complete",
+      "surveyed_bearing_accuracy_available": false,
+      "updated_at": "2026-09-08T17:21:59.648567+00:00"
+    },
+    {
+      "binding": {
+        "capture_scope": "geometry_bound",
+        "fixture": {
+          "path": "/srv/bulk/samteway/repository/docs/comprehensive_fast_switching/data/fixture-c6-51mm-v2.json",
+          "sha256": "d3d5338afd9c21a6a610f0af5d819db8c352393eec750de0243944220d78e2fa"
+        },
+        "fixture_id": "unchanged-c6-51mm-dual-band-us-20260908-v2",
+        "geometry_status": "user_confirmed_nominal",
+        "kind": "ota",
+        "positions_m": [
+          [
+            0.0,
+            0.0255
+          ],
+          [
+            0.02208364779650318,
+            0.01275
+          ],
+          [
+            0.02208364779650318,
+            -0.01275
+          ],
+          [
+            0.0,
+            -0.0255
+          ],
+          [
+            -0.02208364779650318,
+            -0.01275
+          ],
+          [
+            -0.02208364779650318,
+            0.01275
+          ]
+        ],
+        "protocol": {
+          "path": "/srv/bulk/samteway/repository/docs/comprehensive_fast_switching/data/protocol-v1.json",
+          "sha256": "18d5cbdeea722634df856efa692868571b6bbc250eb71648f77065f49ef8ef5b"
+        },
+        "surveyed_angle_accuracy_available": false
+      },
+      "captures": [
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r1-200us-control-20260908T222359.927361Z/independent-analysis.json",
+          "analysis_sha256": "f1919fad6f65d6cf1a82c33558370d6e7c59494e04f636dd07d2d0cb9c13456f",
+          "control": true,
+          "dwell_us": 200,
+          "error": null,
+          "round": 1,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r1-200us-control-20260908T222359.927361Z/run.json",
+          "sha256": "da8b24e7e3bff6bec8e51098d9787e224a194770554f9f267e81a472f02f7422",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r1-100us-20260908T222415.183804Z/independent-analysis.json",
+          "analysis_sha256": "9e7e7630bb5ca89abfd430d59a82b73dc6539a4f05ab4c4d6e54472cbef88d2e",
+          "control": false,
+          "dwell_us": 100,
+          "error": null,
+          "round": 1,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r1-100us-20260908T222415.183804Z/run.json",
+          "sha256": "e529e7417a0729245bd69e06b483a00b52441cb6a09cd53e91d511b3c6e9b45f",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r1-50us-20260908T222430.717395Z/independent-analysis.json",
+          "analysis_sha256": "e23d0fb5bc402d52f48a53b54902d964552167cbe618fe6f74f50b55e0a065c5",
+          "control": false,
+          "dwell_us": 50,
+          "error": null,
+          "round": 1,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r1-50us-20260908T222430.717395Z/run.json",
+          "sha256": "5dc31447b92ccea82fbe45594bf587bfa6dbda34ee2d138b158a20c69ce75d9c",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r1-1000us-20260908T222445.466742Z/independent-analysis.json",
+          "analysis_sha256": "0d4a27ca0e75b075ca5a75ba286f5482f18fe9a08aa2e785bf40622dfe813e79",
+          "control": false,
+          "dwell_us": 1000,
+          "error": null,
+          "round": 1,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r1-1000us-20260908T222445.466742Z/run.json",
+          "sha256": "b089ce32440d2912b024fb5d77e9477d5100cd2c40b7aadb3c14310ade1f6781",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r1-200us-20260908T222501.075648Z/independent-analysis.json",
+          "analysis_sha256": "379ffcb9b2a38ab2465c2c7fe3b5c8890a52e221d52e7f510285312cfcdd757e",
+          "control": false,
+          "dwell_us": 200,
+          "error": null,
+          "round": 1,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r1-200us-20260908T222501.075648Z/run.json",
+          "sha256": "83840494a0bb6e49ef3a949296ab5231c5ef4bf04ed7fcc538d9b31645a3da43",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r1-25us-20260908T222516.265695Z/independent-analysis.json",
+          "analysis_sha256": "e5c52e16c29bf42a86f35cac7fbf8fa997b0562c39be145a538485ffcebf5d5b",
+          "control": false,
+          "dwell_us": 25,
+          "error": null,
+          "round": 1,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r1-25us-20260908T222516.265695Z/run.json",
+          "sha256": "3ab9f8bac1e594f2f75862f8812a1ddb00cec80f0020f46d28e03f643e8f0c64",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r2-50us-20260908T222531.402805Z/independent-analysis.json",
+          "analysis_sha256": "0c4bb9a3939da1865bbe3aa21c4f197002f11d5f36679995949535aecb3756ab",
+          "control": false,
+          "dwell_us": 50,
+          "error": null,
+          "round": 2,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r2-50us-20260908T222531.402805Z/run.json",
+          "sha256": "9ee3c1a1f5df98f4b713a7d5369fe22b2f551fd5893b46a16dd358a9b3eb37ec",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r2-1000us-20260908T222546.698760Z/independent-analysis.json",
+          "analysis_sha256": "8eab1a57003070fde154a82f586741421a8b0696176b8a18fa0010e526d55e12",
+          "control": false,
+          "dwell_us": 1000,
+          "error": null,
+          "round": 2,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r2-1000us-20260908T222546.698760Z/run.json",
+          "sha256": "717cdf969aacddb30e2e4c7e410921d51c644bd97cee5b3233eb251dae90198b",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r2-25us-20260908T222601.891685Z/independent-analysis.json",
+          "analysis_sha256": "e5c52e16c29bf42a86f35cac7fbf8fa997b0562c39be145a538485ffcebf5d5b",
+          "control": false,
+          "dwell_us": 25,
+          "error": null,
+          "round": 2,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r2-25us-20260908T222601.891685Z/run.json",
+          "sha256": "d91730b5c15b4c2ea4b829493c39a89443eb327252dd004ddd62e0a26e69e154",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r2-200us-control-20260908T222617.293187Z/independent-analysis.json",
+          "analysis_sha256": "973c7e3f078d2c7d7708dbd31752c8162fde2472e56109f45c3666a4cac79f16",
+          "control": true,
+          "dwell_us": 200,
+          "error": null,
+          "round": 2,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r2-200us-control-20260908T222617.293187Z/run.json",
+          "sha256": "5f6d65766da8ea23a8aae98b906fe1932f7d649e64691dbfbf33f052bf8a78f3",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r2-200us-20260908T222626.631316Z/independent-analysis.json",
+          "analysis_sha256": "6d34e1e1a131fb97e946173ab4d68bdb5aefb08a1d42a00267ceb490ff2acdaa",
+          "control": false,
+          "dwell_us": 200,
+          "error": null,
+          "round": 2,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r2-200us-20260908T222626.631316Z/run.json",
+          "sha256": "68afbad9cc178dd1200603a5edbc4cd34110673b5304784a1d40922bdd246d78",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r2-100us-20260908T222641.322420Z/independent-analysis.json",
+          "analysis_sha256": "429c6beb93ed2996acdec6f65e2768d188fc92beea7be264c75ec707ec34f0df",
+          "control": false,
+          "dwell_us": 100,
+          "error": null,
+          "round": 2,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r2-100us-20260908T222641.322420Z/run.json",
+          "sha256": "a7c5a23c5a8c36f64dc60f4b4390c680908b3057ca30427fc7313cce3a4502e6",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r3-200us-20260908T222656.033948Z/independent-analysis.json",
+          "analysis_sha256": "db660461373e631ca1fec0133c30a57d3bf1dd37d815e8d4fb80c2aa7a473426",
+          "control": false,
+          "dwell_us": 200,
+          "error": null,
+          "round": 3,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r3-200us-20260908T222656.033948Z/run.json",
+          "sha256": "aac4be5dbc6fd14b9ff90626699634a88112996cbd06e8066e66501914632056",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r3-50us-20260908T222710.858363Z/independent-analysis.json",
+          "analysis_sha256": "c99f490d02c2d6ee9f383aa111609af5870e3f671ba1141d4c2d3074354a8b25",
+          "control": false,
+          "dwell_us": 50,
+          "error": null,
+          "round": 3,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r3-50us-20260908T222710.858363Z/run.json",
+          "sha256": "e6af810cdc6d0867cc3ee96250e739fd7b87f8800f3714b4afc8f68896db0ae4",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r3-1000us-20260908T222725.732602Z/independent-analysis.json",
+          "analysis_sha256": "f4fb8367d1737c3292ac75b08588038c00af2696473b70b00138ecc2221472c4",
+          "control": false,
+          "dwell_us": 1000,
+          "error": null,
+          "round": 3,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r3-1000us-20260908T222725.732602Z/run.json",
+          "sha256": "cf61cfaba80f2769ac4430966e76c3acc29f23581b9c4f6aa111c8408cf391a9",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r3-200us-control-20260908T222740.934092Z/independent-analysis.json",
+          "analysis_sha256": "2013312bf8913c23a6dfc8ca070d734c068cb0350498ce6e1e13cf0ce9113e53",
+          "control": true,
+          "dwell_us": 200,
+          "error": null,
+          "round": 3,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r3-200us-control-20260908T222740.934092Z/run.json",
+          "sha256": "07f0819c68bfd775f7cc3b0d68c46fe6b725649a8f176bb82c3cf5bf702c95cb",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r3-25us-20260908T222755.811703Z/independent-analysis.json",
+          "analysis_sha256": "e5c52e16c29bf42a86f35cac7fbf8fa997b0562c39be145a538485ffcebf5d5b",
+          "control": false,
+          "dwell_us": 25,
+          "error": null,
+          "round": 3,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r3-25us-20260908T222755.811703Z/run.json",
+          "sha256": "24cc6c4f3441ea09036e1307028943a8e398a4454af40f6dc3a88744218d45e7",
+          "status": "passed"
+        },
+        {
+          "analysis_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r3-100us-20260908T222810.962634Z/independent-analysis.json",
+          "analysis_sha256": "a38e58ecfde982edbdf4a8e015125e091a7ed1bc1b1c782240d748fa3bdc2838",
+          "control": false,
+          "dwell_us": 100,
+          "error": null,
+          "round": 3,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r3-100us-20260908T222810.962634Z/run.json",
+          "sha256": "3f985dac7e4c342d025b9253e091ac04e727de30709524a01ebb9c6c3a2d5404",
+          "status": "passed"
+        }
+      ],
+      "configuration": "A",
+      "flashes": [
+        {
+          "dwell_us": 200,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-200us-20260908T222354.270873Z/flash.json",
+          "sha256": "a743e3707926d0e521cb162437034933cd7fb0f330203f4e56d35e17abd907b9"
+        },
+        {
+          "dwell_us": 100,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-100us-20260908T222409.630783Z/flash.json",
+          "sha256": "d1a56b491bcf79d3d2bc8537d8d7db4d426918de84d53fd0e9dcbfc11dd002f7"
+        },
+        {
+          "dwell_us": 50,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-50us-20260908T222424.610061Z/flash.json",
+          "sha256": "b35d869f8117aea461cc36e2c0aad17cbc719b1647050b7ffc64470a29902d40"
+        },
+        {
+          "dwell_us": 1000,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-1000us-20260908T222439.848761Z/flash.json",
+          "sha256": "92be118e9c6536a23a9f0f640dcdef8c0234c9f08e8c6a3d5dfc5662c00da7fb"
+        },
+        {
+          "dwell_us": 200,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-200us-20260908T222454.967954Z/flash.json",
+          "sha256": "5beb1b44efeb1b66c2fd33f3a2bcf23eacea669727f9c61a1d104cd7e0aa3e63"
+        },
+        {
+          "dwell_us": 25,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-25us-20260908T222510.578765Z/flash.json",
+          "sha256": "0aa4085671dc732af2b27db7826e8b76c299628dad3f9ba8bb83ad4e6de863fb"
+        },
+        {
+          "dwell_us": 50,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-50us-20260908T222525.805452Z/flash.json",
+          "sha256": "2db0dd8c423f410ae5f5833987e7da440b48b3266c9d21c3c6e1b3eccb4b5d17"
+        },
+        {
+          "dwell_us": 1000,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-1000us-20260908T222541.000506Z/flash.json",
+          "sha256": "2d56b721a716d1406836873708817a0ffcfbeb3e241d77ac10d1ba9d7d66a94f"
+        },
+        {
+          "dwell_us": 25,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-25us-20260908T222556.133467Z/flash.json",
+          "sha256": "ed5444c0c96b3c5ae75e215e19b234ea7f9e9de2fc5e2ce832c364fdb07604b5"
+        },
+        {
+          "dwell_us": 200,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-200us-20260908T222611.714758Z/flash.json",
+          "sha256": "48f4e7f552a18e04e1f8835617e22b059000a450d49478afeb843256c9ffd7c5"
+        },
+        {
+          "dwell_us": 100,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-100us-20260908T222635.744579Z/flash.json",
+          "sha256": "aa37279f1243c859945bd427c5670df30c32ba2e1bf933697680c853f4c58724"
+        },
+        {
+          "dwell_us": 200,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-200us-20260908T222650.354639Z/flash.json",
+          "sha256": "4a34da3eaaf46ab86d1ac8eeaeb305d58b9406bd9d6e673c0a418aecee75cd97"
+        },
+        {
+          "dwell_us": 50,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-50us-20260908T222705.258106Z/flash.json",
+          "sha256": "9b469b6f68aa44bd842b88c04b0f4f7bf66fb733d925cf161efea1cc447f4caf"
+        },
+        {
+          "dwell_us": 1000,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-1000us-20260908T222720.063593Z/flash.json",
+          "sha256": "608ed6379d212f7a7bb67e0367263fbfa1da420407eb0ec495f54e0881260dda"
+        },
+        {
+          "dwell_us": 200,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-200us-20260908T222735.110250Z/flash.json",
+          "sha256": "b736553477767409e5d5cbbf3a9ed29c311749ccce6d954852f0a186fe6b0bf3"
+        },
+        {
+          "dwell_us": 25,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-25us-20260908T222750.133575Z/flash.json",
+          "sha256": "87323c797aabca5c9ac79645b2cf2f9a7db791c4201a8174bab0bf42593d7d2c"
+        },
+        {
+          "dwell_us": 100,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-100us-20260908T222805.106049Z/flash.json",
+          "sha256": "6a948040c58566321eb840a234aff68de57669bf651f47a65f5ab11d876baa2d"
+        }
+      ],
+      "frequency_hz": 5811000000,
+      "gain_db": 60,
+      "planned_rows": [
+        {
+          "control": true,
+          "dwell_us": 200,
+          "round": 1
+        },
+        {
+          "control": false,
+          "dwell_us": 100,
+          "round": 1
+        },
+        {
+          "control": false,
+          "dwell_us": 50,
+          "round": 1
+        },
+        {
+          "control": false,
+          "dwell_us": 1000,
+          "round": 1
+        },
+        {
+          "control": false,
+          "dwell_us": 200,
+          "round": 1
+        },
+        {
+          "control": false,
+          "dwell_us": 25,
+          "round": 1
+        },
+        {
+          "control": false,
+          "dwell_us": 50,
+          "round": 2
+        },
+        {
+          "control": false,
+          "dwell_us": 1000,
+          "round": 2
+        },
+        {
+          "control": false,
+          "dwell_us": 25,
+          "round": 2
+        },
+        {
+          "control": true,
+          "dwell_us": 200,
+          "round": 2
+        },
+        {
+          "control": false,
+          "dwell_us": 200,
+          "round": 2
+        },
+        {
+          "control": false,
+          "dwell_us": 100,
+          "round": 2
+        },
+        {
+          "control": false,
+          "dwell_us": 200,
+          "round": 3
+        },
+        {
+          "control": false,
+          "dwell_us": 50,
+          "round": 3
+        },
+        {
+          "control": false,
+          "dwell_us": 1000,
+          "round": 3
+        },
+        {
+          "control": true,
+          "dwell_us": 200,
+          "round": 3
+        },
+        {
+          "control": false,
+          "dwell_us": 25,
+          "round": 3
+        },
+        {
+          "control": false,
+          "dwell_us": 100,
+          "round": 3
+        }
+      ],
+      "references": [
+        {
+          "error": null,
+          "port": "ANT1",
+          "position": "before",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-ref-before-ANT1-20260908T222235.445422Z/run.json",
+          "sha256": "fbc13a01d0daaec8f28c806ea1b3fd426cc33c1cbc598a84eaf532721b96c698",
+          "status": "passed"
+        },
+        {
+          "error": null,
+          "port": "ANT2",
+          "position": "before",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-ref-before-ANT2-20260908T222247.998896Z/run.json",
+          "sha256": "6e961f9fcb6379b69924920ed5f845966bb379b55305dcdff12c5974d2960bcf",
+          "status": "passed"
+        },
+        {
+          "error": null,
+          "port": "ANT4",
+          "position": "before",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-ref-before-ANT4-20260908T222301.091267Z/run.json",
+          "sha256": "cb6e784dd8cc842ef089791b4d4c20fdf80d982e12487d4a09ec77ba6b097001",
+          "status": "passed"
+        },
+        {
+          "error": null,
+          "port": "ANT8",
+          "position": "before",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-ref-before-ANT8-20260908T222315.002679Z/run.json",
+          "sha256": "ac2b2b6eb5b7030c84cc4efd42f487c8a5e7b94a072d7e59ba115f5ffff70f66",
+          "status": "passed"
+        },
+        {
+          "error": null,
+          "port": "ANT7",
+          "position": "before",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-ref-before-ANT7-20260908T222327.806735Z/run.json",
+          "sha256": "91fbbe9f5ce7b2ce832bd6178ec881b62d439fccd28401a68d376537c271b68f",
+          "status": "passed"
+        },
+        {
+          "error": null,
+          "port": "ANT5",
+          "position": "before",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-ref-before-ANT5-20260908T222340.920500Z/run.json",
+          "sha256": "9692da4002d34c82890358de2f0ebcdfaf8af4dd14d78e7930ebb68615b492ce",
+          "status": "passed"
+        },
+        {
+          "error": null,
+          "port": "ANT5",
+          "position": "after",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-ref-after-ANT5-20260908T222840.178642Z/run.json",
+          "sha256": "a006b052432ce6af198bf4e1b33dc380888cd6191c51e813d529a4e23b49d893",
+          "status": "passed"
+        },
+        {
+          "error": null,
+          "port": "ANT7",
+          "position": "after",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-ref-after-ANT7-20260908T222853.960938Z/run.json",
+          "sha256": "19230c0b20e7185f9eb1547f1b6d7b0adeda0bc2f29196ffc0799872a33bc038",
+          "status": "passed"
+        },
+        {
+          "error": null,
+          "port": "ANT8",
+          "position": "after",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-ref-after-ANT8-20260908T222908.271104Z/run.json",
+          "sha256": "772bd81e9636a98c688fa4a7577a87352330e3f83c07c78db2022bd136e296da",
+          "status": "passed"
+        },
+        {
+          "error": null,
+          "port": "ANT4",
+          "position": "after",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-ref-after-ANT4-20260908T222923.059308Z/run.json",
+          "sha256": "94f2f9b57eb032b7e8ad8fd022f9d95bb2cf354031ee5566ca227d84ce132e7d",
+          "status": "passed"
+        },
+        {
+          "error": null,
+          "port": "ANT2",
+          "position": "after",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-ref-after-ANT2-20260908T222946.591725Z/run.json",
+          "sha256": "0c35d3419204116121d3041a514eae31241b5d1a057b4272144cc6badf0f4961",
+          "status": "passed"
+        },
+        {
+          "error": null,
+          "port": "ANT1",
+          "position": "after",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-ref-after-ANT1-20260908T223010.577296Z/run.json",
+          "sha256": "5f78645d3c21507b011635f54f766bc2d3c90bd664937ba370dce6627fd28e12",
+          "status": "passed"
+        }
+      ],
+      "restores": [
+        {
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/restores/restore-bench-20260908T222820.551652Z/restore.json",
+          "sha256": "1afb939f447a9ca93159572f92fba7760330465c8259f0799147a7390a7fe133"
+        }
+      ],
+      "schema": 1,
+      "scope": "fresh TX1 phase/gain diagnostic block",
+      "source_sha256": "cc5c75f4e40f577d7e09ec3628a2ab703feddbad8332d51122b974d5c529d6a7",
+      "started_at": "2026-09-08T22:22:35.133370+00:00",
+      "status": "diagnostic-complete",
+      "surveyed_bearing_accuracy_available": false,
+      "updated_at": "2026-09-08T22:31:17.445771+00:00"
+    },
+    {
+      "binding": {
+        "capture_scope": "geometry_bound",
+        "fixture": {
+          "path": "/srv/bulk/samteway/repository/docs/comprehensive_fast_switching/data/fixture-c6-51mm-v2.json",
+          "sha256": "d3d5338afd9c21a6a610f0af5d819db8c352393eec750de0243944220d78e2fa"
+        },
+        "fixture_id": "unchanged-c6-51mm-dual-band-us-20260908-v2",
+        "geometry_status": "user_confirmed_nominal",
+        "kind": "ota",
+        "positions_m": [
+          [
+            0.0,
+            0.0255
+          ],
+          [
+            0.02208364779650318,
+            0.01275
+          ],
+          [
+            0.02208364779650318,
+            -0.01275
+          ],
+          [
+            0.0,
+            -0.0255
+          ],
+          [
+            -0.02208364779650318,
+            -0.01275
+          ],
+          [
+            -0.02208364779650318,
+            0.01275
+          ]
+        ],
+        "protocol": {
+          "path": "/srv/bulk/samteway/repository/docs/comprehensive_fast_switching/data/protocol-v1.json",
+          "sha256": "18d5cbdeea722634df856efa692868571b6bbc250eb71648f77065f49ef8ef5b"
+        },
+        "surveyed_angle_accuracy_available": false
+      },
+      "captures": [
+        {
+          "configuration": "A",
+          "control": true,
+          "dwell_us": 1000,
+          "error": null,
+          "round": 1,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T223136472639Z-r1-A-1000us-control-20260908T223540.792355Z/run.json",
+          "sha256": "2fbdecc3cf1c387bfd86d5f94d808477e81e7bd0f90093867167dd995de1c4c2",
+          "status": "passed"
+        },
+        {
+          "configuration": "B",
+          "control": false,
+          "dwell_us": 100,
+          "error": null,
+          "round": 1,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T223136472639Z-r1-B-100us-20260908T223555.226309Z/run.json",
+          "sha256": "8338c2ff4daa359dadcd3a76b0a1772d6547dd0fdfeff67d3428f98c21b1485f",
+          "status": "passed"
+        },
+        {
+          "configuration": "B",
+          "control": false,
+          "dwell_us": 50,
+          "error": null,
+          "round": 1,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T223136472639Z-r1-B-50us-20260908T223610.856607Z/run.json",
+          "sha256": "7be0d7a40441163d769112909b314e53b33f2d2dcef60fa5d9cc8648afa82bba",
+          "status": "passed"
+        },
+        {
+          "configuration": "B",
+          "control": false,
+          "dwell_us": 1000,
+          "error": null,
+          "round": 1,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T223136472639Z-r1-B-1000us-20260908T223625.825747Z/run.json",
+          "sha256": "bad28fe90254976876903481bd1d451f9364df32ab9fe3714020c4e188057223",
+          "status": "passed"
+        },
+        {
+          "configuration": "A",
+          "control": true,
+          "dwell_us": 200,
+          "error": null,
+          "round": 1,
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T223136472639Z-r1-A-200us-control-20260908T223640.979502Z/run.json",
+          "sha256": "c01724e49e777a0d06d82660ccc11ecaf50fcdb1573da929187d31b91e252e23",
+          "status": "passed"
+        }
+      ],
+      "configuration": "B",
+      "flashes": [
+        {
+          "dwell_us": 1000,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-1000us-20260908T223535.227583Z/flash.json",
+          "sha256": "1598658dce8ee35fd0d32c33e7d82932732434a3b4a6587231691c58b46ca14c"
+        },
+        {
+          "dwell_us": 100,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-100us-20260908T223549.726890Z/flash.json",
+          "sha256": "92d8f1f225502fb6af043c4705feb2a3dc0e4c4328551ec6eb7c33572d9bdb13"
+        },
+        {
+          "dwell_us": 50,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-50us-20260908T223605.347340Z/flash.json",
+          "sha256": "dccf9507f0b7464a4019c63ee67c93c3b4f9688f0fcd46b787b8e5e6e0ec72ff"
+        },
+        {
+          "dwell_us": 1000,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-1000us-20260908T223620.216882Z/flash.json",
+          "sha256": "ab2f32265e3bd8c33879650668127afe44770619c95c3b5b1f03235f30d2a1f8"
+        },
+        {
+          "dwell_us": 200,
+          "path": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/flashes/flash-c6-200us-20260908T223635.398660Z/flash.json",
+          "sha256": "9272ddd084111d472e117d1f812f2988ce585966890733973ab7c650f68afce6"
+        }
+      ],
+      "frequency_hz": 5811000000,
+      "gain_db": 60,
+      "planned_rows": [
+        {
+          "configuration": "A",
+          "control": true,
+          "dwell_us": 1000,
+          "round": 1
+        },
+        {
+          "configuration": "B",
+          "control": false,
+          "dwell_us": 100,
+          "round": 1
+        },
+        {
+          "configuration": "B",
+          "control": false,
+          "dwell_us": 50,
+          "round": 1
+        },
+        {
+          "configuration": "B",
+          "control": false,
+          "dwell_us": 1000,
+          "round": 1
+        },
+        {
+          "configuration": "A",
+          "control": true,
+          "dwell_us": 200,
+          "round": 1
+        },
+        {
+          "configuration": "B",
+          "control": false,
+          "dwell_us": 200,
+          "round": 1
+        },
+        {
+          "configuration": "B",
+          "control": false,
+          "dwell_us": 25,
+          "round": 1
+        },
+        {
+          "configuration": "B",
+          "control": false,
+          "dwell_us": 50,
+          "round": 2
+        },
+        {
+          "configuration": "B",
+          "control": false,
+          "dwell_us": 1000,
+          "round": 2
+        },
+        {
+          "configuration": "B",
+          "control": false,
+          "dwell_us": 25,
+          "round": 2
+        },
+        {
+          "configuration": "B",
+          "control": false,
+          "dwell_us": 100,
+          "round": 2
+        },
+        {
+          "configuration": "B",
+          "control": false,
+          "dwell_us": 200,
+          "round": 2
+        },
+        {
+          "configuration": "A",
+          "control": true,
+          "dwell_us": 200,
+          "round": 2
+        },
+        {
+          "configuration": "A",
+          "control": true,
+          "dwell_us": 1000,
+          "round": 2
+        },
+        {
+          "configuration": "A",
+          "control": true,
+          "dwell_us": 200,
+          "round": 3
+        },
+        {
+          "configuration": "B",
+          "control": false,
+          "dwell_us": 200,
+          "round": 3
+        },
+        {
+          "configuration": "B",
+          "control": false,
+          "dwell_us": 1000,
+          "round": 3
+        },
+        {
+          "configuration": "B",
+          "control": false,
+          "dwell_us": 50,
+          "round": 3
+        },
+        {
+          "configuration": "A",
+          "control": true,
+          "dwell_us": 1000,
+          "round": 3
+        },
+        {
+          "configuration": "B",
+          "control": false,
+          "dwell_us": 25,
+          "round": 3
+        },
+        {
+          "configuration": "B",
+          "control": false,
+          "dwell_us": 100,
+          "round": 3
+        }
+      ],
+      "reference_configurations": [
+        "A",
+        "B"
+      ],
+      "references": [
+        {
+          "configuration": "A",
+          "error": null,
+          "port": "ANT1",
+          "position": "before",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T223136472639Z-ref-before-A-ANT1-20260908T223136.735941Z/run.json",
+          "sha256": "bb400767852fc30771cc4af7bfb39e1546fae93332905da807929be876e2af75",
+          "status": "passed"
+        },
+        {
+          "configuration": "A",
+          "error": null,
+          "port": "ANT2",
+          "position": "before",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T223136472639Z-ref-before-A-ANT2-20260908T223200.522630Z/run.json",
+          "sha256": "6d09d7a8fb1dee0cff9fd89830e316d684a5226872d15ca64a04d7f063cb7112",
+          "status": "passed"
+        },
+        {
+          "configuration": "A",
+          "error": null,
+          "port": "ANT4",
+          "position": "before",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T223136472639Z-ref-before-A-ANT4-20260908T223224.906703Z/run.json",
+          "sha256": "f28ce3f3ea897d15e7e6bbffbbb37a1bba4cd5f41bdfa8c505a29a19626dd23e",
+          "status": "passed"
+        },
+        {
+          "configuration": "A",
+          "error": null,
+          "port": "ANT8",
+          "position": "before",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T223136472639Z-ref-before-A-ANT8-20260908T223246.617390Z/run.json",
+          "sha256": "97e52340743e63f40b2e6f40c812064a9470a5fd77009e0d1bbb0257cec114cc",
+          "status": "passed"
+        },
+        {
+          "configuration": "A",
+          "error": null,
+          "port": "ANT7",
+          "position": "before",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T223136472639Z-ref-before-A-ANT7-20260908T223309.985526Z/run.json",
+          "sha256": "17dd4ba9a8d67b031a39eb8099f3bbd34cd1fff0ffd4a73623281b04e59d3573",
+          "status": "passed"
+        },
+        {
+          "configuration": "A",
+          "error": null,
+          "port": "ANT5",
+          "position": "before",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T223136472639Z-ref-before-A-ANT5-20260908T223324.138147Z/run.json",
+          "sha256": "3fc471603bb15329fe96c9fa951fb1951db864993b2b8ccec90ae33ce4d51803",
+          "status": "passed"
+        },
+        {
+          "configuration": "B",
+          "error": null,
+          "port": "ANT1",
+          "position": "before",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T223136472639Z-ref-before-B-ANT1-20260908T223340.439811Z/run.json",
+          "sha256": "e0e834af02ab1b90d4c1a10beba320eabe283e4a9551f5be7a2e5b09b0f0f8b7",
+          "status": "passed"
+        },
+        {
+          "configuration": "B",
+          "error": null,
+          "port": "ANT2",
+          "position": "before",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T223136472639Z-ref-before-B-ANT2-20260908T223356.197548Z/run.json",
+          "sha256": "466eef6afaf0a0c969ad2aace3be4c5ca3fe6379ff94e09f64761a38d0853f19",
+          "status": "passed"
+        },
+        {
+          "configuration": "B",
+          "error": null,
+          "port": "ANT4",
+          "position": "before",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T223136472639Z-ref-before-B-ANT4-20260908T223411.430241Z/run.json",
+          "sha256": "85cec7d438bcef15a2d06eb176945d96388e2ef1cbb949664efce65323c0b3c9",
+          "status": "passed"
+        },
+        {
+          "configuration": "B",
+          "error": null,
+          "port": "ANT8",
+          "position": "before",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T223136472639Z-ref-before-B-ANT8-20260908T223429.282111Z/run.json",
+          "sha256": "d90abee0c60c8c2639fc69f0f55a9e3db5d6806d7a15a6f576d1b31f9e5ac292",
+          "status": "passed"
+        },
+        {
+          "configuration": "B",
+          "error": null,
+          "port": "ANT7",
+          "position": "before",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T223136472639Z-ref-before-B-ANT7-20260908T223451.211545Z/run.json",
+          "sha256": "d38d3b2ad40bcb36942bddaffc5eb2817a0c97495f2aa208314aab10fa57f3c5",
+          "status": "passed"
+        },
+        {
+          "configuration": "B",
+          "error": null,
+          "port": "ANT5",
+          "position": "before",
+          "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T223136472639Z-ref-before-B-ANT5-20260908T223515.770289Z/run.json",
+          "sha256": "ab917153d3b6d8fc0bcbf939ab8ae8725b0222552c8d2f45b4bf0ebbffa0bbf0",
+          "status": "passed"
         }
       ],
       "restores": [],
       "schema": 1,
       "scope": "fresh TX1 phase/gain diagnostic block",
-      "source_sha256": "cc5c75f4e40f577d7e09ec3628a2ab703feddbad8332d51122b974d5c529d6a7",
-      "started_at": "2026-09-08T17:16:00.754232+00:00",
+      "source_sha256": "3bbc3c8331e7d32ecf67e9bc2a4aa56b0773b08f0148cc09fea4b6027ba7e3b9",
+      "started_at": "2026-09-08T22:31:36.472675+00:00",
       "status": "running",
       "surveyed_bearing_accuracy_available": false,
-      "updated_at": "2026-09-08T17:17:04.766539+00:00"
+      "updated_at": "2026-09-08T22:36:49.812911+00:00",
+      "weight_reference_configuration": "A"
     }
   ],
-  "fixture_sha256": "d3d5338afd9c21a6a610f0af5d819db8c352393eec750de0243944220d78e2fa"
+  "fixture_sha256": "d3d5338afd9c21a6a610f0af5d819db8c352393eec750de0243944220d78e2fa",
+  "exploratory_reference_timing_rows": 18
 }

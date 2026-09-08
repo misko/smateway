@@ -1,6 +1,6 @@
 # Comprehensive fast-switching campaign — progress report
 
-Snapshot: 2026-09-08T17:17:24.126621+00:00. **Full campaign incomplete.**
+Snapshot: 2026-09-08T22:36:53.989617+00:00. **Full campaign incomplete.**
 
 This report keeps historical replay, fresh muted acquisition, source-enabled static diagnostics, and fresh switching blocks separate. No surveyed-angle accuracy or live delivery latency is claimed.
 
@@ -29,7 +29,7 @@ All four named historical bearing rows and all three September 8 independent-ref
 
 ## Fresh acquisition and headroom
 
-80 completed bounded attempts; 6 retained failures. Successful counters alone do not imply an unclipped or useful phase measurement. The 10 MS/s lower-band attempt lost samples; 5.8 GHz/5 MS/s also has a retained dropout. Do not attribute either solely to network saturation or switch settling.
+145 completed bounded attempts; 6 retained failures. Successful counters alone do not imply an unclipped or useful phase measurement. The 10 MS/s lower-band attempt lost samples; 5.8 GHz/5 MS/s also has a retained dropout. Do not attribute either solely to network saturation or switch settling.
 
 ![Muted integrity](png/fig02_muted_integrity.png)
 
@@ -45,25 +45,54 @@ The 2.45 GHz static records show weak reference-correlated tone plus strong inte
 
 Each baseline block brackets three independent four-second captures per dwell, plus separate 200 µs controls, with per-port static references. The 1 ms profile changes only the six dwell words in the existing executable; its bounded watchdog proof was checked before deployment.
 
-| Frequency MHz | Block status | Captures collected | Exact restores |
-|---:|---|---:|---:|
-| 5800 | diagnostic-complete | 9 | 1 |
-| 2450 | failed | 8 | 1 |
-| 2475 | running | 0 | 0 |
+| Frequency MHz | Rate configuration | Block status | Captures collected | Exact restores |
+|---:|---|---|---:|---:|
+| 5800 | A | diagnostic-complete | 9 | 1 |
+| 2450 | A | failed | 8 | 1 |
+| 2475 | A | diagnostic-complete | 9 | 1 |
+| 5811 | A | diagnostic-complete | 18 | 1 |
+| 5811 | B | running | 5 | 0 |
 
 ![Fresh phase integration](png/fig05_fresh_phase_integration.png)
 
-| MHz | Dwell µs | Round | Control | Observable-port phase/closure pass | First phase window ms | Max observable phase bias ° | Max observable gain dB |
-|---:|---:|---:|---|---|---:|---:|---:|
-| 5800 | 200 | 1 | False | True | 50.83 | 3.26 | 0.64 |
-| 5800 | 200 | 1 | True | False | — | — | — |
-| 5800 | 1000 | 1 | False | True | 25.12 | 2.10 | 0.32 |
-| 5800 | 1000 | 2 | False | True | 25.12 | 2.61 | 0.21 |
-| 5800 | 200 | 2 | True | True | 50.82 | 2.04 | 0.28 |
-| 5800 | 200 | 2 | False | True | 50.83 | 2.27 | 0.31 |
-| 5800 | 200 | 3 | False | True | 100.16 | 1.93 | 0.42 |
-| 5800 | 1000 | 3 | False | True | 25.11 | 1.70 | 0.39 |
-| 5800 | 200 | 3 | True | False | — | 75.98 | 12.58 |
+| MHz | Configuration | Dwell µs | Round | Control | Observable-port phase/closure pass | First phase window ms | Max observable phase bias ° | Max observable gain dB |
+|---:|---|---:|---:|---|---|---:|---:|---:|
+| 5800 | A | 200 | 1 | False | True | 50.83 | 3.26 | 0.64 |
+| 5800 | A | 200 | 1 | True | False | — | — | — |
+| 5800 | A | 1000 | 1 | False | True | 25.12 | 2.10 | 0.32 |
+| 5800 | A | 1000 | 2 | False | True | 25.12 | 2.61 | 0.21 |
+| 5800 | A | 200 | 2 | True | True | 50.82 | 2.04 | 0.28 |
+| 5800 | A | 200 | 2 | False | True | 50.83 | 2.27 | 0.31 |
+| 5800 | A | 200 | 3 | False | True | 100.16 | 1.93 | 0.42 |
+| 5800 | A | 1000 | 3 | False | True | 25.11 | 1.70 | 0.39 |
+| 5800 | A | 200 | 3 | True | False | — | 75.98 | 12.58 |
+| 2475 | A | 200 | 1 | False | False | — | 169.90 | 45.52 |
+| 2475 | A | 200 | 1 | True | False | — | 178.91 | 27.66 |
+| 2475 | A | 1000 | 1 | False | True | 6.28 | 0.78 | 0.38 |
+| 2475 | A | 200 | 2 | True | False | — | 178.39 | 27.20 |
+| 2475 | A | 200 | 2 | False | False | — | 172.56 | 44.10 |
+| 2475 | A | 1000 | 2 | False | True | 6.28 | 0.82 | 0.31 |
+| 2475 | A | 200 | 3 | False | False | — | 178.33 | 36.92 |
+| 2475 | A | 200 | 3 | True | False | — | 176.74 | 42.68 |
+| 2475 | A | 1000 | 3 | False | True | 6.28 | 0.70 | 0.50 |
+| 5811 | A | 200 | 1 | True | True | 20.94 | 4.00 | 0.68 |
+| 5811 | A | 100 | 1 | False | False | — | 46.23 | 2.08 |
+| 5811 | A | 50 | 1 | False | False | — | 57.72 | 5.23 |
+| 5811 | A | 1000 | 1 | False | True | 25.12 | 2.09 | 0.47 |
+| 5811 | A | 200 | 1 | False | False | — | 96.28 | 11.78 |
+| 5811 | A | 25 | 1 | False | False | — | — | — |
+| 5811 | A | 50 | 2 | False | False | 100.51 | 10.22 | 1.64 |
+| 5811 | A | 1000 | 2 | False | True | 25.12 | 5.09 | 0.77 |
+| 5811 | A | 25 | 2 | False | False | — | — | — |
+| 5811 | A | 200 | 2 | True | True | 50.84 | 7.23 | 0.68 |
+| 5811 | A | 200 | 2 | False | False | 50.84 | 32.80 | 1.42 |
+| 5811 | A | 100 | 2 | False | False | — | 36.32 | 2.46 |
+| 5811 | A | 200 | 3 | False | True | 20.94 | 2.50 | 0.76 |
+| 5811 | A | 50 | 3 | False | False | — | 60.48 | 7.35 |
+| 5811 | A | 1000 | 3 | False | True | 25.12 | 3.80 | 0.18 |
+| 5811 | A | 200 | 3 | True | False | 50.84 | 10.60 | 1.32 |
+| 5811 | A | 25 | 3 | False | False | — | — | — |
+| 5811 | A | 100 | 3 | False | False | 50.25 | 8.39 | 1.16 |
 
 Decoder failures remain failed rows, not discarded trials; see the machine-readable phase table for reasons.
 
@@ -124,3 +153,26 @@ ANT1's total RX2 power did not drop; it is noise/interference dominated. Coheren
 Hardware captures paused at 2026-09-08T17:09:27.702623+00:00 for a proposed ANT1/ANT2 feed swap. Both serial-pinned radios were verified at −80 dB TX gain and zero DDS scales; the restored bench selector was lease-free ALL_OFF. The swap was not assumed performed. [Readback evidence](data/pre-swap-hardware-handoff.json). Any resumed intervention requires an explicit operator confirmation and a separate fixture binding; current report data precede the swap.
 
 The user subsequently declined the swap because they are away. **No wiring changed.** The temporary hardware hold was released; the original v2 fixture/mapping remains current. [Operator update](data/operator-no-swap.json).
+
+## Independent before/after reference drift
+
+Phase below removes only one common rotation; all-port errors remain in the CSV. A missing bracket is not a pass.
+
+| MHz | Configuration | Complete bracket | Phase/gain drift pass | Max observable phase ° | Max observable gain dB |
+|---:|---|---|---|---:|---:|
+| 2475 | A | True | True | 0.970 | 0.593 |
+| 5811 | A | True | True | 4.053 | 0.622 |
+
+## 2.475 GHz: timing labels versus physical switch settling
+
+The complete 2.475 GHz block has all six ports observable and a passing independent before/after reference bracket. All three 1 ms captures pass phase/gain closure; nominal-model bearing repeatability is approximately 0.63–0.74° at 25 ms, but the unchanged legacy model-valid percentage is zero. This is not a qualified bearing setting.
+
+The legacy 200 µs whole-record decoder places nearly zero in ANT1, the independently measured ANT1 level in ANT2, ANT2 in ANT4, and so on. A separately labeled reference-template fit moves the origin by approximately 219 µs—one 200 µs dwell plus guard—and restores phase/gain closure in all three main captures. Two interleaved controls still fail gain closure. This strongly supports a decoder-origin contribution; it does not prove that every short-dwell error is software or exclude physical settling.
+
+The prototype below keeps whole-record diagnosis, one-second-prefix/frozen-clock evaluation, and rolling past-only evaluation separate. Rolling uses a one-second lookback and 50 ms output windows, includes boundary discards in the observation budget, and retains failed windows. No old failure is relabeled. These are exploratory replays of existing captures, not newly acquired validation or live delivery measurements.
+
+Importantly, its template uses this test source's separately measured six-port complex response. That is a laboratory label/timing aid, not yet a general tracker for an unknown moving source. A deployable design needs reliable source-independent marker/selector timing or an independently validated causal synchronization scheme. Host replay compute time, where present, is separate from RF observation and radio/network delivery latency.
+
+![Reference-labeled timing diagnosis](png/fig11_reference_timing_diagnosis.png)
+
+[Method comparison](data/reference-timing-comparison.csv), [full timing studies and provenance](data/reference-timing-studies.json). Partially processed studies remain explicitly marked running; absent rows are not successful measurements.

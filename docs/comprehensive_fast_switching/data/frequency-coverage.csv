@@ -74,7 +74,7 @@ frequency_hz,allocation_hz,status,completed_calibration,fresh_diagnostic_capture
 2472000000,"[2400000000, 2500000000]",pending_measurement,False,0
 2473000000,"[2400000000, 2500000000]",pending_measurement,False,0
 2474000000,"[2400000000, 2500000000]",pending_measurement,False,0
-2475000000,"[2400000000, 2500000000]",pending_measurement,False,4
+2475000000,"[2400000000, 2500000000]",pending_measurement,False,22
 2476000000,"[2400000000, 2500000000]",pending_measurement,False,0
 2477000000,"[2400000000, 2500000000]",pending_measurement,False,0
 2478000000,"[2400000000, 2500000000]",pending_measurement,False,0
@@ -186,7 +186,7 @@ frequency_hz,allocation_hz,status,completed_calibration,fresh_diagnostic_capture
 5808000000,"[5725000000, 5875000000]",pending_measurement,False,0
 5809000000,"[5725000000, 5875000000]",pending_measurement,False,0
 5810000000,"[5725000000, 5875000000]",pending_measurement,False,0
-5811000000,"[5725000000, 5875000000]",pending_measurement,False,0
+5811000000,"[5725000000, 5875000000]",pending_measurement,False,47
 5812000000,"[5725000000, 5875000000]",pending_measurement,False,0
 5813000000,"[5725000000, 5875000000]",pending_measurement,False,0
 5814000000,"[5725000000, 5875000000]",pending_measurement,False,0
