@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DWELLS_US = (25, 50, 100, 200)
+DWELLS_US = (25, 50, 100, 200, 1000)
 PORTS = ("ANT1", "ANT2", "ANT4", "ANT8", "ANT7", "ANT5")
 CODES = ("0000", "0100", "0110", "0111", "0011", "0001")
 
@@ -28,11 +28,17 @@ def test_generated_tracking_c6_profiles_are_exact_and_safe() -> None:
         assert profile["safety"]["all_off_code"] == "1000"
         assert profile["release_contract"]["conformant"] is False
         assert profile["safety"]["unused_states"] == ["ANT3", "ANT6"]
+        if dwell_us == 1000:
+            assert (
+                profile["generated_from"]
+                == "profiles/tracking-c6-long-control-v1/profile_spec.json"
+            )
+            assert profile["safety"]["watchdog_refresh_opportunities"] == 2
 
         for filename, path in (
             ("control_profile.json", profile_path),
             ("control_profile.h", header_path),
         ):
-            assert hashlib.sha256(path.read_bytes()).hexdigest() == provenance["artifacts"][
-                filename
-            ]
+            assert (
+                hashlib.sha256(path.read_bytes()).hexdigest() == provenance["artifacts"][filename]
+            )

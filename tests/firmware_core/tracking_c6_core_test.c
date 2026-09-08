@@ -18,7 +18,9 @@ static void test_profile(void)
     assert(CONTROL_MARKER_BODY_US == 180u);
     assert(CONTROL_GUARD_US == 20u);
     assert(CONTROL_MAX_LATENESS_US == 5u);
-    assert(dwell_us >= 25u && dwell_us <= 200u);
+    assert((dwell_us >= 25u && dwell_us <= 200u) || dwell_us == 1000u);
+    assert(IWDG_MIN_TIMEOUT_US_FLOOR
+        > IWDG_PROVEN_REFRESH_OPPORTUNITIES * CONTROL_CYCLE_MAX_WALL_US_CEIL);
     for (index = 0u; index < CONTROL_STATE_COUNT; ++index) {
         assert(CONTROL_SCHEDULE[index].gpio_code_pa3_pa0 == expected_codes[index]);
         assert(CONTROL_SCHEDULE[index].dwell_us == dwell_us);

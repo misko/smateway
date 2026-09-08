@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "family_id": "tracking-c6-long-control-v1",
+  "revision": 1,
+  "source_profile": "profiles/fast20-v1/control_profile.json",
+  "timer_hz": 1000000,
+  "marker_body_us": 180,
+  "all_off_guard_us": 20,
+  "released_transition_guard_us": 5000,
+  "released_contract_conformant": false,
+  "protocol_status": "experimental 1 ms long-dwell control; unchanged watchdog timeout and GPIO timing; not released guard qualification",
+  "antenna_dwell_us": [1000],
+  "maximum_lateness_us": 5,
+  "watchdog_refresh_opportunities": 2,
+  "physical_order": "clockwise",
+  "forward_reference": "ANT1",
+  "state_order": ["ANT1", "ANT2", "ANT4", "ANT8", "ANT7", "ANT5"]
+}

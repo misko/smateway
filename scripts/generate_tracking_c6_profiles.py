@@ -14,9 +14,8 @@ SPEC_PATH = Path("profiles/tracking-c6-timing-v1/profile_spec.json")
 EXPECTED_SOURCE = Path("profiles/fast20-v1/control_profile.json")
 EXPECTED_ORDER = ("ANT1", "ANT2", "ANT4", "ANT8", "ANT7", "ANT5")
 EXPECTED_DWELLS_US = (25, 50, 100, 200)
-ALL_OFF_DEFINE = re.compile(
-    r"^#define CONTROL_ALL_OFF_CODE (0x[0-9A-Fa-f]+)u$", re.MULTILINE
-)
+LONG_SPEC_PATH = Path("profiles/tracking-c6-long-control-v1/profile_spec.json")
+ALL_OFF_DEFINE = re.compile(r"^#define CONTROL_ALL_OFF_CODE (0x[0-9A-Fa-f]+)u$", re.MULTILINE)
 
 
 def _object(value: object, label: str) -> dict[str, Any]:
@@ -33,9 +32,15 @@ def _sha256(path: Path) -> str:
     return _sha256_bytes(path.read_bytes())
 
 
-def _inputs() -> tuple[dict[str, Any], dict[str, Any], int]:
-    spec = _object(json.loads(SPEC_PATH.read_text(encoding="utf-8")), "spec")
-    if spec.get("schema") != 1 or spec.get("family_id") != "tracking-c6-timing-v1":
+def _inputs(
+    spec_path: Path = SPEC_PATH,
+) -> tuple[dict[str, Any], dict[str, Any], int]:
+    long_control = spec_path == LONG_SPEC_PATH
+    if spec_path not in (SPEC_PATH, LONG_SPEC_PATH):
+        raise ValueError("unreviewed profile specification")
+    spec = _object(json.loads(spec_path.read_text(encoding="utf-8")), "spec")
+    family = "tracking-c6-long-control-v1" if long_control else "tracking-c6-timing-v1"
+    if spec.get("schema") != 1 or spec.get("family_id") != family:
         raise ValueError("tracking C6 profile identity changed")
     source_path = Path(str(spec.get("source_profile", "")))
     if source_path != EXPECTED_SOURCE:
@@ -48,8 +53,10 @@ def _inputs() -> tuple[dict[str, Any], dict[str, Any], int]:
         raise ValueError("source profile does not define ALL_OFF")
     if tuple(spec.get("state_order", ())) != EXPECTED_ORDER:
         raise ValueError("tracking C6 physical order changed")
-    if tuple(spec.get("antenna_dwell_us", ())) != EXPECTED_DWELLS_US:
+    if tuple(spec.get("antenna_dwell_us", ())) != ((1000,) if long_control else EXPECTED_DWELLS_US):
         raise ValueError("tracking C6 dwell grid changed")
+    if long_control and spec.get("watchdog_refresh_opportunities") != 2:
+        raise ValueError("long control watchdog proof differs")
     if (
         spec.get("revision") != 1
         or spec.get("timer_hz") != 1_000_000
@@ -66,7 +73,12 @@ def _inputs() -> tuple[dict[str, Any], dict[str, Any], int]:
 
 
 def _profile(
-    spec: dict[str, Any], source: dict[str, Any], all_off_code: int, dwell_us: int
+    spec: dict[str, Any],
+    source: dict[str, Any],
+    all_off_code: int,
+    dwell_us: int,
+    *,
+    spec_path: Path = SPEC_PATH,
 ) -> dict[str, Any]:
     source_states = source.get("states")
     if not isinstance(source_states, list):
@@ -97,9 +109,7 @@ def _profile(
     marker_us = int(spec["marker_body_us"])
     cycle_us = marker_us + len(states) * (guard_us + dwell_us)
     identity = f"tracking-c6-{dwell_us}us-v1"
-    contract_sha256 = _sha256_bytes(
-        SPEC_PATH.read_bytes() + b"\0" + str(dwell_us).encode("ascii")
-    )
+    contract_sha256 = _sha256_bytes(spec_path.read_bytes() + b"\0" + str(dwell_us).encode("ascii"))
     return {
         "array_order": {
             "direction": "clockwise",
@@ -136,7 +146,7 @@ def _profile(
             "order": list(EXPECTED_ORDER),
             "recommended_capture_us": 2_000_000,
         },
-        "generated_from": str(SPEC_PATH),
+        "generated_from": str(spec_path),
         "profile": {"id": identity, "revision": int(spec["revision"])},
         "protocol": "framed_guarded_equal_dwell_tracking_c6_timing_v1",
         "release_contract": {
@@ -150,6 +160,7 @@ def _profile(
             "maximum_deadline_lateness_us": int(spec["maximum_lateness_us"]),
             "on_excessive_lateness": "apply ALL_OFF and restart the marker",
             "unused_states": ["ANT3", "ANT6"],
+            **({"watchdog_refresh_opportunities": 2} if spec_path == LONG_SPEC_PATH else {}),
         },
         "schema": 1,
         "states": states,
@@ -172,37 +183,38 @@ def _header(profile: dict[str, Any], all_off_code: int) -> str:
         "#include <stdint.h>",
         "",
         f'#define CONTROL_PROFILE_ID "{identity["id"]}"',
-        f'#define CONTROL_PROFILE_REVISION {identity["revision"]}u',
+        f"#define CONTROL_PROFILE_REVISION {identity['revision']}u",
         f'#define CONTROL_PROFILE_CONTRACT_SHA256 "{profile["contract_sha256"]}"',
         "#define CONTROL_EXPERIMENTAL_GUARD_WAIVER 1u",
         "#define CONTROL_RELEASED_GUARD_US 5000u",
         f"#define CONTROL_ALL_OFF_CODE 0x{all_off_code:X}u",
         "#define CONTROL_TIMER_HZ 1000000u",
-        f'#define CONTROL_GUARD_US {frame["all_off_guard_us"]}u',
-        f'#define CONTROL_MARKER_BODY_US {marker["body_nominal_us"]}u',
-        f'#define CONTROL_MAX_LATENESS_US {safety["maximum_deadline_lateness_us"]}u',
+        f"#define CONTROL_GUARD_US {frame['all_off_guard_us']}u",
+        f"#define CONTROL_MARKER_BODY_US {marker['body_nominal_us']}u",
+        f"#define CONTROL_MAX_LATENESS_US {safety['maximum_deadline_lateness_us']}u",
         f"#define CONTROL_STATE_COUNT {len(states)}u",
-        f'#define CONTROL_NOMINAL_CYCLE_US {frame["nominal_cycle_us"]}u',
+        f"#define CONTROL_NOMINAL_CYCLE_US {frame['nominal_cycle_us']}u",
         "",
-        "typedef struct { uint8_t gpio_code_pa3_pa0; uint16_t dwell_us; } "
-        "control_step_us_t;",
+        "typedef struct { uint8_t gpio_code_pa3_pa0; uint16_t dwell_us; } control_step_us_t;",
         "static const control_step_us_t CONTROL_SCHEDULE[CONTROL_STATE_COUNT] = {",
     ]
     for value in states:
         state = _object(value, "state")
         lines.append(
-            f'  {{ 0x{int(str(state["gpio_code_pa3_pa0"]), 2):X}u, '
-            f'{state["dwell_us"]}u }}, /* {state["name"]} */'
+            f"  {{ 0x{int(str(state['gpio_code_pa3_pa0']), 2):X}u, "
+            f"{state['dwell_us']}u }}, /* {state['name']} */"
         )
     lines.extend(("};", "", "#endif", ""))
+    if "watchdog_refresh_opportunities" in safety:
+        lines.insert(-2, "#define CONTROL_LONG_CONTROL_REFRESH_OPPORTUNITIES 2u")
     return "\n".join(lines)
 
 
-def _outputs() -> dict[Path, str]:
-    spec, source, all_off_code = _inputs()
+def _family_outputs(spec_path: Path) -> dict[Path, str]:
+    spec, source, all_off_code = _inputs(spec_path)
     outputs: dict[Path, str] = {}
-    for dwell_us in EXPECTED_DWELLS_US:
-        profile = _profile(spec, source, all_off_code, dwell_us)
+    for dwell_us in spec["antenna_dwell_us"]:
+        profile = _profile(spec, source, all_off_code, dwell_us, spec_path=spec_path)
         directory = Path(f"profiles/tracking-c6-{dwell_us}us-v1")
         profile_text = json.dumps(profile, indent=2, sort_keys=True) + "\n"
         header_text = _header(profile, all_off_code)
@@ -213,7 +225,7 @@ def _outputs() -> dict[Path, str]:
             },
             "schema": 1,
             "sources": {
-                str(SPEC_PATH): _sha256(SPEC_PATH),
+                str(spec_path): _sha256(spec_path),
                 str(EXPECTED_SOURCE): _sha256(EXPECTED_SOURCE),
                 str(EXPECTED_SOURCE.with_name("control_profile.h")): _sha256(
                     EXPECTED_SOURCE.with_name("control_profile.h")
@@ -228,6 +240,10 @@ def _outputs() -> dict[Path, str]:
     return outputs
 
 
+def _outputs() -> dict[Path, str]:
+    return {**_family_outputs(SPEC_PATH), **_family_outputs(LONG_SPEC_PATH)}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group(required=True)
@@ -239,7 +255,7 @@ def main() -> int:
         for path, content in outputs.items():
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content, encoding="utf-8")
-        print("TRACKING C6 PROFILE WRITE: generated 25/50/100/200 us profiles")
+        print("TRACKING C6 PROFILE WRITE: generated 25/50/100/200/1000 us profiles")
         return 0
     stale = [
         str(path)

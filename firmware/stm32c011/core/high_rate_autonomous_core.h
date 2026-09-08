@@ -73,7 +73,18 @@
     (((uint32_t)(CONTROL_NOMINAL_CYCLE_US) \
         * HSI48_NOMINAL_RATE_PERCENT + HSI48_MIN_RATE_PERCENT - UINT32_C(1)) \
         / HSI48_MIN_RATE_PERCENT)
+#ifdef CONTROL_LONG_CONTROL_REFRESH_OPPORTUNITIES
+/* The 6.3 ms diagnostic cycle has two refresh opportunities before timeout.
+ * Watchdog registers, timeout, deadline arithmetic and the GPIO path do not change.
+ */
+_Static_assert(CONTROL_NOMINAL_CYCLE_US == 6300u,
+    "long-control watchdog proof only covers the reviewed 1 ms dwell");
+_Static_assert(CONTROL_LONG_CONTROL_REFRESH_OPPORTUNITIES == 2u,
+    "long-control refresh margin changed");
+#define IWDG_PROVEN_REFRESH_OPPORTUNITIES UINT32_C(2)
+#else
 #define IWDG_PROVEN_REFRESH_OPPORTUNITIES UINT32_C(9)
+#endif
 
 _Static_assert(
     CONTROL_MAX_LATENESS_US

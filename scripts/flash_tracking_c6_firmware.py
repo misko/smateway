@@ -154,7 +154,7 @@ def _validated_build(path: Path) -> tuple[dict[str, Any], Path, int]:
         or not isinstance(binary, dict)
         or not isinstance(profile, dict)
         or document.get("guard_us") != 20
-        or document.get("dwell_us") not in (25, 50, 100, 200)
+        or document.get("dwell_us") not in (25, 50, 100, 200, 1000)
     ):
         raise ValueError("build manifest is not a passed C6 timing verification")
     binary_path = Path(str(binary.get("path", ""))).resolve(strict=True)
