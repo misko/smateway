@@ -14,6 +14,7 @@ from smateway.causal_timing import bearing_study, predict_intervals, train_timin
 from smateway.fast_tracking import FastTrackingProfile, decode_fast_schedule
 from smateway.rate_timing import (
     PORTS,
+    closure,
     coarse_product,
     complex_value,
     frozen_reference,
@@ -28,6 +29,56 @@ from smateway.tracking.manifold import far_field_steering
 from smateway.tracking.schedule import ArrayGeometry
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def block_references(block):
+    """Check disjoint configuration references and keep A-only weights frozen."""
+    configurations = block.get("reference_configurations", [block["configuration"]])
+    if "A" not in configurations:
+        raise ValueError("independent A weight references required")
+    references = {name: {"before": {}, "after": {}} for name in configurations}
+    for item in block["references"]:
+        path = Path(item["run_json"])
+        if sha256(path) != item["sha256"]:
+            raise ValueError("independent reference hash differs")
+        ref = load(path)
+        cfg = ref["configuration"]
+        name = item.get("configuration", block["configuration"])
+        if (
+            ref["status"] != "passed"
+            or cfg["mode"] != "static"
+            or cfg["name"] != name
+            or cfg["frequency_hz"] != block["frequency_hz"]
+            or cfg["receiver_gain_db"] != block["gain_db"]
+            or cfg["port"] != item["port"]
+            or name not in references
+            or item["position"] not in ("before", "after")
+        ):
+            raise ValueError("independent reference configuration differs")
+        target = references[name][item["position"]]
+        if item["port"] in target:
+            raise ValueError("duplicate independent reference")
+        target[item["port"]] = ref
+    if any(set(group["before"]) != set(PORTS) for group in references.values()):
+        raise ValueError("six before-references per configuration required")
+    frozen = frozen_reference({p: references["A"]["before"][p]["reference"] for p in PORTS})
+    drift = {}
+    for name, group in references.items():
+        available = set(group["after"]) == set(PORTS)
+        drift[name] = {"available": available, "passed": False}
+        if available:
+            vectors = {
+                position: [
+                    complex_value(group[position][p]["reference"]["transfer"]) for p in PORTS
+                ]
+                for position in ("before", "after")
+            }
+            drift[name].update(
+                closure(
+                    vectors["after"], vectors["before"], frozen["weights"], frozen["observable"]
+                )
+            )
+    return references, frozen, drift
 
 
 def analyze(run_path, *, fixture, refs, frozen, lut):
@@ -153,23 +204,7 @@ def main():
     if sha256(fixture_path) != fixture_binding["sha256"]:
         raise ValueError("fixture file hash differs")
     fixture = load(fixture_path)
-    refs = {}
-    for item in block["references"]:
-        if item["position"] != "before":
-            continue
-        path = Path(item["run_json"])
-        if sha256(path) != item["sha256"]:
-            raise ValueError("independent reference hash differs")
-        ref = load(path)
-        if (
-            ref["status"] != "passed"
-            or ref["configuration"]["frequency_hz"] != block["frequency_hz"]
-            or ref["configuration"]["receiver_gain_db"] != block["gain_db"]
-            or ref["configuration"]["port"] != item["port"]
-        ):
-            raise ValueError("independent reference configuration differs")
-        refs[item["port"]] = ref
-    frozen = frozen_reference({p: refs[p]["reference"] for p in PORTS})
+    refs, frozen, drift = block_references(block)
     lut_path = ROOT / "docs/pcb_direct_injection_calibration/data/calibration-lut.json"
     lut = BoardCalibrationLut.load(lut_path)
     output = args.block.with_name(args.block.stem + "-bearings.json")
@@ -180,10 +215,9 @@ def main():
         "block_sha256": sha256(args.block),
         "block_status": block["status"],
         "incomplete_block_diagnostic_only": incomplete,
-        "after_reference_bracket_available": len(
-            [r for r in block["references"] if r["position"] == "after"]
-        )
-        == 6,
+        "after_reference_bracket_available": all(d["available"] for d in drift.values()),
+        "independent_reference_drift": drift,
+        "independent_reference_drift_passed": all(d["passed"] for d in drift.values()),
         "fixture": fixture,
         "frozen_reference": frozen,
         "lut_sha256": sha256(lut_path),
@@ -205,7 +239,10 @@ def main():
         if sha256(path) != row["sha256"]:
             raise ValueError("capture evidence hash differs")
         try:
-            report = analyze(path, fixture=fixture, refs=refs, frozen=frozen, lut=lut)
+            name = load(path)["configuration"]["name"]
+            report = analyze(
+                path, fixture=fixture, refs=refs[name]["before"], frozen=frozen, lut=lut
+            )
         except ValueError as error:
             report = {"run_json": str(path), "status": "analysis-failed", "error": str(error)}
         result["rows"].append({"round": row["round"], "control": row["control"], **report})

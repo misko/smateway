@@ -37,18 +37,29 @@ from smateway.rate_timing import PORTS, analyze_rate_capture, sha256
 PROTOCOL = ROOT / "docs/comprehensive_fast_switching/data/protocol-v1.json"
 
 
-def schedule(dwells, seed):
+def schedule(dwells, seed, configuration="A"):
     if (
         not dwells
         or len(set(dwells)) != len(dwells)
         or any(d not in (25, 50, 100, 200, 1000) for d in dwells)
     ):
         raise ValueError("distinct reviewed dwell values required")
+    if configuration not in ("A", "B", "D"):
+        raise ValueError("only continuity-qualified rates are admitted")
     rng = random.Random(seed)
     rows = []
     for round_number in (1, 2, 3):
-        order = [{"round": round_number, "dwell_us": d, "control": False} for d in dwells]
-        order.append({"round": round_number, "dwell_us": 200, "control": True})
+        order = [
+            {"round": round_number, "dwell_us": d, "control": False, "configuration": configuration}
+            for d in dwells
+        ]
+        order.append(
+            {"round": round_number, "dwell_us": 200, "control": True, "configuration": "A"}
+        )
+        if configuration != "A":
+            order.append(
+                {"round": round_number, "dwell_us": 1000, "control": True, "configuration": "A"}
+            )
         rng.shuffle(order)
         rows.extend(order)
     return rows
@@ -86,11 +97,8 @@ def main():
     binding = admit_capture(
         PROTOCOL, args.frequency_hz, muted=False, fixture_path=args.fixture_json
     )
-    if args.configuration != "A":
-        raise SystemExit(
-            "first diagnostic implementation is A-only; rate comparisons need their own references"
-        )
-    rows = schedule(args.dwells_us, 202609081536 + args.frequency_hz)
+    rows = schedule(args.dwells_us, 202609081536 + args.frequency_hz, args.configuration)
+    reference_configurations = list(dict.fromkeys(("A", args.configuration)))
     for dwell in {r["dwell_us"] for r in rows}:
         if not (
             ROOT / f"build/STM32C011F4P6/tracking-c6-{dwell}us/pluto_tracking_c6.build.json"
@@ -106,6 +114,8 @@ def main():
         "frequency_hz": args.frequency_hz,
         "gain_db": args.gain_db,
         "configuration": args.configuration,
+        "reference_configurations": reference_configurations,
+        "weight_reference_configuration": "A",
         "binding": binding,
         "references": [],
         "captures": [],
@@ -121,12 +131,12 @@ def main():
         record["updated_at"] = datetime.now(UTC).isoformat()
         _write_json_atomic(path, record)
 
-    def take(tag, mode, *, port=None, row=None, flash=None):
+    def take(tag, mode, *, configuration, port=None, row=None, flash=None):
         command = [
             sys.executable,
             str(ROOT / "scripts/capture_rate_timing.py"),
             "--configuration",
-            args.configuration,
+            configuration,
             "--mode",
             mode,
             "--duration-s",
@@ -167,14 +177,25 @@ def main():
         return result
 
     def references(position):
-        for port in PORTS if position == "before" else reversed(PORTS):
-            result = take(f"ref-{position}-{port}", "static", port=port)
-            record["references"].append({"position": position, "port": port, **result})
-            save()
-            if result["status"] != "passed":
-                raise RuntimeError(
-                    "independent reference acquisition failed; no silent replacement"
+        configurations = (
+            reference_configurations if position == "before" else reversed(reference_configurations)
+        )
+        for configuration in configurations:
+            for port in PORTS if position == "before" else reversed(PORTS):
+                result = take(
+                    f"ref-{position}-{configuration}-{port}",
+                    "static",
+                    configuration=configuration,
+                    port=port,
                 )
+                record["references"].append(
+                    {"position": position, "port": port, "configuration": configuration, **result}
+                )
+                save()
+                if result["status"] != "passed":
+                    raise RuntimeError(
+                        "independent reference acquisition failed; no silent replacement"
+                    )
 
     def flash(dwell):
         print(f"[flash] {dwell}us", flush=True)
@@ -184,8 +205,10 @@ def main():
         return result
 
     def switched(row, flash_path):
-        tag = f"r{row['round']}-{row['dwell_us']}us" + ("-control" if row["control"] else "")
-        result = take(tag, "fast", row=row, flash=flash_path)
+        tag = f"r{row['round']}-{row['configuration']}-{row['dwell_us']}us" + (
+            "-control" if row["control"] else ""
+        )
+        result = take(tag, "fast", configuration=row["configuration"], row=row, flash=flash_path)
         record["captures"].append({**row, **result})
         save()
         if result["status"] != "passed":
@@ -208,14 +231,19 @@ def main():
         record["status"] = "acquired"
         save()
         refs = {
-            r["port"]: Path(r["run_json"])
-            for r in record["references"]
-            if r["position"] == "before"
+            configuration: {
+                r["port"]: Path(r["run_json"])
+                for r in record["references"]
+                if r["position"] == "before" and r["configuration"] == configuration
+            }
+            for configuration in reference_configurations
         }
         for row in record["captures"]:
             print(f"[analyze] {Path(row['run_json']).parent.name}", flush=True)
             try:
-                analysis = analyze_rate_capture(Path(row["run_json"]), refs, refs)
+                analysis = analyze_rate_capture(
+                    Path(row["run_json"]), refs[row["configuration"]], refs["A"]
+                )
             except ValueError as error:
                 analysis = {"status": "analysis-failed", "error": str(error), "variants": []}
             analysis_path = Path(row["run_json"]).parent / "independent-analysis.json"

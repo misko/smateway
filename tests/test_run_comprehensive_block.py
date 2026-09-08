@@ -26,6 +26,23 @@ def test_each_dwell_has_three_independent_rounds_and_separate_controls():
         MODULE.schedule([20000], 42)
 
 
+@pytest.mark.parametrize("configuration", ["B", "D"])
+def test_rate_screen_retains_independent_A_baseline_and_long_controls(configuration):
+    rows = MODULE.schedule([25, 50, 100, 200, 1000], 42, configuration)
+    assert len(rows) == 21
+    for number in (1, 2, 3):
+        group = [r for r in rows if r["round"] == number]
+        controls = [r for r in group if r["control"]]
+        assert {r["dwell_us"] for r in controls} == {200, 1000}
+        assert {r["configuration"] for r in controls} == {"A"}
+        assert {r["configuration"] for r in group if not r["control"]} == {configuration}
+
+
+def test_unqualified_10MS_rate_is_not_admitted():
+    with pytest.raises(ValueError, match="continuity"):
+        MODULE.schedule([200], 42, "C")
+
+
 @pytest.mark.parametrize("error", [RuntimeError("capture"), KeyboardInterrupt()])
 def test_capture_failure_and_interrupt_restore_original_backup(error):
     restored = []
