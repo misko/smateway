@@ -118,6 +118,7 @@ def bearing_study(
     reference_bearing_deg=None,
     truth_bearing_deg=None,
     grouping_cycles=None,
+    weights=None,
 ):
     """Score each disjoint vector independently; ensemble metrics are post-evaluation."""
     values = np.asarray(matrix, dtype=np.complex128)
@@ -144,7 +145,10 @@ def bearing_study(
         if not groups:
             continue
         grouped = values[: groups * cycles].reshape(groups, cycles, 6).mean(axis=1)
-        estimates = [solve_bearing(v * coefficients, steering, bearing_grid) for v in grouped]
+        estimates = [
+            solve_bearing(v * coefficients, steering, bearing_grid, weights=weights)
+            for v in grouped
+        ]
         angles = np.array([e.bearing_deg for e in estimates])
         valid = np.array([e.valid for e in estimates])
         # This circular centre is an evaluation statistic, never fed to a prediction.
