@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "fixture_id": "unchanged-c6-dual-band-us-20260908-diagnostic-v1",
+  "ready": true,
+  "kind": "ota",
+  "confirmed_at": "2026-09-08T16:27:38+00:00",
+  "timestamp_scope": "time the relayed current user confirmation was recorded",
+  "protocol_sha256": "18d5cbdeea722634df856efa692868571b6bbc250eb71648f77065f49ef8ef5b",
+  "receiver_serial": "104000b29905000e17000800065934759d",
+  "source_serial": "104473b80a16000de6ff2000f8a6beca79",
+  "ports": ["ANT1", "ANT2", "ANT4", "ANT8", "ANT7", "ANT5"],
+  "positions_m": null,
+  "geometry_status": "unconfirmed",
+  "capture_scope": "diagnostic_no_geometry",
+  "operator_confirmation": "User confirmed unchanged smateway wiring, all installed antennas supporting 2.4/5.8 GHz, and US lab; relayed by coordinating task 01a08195-4439-7fb0-8692-7e74693d867a on 2026-09-08.",
+  "authorization_description": "User-authorized bounded low-power campaign on the unchanged OTA fixture; retain TX hardware gain -35 dB and DDS scale 0.25. Use US 15.249 candidate frequency limits with the protocol's 1 MHz edge guard. Not a field-strength/emissions certification or permission for increased RF power.",
+  "approved_intervals_hz": [[2400000000, 2483500000], [5725000000, 5875000000]],
+  "surveyed_transmitter_angles_deg": null,
+  "wiring": {
+    "source_tx1": "splitter to RX1 reference and first OTA test antenna",
+    "source_tx2": "separate OTA test antenna",
+    "receiver_rx2": "C6 selector common"
+  },
+  "limitations": [
+    "Current antenna phase-centre coordinates have not been surveyed or confirmed.",
+    "Historical 51 mm design circle used a different port map; no matching current STL was found.",
+    "Diagnostics only; no geometry-qualified bearing or surveyed angle accuracy claim."
+  ]
+}
