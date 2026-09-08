@@ -1,0 +1,3 @@
+frequency_hz,geometry_radius_mm,truth_bearing_deg,estimated_bearing_deg,reported_second_bearing_deg,ambiguity_margin_db,passed
+2450000000,25.5,90,90.0,110.0,0.4549829622805299,False
+5800000000,25.5,90,90.0,270.0,2.6123704577774443,True

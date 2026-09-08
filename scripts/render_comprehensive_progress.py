@@ -130,9 +130,9 @@ def fresh_outputs(campaign_root, blocks, data, png):
                     [s["weighted_phase_rms_deg"] for s in study],
                     "o-",
                     alpha=0.6,
-                    label=f"{row['dwell_us']} µs / r{row['round']}",
+                    label=f"{frequency:g} MHz / {row['dwell_us']} µs / r{row['round']}",
                 )
-    for ax, label in zip(axes, ("2.45 GHz", "5.8 GHz"), strict=True):
+    for ax, label in zip(axes, ("Lower-band blocks", "5.8 GHz"), strict=True):
         ax.set(
             title=label,
             xlabel="Total RF observation (ms)",
@@ -215,7 +215,11 @@ def fresh_outputs(campaign_root, blocks, data, png):
                     }
                 )
                 color = "#2563eb" if cfg["dwell_us"] == 200 else "#d97706"
-                label = f"{cfg['dwell_us']} µs {method}" if row["round"] == 1 else None
+                label = (
+                    f"{frequency:g} MHz / {cfg['dwell_us']} µs {method}"
+                    if row["round"] == 1
+                    else None
+                )
                 for ax, key in zip(
                     axes[:, col],
                     ("model_valid_percent", "all_group_repeatability_rms_deg"),
@@ -229,7 +233,7 @@ def fresh_outputs(campaign_root, blocks, data, png):
                         alpha=0.6,
                         label=label,
                     )
-    for col, label in enumerate(("2.45 GHz", "5.8 GHz")):
+    for col, label in enumerate(("Lower-band blocks", "5.8 GHz")):
         axes[0, col].set(title=label, ylabel="Model-valid bearings (%)", ylim=(-2, 102))
         axes[1, col].set(xlabel="Total RF observation (ms)", ylabel="All-group circular RMS (°)")
         axes[0, col].axhline(95, color="gray", linestyle=":")
@@ -344,6 +348,124 @@ def ambient_outputs(paths, data, png):
     save(fig, png / "fig08_source_muted_block_size_control.png")
     csv_file(data / "ambient-block-size-controls.csv", rows)
     return rows
+
+
+def matched_ant1_outputs(blocks, data, png):
+    earlier_path = Path(
+        "/srv/bulk/samteway/lab-data/tracking-rate-timing-20260908-v2/campaign.json"
+    )
+    earlier = load(earlier_path)
+    current = next(
+        b
+        for b in blocks
+        if b["frequency_hz"] == 5_800_000_000 and b["status"] == "diagnostic-complete"
+    )
+    rows, matched = [], {}
+    for label, items in (("earlier", earlier["references"]), ("fresh", current["references"])):
+        for position in ("before", "after"):
+            refs = {}
+            for item in items:
+                if item["position"] != position or (
+                    label == "earlier" and item["configuration"] != "A"
+                ):
+                    continue
+                path = Path(item["run_json"])
+                run = load(path)
+                cfg = run["configuration"]
+                if (
+                    run["status"] != "passed"
+                    or cfg["name"] != "A"
+                    or cfg["mode"] != "static"
+                    or cfg["frequency_hz"] != 5_800_000_000
+                    or cfg["sample_rate_hz"] != 2_000_000
+                    or cfg["bandwidth_hz"] != 1_600_000
+                    or cfg["tx_channel"] != 0
+                    or cfg["duration_s"] != 2
+                    or run["receiver_settings"]["gain_db"] != 60
+                    or run["source_settings"]["tx_gain_db"] != [-35.0, -80.0]
+                ):
+                    raise ValueError(
+                        "historical/fresh static comparison is not configuration-matched"
+                    )
+                refs[item["port"]] = run
+                ref = run["reference"]
+                rows.append(
+                    {
+                        "epoch": label,
+                        "position": position,
+                        "port": item["port"],
+                        "run_json": str(path),
+                        "sha256": sha256(path),
+                        "transfer_magnitude": abs(complex_value(ref["transfer"])),
+                        "phase_rms_10ms_deg": ref["phase_rms_10ms_deg"],
+                        "rx1_power_counts2": ref["rx1_power_counts2"],
+                        "rx2_total_power_counts2": ref["rx2_power_counts2"],
+                    }
+                )
+            if set(refs) != set(PORTS):
+                raise ValueError("matched static comparison must retain all six ports")
+            matched[label, position] = refs
+
+    def amplitude(label, position, port):
+        return abs(complex_value(matched[label, position][port]["reference"]["transfer"]))
+
+    for position in ("before", "after"):
+        for port in PORTS:
+            old, new = matched["earlier", position][port], matched["fresh", position][port]
+            if (
+                old["identities"]["receiver_serial"] != new["identities"]["receiver_serial"]
+                or old["identities"]["source_serial"] != new["identities"]["source_serial"]
+            ):
+                raise ValueError("matched static comparison radio serials differ")
+            if old["source_settings"]["dds_scale"] != new["source_settings"]["dds_scale"]:
+                raise ValueError("matched static comparison DDS scales differ")
+    changes = [
+        {
+            "port": port,
+            "fresh_over_earlier_db": float(
+                20
+                * np.log10(
+                    np.mean([amplitude("fresh", p, port) for p in ("before", "after")])
+                    / np.mean([amplitude("earlier", p, port) for p in ("before", "after")])
+                )
+            ),
+        }
+        for port in PORTS
+    ]
+    csv_file(data / "matched-static-controls.csv", rows)
+    csv_file(data / "matched-port-transfer-change.csv", changes)
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4.5))
+    for offset, position in ((-0.18, "before"), (0.18, "after")):
+        axes[0].bar(
+            np.arange(6) + offset,
+            [
+                20 * np.log10(amplitude("fresh", position, p) / amplitude("earlier", position, p))
+                for p in PORTS
+            ],
+            width=0.35,
+            label=position,
+        )
+    axes[0].set_xticks(range(6), PORTS)
+    axes[0].axhline(0, color="gray", linewidth=1)
+    axes[0].set_ylabel("Fresh / earlier coherent transfer magnitude (dB)")
+    for offset, label in ((-0.18, "earlier"), (0.18, "fresh")):
+        axes[1].bar(
+            np.arange(2) + offset,
+            [
+                matched[label, p]["ANT1"]["reference"]["phase_rms_10ms_deg"]
+                for p in ("before", "after")
+            ],
+            width=0.35,
+            label=label,
+        )
+    axes[1].set_xticks(range(2), ("Before block", "After block"))
+    axes[1].set_ylabel("ANT1 static 10 ms phase RMS (°)")
+    for ax in axes:
+        ax.legend()
+        ax.grid(axis="y", alpha=0.2)
+    fig.suptitle("Matched 5.8 GHz / TX1 / RX60 dB / 2 MS/s / 1.6 MHz / 2 s static controls")
+    save(fig, png / "fig10_matched_ANT1_comparison.png")
+    return rows, changes
 
 
 def main():
@@ -515,6 +637,7 @@ def main():
     phases, bearings = fresh_outputs(args.campaign_root, blocks, data, png)
     ideal_gate_outputs(data, png)
     ambient = ambient_outputs(paths, data, png)
+    matched_rows, matched_changes = matched_ant1_outputs(blocks, data, png)
     summary = {
         "schema": 1,
         "generated_at": datetime.now(UTC).isoformat(),
@@ -677,7 +800,13 @@ def main():
                 f"| {row['frame_samples']} | {row['frame_samples'] / 2000:.0f} | {row['strongest_power_modulation_hz_not_necessarily_fundamental']:.1f} | {row['peak_component_counts_rx2']:.0f} | {row['source_muted']} |"
             )
         text.append("")
-    quiet = [r for r in static if r["frequency_mhz"] == 2475 and r["port"] == "ANT1"]
+    quiet = [
+        r
+        for r in static
+        if r["frequency_mhz"] == 2475
+        and r["port"] == "ANT1"
+        and Path(r["run_json"]).parent.name.startswith("diagnostic-2475-")
+    ]
     if quiet:
         row = quiet[-1]
         text.extend(
@@ -688,6 +817,32 @@ def main():
                 "",
             ]
         )
+    text.extend(
+        [
+            "## Is ANT1 newly weaker than the matched previous run?",
+            "",
+            "At matched 5.8 GHz TX1 settings, its mean before/after coherent transfer magnitude is **2.64 dB lower** than the earlier September 8 block. The before and after comparisons separately give −2.63 and −2.65 dB. ANT2, ANT4, ANT8, ANT7 and ANT5 change only +0.19, −0.28, +0.53, −0.03 and −0.04 dB respectively. ANT1 was already about 18–19 dB below ANT2; it is now about 21–22 dB below ANT2. This is an additional roughly 2.8 dB relative deficit, not a newly appearing 20 dB defect.",
+            "",
+            "The user explains that ANT1 is farther away and blocked by other antennas. That makes longstanding geometric attenuation plausible; it does not establish the cause of the additional change. These matched observations demonstrate a repeatable numerical difference across the two bracketing captures, not a causal diagnosis or a formal population-level significance test. RF geometry was not independently surveyed between sessions, and there was no cable swap.",
+            "",
+            "![Matched ANT1 comparison](png/fig10_matched_ANT1_comparison.png)",
+            "",
+            "| Epoch | Reference | ANT1 transfer magnitude | ANT1 10 ms phase RMS ° | RX2 total power counts² |",
+            "|---|---|---:|---:|---:|",
+        ]
+    )
+    for row in matched_rows:
+        if row["port"] == "ANT1":
+            text.append(
+                f"| {row['epoch']} | {row['position']} | {row['transfer_magnitude']:.9f} | {row['phase_rms_10ms_deg']:.2f} | {row['rx2_total_power_counts2']:.2f} |"
+            )
+    text.extend(
+        [
+            "",
+            "ANT1's total RX2 power did not drop; it is noise/interference dominated. Coherent RX1-referenced transfer is the relevant comparison. Settings and radio identities are checked by the renderer; [matched records](data/matched-static-controls.csv) remain explicitly separate from fresh calibration holdouts.",
+            "",
+        ]
+    )
     handoff_path = data / "pre-swap-hardware-handoff.json"
     if handoff_path.is_file():
         handoff = load(handoff_path)
@@ -699,6 +854,13 @@ def main():
                 "",
             ]
         )
+        if (data / "operator-no-swap.json").is_file():
+            text.extend(
+                [
+                    "The user subsequently declined the swap because they are away. **No wiring changed.** The temporary hardware hold was released; the original v2 fixture/mapping remains current. [Operator update](data/operator-no-swap.json).",
+                    "",
+                ]
+            )
     (args.output / "README.md").write_text("\n".join(text))
     print(f"report={args.output / 'README.md'}")
 

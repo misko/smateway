@@ -50,3 +50,12 @@ subsequent captures. Earlier v1 diagnostic records remain immutable and retain
 their original unknown-geometry acquisition scope. Use the same 25.5 mm radius
 in both bands. The physical layout must not be confused with the report's separate
 pair-first temporal scanning recommendation; historical reproduction is clockwise.
+
+## Proposed swap declined; unchanged fixture remains in use
+
+After the pre-swap mute/readback, the user said they are away and cannot swap
+cables. **No swap occurred.** The user explained that ANT1 is farther from the
+source and obstructed by other antennas, so some weakness is expected. Release
+the intervention hold and retain the original v2 geometry/mapping for authorized
+unchanged-fixture diagnostics. Transmitter angles remain approximate. The
+proposed swap document is an unexecuted future experiment, not current evidence.

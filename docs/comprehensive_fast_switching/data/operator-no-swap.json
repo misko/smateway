@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "recorded_at": "2026-09-08T17:13:05+00:00",
+  "swap_performed": false,
+  "hardware_hold_released": true,
+  "fixture_id_retained": "unchanged-c6-51mm-dual-band-us-20260908-v2",
+  "confirmation": "User is away and cannot swap cables; no swap occurred. Continue unchanged-fixture diagnostics under existing campaign authorization. Relayed by task 01a08195-4439-7fb0-8692-7e74693d867a.",
+  "user_context": "ANT1 is farther away and blocked by other antennas, so its weakness is expected. Investigate whether it is additionally weaker than matched earlier controls without assuming a new fault."
+}

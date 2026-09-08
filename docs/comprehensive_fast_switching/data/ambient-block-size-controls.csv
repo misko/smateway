@@ -1,0 +1,4 @@
+run_json,sha256,frame_samples,gain_db,strongest_power_modulation_hz_not_necessarily_fundamental,peak_component_counts_rx2,source_muted,per_sample_gain_telemetry_available
+/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/ambient-2450-A-g30-f100000-20260908T165720.236787Z/run.json,61973c0c5263a08a6b5688a54c15b54c7a19aec4590c5b09e3374ba021e9b1d8,100000,30,19.5,372.0,True,False
+/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/ambient-2450-A-g30-f200000-20260908T165907.353639Z/run.json,ac63584c154ec1da673ff5caffd00b803b2748a930087140a4c09d4838e55c35,200000,30,19.5,366.0,True,False
+/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/ambient-2450-A-g30-f50000-20260908T165758.835984Z/run.json,29ce05325f7a0ee154df0710ac586aeb404e39828dbd05d0f72d69037340d3bc,50000,30,19.5,368.0,True,False

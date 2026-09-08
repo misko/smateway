@@ -1,5 +1,9 @@
 # Pending ANT1/ANT2 feed-swap experiment
 
+Update: the user declined this intervention because they are away. **No cables
+were swapped.** This remains a future discriminating experiment; the temporary
+hardware hold was released under the existing unchanged-fixture authorization.
+
 This is a predeclared intervention, **not a claim that the operator has done it**.
 Hardware was muted and the bench selector verified ALL_OFF before requesting it.
 No hardware/fixture-dependent capture may resume until the user confirms or declines.
