@@ -29,6 +29,7 @@ def main():
     parser.add_argument("--block", type=Path, required=True)
     parser.add_argument("--dwell-us", type=int, default=25)
     parser.add_argument("--round", type=int, default=1, choices=(1, 2, 3))
+    parser.add_argument("--clock-input", choices=("cross", "rx2"), default="cross")
     args = parser.parse_args()
     block = load(args.block)
     refs, frozen, drift = block_references(block)
@@ -56,7 +57,7 @@ def main():
         ROOT / f"profiles/tracking-c6-{args.dwell_us}us-v1/control_profile.json"
     )
     output = args.block.with_name(
-        args.block.stem + f"-consensus-{args.dwell_us}us-r{args.round}.json"
+        args.block.stem + f"-consensus-{args.clock_input}-{args.dwell_us}us-r{args.round}.json"
     )
     report = {
         "schema": 1,
@@ -93,7 +94,12 @@ def main():
         }
         try:
             model, detail = train_consensus_timing(
-                one[training_start:], two[training_start:], profile, expected, fs=fs
+                one[training_start:],
+                two[training_start:],
+                profile,
+                expected,
+                fs=fs,
+                clock_input=args.clock_input,
             )
             left, right = predict_intervals(model, profile, fs + hop)
             left, right = left - fs, right - fs

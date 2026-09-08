@@ -35,7 +35,7 @@ def save(fig, path):
 def csv_file(path, rows):
     if rows:
         with path.open("w", newline="") as stream:
-            writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
+            writer = csv.DictWriter(stream, fieldnames=list(rows[0]), lineterminator="\n")
             writer.writeheader()
             writer.writerows(rows)
 
@@ -68,6 +68,15 @@ def reference_timing_outputs(campaign_root, data, png):
     records, rows = [], []
     for path in sorted(campaign_root.glob("block-*-reference-timing.json")):
         report = load(path)
+        block_path = Path(report["block"])
+        if sha256(block_path) != report["block_sha256"]:
+            raise ValueError("timing report block hash differs")
+        block = load(block_path)
+        recipe = block.get("timing_replay_recipe")
+        if recipe and sha256(Path(recipe["path"])) != recipe["sha256"]:
+            raise ValueError("timing recipe hash differs")
+        dataset_class = "recipe-bound fresh trial" if recipe else "exploratory replay"
+        observable = report["frozen_reference"]["observable"]
         records.append({"path": str(path), "sha256": sha256(path), "analysis": report})
         for item in report["rows"]:
             if "retrospective_reference_labeled" not in item:
@@ -85,6 +94,14 @@ def reference_timing_outputs(campaign_root, data, png):
                 rows.append(
                     {
                         "run_json": item["run_json"],
+                        "block_started_at": block["started_at"],
+                        "dataset_class": dataset_class,
+                        "observable_ports": " ".join(
+                            p for p, ok in zip(PORTS, observable, strict=True) if ok
+                        ),
+                        "unobservable_ports": " ".join(
+                            p for p, ok in zip(PORTS, observable, strict=True) if not ok
+                        ),
                         "frequency_mhz": cfg["frequency_hz"] / 1e6,
                         "configuration": cfg["name"],
                         "dwell_us": cfg["dwell_us"],
@@ -97,6 +114,11 @@ def reference_timing_outputs(campaign_root, data, png):
                         ],
                         "maximum_gain_db": metrics["closure"]["maximum_observable_gain_error_db"],
                         "phase_closure_pass_diagnostic_only": metrics["passed"],
+                        "base_window_phase_closure_pass": base_window_pass(metrics),
+                        "base_observation_ms": metrics["studies"][0]["wall_ms"],
+                        "base_weighted_phase_rms_deg": metrics["studies"][0][
+                            "weighted_phase_rms_deg"
+                        ],
                         "report_status": report["status"],
                     }
                 )
@@ -106,11 +128,12 @@ def reference_timing_outputs(campaign_root, data, png):
     (data / "reference-timing-studies.json").write_text(
         json.dumps({"schema": 1, "reports": records}, indent=2, allow_nan=False) + "\n"
     )
-    selected = list(dict.fromkeys(r["run_json"] for r in rows))
+    exploratory = [r for r in rows if r["dataset_class"] == "exploratory replay"]
+    selected = list(dict.fromkeys(r["run_json"] for r in exploratory))
     fig, axes = plt.subplots(1, 3, figsize=(16, 5.5))
     labels = []
     for index, path in enumerate(selected):
-        group = [r for r in rows if r["run_json"] == path]
+        group = [r for r in exploratory if r["run_json"] == path]
         row = group[0]
         labels.append(
             f"{row['frequency_mhz']:g}/{row['configuration']}\n{row['dwell_us']}us r{row['round']}"
@@ -122,7 +145,7 @@ def reference_timing_outputs(campaign_root, data, png):
         ("past-only frozen", "x"),
         ("past-only rolling 50 ms", "s"),
     ):
-        group = [r for r in rows if r["method"] == method]
+        group = [r for r in exploratory if r["method"] == method]
         for ax, key in zip(axes[1:], ("maximum_phase_deg", "maximum_gain_db"), strict=True):
             ax.scatter(
                 [selected.index(r["run_json"]) for r in group],
@@ -144,15 +167,64 @@ def reference_timing_outputs(campaign_root, data, png):
         "Exploratory timing diagnosis: old policy unchanged; no fresh-validation or live claim"
     )
     save(fig, png / "fig11_reference_timing_diagnosis.png")
+    fresh = [
+        r
+        for r in rows
+        if r["dataset_class"] == "recipe-bound fresh trial"
+        and r["method"] == "past-only rolling 50 ms"
+    ]
+    if fresh:
+        fig, axes = plt.subplots(1, 2, figsize=(13, 5))
+        labels = [
+            f"{r['block_started_at'][11:19]} {r['configuration']}\n{r['dwell_us']}us r{r['round']}"
+            + (" C" if r["control"] else "")
+            for r in fresh
+        ]
+        for ax, key, limit, title in zip(
+            axes,
+            ("base_weighted_phase_rms_deg", "maximum_gain_db"),
+            (10, 1),
+            ("50 ms weighted phase RMS (degrees)", "Maximum observable gain error (dB)"),
+            strict=True,
+        ):
+            ax.bar(
+                range(len(fresh)),
+                [r[key] for r in fresh],
+                color=[
+                    "#15803d" if r["base_window_phase_closure_pass"] else "#dc2626" for r in fresh
+                ],
+            )
+            ax.axhline(limit, color="gray", linestyle=":")
+            ax.set_xticks(range(len(fresh)), labels, rotation=70, ha="right", fontsize=7)
+            ax.set_ylabel(title)
+            ax.grid(axis="y", alpha=0.2)
+        fig.suptitle(
+            "Fresh recipe-bound rolling trials — known-emitter phase diagnostics, not bearing qualification"
+        )
+        save(fig, png / "fig14_fresh_recipe_timing.png")
     return rows
+
+
+def base_window_pass(metrics):
+    """Longer averages cannot turn a failed base observation into a pass."""
+    studies = metrics.get("studies", [])
+    return bool(metrics.get("closure", {}).get("passed") and studies and studies[0]["passed"])
 
 
 def fresh_outputs(campaign_root, blocks, data, png):
     phases, bearings, per_port = [], [], []
-    fig, axes = plt.subplots(1, 2, figsize=(12, 4.7))
-    for block in blocks:
+    fig, axes = plt.subplots(
+        max(1, (len(blocks) + 1) // 2),
+        2,
+        figsize=(13, 4.2 * max(1, (len(blocks) + 1) // 2)),
+        squeeze=False,
+    )
+    for index, block in enumerate(blocks):
         frequency = block["frequency_hz"] / 1e6
-        ax = axes[0 if frequency < 3000 else 1]
+        ax = axes.flat[index]
+        ax.set_title(
+            f"{frequency:g} MHz / {block['configuration']} / {block['started_at'][11:19]} UTC"
+        )
         for row in block["captures"]:
             if "analysis_json" not in row:
                 continue
@@ -170,6 +242,7 @@ def fresh_outputs(campaign_root, blocks, data, png):
             phases.append(
                 {
                     "frequency_mhz": frequency,
+                    "block_started_at": block["started_at"],
                     "configuration": row.get("configuration", block["configuration"]),
                     "dwell_us": row["dwell_us"],
                     "round": row["round"],
@@ -190,6 +263,7 @@ def fresh_outputs(campaign_root, blocks, data, png):
                 per_port.append(
                     {
                         "frequency_mhz": frequency,
+                        "block_started_at": block["started_at"],
                         "configuration": row.get("configuration", block["configuration"]),
                         "dwell_us": row["dwell_us"],
                         "round": row["round"],
@@ -209,34 +283,106 @@ def fresh_outputs(campaign_root, blocks, data, png):
                     }
                 )
             if variant and not row["control"]:
-                study = metrics["studies"]
+                study = [s for s in metrics["studies"] if s["groups"] >= 30]
+                if not study:
+                    continue
                 ax.loglog(
                     [s["wall_ms"] for s in study],
                     [s["weighted_phase_rms_deg"] for s in study],
                     "o-",
                     alpha=0.6,
-                    label=f"{frequency:g} MHz / {row.get('configuration', block['configuration'])} / {row['dwell_us']} µs / r{row['round']}",
+                    label=f"{row['dwell_us']} µs / r{row['round']}",
                 )
-    for ax, label in zip(axes, ("Lower-band blocks", "5.8 GHz"), strict=True):
+    for index, ax in enumerate(axes.flat):
+        if index >= len(blocks):
+            ax.set_visible(False)
+            continue
         ax.set(
-            title=label,
             xlabel="Total RF observation (ms)",
             ylabel="Weighted relative phase RMS (°)",
         )
         ax.axhline(10, linestyle=":", color="gray")
         ax.grid(alpha=0.2)
         if ax.lines and ax.get_legend_handles_labels()[0]:
-            ax.legend(fontsize=8)
+            ax.legend(fontsize=7, ncol=3)
     fig.suptitle(
-        "Fresh independent-reference phase diagnostics; phase-only threshold is not bearing qualification"
+        "Independent-reference phase diagnostics; plotted averages require >=30 groups; not bearing qualification"
     )
     save(fig, png / "fig05_fresh_phase_integration.png")
     csv_file(data / "fresh-phase-comparison.csv", phases)
     csv_file(data / "fresh-all-port-closure.csv", per_port)
+    columns = [(d, False) for d in (25, 50, 100, 200, 1000)] + [(200, True), (1000, True)]
+    matrix = np.full((len(blocks), len(columns)), np.nan)
+    table = []
+    fig_count, ax_count = plt.subplots(figsize=(11, max(3.5, len(blocks) * 0.7)))
+    for i, block in enumerate(blocks):
+        for j, (dwell, control) in enumerate(columns):
+            group = [
+                r for r in block["captures"] if r["dwell_us"] == dwell and r["control"] == control
+            ]
+            if not group:
+                continue
+            passed = 0
+            for row in group:
+                analysis = load(Path(row["analysis_json"])) if row.get("analysis_json") else {}
+                selected = next(
+                    (
+                        v
+                        for v in analysis.get("variants", [])
+                        if v["method"] == "native_refined" and v["leading_discard_us"] == 5
+                    ),
+                    {},
+                )
+                passed += bool(selected.get("metrics", {}).get("passed", False))
+            analyzed = sum("analysis_json" in r for r in group)
+            matrix[i, j] = passed if analyzed else np.nan
+            table.append(
+                {
+                    "frequency_mhz": block["frequency_hz"] / 1e6,
+                    "configuration": block["configuration"],
+                    "block_started_at": block["started_at"],
+                    "dwell_us": dwell,
+                    "control": control,
+                    "acquired_attempts": len(group),
+                    "analyzed_attempts": analyzed,
+                    "phase_closure_pass_count": passed,
+                    "block_status": block["status"],
+                }
+            )
+            pending_label = "unscored" if block["status"] == "failed" else "pending"
+            ax_count.text(
+                j,
+                i,
+                f"{passed}/{len(group)}"
+                if analyzed == len(group)
+                else f"{pending_label}\n{analyzed}/{len(group)}",
+                ha="center",
+                va="center",
+                fontsize=9,
+            )
+    ax_count.imshow(matrix, vmin=0, vmax=3, cmap="YlGn", aspect="auto")
+    ax_count.set_xticks(
+        range(len(columns)), [f"{d} us" + ("\nA control" if c else "") for d, c in columns]
+    )
+    ax_count.set_yticks(
+        range(len(blocks)),
+        [
+            f"{b['frequency_hz'] / 1e6:g} MHz / {b['configuration']}\n"
+            + b["started_at"][11:19]
+            + " UTC"
+            for b in blocks
+        ],
+    )
+    ax_count.set_title(
+        "Fixed-policy phase/closure passes per collected attempt\n"
+        "Separate blocks; blank = not collected; not bearing or full-block qualification"
+    )
+    save(fig_count, png / "fig12_dwell_rate_outcomes.png")
+    csv_file(data / "dwell-rate-outcomes.csv", table)
     if per_port:
         fig, axes = plt.subplots(1, 2, figsize=(12, max(4, len(per_port) / 6 * 0.4)))
         labels = [
-            f"{r['frequency_mhz']:.0f} / {r['configuration']} / {r['dwell_us']}µs / r{r['round']}"
+            f"{r['block_started_at'][11:19]} / {r['frequency_mhz']:.0f} / {r['configuration']} / {r['dwell_us']}µs / r{r['round']}"
             + (" control" if r["control"] else "")
             for r in per_port[::6]
         ]
@@ -274,17 +420,24 @@ def fresh_outputs(campaign_root, blocks, data, png):
             "Independent static-reference closure; * = below frozen visibility threshold, not qualified"
         )
         save(fig, png / "fig09_all_port_closure.png")
-    fig, axes = plt.subplots(2, 2, figsize=(12, 8), sharex="col")
+    bearing_paths = sorted(campaign_root.glob("block-*-bearings.json"))
+    fig, axes = plt.subplots(
+        max(1, len(bearing_paths)), 2, figsize=(12, 3.5 * max(1, len(bearing_paths))), squeeze=False
+    )
     full_bearing_reports = []
-    for path in sorted(campaign_root.glob("block-*-bearings.json")):
+    for index, path in enumerate(bearing_paths):
         report = load(path)
+        bearing_block = load(Path(report["block_path"]))
+        for ax in axes[index]:
+            ax.set_title(
+                f"{bearing_block['frequency_hz'] / 1e6:g} MHz / {bearing_block['configuration']} / {bearing_block['started_at'][11:19]} UTC"
+            )
         full_bearing_reports.append({"path": str(path), "sha256": sha256(path), "analysis": report})
         for row in report["rows"]:
             if "configuration" not in row or row["control"]:
                 continue
             cfg = row["configuration"]
             frequency = cfg["frequency_hz"] / 1e6
-            col = 0 if frequency < 3000 else 1
             for method, style in (("retrospective_full", "-"), ("causal_open_loop", "--")):
                 studies = (row.get(method) or {}).get("frozen_weight_bearings", [])
                 if not studies:
@@ -293,6 +446,7 @@ def fresh_outputs(campaign_root, blocks, data, png):
                 bearings.append(
                     {
                         "frequency_mhz": frequency,
+                        "block_started_at": bearing_block["started_at"],
                         "configuration": cfg["name"],
                         "dwell_us": cfg["dwell_us"],
                         "round": row["round"],
@@ -300,14 +454,16 @@ def fresh_outputs(campaign_root, blocks, data, png):
                         **selected,
                     }
                 )
-                color = "#2563eb" if cfg["dwell_us"] == 200 else "#d97706"
-                label = (
-                    f"{frequency:g} MHz / {cfg['name']} / {cfg['dwell_us']} µs {method}"
-                    if row["round"] == 1
-                    else None
-                )
+                color = {
+                    25: "#7c3aed",
+                    50: "#dc2626",
+                    100: "#15803d",
+                    200: "#2563eb",
+                    1000: "#d97706",
+                }[cfg["dwell_us"]]
+                label = f"{cfg['dwell_us']} µs {method}" if row["round"] == 1 else None
                 for ax, key in zip(
-                    axes[:, col],
+                    axes[index],
                     ("model_valid_percent", "all_group_repeatability_rms_deg"),
                     strict=True,
                 ):
@@ -319,18 +475,18 @@ def fresh_outputs(campaign_root, blocks, data, png):
                         alpha=0.6,
                         label=label,
                     )
-    for col, label in enumerate(("Lower-band blocks", "5.8 GHz")):
-        axes[0, col].set(title=label, ylabel="Model-valid bearings (%)", ylim=(-2, 102))
-        axes[1, col].set(xlabel="Total RF observation (ms)", ylabel="All-group circular RMS (°)")
-        axes[0, col].axhline(95, color="gray", linestyle=":")
-        axes[1, col].axhline(5, color="gray", linestyle=":")
-        for ax in axes[:, col]:
+    for pair in axes:
+        pair[0].set(
+            xlabel="Total RF observation (ms)", ylabel="Model-valid bearings (%)", ylim=(-2, 102)
+        )
+        pair[1].set(xlabel="Total RF observation (ms)", ylabel="All-group circular RMS (°)")
+        pair[0].axhline(95, color="gray", linestyle=":")
+        pair[1].axhline(5, color="gray", linestyle=":")
+        for ax in pair:
             ax.grid(alpha=0.2)
-        if axes[0, col].get_legend_handles_labels()[0]:
-            axes[0, col].legend(fontsize=7)
-    fig.suptitle(
-        "Fresh nominal-geometry bearings: independent frozen weights; lines with <30 groups remain diagnostic"
-    )
+        if pair[0].get_legend_handles_labels()[0]:
+            pair[0].legend(fontsize=6, ncol=2)
+    fig.suptitle("Nominal-geometry bearings by block; legacy timing; <30 groups remain diagnostic")
     save(fig, png / "fig06_fresh_bearing_comparison.png")
     csv_file(data / "fresh-bearing-comparison.csv", bearings)
     (data / "fresh-bearing-studies.json").write_text(
@@ -718,8 +874,20 @@ def main():
     blocks = [
         load(p)
         for p in sorted(args.campaign_root.glob("block-*.json"))
-        if not p.name.endswith(("-bearings.json", "-reference-timing.json"))
+        if len(p.stem.split("-")) == 2
     ]
+    # Offline sidecars may analyze an interrupted block without rewriting its
+    # acquisition record or manufacturing the missing reference bracket.
+    supplemental = {}
+    for path in sorted(args.campaign_root.glob("block-*-phase.json")):
+        phase_report = load(path)
+        if sha256(Path(phase_report["block_path"])) != phase_report["block_sha256"]:
+            raise ValueError("supplemental phase block hash differs")
+        supplemental.update({r["run_json"]: r for r in phase_report["rows"]})
+    for block in blocks:
+        block["captures"] = [
+            {**row, **supplemental.get(row["run_json"], {})} for row in block["captures"]
+        ]
     phases, bearings = fresh_outputs(args.campaign_root, blocks, data, png)
     timing_rows = reference_timing_outputs(args.campaign_root, data, png)
     ideal_gate_outputs(data, png)
@@ -764,7 +932,7 @@ def main():
         "were reproduced from hash-checked IQ. That establishes reproducibility, not new validation. "
         "The past-only experiment trains on one second, freezes clock/frequency estimates, then evaluates "
         "the unseen final three seconds. Its failure does not establish that all causal tracking is impossible: "
-        "relocking is not implemented and RF-inferred timing is not independent GPIO truth.",
+        "this baseline does not relock, and RF-inferred timing is not independent GPIO truth. A separate rolling prototype is evaluated later in this report.",
         "",
         "| MHz / TX | Dwell µs | Timing | RF window ms | Valid % | All-group RMS ° |",
         "|---|---:|---|---:|---:|---:|",
@@ -807,21 +975,23 @@ def main():
             "200 µs controls, with per-port static references. The 1 ms profile changes only the six dwell "
             "words in the existing executable; its bounded watchdog proof was checked before deployment.",
             "",
-            "| Frequency MHz | Rate configuration | Block status | Captures collected | Exact restores |",
-            "|---:|---|---|---:|---:|",
+            "| Block start UTC | Frequency MHz | Rate configuration | Block status | Captures collected | Exact restores |",
+            "|---|---:|---|---|---:|---:|",
         ]
     )
     for block in blocks:
         text.append(
-            f"| {block['frequency_hz'] / 1e6:.0f} | {block['configuration']} | {block['status']} | {len(block['captures'])} | {len(block['restores'])} |"
+            f"| {block['started_at'][11:19]} | {block['frequency_hz'] / 1e6:.0f} | {block['configuration']} | {block['status']} | {len(block['captures'])} | {len(block['restores'])} |"
         )
     text.extend(
         [
             "",
             "![Fresh phase integration](png/fig05_fresh_phase_integration.png)",
             "",
-            "| MHz | Configuration | Dwell µs | Round | Control | Observable-port phase/closure pass | First phase window ms | Max observable phase bias ° | Max observable gain dB |",
-            "|---:|---|---:|---:|---|---|---:|---:|---:|",
+            "![Dwell and rate outcome matrix](png/fig12_dwell_rate_outcomes.png)",
+            "",
+            "| Block start UTC | MHz | Configuration | Dwell µs | Round | Control | Observable-port phase/closure pass | First phase window ms | Max observable phase bias ° | Max observable gain dB |",
+            "|---|---:|---|---:|---:|---|---|---:|---:|---:|",
         ]
     )
     for row in phases:
@@ -830,14 +1000,14 @@ def main():
             return "—" if row[key] is None else f"{row[key]:.2f}"
 
         text.append(
-            f"| {row['frequency_mhz']:.0f} | {row['configuration']} | {row['dwell_us']} | {row['round']} | {row['control']} | {row['phase_and_closure_pass']} | {number('first_phase_pass_ms')} | {number('maximum_observable_phase_bias_deg')} | {number('maximum_observable_gain_error_db')} |"
+            f"| {row['block_started_at'][11:19]} | {row['frequency_mhz']:.0f} | {row['configuration']} | {row['dwell_us']} | {row['round']} | {row['control']} | {row['phase_and_closure_pass']} | {number('first_phase_pass_ms')} | {number('maximum_observable_phase_bias_deg')} | {number('maximum_observable_gain_error_db')} |"
         )
     text.extend(
         [
             "",
-            "Decoder failures remain failed rows, not discarded trials; see the machine-readable phase table for reasons.",
+            "Decoder failures remain failed rows, not discarded trials; see the machine-readable phase table for reasons. The phase-integration figure plots only averages with at least 30 groups; lower-count studies remain in the full analysis evidence and do not establish repeatability.",
             "",
-            "At 5.8 GHz the independent before-reference places ANT1 below the frozen −20 dB visibility threshold. It still contributes its small frozen weight, but is excluded from the maximum-observable-port gates. Thus the 1 ms result is a five-observable-port diagnostic, not a six-port qualification. ANT1's excess gain error remains visible below; no post-hoc port removal was used.",
+            "In the 5.800 GHz block started at 16:42:49 UTC, the independent before-reference places ANT1 below the frozen −20 dB visibility threshold. It still contributes its small frozen weight, but is excluded from the maximum-observable-port gates. Thus that block's 1 ms result is a five-observable-port diagnostic, not a six-port qualification. Later blocks freeze their own masks; do not assume the same visibility across blocks. All-port errors remain visible below; no post-hoc port removal was used.",
             "",
             "![All-port independent closure](png/fig09_all_port_closure.png)",
             "",
@@ -995,7 +1165,7 @@ def main():
             [
                 "## 2.475 GHz: timing labels versus physical switch settling",
                 "",
-                "The complete 2.475 GHz block has all six ports observable and a passing independent before/after reference bracket. All three 1 ms captures pass phase/gain closure; nominal-model bearing repeatability is approximately 0.63–0.74° at 25 ms, but the unchanged legacy model-valid percentage is zero. This is not a qualified bearing setting.",
+                "The exploratory 2.475 GHz block started at 17:16:00 UTC has all six ports observable and a passing independent before/after reference bracket. All three 1 ms captures pass phase/gain closure; nominal-model bearing repeatability is approximately 0.63–0.74° at 25 ms, but the unchanged legacy model-valid percentage is zero. This is not a qualified bearing setting. The later blocks below are separate acquisitions with separately frozen visibility masks.",
                 "",
                 "The legacy 200 µs whole-record decoder places nearly zero in ANT1, the independently measured ANT1 level in ANT2, ANT2 in ANT4, and so on. A separately labeled reference-template fit moves the origin by approximately 219 µs—one 200 µs dwell plus guard—and restores phase/gain closure in all three main captures. Two interleaved controls still fail gain closure. This strongly supports a decoder-origin contribution; it does not prove that every short-dwell error is software or exclude physical settling.",
                 "",
@@ -1006,6 +1176,85 @@ def main():
                 "![Reference-labeled timing diagnosis](png/fig11_reference_timing_diagnosis.png)",
                 "",
                 "[Method comparison](data/reference-timing-comparison.csv), [full timing studies and provenance](data/reference-timing-studies.json). Partially processed studies remain explicitly marked running; absent rows are not successful measurements.",
+                "",
+            ]
+        )
+        rolling = [
+            r
+            for r in timing_rows
+            if r["method"] == "past-only rolling 50 ms"
+            and r["dataset_class"] == "exploratory replay"
+        ]
+        if rolling:
+            text.extend(
+                [
+                    "| MHz | Configuration | Dwell µs | Round | Control | Phase/closure diagnostic pass | 50 ms weighted phase RMS ° |",
+                    "|---:|---|---:|---:|---|---|---:|",
+                ]
+            )
+            for row in rolling:
+                text.append(
+                    f"| {row['frequency_mhz']:g} | {row['configuration']} | {row['dwell_us']} | "
+                    f"{row['round']} | {row['control']} | {row['phase_closure_pass_diagnostic_only']} | "
+                    f"{row['base_weighted_phase_rms_deg']:.3f} |"
+                )
+            text.extend(
+                [
+                    "",
+                    "The table above contains exploratory replays only. Subsequent recipe-bound trials are reported separately below.",
+                    "",
+                ]
+            )
+        fresh_timing = [
+            r
+            for r in timing_rows
+            if r["method"] == "past-only rolling 50 ms"
+            and r["dataset_class"] == "recipe-bound fresh trial"
+        ]
+        if fresh_timing:
+            text.extend(
+                [
+                    "## Fresh frozen-recipe timing trials",
+                    "",
+                    "These captures were acquired after the [laboratory timing recipe](REFERENCE-TIMING-VALIDATION-v1.md) was frozen and bind its hash before acquisition. Results below require phase repeatability in the base 50 ms window **and** phase/gain closure; passing only after longer averaging is not a 50 ms pass. This is still offline, known-emitter phase analysis, not a live or surveyed-bearing qualification.",
+                    "",
+                    "The 22:58:55 UTC A/2 MS/s block at 2.475 GHz has ANT5 below the independently frozen visibility threshold: five observable ports, unlike the earlier six-observable-port exploratory block. At 100 µs, all three main captures pass with 0.95–1.16° weighted phase RMS at 50 ms; all three interleaved 200 µs controls and the independent reference bracket pass. At 50 µs, only two of three pass: round 3 has 1.917 dB maximum observable gain error. At 25 µs, none pass. These are per-condition results, not a claim that the whole dwell ladder passes.",
+                    "",
+                    "The 100 µs replay took about 403 ms average host compute per 50 ms window (459 ms p95) in this run. Thus the offline implementation did not keep up with real time. RF observation, initial one-second training and processing/delivery latency must not be conflated.",
+                    "",
+                    "![Fresh recipe-bound timing trials](png/fig14_fresh_recipe_timing.png)",
+                    "",
+                    "| Block start UTC | MHz / configuration | Dwell µs | Round | Control | 50 ms phase/closure pass | Weighted RMS ° | Below visibility threshold |",
+                    "|---|---|---:|---:|---|---|---:|---|",
+                ]
+            )
+            for row in fresh_timing:
+                text.append(
+                    f"| {row['block_started_at'][11:19]} | {row['frequency_mhz']:g} / {row['configuration']} | {row['dwell_us']} | {row['round']} | {row['control']} | {row['base_window_phase_closure_pass']} | {row['base_weighted_phase_rms_deg']:.3f} | {row['unobservable_ports'] or 'none'} |"
+                )
+            text.append("")
+    if (png / "fig13_switching_spectrum_5811_A.png").is_file():
+        text.extend(
+            [
+                "## Separate exploratory short-dwell spectrum diagnosis",
+                "",
+                "![5.811 GHz switching spectrum](png/fig13_switching_spectrum_5811_A.png)",
+                "",
+                "At 25 µs, stronger inconsistent spectral peaks can defeat the legacy weighted-median clock estimate even when three weaker harmonics agree. This motivates an isolated harmonic-consensus experiment, not changing the frozen decoder or relabeling its failures. [Spectrum evidence](data/switching-spectrum-5811-A.json). Receiver/switching artifacts and ambient RF remain competing explanations; the spectral pattern alone does not identify the PCB as the cause.",
+                "",
+            ]
+        )
+    if (args.output / "INTERRUPTION-20260908T2242.md").is_file():
+        text.extend(
+            [
+                "## Interrupted 5 MS/s block",
+                "",
+                "The 5.811 GHz B block acquired all 21 switched records and its complete B reference bracket, "
+                "but received an interrupt before completing the A-after bracket. "
+                "It remains incomplete, not a sample-loss or switching-failure claim. "
+                "Offline analyses are supplemental sidecars; the acquisition record is unchanged. "
+                "[Interruption and safety checks](INTERRUPTION-20260908T2242.md). "
+                "The subsequent D block is an independent bandwidth comparison, not a replacement holdout.",
                 "",
             ]
         )

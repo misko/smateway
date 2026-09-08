@@ -41,12 +41,23 @@ class ConsensusClock:
     cycle_samples: float
 
 
-def train_consensus_timing(rx1, rx2, profile, references, *, fs, training_s=1):
+def train_consensus_timing(rx1, rx2, profile, references, *, fs, training_s=1, clock_input="cross"):
     count = round(training_s * fs)
     if count <= 0 or len(rx1) <= count or len(rx1) != len(rx2):
         raise ValueError("training prefix and unseen data required")
     one, two = rx1[:count], rx2[:count]
-    values = np.convolve(coarse_product(one, two, fs), np.ones(5) / 5, mode="same")
+    if clock_input == "cross":
+        clock_signal = coarse_product(one, two, fs)
+    elif clock_input == "rx2":
+        factor = fs // 1000000
+        if fs % 1000000 or factor < 1:
+            raise ValueError("clock input requires integer MHz sample rate")
+        clock_signal = (
+            np.asarray(two[: len(two) // factor * factor]).reshape(-1, factor).mean(axis=1)
+        )
+    else:
+        raise ValueError("unknown clock input")
+    values = np.convolve(clock_signal, np.ones(5) / 5, mode="same")
     values -= values.mean()
     size = 1 << (4 * len(values) - 1).bit_length()
     amplitude = abs(np.fft.fft(values, n=size))
@@ -76,6 +87,7 @@ def train_consensus_timing(rx1, rx2, profile, references, *, fs, training_s=1):
     model = ConsensusClock(count, fs, alignment["shift_bins"] / len(fold) * period, period)
     return model, {
         "method": "experimental maximum harmonic consensus",
+        "clock_input": clock_input,
         "estimates_hz": estimates,
         "weights": weights,
         "consensus": mask.tolist(),

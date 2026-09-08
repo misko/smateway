@@ -69,3 +69,20 @@ def test_current_geometry_binding_is_same_radius_in_both_bands():
     assert fixture["ports"] == list(PORTS)
     assert fixture["geometry_status"] == "user_confirmed_nominal"
     assert fixture["surveyed_transmitter_angles_deg"] is None
+
+
+def test_longer_integration_cannot_promote_failed_base_window():
+    metrics = {
+        "passed": True,
+        "closure": {"passed": True},
+        "studies": [{"passed": False}, {"passed": True}],
+    }
+    assert not MODULE.base_window_pass(metrics)
+    metrics["studies"][0]["passed"] = True
+    assert MODULE.base_window_pass(metrics)
+    metrics["closure"]["passed"] = False
+    assert not MODULE.base_window_pass(metrics)
+
+
+def test_absent_base_window_is_not_a_pass():
+    assert not MODULE.base_window_pass({"closure": {"passed": True}, "studies": []})

@@ -1,0 +1,328 @@
+{
+  "schema": 1,
+  "block": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/block-20260908T222235133339Z.json",
+  "block_sha256": "d8fbdee86e38c0f2ff143ffe39337e342ec4b140fe2d1c949da2af64a4bfd4f2",
+  "source_sha256": "9d5a51e7a7eb41e0f0690c2221d57a3903004ced6b6945ce38c1e90f6aa5a31d",
+  "rows": [
+    {
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r1-25us-20260908T222516.265695Z/run.json",
+      "sha256": "3ab9f8bac1e594f2f75862f8812a1ddb00cec80f0020f46d28e03f643e8f0c64",
+      "dwell_us": 25,
+      "nominal_fundamental_hz": 2222.222222222222,
+      "restricted_harmonic_peaks": [
+        {
+          "harmonic": 1,
+          "peak_hz": 2229.1426675500784,
+          "inferred_fundamental_hz": 2229.1426675500784,
+          "relative_weight": 0.1854835360891074
+        },
+        {
+          "harmonic": 2,
+          "peak_hz": 4458.408548442937,
+          "inferred_fundamental_hz": 2229.2042742214685,
+          "relative_weight": 0.01923555060406636
+        },
+        {
+          "harmonic": 3,
+          "peak_hz": 6687.62284575193,
+          "inferred_fundamental_hz": 2229.2076152506434,
+          "relative_weight": 0.013927178796448206
+        },
+        {
+          "harmonic": 4,
+          "peak_hz": 8467.007904195027,
+          "inferred_fundamental_hz": 2116.7519760487567,
+          "relative_weight": 0.4065672200744924
+        },
+        {
+          "harmonic": 5,
+          "peak_hz": 10691.846328337644,
+          "inferred_fundamental_hz": 2138.369265667529,
+          "relative_weight": 1.0
+        },
+        {
+          "harmonic": 6,
+          "peak_hz": 12919.262336161157,
+          "inferred_fundamental_hz": 2153.210389360193,
+          "relative_weight": 0.18876660534189454
+        }
+      ],
+      "strongest_separated_peaks_hz": [
+        10691.821575164795,
+        10683.35771560669,
+        10699.152946472168,
+        10672.450065612793,
+        8467.018604278564,
+        8458.256721496582,
+        10705.053806304932,
+        10710.060596466064
+      ],
+      "legacy_weighted_median_hz": 2138.369265667529,
+      "legacy_consistent_harmonic_count": 1,
+      "consensus_count_by_candidate": [
+        3,
+        3,
+        3,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r1-50us-20260908T222430.717395Z/run.json",
+      "sha256": "5dc31447b92ccea82fbe45594bf587bfa6dbda34ee2d138b158a20c69ce75d9c",
+      "dwell_us": 50,
+      "nominal_fundamental_hz": 1666.6666666666667,
+      "restricted_harmonic_peaks": [
+        {
+          "harmonic": 1,
+          "peak_hz": 1671.8288533601335,
+          "inferred_fundamental_hz": 1671.8288533601335,
+          "relative_weight": 0.7557028832244588
+        },
+        {
+          "harmonic": 2,
+          "peak_hz": 3343.6552059507508,
+          "inferred_fundamental_hz": 1671.8276029753754,
+          "relative_weight": 0.028503279017805434
+        },
+        {
+          "harmonic": 3,
+          "peak_hz": 5015.8608826180625,
+          "inferred_fundamental_hz": 1671.953627539354,
+          "relative_weight": 0.16505466646434902
+        },
+        {
+          "harmonic": 4,
+          "peak_hz": 6687.079667881776,
+          "inferred_fundamental_hz": 1671.769916970444,
+          "relative_weight": 0.32456451249190743
+        },
+        {
+          "harmonic": 5,
+          "peak_hz": 8359.85862140864,
+          "inferred_fundamental_hz": 1671.9717242817283,
+          "relative_weight": 0.1384065183672748
+        },
+        {
+          "harmonic": 6,
+          "peak_hz": 10030.580955468951,
+          "inferred_fundamental_hz": 1671.7634925781585,
+          "relative_weight": 0.27412768287879546
+        }
+      ],
+      "strongest_separated_peaks_hz": [
+        14592.70715713501,
+        12920.916080474854,
+        1671.8506813049316,
+        14602.482318878174,
+        12913.167476654053,
+        12930.631637573242,
+        12941.479682922363,
+        14584.958553314209
+      ],
+      "legacy_weighted_median_hz": 1671.8288533601335,
+      "legacy_consistent_harmonic_count": 6,
+      "consensus_count_by_candidate": [
+        6,
+        6,
+        6,
+        6,
+        6,
+        6
+      ]
+    },
+    {
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r1-100us-20260908T222415.183804Z/run.json",
+      "sha256": "e529e7417a0729245bd69e06b483a00b52441cb6a09cd53e91d511b3c6e9b45f",
+      "dwell_us": 100,
+      "nominal_fundamental_hz": 1111.111111111111,
+      "restricted_harmonic_peaks": [
+        {
+          "harmonic": 1,
+          "peak_hz": 1114.6165312071687,
+          "inferred_fundamental_hz": 1114.6165312071687,
+          "relative_weight": 1.0
+        },
+        {
+          "harmonic": 2,
+          "peak_hz": 2229.2204504002384,
+          "inferred_fundamental_hz": 1114.6102252001192,
+          "relative_weight": 0.03381548993332659
+        },
+        {
+          "harmonic": 3,
+          "peak_hz": 3343.8712333856365,
+          "inferred_fundamental_hz": 1114.623744461879,
+          "relative_weight": 0.5625788559023813
+        },
+        {
+          "harmonic": 4,
+          "peak_hz": 4458.584144678844,
+          "inferred_fundamental_hz": 1114.646036169711,
+          "relative_weight": 0.20796761380401857
+        },
+        {
+          "harmonic": 5,
+          "peak_hz": 5573.277385748556,
+          "inferred_fundamental_hz": 1114.6554771497113,
+          "relative_weight": 0.38587752917549456
+        },
+        {
+          "harmonic": 6,
+          "peak_hz": 6687.891449090026,
+          "inferred_fundamental_hz": 1114.6485748483376,
+          "relative_weight": 0.0674412752279069
+        }
+      ],
+      "strongest_separated_peaks_hz": [
+        1114.6068572998047,
+        7366.1208152771,
+        3343.8801765441895,
+        8480.78727722168,
+        5573.272705078125,
+        7374.763488769531,
+        7358.968257904053,
+        8489.429950714111
+      ],
+      "legacy_weighted_median_hz": 1114.623744461879,
+      "legacy_consistent_harmonic_count": 6,
+      "consensus_count_by_candidate": [
+        6,
+        6,
+        6,
+        6,
+        6,
+        6
+      ]
+    },
+    {
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r1-200us-20260908T222501.075648Z/run.json",
+      "sha256": "83840494a0bb6e49ef3a949296ab5231c5ef4bf04ed7fcc538d9b31645a3da43",
+      "dwell_us": 200,
+      "nominal_fundamental_hz": 666.6666666666666,
+      "restricted_harmonic_peaks": [
+        {
+          "harmonic": 1,
+          "peak_hz": 668.7206667528163,
+          "inferred_fundamental_hz": 668.7206667528163,
+          "relative_weight": 1.0
+        },
+        {
+          "harmonic": 2,
+          "peak_hz": 1337.4402559140512,
+          "inferred_fundamental_hz": 668.7201279570256,
+          "relative_weight": 0.04938609301232686
+        },
+        {
+          "harmonic": 3,
+          "peak_hz": 2006.1621569702975,
+          "inferred_fundamental_hz": 668.7207189900992,
+          "relative_weight": 0.4682488230593815
+        },
+        {
+          "harmonic": 4,
+          "peak_hz": 2674.5783994570593,
+          "inferred_fundamental_hz": 668.6445998642648,
+          "relative_weight": 0.23733426798398127
+        },
+        {
+          "harmonic": 5,
+          "peak_hz": 3343.296167123685,
+          "inferred_fundamental_hz": 668.659233424737,
+          "relative_weight": 0.23119196827483854
+        },
+        {
+          "harmonic": 6,
+          "peak_hz": 4209.463138408467,
+          "inferred_fundamental_hz": 701.5771897347445,
+          "relative_weight": 0.07894833309753992
+        }
+      ],
+      "strongest_separated_peaks_hz": [
+        668.7045097351074,
+        2006.1731338500977,
+        2674.579620361328,
+        3343.2841300964355,
+        4217.50545501709,
+        4227.340221405029,
+        8899.569511413574,
+        12911.319732666016
+      ],
+      "legacy_weighted_median_hz": 668.7206667528163,
+      "legacy_consistent_harmonic_count": 5,
+      "consensus_count_by_candidate": [
+        5,
+        5,
+        5,
+        5,
+        5,
+        1
+      ]
+    },
+    {
+      "run_json": "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/captures/block-20260908T222235133339Z-r1-1000us-20260908T222445.466742Z/run.json",
+      "sha256": "b089ce32440d2912b024fb5d77e9477d5100cd2c40b7aadb3c14310ade1f6781",
+      "dwell_us": 1000,
+      "nominal_fundamental_hz": 158.73015873015873,
+      "restricted_harmonic_peaks": [
+        {
+          "harmonic": 1,
+          "peak_hz": 159.24336311568118,
+          "inferred_fundamental_hz": 159.24336311568118,
+          "relative_weight": 1.0
+        },
+        {
+          "harmonic": 2,
+          "peak_hz": 318.478971502568,
+          "inferred_fundamental_hz": 159.239485751284,
+          "relative_weight": 0.350092138647799
+        },
+        {
+          "harmonic": 3,
+          "peak_hz": 477.7111486414616,
+          "inferred_fundamental_hz": 159.23704954715387,
+          "relative_weight": 0.9110286626187796
+        },
+        {
+          "harmonic": 4,
+          "peak_hz": 636.9450706376431,
+          "inferred_fundamental_hz": 159.23626765941077,
+          "relative_weight": 0.8512534596862961
+        },
+        {
+          "harmonic": 5,
+          "peak_hz": 796.2097097437933,
+          "inferred_fundamental_hz": 159.24194194875867,
+          "relative_weight": 0.05155643377026319
+        },
+        {
+          "harmonic": 6,
+          "peak_hz": 955.4559702301199,
+          "inferred_fundamental_hz": 159.24266170501997,
+          "relative_weight": 0.009186484082133437
+        }
+      ],
+      "strongest_separated_peaks_hz": [
+        159.26361083984375,
+        477.73122787475586,
+        636.9352340698242,
+        318.4676170349121,
+        1433.1340789794922,
+        1592.3380851745605,
+        796.198844909668,
+        3662.407398223877
+      ],
+      "legacy_weighted_median_hz": 159.23704954715387,
+      "legacy_consistent_harmonic_count": 6,
+      "consensus_count_by_candidate": [
+        6,
+        6,
+        6,
+        6,
+        6,
+        6
+      ]
+    }
+  ]
+}
