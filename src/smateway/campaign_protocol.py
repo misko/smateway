@@ -76,8 +76,15 @@ def admit_capture(
         or not fixture.get("authorization_description")
     ):
         raise ValueError("fixture identity/readiness/authorization differs")
+    diagnostic_only = (
+        fixture.get("positions_m") is None
+        and fixture.get("geometry_status") == "unconfirmed"
+        and fixture.get("capture_scope") == "diagnostic_no_geometry"
+    )
     coordinates = np.asarray(fixture.get("positions_m"), dtype=float)
-    if coordinates.shape != (6, 2) or not np.all(np.isfinite(coordinates)):
+    if not diagnostic_only and (
+        coordinates.shape != (6, 2) or not np.all(np.isfinite(coordinates))
+    ):
         raise ValueError("fixture must bind the actual installed six-port geometry")
     guard = protocol["provisional_edge_guard_hz"]
     intervals = fixture.get("approved_intervals_hz", [])
@@ -92,5 +99,8 @@ def admit_capture(
         "fixture": {"path": str(fixture_path.resolve()), "sha256": sha256(fixture_path)},
         "fixture_id": fixture["fixture_id"],
         "kind": fixture["kind"],
-        "positions_m": coordinates.tolist(),
+        "positions_m": None if diagnostic_only else coordinates.tolist(),
+        "geometry_status": "unconfirmed" if diagnostic_only else "fixture_attested",
+        "capture_scope": "diagnostic_no_geometry" if diagnostic_only else "geometry_bound",
+        "surveyed_angle_accuracy_available": False,
     }

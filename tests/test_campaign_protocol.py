@@ -78,3 +78,23 @@ def test_bad_or_stale_fixture_is_rejected(tmp_path, changes):
 def test_narrower_authorization_wins_over_nominal_ism_allocation(tmp_path):
     with pytest.raises(ValueError, match="authorized frequency"):
         admit_capture(PROTOCOL, 2_495_000_000, muted=False, fixture_path=fixture(tmp_path))
+
+
+def test_explicit_diagnostic_scope_preserves_unknown_geometry(tmp_path):
+    path = fixture(
+        tmp_path,
+        positions_m=None,
+        geometry_status="unconfirmed",
+        capture_scope="diagnostic_no_geometry",
+    )
+    result = admit_capture(PROTOCOL, 2_450_000_000, muted=False, fixture_path=path)
+    assert result["positions_m"] is None
+    assert result["capture_scope"] == "diagnostic_no_geometry"
+    assert not result["surveyed_angle_accuracy_available"]
+
+
+@pytest.mark.parametrize("scope", [None, "geometry_bound"])
+def test_missing_geometry_does_not_silently_become_diagnostic(tmp_path, scope):
+    path = fixture(tmp_path, positions_m=None, geometry_status="unconfirmed", capture_scope=scope)
+    with pytest.raises(ValueError, match="geometry"):
+        admit_capture(PROTOCOL, 2_450_000_000, muted=False, fixture_path=path)
