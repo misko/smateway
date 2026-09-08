@@ -14,6 +14,7 @@ from smateway.causal_timing import bearing_study, predict_intervals, train_timin
 from smateway.fast_tracking import FastTrackingProfile, decode_fast_schedule
 from smateway.rate_timing import (
     PORTS,
+    analyze_rate_capture,
     closure,
     coarse_product,
     complex_value,
@@ -189,6 +190,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--block", type=Path, required=True)
     parser.add_argument("--allow-incomplete-diagnostic", action="store_true")
+    parser.add_argument("--phase-only", action="store_true")
     args = parser.parse_args()
     block = load(args.block)
     incomplete = block["status"] not in ("acquired", "diagnostic-complete")
@@ -205,6 +207,55 @@ def main():
         raise ValueError("fixture file hash differs")
     fixture = load(fixture_path)
     refs, frozen, drift = block_references(block)
+    if args.phase_only:
+        paths = {
+            name: {
+                r["port"]: Path(r["run_json"])
+                for r in block["references"]
+                if r["position"] == "before"
+                and r.get("configuration", block["configuration"]) == name
+            }
+            for name in refs
+        }
+        phase_report = {
+            "schema": 1,
+            "status": "running",
+            "block_path": str(args.block),
+            "block_sha256": sha256(args.block),
+            "incomplete_block_diagnostic_only": incomplete,
+            "reference_drift": drift,
+            "rows": [],
+        }
+        output = args.block.with_name(args.block.stem + "-phase.json")
+        for row in block["captures"]:
+            path = Path(row["run_json"])
+            if sha256(path) != row["sha256"]:
+                raise ValueError("capture hash differs")
+            name = load(path)["configuration"]["name"]
+            print(f"[phase] {path.parent.name}", flush=True)
+            if row.get("analysis_json"):
+                analysis_path = Path(row["analysis_json"])
+                if sha256(analysis_path) != row["analysis_sha256"]:
+                    raise ValueError("existing analysis hash differs")
+            else:
+                try:
+                    analysis = analyze_rate_capture(path, paths[name], paths["A"])
+                except ValueError as error:
+                    analysis = {"status": "analysis-failed", "error": str(error), "variants": []}
+                analysis_path = path.parent / "independent-analysis.json"
+                analysis_path.write_text(json.dumps(analysis, indent=2, allow_nan=False) + "\n")
+            phase_report["rows"].append(
+                {
+                    **row,
+                    "configuration": name,
+                    "analysis_json": str(analysis_path),
+                    "analysis_sha256": sha256(analysis_path),
+                }
+            )
+            output.write_text(json.dumps(phase_report, indent=2, allow_nan=False) + "\n")
+        phase_report["status"] = "analyzed"
+        output.write_text(json.dumps(phase_report, indent=2, allow_nan=False) + "\n")
+        return
     lut_path = ROOT / "docs/pcb_direct_injection_calibration/data/calibration-lut.json"
     lut = BoardCalibrationLut.load(lut_path)
     output = args.block.with_name(args.block.stem + "-bearings.json")

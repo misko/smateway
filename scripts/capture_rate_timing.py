@@ -136,9 +136,21 @@ def gain_telemetry(block):
     return {"available": True, **{k: getattr(metadata, k) for k in names if hasattr(metadata, k)}}
 
 
+def record_interrupt(signum, events):
+    events.append(
+        {
+            "signal": signal.Signals(signum).name,
+            "number": int(signum),
+            "received_at": datetime.now(UTC).isoformat(),
+        }
+    )
+    raise KeyboardInterrupt()
+
+
 def main() -> int:
+    interrupt_events = []
     for signum in (signal.SIGTERM, signal.SIGINT):
-        signal.signal(signum, lambda _s, _f: (_ for _ in ()).throw(KeyboardInterrupt()))
+        signal.signal(signum, lambda received, _frame: record_interrupt(received, interrupt_events))
     args = parser().parse_args()
     cfg = CONFIGURATIONS[args.configuration]
     frame_samples, frames = cfg.frame_plan(args.duration_s)
@@ -222,6 +234,7 @@ def main() -> int:
         "capture": {},
         "error": None,
     }
+    record["interrupt_events"] = interrupt_events
     _write_json_atomic(output / "run.json", record)
     radio = session = source = controller = None
     lease_stop = threading.Event()

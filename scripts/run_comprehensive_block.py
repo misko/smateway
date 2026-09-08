@@ -29,6 +29,7 @@ if __name__ == "__main__" and (
     )
 
 from capture_fast_tracking_timing import _write_json_atomic
+from capture_rate_timing import record_interrupt
 from run_fast_tracking_timing_campaign import _flash, _lock, _restore
 from screen_comprehensive_headroom import capture
 from smateway.campaign_protocol import admit_capture
@@ -89,6 +90,7 @@ def main():
     parser.add_argument("--gain-db", type=int, choices=range(61), required=True)
     parser.add_argument("--configuration", choices=("A", "B", "D"), default="A")
     parser.add_argument("--dwells-us", type=int, nargs="+", default=[200, 1000])
+    parser.add_argument("--timing-recipe", type=Path)
     parser.add_argument("--acknowledge-ota-authorization", action="store_true")
     parser.add_argument("--acknowledge-selector-flash", action="store_true")
     args = parser.parse_args()
@@ -125,6 +127,14 @@ def main():
         "source_sha256": sha256(Path(__file__)),
         "started_at": datetime.now(UTC).isoformat(),
         "surveyed_bearing_accuracy_available": False,
+        "interrupt_events": [],
+        "timing_replay_recipe": None
+        if args.timing_recipe is None
+        else {
+            "path": str(args.timing_recipe.resolve(strict=True)),
+            "sha256": sha256(args.timing_recipe),
+            "scope": "additional frozen offline timing policy; RF settings unchanged",
+        },
     }
 
     def save():
@@ -221,7 +231,9 @@ def main():
         save()
 
     for signum in (signal.SIGINT, signal.SIGTERM):
-        signal.signal(signum, lambda _s, _f: (_ for _ in ()).throw(KeyboardInterrupt()))
+        signal.signal(
+            signum, lambda received, _frame: record_interrupt(received, record["interrupt_events"])
+        )
     save()
     try:
         with _lock(args.output_root / ".block.lock"):

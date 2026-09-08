@@ -1,4 +1,5 @@
 import importlib.util
+import signal
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -12,6 +13,16 @@ SPEC = importlib.util.spec_from_file_location(
 )
 capture = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(capture)
+
+
+@pytest.mark.parametrize("signum", [signal.SIGINT, signal.SIGTERM])
+def test_interrupt_identity_is_retained_before_normal_cleanup_path(signum):
+    events = []
+    with pytest.raises(KeyboardInterrupt):
+        capture.record_interrupt(signum, events)
+    assert events[0]["signal"] == signal.Signals(signum).name
+    assert events[0]["number"] == signum
+    assert events[0]["received_at"].endswith("+00:00")
 
 
 def test_wrong_source_is_released_without_rf_control(monkeypatch):
