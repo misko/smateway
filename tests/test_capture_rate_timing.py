@@ -34,3 +34,36 @@ def test_matching_source_is_admitted_for_control(monkeypatch):
     admitted, facts = capture.open_source("ip:192.168.1.179")
     assert admitted is device
     assert facts["hw_serial"] == capture.SOURCE_SERIAL
+
+
+def test_ambient_mode_is_explicit_and_not_a_tx1_reference():
+    args = capture.parser().parse_args(
+        [
+            "--mode",
+            "ambient",
+            "--configuration",
+            "A",
+            "--port",
+            "ANT1",
+            "--output-root",
+            "/tmp/unused-synthetic-test",
+        ]
+    )
+    assert args.mode == "ambient"
+    assert not args.acknowledge_ota_authorization
+
+
+def test_gain_telemetry_retains_available_fields_without_inventing_endpoints():
+    block = SimpleNamespace(
+        tandem_metadata=SimpleNamespace(
+            initial_gain_db=30,
+            rx1_gain_index=35,
+            rx2_gain_index=35,
+            tandem_transition_count=0,
+        )
+    )
+    result = capture.gain_telemetry(block)
+    assert result["available"] and result["initial_gain_db"] == 30
+    assert result["rx1_gain_index"] == result["rx2_gain_index"] == 35
+    assert "rx1_gain_db_start" not in result
+    assert capture.gain_telemetry(SimpleNamespace()) == {"available": False}

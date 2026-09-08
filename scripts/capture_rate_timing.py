@@ -64,7 +64,7 @@ from smateway.rate_timing import (
 def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(description=__doc__)
     result.add_argument("--configuration", choices=CONFIGURATIONS, required=True)
-    result.add_argument("--mode", choices=("muted", "static", "fast"), required=True)
+    result.add_argument("--mode", choices=("muted", "ambient", "static", "fast"), required=True)
     result.add_argument("--duration-s", type=float, default=4)
     result.add_argument("--frame-samples", type=int)
     result.add_argument("--gain-db", type=int, default=60, choices=range(0, 61))
@@ -116,6 +116,26 @@ def open_source(uri):
     return device, facts
 
 
+def gain_telemetry(block):
+    metadata = getattr(block, "tandem_metadata", None)
+    if metadata is None:
+        return {"available": False}
+    names = (
+        "tandem_state",
+        "tandem_fault_flags",
+        "initial_gain_db",
+        "gain_table_id",
+        "rx1_gain_index",
+        "rx2_gain_index",
+        "tandem_transition_count",
+        "rx1_gain_db_start",
+        "rx2_gain_db_start",
+        "rx1_gain_db_end",
+        "rx2_gain_db_end",
+    )
+    return {"available": True, **{k: getattr(metadata, k) for k in names if hasattr(metadata, k)}}
+
+
 def main() -> int:
     for signum in (signal.SIGTERM, signal.SIGINT):
         signal.signal(signum, lambda _s, _f: (_ for _ in ()).throw(KeyboardInterrupt()))
@@ -132,15 +152,15 @@ def main() -> int:
         campaign_binding = admit_capture(
             args.protocol_json,
             args.frequency_hz,
-            muted=args.mode == "muted",
+            muted=args.mode in ("muted", "ambient"),
             fixture_path=args.fixture_json,
         )
     elif not 5_726_000_000 <= args.frequency_hz <= 5_874_000_000:
         raise SystemExit("frequency outside the existing 5.8 GHz campaign")
-    if args.mode != "muted" and not args.acknowledge_ota_authorization:
+    if args.mode in ("static", "fast") and not args.acknowledge_ota_authorization:
         raise SystemExit("RF capture requires acknowledgement")
-    if args.mode == "static" and (args.port is None or args.tx_channel != 0):
-        raise SystemExit("static reference requires a port and TX1")
+    if args.mode in ("static", "ambient") and (args.port is None or args.tx_channel != 0):
+        raise SystemExit("static/ambient acquisition requires a port and TX1 selection")
     profile = flash = None
     if args.mode == "fast":
         if args.profile is None or args.flash_evidence is None:
@@ -244,14 +264,14 @@ def main() -> int:
                 raise RuntimeError("RX settings readback differs")
             record["receiver_settings"] = actual.model_dump(mode="json")
             record["receiver_filters"] = filter_facts(radio._require_device())
-            if args.mode in ("static", "muted"):
+            if args.mode in ("static", "muted", "ambient"):
                 controller = OpenOcdBench(
                     BenchManifest.load(
                         ROOT / "build/STM32C011F4P6/bench/pluto_bench.manifest.json"
                     ),
                     ROOT / "openocd/stlink-v3-stm32c011.cfg",
                 )
-                if args.mode == "static":
+                if args.mode in ("static", "ambient"):
                     states = load(ROOT / "profiles/tracking-c6-200us-v1/control_profile.json")
                     code = next(
                         int(s["gpio_code_pa3_pa0"], 2)
@@ -279,7 +299,7 @@ def main() -> int:
                 else:
                     status = controller.request(8, 0, wait_until_applied=False)
                 record["selector_before_capture"] = status.as_dict()
-            if args.mode != "muted":
+            if args.mode in ("static", "fast"):
                 record["source_settings"] = _enable_source(
                     source, args.frequency_hz, args.tx_channel
                 )
@@ -347,6 +367,7 @@ def main() -> int:
                             "arrival_elapsed_s": received - started,
                             "peak_component_counts": block_peaks,
                             "clipped_samples": block_clips,
+                            "gain_telemetry": gain_telemetry(block),
                         }
                     )
                     previous = block
