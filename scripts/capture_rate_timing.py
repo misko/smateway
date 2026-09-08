@@ -64,7 +64,9 @@ from smateway.rate_timing import (
 def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(description=__doc__)
     result.add_argument("--configuration", choices=CONFIGURATIONS, required=True)
-    result.add_argument("--mode", choices=("muted", "ambient", "static", "fast"), required=True)
+    result.add_argument(
+        "--mode", choices=("muted", "ambient", "static", "fast", "fast-ambient"), required=True
+    )
     result.add_argument("--duration-s", type=float, default=4)
     result.add_argument("--frame-samples", type=int)
     result.add_argument("--gain-db", type=int, default=60, choices=range(0, 61))
@@ -147,6 +149,10 @@ def record_interrupt(signum, events):
     raise KeyboardInterrupt()
 
 
+def source_enabled(mode):
+    return mode in ("static", "fast")
+
+
 def main() -> int:
     interrupt_events = []
     for signum in (signal.SIGTERM, signal.SIGINT):
@@ -164,17 +170,17 @@ def main() -> int:
         campaign_binding = admit_capture(
             args.protocol_json,
             args.frequency_hz,
-            muted=args.mode in ("muted", "ambient"),
+            muted=args.mode in ("muted", "ambient", "fast-ambient"),
             fixture_path=args.fixture_json,
         )
     elif not 5_726_000_000 <= args.frequency_hz <= 5_874_000_000:
         raise SystemExit("frequency outside the existing 5.8 GHz campaign")
-    if args.mode in ("static", "fast") and not args.acknowledge_ota_authorization:
+    if source_enabled(args.mode) and not args.acknowledge_ota_authorization:
         raise SystemExit("RF capture requires acknowledgement")
     if args.mode in ("static", "ambient") and (args.port is None or args.tx_channel != 0):
         raise SystemExit("static/ambient acquisition requires a port and TX1 selection")
     profile = flash = None
-    if args.mode == "fast":
+    if args.mode in ("fast", "fast-ambient"):
         if args.profile is None or args.flash_evidence is None:
             raise SystemExit("fast capture requires profile and flash evidence")
         profile = FastTrackingProfile.load(args.profile)
@@ -194,6 +200,7 @@ def main() -> int:
         "configuration": {
             **configuration_json(args.configuration),
             "mode": args.mode,
+            "source_rf_enabled": source_enabled(args.mode),
             "duration_s": args.duration_s,
             "frame_samples": frame_samples,
             "frames": frames,
@@ -312,7 +319,7 @@ def main() -> int:
                 else:
                     status = controller.request(8, 0, wait_until_applied=False)
                 record["selector_before_capture"] = status.as_dict()
-            if args.mode in ("static", "fast"):
+            if source_enabled(args.mode):
                 record["source_settings"] = _enable_source(
                     source, args.frequency_hz, args.tx_channel
                 )

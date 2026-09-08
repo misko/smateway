@@ -25,6 +25,27 @@ def test_interrupt_identity_is_retained_before_normal_cleanup_path(signum):
     assert events[0]["received_at"].endswith("+00:00")
 
 
+@pytest.mark.parametrize("mode", ["muted", "ambient", "fast-ambient"])
+def test_muted_controls_cannot_enter_source_enable_path(mode):
+    assert not capture.source_enabled(mode)
+
+
+def test_fast_ambient_is_explicit_not_a_fast_tx1_capture():
+    args = capture.parser().parse_args(
+        [
+            "--configuration",
+            "A",
+            "--mode",
+            "fast-ambient",
+            "--output-root",
+            "/tmp/test-switched-muted",
+        ]
+    )
+    assert args.mode == "fast-ambient"
+    assert not args.acknowledge_ota_authorization
+    assert not capture.source_enabled(args.mode)
+
+
 def test_wrong_source_is_released_without_rf_control(monkeypatch):
     device = SimpleNamespace(ctx=SimpleNamespace(attrs={"hw_serial": "another-radio"}))
     adi = SimpleNamespace(ad9361=lambda **_kwargs: device)
