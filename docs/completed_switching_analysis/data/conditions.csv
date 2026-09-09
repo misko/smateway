@@ -1,0 +1,11 @@
+block,configuration,dwell_us,main_attempts,main_passes,three_independent_main_trials,control_attempts,control_passes,controls_complete,controls_pass,bracket_pass,clean_condition_pass
+block-20260908T225855806955Z,A,25,3,0,True,3,3,True,True,True,False
+block-20260908T225855806955Z,A,50,3,2,True,3,3,True,True,True,False
+block-20260908T225855806955Z,A,100,3,3,True,3,3,True,True,True,True
+block-20260908T225855806955Z,A,200,3,3,True,3,3,True,True,True,True
+block-20260908T225855806955Z,A,1000,3,3,True,3,3,True,True,True,True
+block-20260908T231415311061Z,B,25,3,0,True,6,6,True,True,True,False
+block-20260908T231415311061Z,B,50,3,0,True,6,6,True,True,True,False
+block-20260908T231415311061Z,B,100,3,2,True,6,6,True,True,True,False
+block-20260908T231415311061Z,B,200,3,3,True,6,6,True,True,True,True
+block-20260908T231415311061Z,B,1000,3,3,True,6,6,True,True,True,True

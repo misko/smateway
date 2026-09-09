@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "figures": [
+    {
+      "path": "png/fig01_fixed_policy_matrix.png",
+      "sha256": "0536301342e6fe2fad9999a3aa29ba590dfd1cef76494d166da6ad294c1ea33c",
+      "bytes": 141599
+    },
+    {
+      "path": "png/fig02_fresh_dwell_comparison.png",
+      "sha256": "fce4ef45f4e56fab42e3b76ddbd78daad4e04c6da3317fc67f62e1c78602bd48",
+      "bytes": 238603
+    },
+    {
+      "path": "png/fig03_all_port_closure.png",
+      "sha256": "9014a3fd2c43d52cce05dfaa4fc18a8d00013effc2838e1f946a867f26557d85",
+      "bytes": 748368
+    },
+    {
+      "path": "png/fig04_residual_and_clock.png",
+      "sha256": "feddf226cfb5d07bd5614c3f0a4435e2943d1b03ae02d087cf53ca9a17ce02cd",
+      "bytes": 500238
+    },
+    {
+      "path": "png/fig05_processing_and_bearing_limits.png",
+      "sha256": "10b4c7d47795ff65463c143b6a1d524d4fb46dc2aef3ed483d59a247f2d9eb0b",
+      "bytes": 103838
+    },
+    {
+      "path": "png/fig06_source_muted_spectra.png",
+      "sha256": "cc784cf040735db77687289bcaaea0f521c96092db46c0b659bc1499432dd669",
+      "bytes": 725320
+    },
+    {
+      "path": "png/fig07_noiseless_bearing_gate.png",
+      "sha256": "3fef8f1b931c2e40f0613f8b0610b7cfee006c1387dba299d3a986dcfde363ec",
+      "bytes": 155341
+    },
+    {
+      "path": "png/fig08_negative_diagnostics.png",
+      "sha256": "62fdd761af5e268c61b29b446995525b0dfa3fb490c974898e6f525e8bc900c3",
+      "bytes": 199208
+    },
+    {
+      "path": "png/fig09_runtime_profile.png",
+      "sha256": "2062847e3be5a9cb4f85e7889557347e71875555cc3f554de2ab58e3e3c84d8d",
+      "bytes": 81067
+    }
+  ]
+}

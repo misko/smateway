@@ -26,6 +26,7 @@ def main():
     parser.add_argument("--timing-report", type=Path, required=True)
     parser.add_argument("--dwell-us", type=int, default=25)
     parser.add_argument("--round", type=int, default=1)
+    parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     timing = load(args.timing_report)
     block_path = Path(timing["block"])
@@ -114,9 +115,10 @@ def main():
             references=expected,
             observable=frozen["observable"],
         )
-    output = block_path.with_name(
+    output = args.output or block_path.with_name(
         block_path.stem + f"-intercept-{args.dwell_us}us-r{args.round}.json"
     )
+    output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, indent=2, allow_nan=False) + "\n")
     print(f"intercept_evidence={output}")
 

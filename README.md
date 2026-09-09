@@ -43,6 +43,13 @@ belong outside Git under `~/.local/state/smateway/boards/<board-id>/`.
 
 ## Current calibration and direction-finding status
 
+The latest [completed offline switching analysis, September 9](docs/completed_switching_analysis/README.md)
+finishes the pending 5 MS/s comparison and adds nine figures covering phase/gain closure,
+per-port residuals, source-muted artifacts, runtime profiling and bearing limitations.
+At 2.475 GHz, 100 µs at 2 MS/s passes the laboratory phase checks; 5 MS/s requires
+200 µs for three-of-three closure. These are five-observable-port offline results,
+not a live tracking release or a completed dual-band RF campaign.
+
 The new controlled PCB direct-injection result is in
 [`docs/pcb_direct_injection_calibration/`](docs/pcb_direct_injection_calibration/README.md). It
 contains the isolated ANT1–ANT8 board-plane campaign, 4,528 raw-replayed observations, a
