@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "renderer_sha256": "704ea63b7cb9690c363de05f82a0a2fd404e5c7c71c668f4beaba31de9f7ade1",
+  "source_lock_sha256": "fcc23ec7cd8eec8a762af3e42f8dc76709c979b316a01403b95dbb3e1ce195e3",
+  "outputs": {
+    "data/conditions.csv": {
+      "sha256": "ae5a8da06ecc101fcc09d580beae62cdef9bccbb562e8a9b27a46b3d70500dbf",
+      "bytes": 3500
+    },
+    "data/runtime-summary.csv": {
+      "sha256": "1cd7e3b0ee33aeb5c47b7cfe9953f4b3de6b06902f0fc671e7b3eb0a3fbae925",
+      "bytes": 197
+    },
+    "data/schedule-budget.csv": {
+      "sha256": "ad71ecaa676e7014180e9fdf00065cad9769dd9fe7ea22730dc924fda8e64e7e",
+      "bytes": 859
+    },
+    "data/trials.csv": {
+      "sha256": "add9eb79696267d16d7212cebd231d78ed4302bf7ad8d050577e650c16f8603c",
+      "bytes": 37590
+    },
+    "png/fig01_cross_band_evidence_matrix.png": {
+      "sha256": "fbb19e796d5ade0e6ec3fa5ba2e3f1d6bcca1a2ceafac2f9799491b52deb4751",
+      "bytes": 219233
+    },
+    "png/fig02_phase_and_gain_by_dwell.png": {
+      "sha256": "94a6b6e195f5640b4117966fb41616eb105e2b7ac2aa2baef0d5a99e137d77a3",
+      "bytes": 195562
+    },
+    "png/fig03_bearing_repeatability_and_validity.png": {
+      "sha256": "9caadada382b139cbfea21150b3c64b2475ed200f5753303d91ab5dd70f358d4",
+      "bytes": 166026
+    },
+    "png/fig04_historical_frequency_and_bearing.png": {
+      "sha256": "66a1fa200a4dc08ea09202d4cef0c34101325ca8e15ceec8d8489ff79b57b7bf",
+      "bytes": 218622
+    },
+    "png/fig05_retrospective_vs_causal.png": {
+      "sha256": "cce415812f08ad41d3937ac43c38631572e76c35cb984f65229a24e032175c78",
+      "bytes": 123206
+    },
+    "png/fig06_schedule_and_integration_budget.png": {
+      "sha256": "6c4729c98b608ef826ec278e7e1f056d7bb7b6495168ceb425c647f41c94b0b3",
+      "bytes": 115355
+    },
+    "png/fig07_runtime_and_latency_scales.png": {
+      "sha256": "4104664dd384e0e0cd6d687b1ad8ee22ebc2859abaff319d795c5c0a5bda4d77",
+      "bytes": 139011
+    },
+    "png/fig09_aperture_and_ideal_response.png": {
+      "sha256": "3c425b9caa512d0bf6a41b1eba465507effe18ca17973bd8b4054c83ad24746c",
+      "bytes": 235741
+    }
+  }
+}

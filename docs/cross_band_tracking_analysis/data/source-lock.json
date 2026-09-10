@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "scope": "Compact artifacts only; no raw-IQ audit",
+  "inputs": {
+    "docs/completed_switching_analysis/data/rolling.csv": {
+      "sha256": "94fb1b2573e9b39e32e98700d374ced27dc07acf50b6845ec6c0f8103d0b6f60",
+      "bytes": 17879
+    },
+    "docs/completed_switching_analysis/data/conditions.csv": {
+      "sha256": "090773e1c985a010b7f7769a1df24ebf6acf9b563ffd9c790d9061debd4f0988",
+      "bytes": 866
+    },
+    "docs/completed_switching_analysis/data/fixed.csv": {
+      "sha256": "779e6c9709178ea8347d15ce7e6f5d498b63a67e2685507235849568f199e488",
+      "bytes": 78111
+    },
+    "docs/completed_switching_analysis/data/blocks.csv": {
+      "sha256": "8c50caa89d9f5e9defd79d7adc6676a3dcad7c292247888c2e612bd7f4b7b0d8",
+      "bytes": 1545
+    },
+    "docs/completed_switching_analysis/README.md": {
+      "sha256": "45abb46a2975f8a23b00d96856d7f70df49edbb73c2f799f72060c05dcc1215d",
+      "bytes": 19580
+    },
+    "docs/subghz_915_diagnostic/data/summary.json": {
+      "sha256": "6de021df00d256cbfbc8bdabb3cbe07a9d4ac865680ca104e9ecf857c1dec33d",
+      "bytes": 29687
+    },
+    "docs/subghz_915_diagnostic/README.md": {
+      "sha256": "35c16908ea1d12846d7b7893e0366c0a3cc106000f1930f1c9d75cc44a62c5dc",
+      "bytes": 12481
+    },
+    "docs/comprehensive_fast_switching/data/fresh-bearing-comparison.csv": {
+      "sha256": "93873e0768ba0c6ad50c9e21923e534fa1fc978ad941aa9125d2b3ca7a388872",
+      "bytes": 36685
+    },
+    "docs/comprehensive_fast_switching/data/historical-causal-comparison.csv": {
+      "sha256": "e09d3f95e59faa2276f9d33e86de66e43fbfdec7fd0c1e3684585cdd00b1d4ef",
+      "bytes": 2358
+    },
+    "docs/comprehensive_fast_switching/data/noiseless-model-gate.csv": {
+      "sha256": "6a569d157ea008e51bee0e304678f5922f96e2d5034d99cb8b8169acc6591d77",
+      "bytes": 236
+    },
+    "docs/comprehensive_fast_switching/REFERENCE-TIMING-VALIDATION-v1.md": {
+      "sha256": "d90471028aadf0f0a7d366d084c369f07d4dd3796b475a7b8fdb91107c27132c",
+      "bytes": 2957
+    },
+    "docs/comprehensive_fast_switching/README.md": {
+      "sha256": "5e60b79336ad525e335bdddec654d75f24b5e8b374b667b39e477380184ab7c1",
+      "bytes": 27396
+    },
+    "docs/fast_tracking_timing_campaign/data/dense_frequency_conditions.csv": {
+      "sha256": "19089c82cb9e8fd71b2b3eb199b00da8b35659b074b0813d3b537bfd6adcb31f",
+      "bytes": 149883
+    },
+    "docs/fast_tracking_timing_campaign/data/results.json": {
+      "sha256": "f9b81710425cae32f80edea2c7bd499841c71258edc59b3e0b00197356a661c9",
+      "bytes": 13787
+    },
+    "docs/tracking_verification_campaign/data/campaign-summary.json": {
+      "sha256": "c17c614535b5e435de88c9cf0a5ed2dccb4cc7951fa449dea6cbd07fc8d0f245",
+      "bytes": 30597
+    },
+    "docs/higher_sample_rate_timing_campaign/FINDINGS.md": {
+      "sha256": "8b1f2ae01a6e19e032b487e729ab6940800706162aa3df4697caf2ceac1fd138",
+      "bytes": 13761
+    },
+    "docs/pcb_direct_injection_calibration/README.md": {
+      "sha256": "f68f95b0cad55ddfe8bcc792ff509c62966f4b9692c1461e1e345be9015f97fa",
+      "bytes": 37991
+    },
+    "docs/pcb_direct_injection_calibration/png/fig10_delay_models_and_residuals.png": {
+      "sha256": "444d5dc72b9458e857532fec7dd355ac87a1c4bccd400c32c9aa8d85b81f761d",
+      "bytes": 786767
+    }
+  }
+}

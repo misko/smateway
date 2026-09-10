@@ -43,6 +43,13 @@ belong outside Git under `~/.local/state/smateway/boards/<board-id>/`.
 
 ## Current calibration and direction-finding status
 
+Start with the [consolidated cross-band theory and results report, September 10](docs/cross_band_tracking_analysis/README.md).
+It brings the 915 MHz, 2.4 GHz and 5.8 GHz evidence together with eight new figures,
+phase-versus-bearing distinctions, the complex estimator, dwell/filter/runtime
+budgets, PCB-versus-installed-array calibration, and an ordered next campaign.
+Its comparisons preserve separate campaigns and timing methods; it does not
+promote a live tracking profile.
+
 The new [915 MHz existing-antenna diagnostic, September 9](docs/subghz_915_diagnostic/README.md)
 passes all three laboratory phase/gain repetitions at both 200 µs and 1 ms dwell,
 with all six ports observable and transmitter power unchanged. This establishes
