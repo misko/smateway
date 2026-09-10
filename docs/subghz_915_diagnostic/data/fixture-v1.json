@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "fixture_id": "existing-antennas-915-diagnostic-20260909-v1",
+  "ready": true,
+  "kind": "ota",
+  "confirmed_at": "2026-09-09T16:53:53+00:00",
+  "timestamp_scope": "Time current user request was first processed; unchanged wiring is an explicit working assumption, not a new physical survey.",
+  "protocol_sha256": "65e3fe2da49c37e57e8ddfe7f43cb9847f12bc8af7e66ecb5167be26b177b467",
+  "receiver_serial": "104000b29905000e17000800065934759d",
+  "source_serial": "104473b80a16000de6ff2000f8a6beca79",
+  "ports": ["ANT1", "ANT2", "ANT4", "ANT8", "ANT7", "ANT5"],
+  "positions_m": [[0.0, 0.0255], [0.02208364779650318, 0.01275], [0.02208364779650318, -0.01275], [0.0, -0.0255], [-0.02208364779650318, -0.01275], [-0.02208364779650318, 0.01275]],
+  "geometry_status": "previously_user_confirmed_nominal_unchanged_assumed",
+  "capture_scope": "geometry_bound",
+  "operator_confirmation": "User: I think we can do 900Mhz but with a loss on the current antennas, can you please try ? Proceed at the previously proposed 915 MHz centre on the existing fixture.",
+  "authorization_description": "Bounded user-requested approximately 900 MHz feasibility test at 915 MHz on the previously confirmed US lab fixture. Retain TX1 -35 dB hardware gain and DDS scale 0.25, TX2 muted. No power increase, broad sweep, or emissions compliance claim.",
+  "approved_intervals_hz": [[902000000, 928000000]],
+  "wiring": {
+    "source_tx1": "splitter to RX1 reference and existing OTA test antenna",
+    "source_tx2": "existing separate OTA antenna, kept muted",
+    "receiver_rx2": "C6 selector common"
+  },
+  "limitations": [
+    "Existing antennas were specified for 2.4/5.8 GHz; their 915 MHz matching and efficiency are unknown.",
+    "51 mm nominal array diameter is only about 0.156 wavelengths at 915 MHz.",
+    "No new surveyed angles or phase-centre measurements; phase feasibility is not direction-finding accuracy."
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "checked_at": "2026-09-09T17:12:35.441367+00:00",
+  "scope": "Read-only live IIO and selector-mailbox check after all captures; transcribed from successful asserted diagnostic output.",
+  "radios": [
+    {
+      "uri": "ip:192.168.1.15",
+      "serial": "104000b29905000e17000800065934759d",
+      "tx_hardware_gain_db": [-80, -80],
+      "dds_scales": [0, 0, 0, 0, 0, 0, 0, 0]
+    },
+    {
+      "uri": "ip:192.168.1.179",
+      "serial": "104473b80a16000de6ff2000f8a6beca79",
+      "tx_hardware_gain_db": [-80, -80],
+      "dds_scales": [0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  ],
+  "selector": {
+    "command_sequence": 37,
+    "command_code": 8,
+    "command_lease_ms": 0,
+    "acknowledged_sequence": 37,
+    "applied_code": 8,
+    "remaining_lease_ms": 0,
+    "status_flags": 1,
+    "lease_active": false,
+    "invalid_command": false
+  },
+  "restore_evidence": {
+    "path": "/srv/bulk/samteway/lab-data/tracking-915-diagnostic-20260909-v1/restores/restore-bench-20260909T171033.903784Z/restore.json",
+    "sha256": "1cf09b18962685e224ea1ce8c1fcfd347da78a8e6fe10973c9c6241540a59111",
+    "status": "passed",
+    "restored_flash_sha256": "4eddf1e07cda11b78800a80a2935790f554913e6d2b70e024e46c68c263c888f",
+    "restored_bytes": 16384,
+    "matches_initial_backup": true
+  }
+}

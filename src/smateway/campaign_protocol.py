@@ -1,4 +1,4 @@
-"""Explicit frequency intent and fresh fixture admission for the two-band campaign."""
+"""Explicit frequency intent and fresh fixture admission for bounded campaigns."""
 
 from __future__ import annotations
 
@@ -12,14 +12,25 @@ from smateway.rate_timing import PORTS, RECEIVER_SERIAL, SOURCE_SERIAL, load, sh
 
 def read_protocol(path: Path) -> dict:
     protocol = load(path)
+    single_915 = protocol.get("protocol_id") == "single-915-diagnostic-20260909-v1"
+    bands = (
+        [[902_000_000, 928_000_000]]
+        if single_915
+        else [[2_400_000_000, 2_500_000_000], [5_725_000_000, 5_875_000_000]]
+    )
     if (
         protocol.get("schema") != 1
         or protocol.get("receiver_serial") != RECEIVER_SERIAL
         or protocol.get("source_serial") != SOURCE_SERIAL
         or tuple(protocol.get("ports", [])) != PORTS
         or protocol.get("intent_grid_step_hz") != 1_000_000
-        or protocol.get("band_allocations_hz")
-        != [[2_400_000_000, 2_500_000_000], [5_725_000_000, 5_875_000_000]]
+        or protocol.get("band_allocations_hz") != bands
+        or (single_915 and (
+            protocol.get("allowed_frequencies_hz") != [915_000_000]
+            or protocol.get("provisional_edge_guard_hz") != 1_000_000
+            or protocol.get("tx_hardware_gain_db") != -35
+            or protocol.get("dds_scale") != 0.25
+        ))
     ):
         raise ValueError("protocol identity/frequency scope differs")
     return protocol
@@ -34,6 +45,10 @@ def coverage_grid(protocol: dict, approved_intervals: list | None = None) -> lis
             status = "awaiting_fixture_and_authorization"
             if not low + guard <= frequency <= high - guard:
                 status = "excluded_occupied_signal_margin"
+            elif "allowed_frequencies_hz" in protocol and frequency not in protocol[
+                "allowed_frequencies_hz"
+            ]:
+                status = "excluded_protocol_scope"
             elif approved_intervals is not None:
                 status = (
                     "pending_measurement"
@@ -54,7 +69,11 @@ def admit_capture(
 ) -> dict:
     protocol = read_protocol(protocol_path)
     if not any(lo <= frequency_hz <= hi for lo, hi in protocol["band_allocations_hz"]):
-        raise ValueError("frequency outside the two-band campaign")
+        raise ValueError("frequency outside the campaign")
+    if "allowed_frequencies_hz" in protocol and frequency_hz not in protocol[
+        "allowed_frequencies_hz"
+    ]:
+        raise ValueError("frequency outside the explicit protocol scope")
     binding = {"path": str(protocol_path.resolve()), "sha256": sha256(protocol_path)}
     if muted:
         return {"protocol": binding, "scope": "muted acquisition; no OTA readiness claim"}

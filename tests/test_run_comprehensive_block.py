@@ -69,3 +69,30 @@ def test_multiple_profiles_restore_first_backup_not_last():
         restore=restored.append,
     )
     assert restored == ["200"]
+
+
+def test_explicit_protocol_is_admitted_and_forwarded_to_capture(monkeypatch, tmp_path):
+    protocol = tmp_path / "single-frequency.json"
+    admitted, commands = [], []
+
+    def admit(path, frequency, **_kwargs):
+        admitted.append((path, frequency))
+        return {}
+
+    def capture(command):
+        commands.append(command)
+        raise RuntimeError("test stops before hardware")
+
+    monkeypatch.setattr(MODULE, "admit_capture", admit)
+    monkeypatch.setattr(MODULE, "capture", capture)
+    monkeypatch.setattr(MODULE, "schedule", lambda *_args: [])
+    monkeypatch.setattr(sys, "argv", [
+        "run_comprehensive_block.py", "--output-root", str(tmp_path / "captures"),
+        "--fixture-json", str(tmp_path / "fixture.json"),
+        "--protocol-json", str(protocol), "--frequency-hz", "915000000", "--gain-db", "50",
+        "--acknowledge-ota-authorization", "--acknowledge-selector-flash",
+    ])
+    with pytest.raises(RuntimeError, match="before hardware"):
+        MODULE.main()
+    assert admitted == [(protocol, 915_000_000)]
+    assert commands[0][commands[0].index("--protocol-json") + 1] == str(protocol)

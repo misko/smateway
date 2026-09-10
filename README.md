@@ -43,6 +43,11 @@ belong outside Git under `~/.local/state/smateway/boards/<board-id>/`.
 
 ## Current calibration and direction-finding status
 
+The new [915 MHz existing-antenna diagnostic, September 9](docs/subghz_915_diagnostic/README.md)
+passes all three laboratory phase/gain repetitions at both 200 µs and 1 ms dwell,
+with all six ports observable and transmitter power unchanged. This establishes
+sub-GHz phase-test feasibility, not antenna efficiency or bearing accuracy.
+
 The latest [completed offline switching analysis, September 9](docs/completed_switching_analysis/README.md)
 finishes the pending 5 MS/s comparison and adds nine figures covering phase/gain closure,
 per-port residuals, source-muted artifacts, runtime profiling and bearing limitations.

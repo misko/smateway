@@ -86,6 +86,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--fixture-json", type=Path, required=True)
+    parser.add_argument("--protocol-json", type=Path, default=PROTOCOL)
     parser.add_argument("--frequency-hz", type=int, required=True)
     parser.add_argument("--gain-db", type=int, choices=range(61), required=True)
     parser.add_argument("--configuration", choices=("A", "B", "D"), default="A")
@@ -97,7 +98,7 @@ def main():
     if not args.acknowledge_ota_authorization or not args.acknowledge_selector_flash:
         raise SystemExit("bounded RF and selector programming acknowledgments are required")
     binding = admit_capture(
-        PROTOCOL, args.frequency_hz, muted=False, fixture_path=args.fixture_json
+        args.protocol_json, args.frequency_hz, muted=False, fixture_path=args.fixture_json
     )
     rows = schedule(args.dwells_us, 202609081536 + args.frequency_hz, args.configuration)
     reference_configurations = list(dict.fromkeys(("A", args.configuration)))
@@ -156,7 +157,7 @@ def main():
             "--gain-db",
             str(args.gain_db),
             "--protocol-json",
-            str(PROTOCOL),
+            str(args.protocol_json),
             "--fixture-json",
             str(args.fixture_json),
             "--output-root",

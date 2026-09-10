@@ -10,6 +10,7 @@ from smateway.rate_timing import PORTS, RECEIVER_SERIAL, SOURCE_SERIAL, sha256
 PROTOCOL = (
     Path(__file__).resolve().parents[1] / "docs/comprehensive_fast_switching/data/protocol-v1.json"
 )
+SUBGHZ = PROTOCOL.parents[2] / "subghz_915_diagnostic/data/protocol-v1.json"
 
 
 def fixture(tmp_path, **updates):
@@ -98,3 +99,41 @@ def test_missing_geometry_does_not_silently_become_diagnostic(tmp_path, scope):
     path = fixture(tmp_path, positions_m=None, geometry_status="unconfirmed", capture_scope=scope)
     with pytest.raises(ValueError, match="geometry"):
         admit_capture(PROTOCOL, 2_450_000_000, muted=False, fixture_path=path)
+
+
+def test_subghz_has_separate_scope_and_fixture_binding(tmp_path):
+    path = fixture(
+        tmp_path, protocol_sha256=sha256(SUBGHZ),
+        approved_intervals_hz=[[902_000_000, 928_000_000]],
+    )
+    assert admit_capture(SUBGHZ, 915_000_000, muted=False, fixture_path=path)["kind"] == "ota"
+    with pytest.raises(ValueError, match="outside"):
+        admit_capture(PROTOCOL, 915_000_000, muted=True)
+    with pytest.raises(ValueError, match="identity/readiness"):
+        admit_capture(SUBGHZ, 915_000_000, muted=False, fixture_path=fixture(tmp_path))
+
+
+@pytest.mark.parametrize("frequency", [900_000_000, 905_000_000, 925_000_000, 2_450_000_000])
+def test_single_subghz_trial_does_not_authorize_a_sweep(frequency):
+    with pytest.raises(ValueError, match="outside"):
+        admit_capture(SUBGHZ, frequency, muted=True)
+
+
+@pytest.mark.parametrize("updates", [
+    {"allowed_frequencies_hz": [905_000_000, 915_000_000]},
+    {"tx_hardware_gain_db": -20}, {"dds_scale": 0.5},
+    {"provisional_edge_guard_hz": 0},
+    {"band_allocations_hz": [[900_000_000, 928_000_000]]},
+])
+def test_subghz_protocol_rejects_expanded_limits(tmp_path, updates):
+    value = json.loads(SUBGHZ.read_text()) | updates
+    path = tmp_path / "protocol.json"
+    path.write_text(json.dumps(value))
+    with pytest.raises(ValueError, match="scope"):
+        read_protocol(path)
+
+
+def test_subghz_coverage_has_only_one_candidate():
+    rows = coverage_grid(read_protocol(SUBGHZ), [[902_000_000, 928_000_000]])
+    pending = [r["frequency_hz"] for r in rows if r["status"] == "pending_measurement"]
+    assert pending == [915_000_000]
