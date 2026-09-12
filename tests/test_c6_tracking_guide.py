@@ -1,6 +1,7 @@
 """Offline checks for tutorial estimators, evidence and guide assets."""
 
 import copy
+import csv
 import json
 import re
 import sys
@@ -23,6 +24,37 @@ from c6_tracking_example import (  # noqa: E402
 from smateway.rate_timing import complex_value, sha256  # noqa: E402
 
 OUT = ROOT / "docs/c6_dual_band_tracking_guide"
+
+
+@pytest.mark.parametrize("configuration,bandwidth", [("B", "1.6"), ("D", "4")])
+def test_rate_bandwidth_report_table_matches_three_independent_pairs(configuration, bandwidth):
+    with (ROOT / "docs/full_5ms_campaign/data/paired-controls.csv").open() as handle:
+        selected = [
+            row
+            for row in csv.DictReader(handle)
+            if row["frequency_hz"] == "5800000000"
+            and row["dwell_us"] == "200"
+            and row["configuration"] == configuration
+        ]
+    assert len(selected) == 3
+    assert {row["round"] for row in selected} == {"1", "2", "3"}
+    assert len({row["main_run_json"] for row in selected}) == 3
+    assert len({row["control_run_json"] for row in selected}) == 3
+    assert all(row["pair_phase_gain_bracket_pass"] == "True" for row in selected)
+    control = np.median([float(row["control_phase_rms_deg"]) for row in selected])
+    main = np.median([float(row["main_phase_rms_deg"]) for row in selected])
+    expected = (
+        f"| {configuration} | 5 MS/s / {bandwidth} MHz | {control:.2f}° | {main:.2f}° | 3/3 |"
+    )
+    assert expected in (OUT / "README.md").read_text()
+
+
+@pytest.mark.parametrize("rate_msps", [2, 5, 10])
+def test_rate_table_keeps_time_samples_and_storage_units_distinct(rate_msps):
+    expected = (
+        f"| {rate_msps} MS/s | {1 / rate_msps:g} µs | {200 * rate_msps:,} | {16 * rate_msps} MB/s |"
+    )
+    assert expected in (OUT / "README.md").read_text()
 
 
 def test_perfect_transfer_cancels_arbitrary_common_signal_phase():

@@ -28,6 +28,7 @@ read without modification. Firmware programming and new RF acquisition below are
 | Which 5.8 GHz lab settings? | 5 MS/s, 1.6 MHz RX bandwidth, 200 µs dwell; manual gains selected by headroom/reference checks |
 | Which 2.4 GHz starting settings? | 2 MS/s, 1.6 MHz RX bandwidth, 200 µs dwell as a conservative diagnostic; re-establish static/reference closure first |
 | Is 2.4 GHz at 5 MS/s ready? | No clean condition in the latest 2475 MHz B/D blocks; do not assume the 5.8 GHz settings transfer |
+| Can we increase rate or bandwidth? | Yes; 5 MS/s / 4 MHz passed phase/gain checks at 5800 MHz, but wider/faster settings need their own checks; see Section 5 |
 | What output budget? | Start with 50 ms observation windows, not a bearing from every dwell; current replay needs one second of training |
 | Production reference? | A fixed RX1 antenna observing the same emitter as the six switched RX2 antennas; not yet qualified |
 | Can one Pluto observe both bands simultaneously? | Not with this shared-LO dual-RX arrangement; retune between band-specific measurements |
@@ -340,11 +341,123 @@ its diagnostic manifold; the replay default preserves that convention and expose
 `--rf-offset-hz` for a separately labeled refinement. Do not silently change it when
 comparing historical output.
 
-Two raw complex-float32 channels require 16 bytes per simultaneous sample time:
-approximately 32 MB/s stored at 2 MS/s and 80 MB/s at 5 MS/s. A four-second 5 MS/s
-record therefore stores 320 MB of IQ. These are file-format calculations, not measured
-network rates; the wire format and metadata can differ. Preserve continuous sample
-counters rather than inferring RF time from file-write or network arrival times.
+### 5.1 Are these settings fundamental limits?
+
+**No. The A/B settings above are conservative starting recipes, not physical limits
+of the six-antenna PCB.** We already have useful 5 MS/s / 4 MHz phase measurements
+at 5800 MHz. Capturing more bandwidth, obtaining stable phase and accurately locating
+an emitter are three different claims; the last remains unqualified.
+
+Sample rate determines how often the host receives a complex IQ sample. Receiver
+bandwidth sets the nominal width of the RF region admitted around the tuned center;
+the actual passband and transition depend on the analog and digital filters. Neither
+number is the 2.4 or 5.8 GHz carrier frequency: the receiver downconverts the signal
+before delivering these baseband samples.
+
+| Sample rate | Sample spacing | Samples in a 200 µs dwell, before trimming | Dual-RX complex-float32 storage |
+|---|---:|---:|---:|
+| 2 MS/s | 0.5 µs | 400 | 32 MB/s |
+| 5 MS/s | 0.2 µs | 1,000 | 80 MB/s |
+| 10 MS/s | 0.1 µs | 2,000 | 160 MB/s |
+
+At fixed 1.6 MHz bandwidth and fixed observation duration, the extra samples largely
+describe the same filtered waveform. **2.5× more samples does not automatically mean
+2.5× more independent information or better angular accuracy.** Sampling the IQ more
+densely can help edge localization, but does not make the physical switch settle
+faster or increase the time spent observing the source.
+
+These comparisons are not pure software oversampling: the recorded ADC/filter
+clocks also changed between A and B. Their FIR readbacks described 128 taps and
+decimation by four, not a measured impulse response or proof of identical effective
+filters. [Recorded clock/filter settings](../higher_sample_rate_timing_campaign/FINDINGS.md)
+
+Storage numbers above use two channels × eight bytes per complex-float32 value,
+not a measured network wire format. Four seconds at 5 MS/s stores 320 MB of IQ.
+Preserve continuous sample counters rather than inferring RF time from file-write
+or network arrival times.
+
+### 5.2 How sensitive were the actual 5800 MHz measurements?
+
+The latest campaign includes same-round, same-dwell A controls interleaved with each
+B/D block. At **5800 MHz and 200 µs dwell**, the comparisons are:
+
+| Main profile | Main sample rate / RX bandwidth | A-control median phase RMS | Main median phase RMS | Matched pairs passing phase/gain/bracket checks |
+|---|---|---:|---:|---:|
+| B | 5 MS/s / 1.6 MHz | 8.27° | 7.68° | 3/3 |
+| D | 5 MS/s / 4 MHz | 8.24° | 8.21° | 3/3 |
+
+A is 2 MS/s / 1.6 MHz in both rows. Each number is the median of three trial-level
+phase RMS values, not a pooled RMS. B and D have separate control sets and were
+acquired in separate blocks; they are not one simultaneous three-way experiment.
+The rolling recipe uses one second of preceding training and 50 ms prediction
+windows. [Exact matched pairs and raw-record identities](../full_5ms_campaign/data/paired-controls.csv)
+
+These results show **no large phase-quality penalty for 2 → 5 MS/s or 1.6 → 4 MHz
+in those 5800 MHz conditions**. Three pairs do not establish a decisive accuracy
+advantage or statistical equivalence. B holds RX bandwidth fixed relative to A;
+D changes bandwidth as well as sample rate relative to its A controls.
+
+D also passed the complete phase/gain condition at **100 µs dwell with 9.90° median
+phase RMS**, narrowly below the 10° criterion. That supports a separately checked
+shorter-dwell candidate, not an automatic 100 µs operating guarantee. No corresponding
+condition passed all bearing gates. At 2475 MHz, both B and D failed the latest
+required controls/brackets, so we cannot transfer the 5800 MHz conclusion to the
+2.4 GHz band. These failures do not establish a fundamental 2 MS/s low-band ceiling.
+[Full condition results](../full_5ms_campaign/data/condition-details.csv)
+
+### 5.3 What can wider or faster settings make worse?
+
+**Noise and interference.** For flat noise density and proportionally wider effective
+noise bandwidth, 1.6 → 4 MHz admits 2.5× the noise power, approximately
+`10 log10(4 / 1.6) = 4 dB`, at unchanged gain. This is an illustrative integrated-noise
+calculation, not a measured 4 dB penalty in our phase estimator. The actual effective
+bandwidth depends on filter shape. A narrowband pilot gains little useful signal
+from the extra spectrum. Matched digital filtering around the emitter can reject
+out-of-band noise/interference, but cannot undo front-end overload or clipping.
+
+**Transient memory and timing.** Wider filters can shorten their transient memory,
+but internal clocks, filter coefficients and decimation also matter. ADI documents
+both the programmable receive-filter chain and its contribution to delay.
+[AD9361 reference manual, pp. 33–34](https://www.analog.com/media/en/technical-documentation/user-guides/AD9361_Reference_Manual_UG-570.pdf)
+Recheck the relationship between switch edges and IQ sample indices, and verify the
+settled part of each dwell after changing a configuration. Express exclusions in
+time and convert them at the new rate: 5 µs is 10 samples at 2 MS/s but 25 at 5 MS/s.
+Simply keeping the old discarded sample count changes the physical exclusion.
+Digital channelization adds its own filter memory and must be included in this check.
+
+**Transport and compute.** The earlier 10 MS/s / 1.6 MHz test accepted the rate but
+developed a **250,000-sample gap after 1.75 seconds of accepted RF data**. That is a
+failure of the tested continuous acquisition path, not evidence of a PCB speed limit
+or identification of network throughput as the sole cause. The 10 MS/s / 8 MHz RF
+case was gated out; a radio RAM-ring mode was not qualified by that campaign.
+[Acquisition evidence](../higher_sample_rate_timing_campaign/FINDINGS.md)
+Even the later 5 MS/s campaign retained metadata failures and used bounded whole-record
+recapture. Host RAM staging and offline recovery do not qualify uninterrupted live
+tracking. Buffers can absorb finite stalls; they cannot sustain an indefinitely
+higher production rate than the downstream consumer can handle.
+
+### 5.4 Does changing sample rate invalidate the PCB LUT?
+
+Not inherently: the PCB's physical paths do not change because the host sample rate
+changes. At the same signal RF frequency, keep the existing PCB LUT as the starting
+correction. However, the **complete receiver-plus-array response must be checked
+for each configuration**, including RX1/RX2 differential response, gains, filter
+transients and timing labels. A shared, settled complex factor can be absorbed by
+the bearing solver; port-dependent errors and samples contaminated by switching
+cannot generally be removed that way.
+
+Start with static and switched reference checks at the proposed settings; a sample-
+rate change alone does not justify repeating the entire dense PCB campaign. For a
+wider occupied signal, evaluate calibration and steering at the relevant RF subbands
+instead of assuming one center-frequency correction describes the whole signal.
+
+**Operating recommendation:** retain **5 MS/s / 1.6 MHz / 200 µs** as the 5800 MHz
+narrowband baseline. Use **5 MS/s / 4 MHz** when the intended signal requires that
+bandwidth, with fresh references, headroom and settling checks. Re-establish low-band
+reference closure before promoting a 2475 MHz mode. Before trying a still faster or
+wider setting, prove continuous acquisition, then static/switched phase closure,
+then surveyed-angle accuracy. More samples or bandwidth alone will not fix the
+current installed-array spatial-model mismatch.
 
 ## 6. Timing and post-processing
 

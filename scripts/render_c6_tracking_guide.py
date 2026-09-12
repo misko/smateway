@@ -438,6 +438,8 @@ def main():
         ROOT / "scripts/restore_tracking_selector_backup.py",
         ROOT / "scripts/capture_rate_timing.py",
         ROOT / "docs/full_5ms_campaign/data/condition-details.csv",
+        ROOT / "docs/full_5ms_campaign/data/paired-controls.csv",
+        ROOT / "docs/higher_sample_rate_timing_campaign/FINDINGS.md",
     ]
     manifest = {
         "schema": 1,

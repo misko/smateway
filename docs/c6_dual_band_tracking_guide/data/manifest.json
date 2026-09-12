@@ -6,7 +6,7 @@
     "docs/pcb_direct_injection_calibration/data/calibration-lut.json": "41df45843ac4c630ce41b37682070e46bb8c8385485f834d5f2641ea03970077",
     "profiles/tracking-c6-200us-v1/control_profile.json": "a94213db8e67191c67c466fd7d4cfeb15b595bfc50ba043a02748c1c6352fd75",
     "scripts/c6_tracking_example.py": "7b4553ed0bef3172211d3fb5879ef480f768f8f107f16047b1a677b796d49100",
-    "scripts/render_c6_tracking_guide.py": "a497a8804f9b5c9c13d16fc8e4f778598404e91f4deaa40579af9839ee5fcbc0",
+    "scripts/render_c6_tracking_guide.py": "76251b28865e59b5e6c3a5156545810026c1e36a14000ca3c4c8313f703780db",
     "src/smateway/tracking/bearing.py": "da32e493f821a05a8fba818445c472896a25a83dee3e01fa383a7066b2ab991a",
     "src/smateway/tracking/calibration.py": "7553b5a448e34a85b7797aea0e2a203d865857d8a990f342ce2fda122cab40ab",
     "src/smateway/tracking/manifold.py": "f53ea8f5344a9eae1d65d74bf9774573bd3c62f3ce88a02e73325f498aabc82d",
@@ -17,7 +17,9 @@
     "scripts/flash_tracking_c6_firmware.py": "95849b598550bcfb15461ad85d4286e72e4082edcfa461c83d95863fd9e0c207",
     "scripts/restore_tracking_selector_backup.py": "ff53b55ca0386f5219c12bdfb296bcc52288ed5781f2d99fa234bdb33415cfb7",
     "scripts/capture_rate_timing.py": "3a0889d77aba94ba5ff19536c6d430113b95c66abc4b2bb403f824ab94576e76",
-    "docs/full_5ms_campaign/data/condition-details.csv": "cf1a6c4671b1a39207bb0e04e7c18d90ba50488cb86149a0959920f010f6e5bc"
+    "docs/full_5ms_campaign/data/condition-details.csv": "cf1a6c4671b1a39207bb0e04e7c18d90ba50488cb86149a0959920f010f6e5bc",
+    "docs/full_5ms_campaign/data/paired-controls.csv": "0568435b65916984f949f8db70f40c82ed9cbed0b2f56a77ab3c461cbb240602",
+    "docs/higher_sample_rate_timing_campaign/FINDINGS.md": "8b1f2ae01a6e19e032b487e729ab6940800706162aa3df4697caf2ceac1fd138"
   },
   "data": {
     "data/demo-2475.json": "da88e4c0f7199d47252c4c50ea2d4ff8d9bfbd5bcc145dc8388eee5b346f8c0c",
@@ -38,5 +40,5 @@
     "png/fig09_dwell_tradeoff.png": "54be90490b14d4c372de7bb7fda20de40d689916f545515f5757faab427a0fad",
     "png/fig10_validation_plan.png": "8f468916861054cbc5a0fbf11350ab47f841c6054e83962e61a8da2d9ae2f3d9"
   },
-  "report_sha256": "a1c88903d7af0da8fc8546cac9b1c85f174c9c13717cd27b902b5fa3adeac4c7"
+  "report_sha256": "0c8a2149b942827cf52720fd8e764a1fbf35e3f96c3ad0eb969c7070a187a424"
 }
