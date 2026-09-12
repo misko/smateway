@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "status": "complete",
+  "source_sha256": "62d5335f18bfd7277ce8a0c7792ca06ca8ff47c7bab51950d22076ecae23e366",
+  "screen_sha256": "0103b182a2b379bbe6cfb4f1316138966efee18705dda01df18e9d29efa5dff4",
+  "frequencies_analyzed_hz": [
+    5800000000,
+    2475000000,
+    5811000000,
+    915000000
+  ],
+  "runs_and_raw_iq_verified": 48,
+  "old_blocks": {
+    "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/block-20260908T164249289170Z.json": "29e9146ab694371774d1c109797e46c99a10f49fa906aa0c277e39b22f283c14",
+    "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/block-20260908T225855806955Z.json": "ceb69a658c2e8719b5a3092431edb74cdea0b082e39d341a01e571dd7ffcac9f",
+    "/srv/bulk/samteway/lab-data/tracking-comprehensive-20260908-v1/block-20260908T222235133339Z.json": "d8fbdee86e38c0f2ff143ffe39337e342ec4b140fe2d1c949da2af64a4bfd4f2",
+    "/srv/bulk/samteway/lab-data/tracking-915-diagnostic-20260909-v1/block-20260909T170658793466Z.json": "d4fe5254603333fc6c080a58cb6956a48f8b796396bac74e71f84264158c3561"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "scope": "guide, synthetic demonstration and one retained-IQ replay",
+  "production_qualified": false,
+  "sources": {
+    "docs/pcb_direct_injection_calibration/data/calibration-lut.json": "41df45843ac4c630ce41b37682070e46bb8c8385485f834d5f2641ea03970077",
+    "profiles/tracking-c6-200us-v1/control_profile.json": "a94213db8e67191c67c466fd7d4cfeb15b595bfc50ba043a02748c1c6352fd75",
+    "scripts/c6_tracking_example.py": "7b4553ed0bef3172211d3fb5879ef480f768f8f107f16047b1a677b796d49100",
+    "scripts/render_c6_tracking_guide.py": "a497a8804f9b5c9c13d16fc8e4f778598404e91f4deaa40579af9839ee5fcbc0",
+    "src/smateway/tracking/bearing.py": "da32e493f821a05a8fba818445c472896a25a83dee3e01fa383a7066b2ab991a",
+    "src/smateway/tracking/calibration.py": "7553b5a448e34a85b7797aea0e2a203d865857d8a990f342ce2fda122cab40ab",
+    "src/smateway/tracking/manifold.py": "f53ea8f5344a9eae1d65d74bf9774573bd3c62f3ce88a02e73325f498aabc82d",
+    "src/smateway/reference_timing.py": "b3215738c600607eee727f7e5afcbb05c0d3b82c50623d4cbcdb6f93a115b2c0",
+    "firmware/stm32c011/apps/hexcal/main.c": "447ae83f671144cbab40166cd4a9e1642d8512b7f2e024abd179349a1107a889",
+    "Makefile": "8ce994551464df71b7549840acf53340edae4416076f9d97e3cf07999680b8d0",
+    "scripts/verify_tracking_c6_firmware.py": "70c66cb64f7db6e1a5131a94e6dc1673bcf989e4343f19f21c4320ca71df7b55",
+    "scripts/flash_tracking_c6_firmware.py": "95849b598550bcfb15461ad85d4286e72e4082edcfa461c83d95863fd9e0c207",
+    "scripts/restore_tracking_selector_backup.py": "ff53b55ca0386f5219c12bdfb296bcc52288ed5781f2d99fa234bdb33415cfb7",
+    "scripts/capture_rate_timing.py": "3a0889d77aba94ba5ff19536c6d430113b95c66abc4b2bb403f824ab94576e76",
+    "docs/full_5ms_campaign/data/condition-details.csv": "cf1a6c4671b1a39207bb0e04e7c18d90ba50488cb86149a0959920f010f6e5bc"
+  },
+  "data": {
+    "data/demo-2475.json": "da88e4c0f7199d47252c4c50ea2d4ff8d9bfbd5bcc145dc8388eee5b346f8c0c",
+    "data/demo-5800.json": "614a51bf6633486ebeab2a33e847a269073ec9e11fbaa993aaa3dcdb8648ae40",
+    "data/firmware-200us-verification.json": "68f400866c72bd007d46fa79de6779ae95bfd276535af17ac9344ec4c5a48be7",
+    "data/port-map.csv": "7d7c5b44a38bb2d42405686abeae56470853906a428fe5348f6e7d087f0921cf",
+    "data/replay-5800-B-200us.json": "69a60c521acc8d09e394be667676fc85334cce8427a816b148c200cc28335ac6"
+  },
+  "figures": {
+    "png/fig01_array_geometry.png": "62ffd199b848cbf63a05a3ba1cc229f6a1592a8f7c583b9a5b07aaf8ff6b1d59",
+    "png/fig02_reference_architecture.png": "dd409d1bf1f229abbab8d2a688365a4c7d78a87fe8975d9c212c2b9f89cccb43",
+    "png/fig03_selector_timeline.png": "a6bb8fc62ca270f1f268bb323816deb50c635a85693a535b71f0e7767018d946",
+    "png/fig04_firmware_and_settings.png": "65891e66e8584890e4a57e95f8cdc0d74dc261ac832d9fdc028a80a6ca7e51d2",
+    "png/fig05_processing_pipeline.png": "01184e9310dcc0f49b4681b76aa05865064968e2766e00fc20bf516d5d51e4f1",
+    "png/fig06_iq_to_complex_transfer.png": "0f16f901072873eda237ef8adbbdd3937fea205f8d917b418397822c1dcaa77c",
+    "png/fig07_synthetic_calibration_and_bearing.png": "3982282035feae00847f3b63e6d81aeec83992d4f2165bc620f4764baca7fffe",
+    "png/fig08_real_record_replay.png": "d167fcc0f2812888c3af257c1dbe982d5ddaec23df4b0508ebe1810da7a84008",
+    "png/fig09_dwell_tradeoff.png": "54be90490b14d4c372de7bb7fda20de40d689916f545515f5757faab427a0fad",
+    "png/fig10_validation_plan.png": "8f468916861054cbc5a0fbf11350ab47f841c6054e83962e61a8da2d9ae2f3d9"
+  },
+  "report_sha256": "a1c88903d7af0da8fc8546cac9b1c85f174c9c13717cd27b902b5fa3adeac4c7"
+}

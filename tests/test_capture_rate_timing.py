@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace
 
+import numpy as np
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -99,3 +100,36 @@ def test_gain_telemetry_retains_available_fields_without_inventing_endpoints():
     assert result["rx1_gain_index"] == result["rx2_gain_index"] == 35
     assert "rx1_gain_db_start" not in result
     assert capture.gain_telemetry(SimpleNamespace()) == {"available": False}
+
+
+def test_iq_staging_is_opt_in_and_bounded(monkeypatch):
+    monkeypatch.delenv("SMATEWAY_STAGE_IQ_IN_RAM", raising=False)
+    assert capture.allocate_iq_stage(4, "fast") is None
+    monkeypatch.setenv("SMATEWAY_STAGE_IQ_IN_RAM", "1")
+    assert capture.allocate_iq_stage(4, "fast").shape == (2, 4)
+    assert capture.allocate_iq_stage(4, "muted") is None
+    with pytest.raises(ValueError, match="512 MiB"):
+        capture.allocate_iq_stage(40_000_000, "fast")
+    monkeypatch.setenv("SMATEWAY_STAGE_IQ_IN_RAM", "yes")
+    with pytest.raises(ValueError, match="0 or 1"):
+        capture.allocate_iq_stage(4, "fast")
+
+
+def test_staged_iq_writes_only_received_samples_and_keeps_channels(tmp_path):
+    paths = [tmp_path / name for name in ("rx1.cf32", "rx2.cf32")]
+    for path in paths:
+        path.touch()
+    staged = np.array([[1 + 2j, 3 + 4j, 99], [5 + 6j, 7 + 8j, 99]], np.complex64)
+    capture.persist_iq_stage(paths, staged, 2)
+    for path, expected in zip(paths, staged, strict=True):
+        np.testing.assert_array_equal(np.fromfile(path, dtype=np.complex64), expected[:2])
+    capture.persist_iq_stage(paths, staged, 2)  # A cleanup call must not append twice.
+    assert all(p.stat().st_size == 16 for p in paths)
+
+
+def test_staged_partial_write_is_not_overwritten(tmp_path):
+    path = tmp_path / "partial.cf32"
+    path.write_bytes(b"incomplete")
+    with pytest.raises(RuntimeError, match="without overwrite"):
+        capture.persist_iq_stage([path], np.zeros((1, 4), np.complex64), 4)
+    assert path.read_bytes() == b"incomplete"

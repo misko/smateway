@@ -1,0 +1,88 @@
+{
+  "scope": "Offline synthesis of normalized results; no new raw-IQ replay or RF work",
+  "data_through": "2026-09-11",
+  "dense_summary": [
+    {
+      "epoch": "Original / 2 MS/s",
+      "tx_port": "TX1",
+      "records": 149,
+      "phase_admissions_variable_budget": 147,
+      "spatial_model_admissions": 73,
+      "spatial_phase_residual_p10_deg": 24.42104427902291,
+      "spatial_phase_residual_median_deg": 40.540213585895884,
+      "spatial_phase_residual_p90_deg": 68.08042941517849,
+      "surveyed_angular_accuracy": "not measured"
+    },
+    {
+      "epoch": "Original / 2 MS/s",
+      "tx_port": "TX2",
+      "records": 149,
+      "phase_admissions_variable_budget": 144,
+      "spatial_model_admissions": 66,
+      "spatial_phase_residual_p10_deg": 19.253643601514185,
+      "spatial_phase_residual_median_deg": 34.73156912806805,
+      "spatial_phase_residual_p90_deg": 78.12676919548791,
+      "surveyed_angular_accuracy": "not measured"
+    },
+    {
+      "epoch": "Jittered / 2 MS/s",
+      "tx_port": "TX1",
+      "records": 149,
+      "phase_admissions_variable_budget": 147,
+      "spatial_model_admissions": 0,
+      "spatial_phase_residual_p10_deg": 41.71932546437152,
+      "spatial_phase_residual_median_deg": 53.564871640636376,
+      "spatial_phase_residual_p90_deg": 63.83673485667719,
+      "surveyed_angular_accuracy": "not measured"
+    },
+    {
+      "epoch": "Jittered / 2 MS/s",
+      "tx_port": "TX2",
+      "records": 149,
+      "phase_admissions_variable_budget": 147,
+      "spatial_model_admissions": 72,
+      "spatial_phase_residual_p10_deg": 18.465411945549192,
+      "spatial_phase_residual_median_deg": 28.270019073452765,
+      "spatial_phase_residual_p90_deg": 60.67078503869904,
+      "surveyed_angular_accuracy": "not measured"
+    },
+    {
+      "epoch": "Latest / 5 MS/s",
+      "tx_port": "TX1",
+      "records": 149,
+      "phase_admissions_variable_budget": 149,
+      "spatial_model_admissions": 0,
+      "spatial_phase_residual_p10_deg": 41.690513938405914,
+      "spatial_phase_residual_median_deg": 52.77919684305302,
+      "spatial_phase_residual_p90_deg": 67.81408704596944,
+      "surveyed_angular_accuracy": "not measured"
+    },
+    {
+      "epoch": "Latest / 5 MS/s",
+      "tx_port": "TX2",
+      "records": 149,
+      "phase_admissions_variable_budget": 147,
+      "spatial_model_admissions": 64,
+      "spatial_phase_residual_p10_deg": 23.111079038515598,
+      "spatial_phase_residual_median_deg": 28.827925645303967,
+      "spatial_phase_residual_p90_deg": 56.34284977371766,
+      "surveyed_angular_accuracy": "not measured"
+    }
+  ],
+  "clean_latest_phase_conditions": 7,
+  "clean_latest_joint_conditions": 0,
+  "production_angular_accuracy_qualified": false,
+  "pcb_spatial_holdout": {
+    "max_abs_deg": 5.092837410288402,
+    "p95_abs_deg": 2.486457136506923,
+    "rms_deg": 1.1199028498800316
+  },
+  "latest_window_accounting": {
+    "records": 150,
+    "rejected_records": 3,
+    "expected_windows": 9000,
+    "analyzed_windows": 8750,
+    "failed_windows": 70,
+    "unattempted_windows": 180
+  }
+}

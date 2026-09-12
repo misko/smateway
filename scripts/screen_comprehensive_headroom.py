@@ -5,9 +5,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -38,30 +40,118 @@ def save(path, record):
     temporary.replace(path)
 
 
-def capture(command):
+def capture_once(command):
+    timeout = float(os.environ.get("SMATEWAY_CAPTURE_TIMEOUT_S", "45"))
+    if not 45 <= timeout <= 120:
+        raise ValueError("Capture supervisor timeout must be within 45–120 seconds")
+    started = time.monotonic()
     process = subprocess.Popen(
         command, cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
     )
     try:
-        output, _ = process.communicate(timeout=45)
-    except BaseException:
+        output, _ = process.communicate(timeout=timeout)
+    except BaseException as error:
         process.terminate()
         try:
-            process.communicate(timeout=15)
+            output, _ = process.communicate(timeout=15)
         except subprocess.TimeoutExpired:
             process.kill()
-            process.communicate()
+            output, _ = process.communicate()
+        if "--output-root" in command:
+            root = Path(command[command.index("--output-root") + 1]) / "supervisor-errors"
+            root.mkdir(parents=True, exist_ok=True)
+            name = datetime.now(UTC).strftime("capture-%Y%m%dT%H%M%S%fZ.json")
+            save(
+                root / name,
+                {
+                    "timeout_s": timeout,
+                    "elapsed_s": time.monotonic() - started,
+                    "command": command,
+                    "stdout": output,
+                    "returncode": process.returncode,
+                    "error": {"type": type(error).__name__, "message": str(error)},
+                },
+            )
         raise
     match = re.search(r"^run_dir=(/.+)$", output, re.MULTILINE)
     if match is None:
         raise RuntimeError(f"capture child did not return evidence: {output}")
     path = Path(match.group(1)) / "run.json"
+    save(
+        path.parent / "capture-supervisor.json",
+        {
+            "timeout_s": timeout,
+            "elapsed_s": time.monotonic() - started,
+            "returncode": process.returncode,
+            "stdout": output,
+        },
+    )
     run = load(path)
     if not run.get("safety", {}).get("final_source_mute", {}).get("passed"):
         raise RuntimeError(f"capture did not verify final mute: {path}")
     if any(k.endswith("cleanup_error") or k == "mute_error" for k in run["safety"]):
         raise RuntimeError(f"capture cleanup failed: {path}")
     return path, run
+
+
+def retryable_metadata_error(run):
+    error = run.get("error") or {}
+    traceback_text = run.get("error_traceback", "")
+    return (
+        run.get("status") == "failed"
+        and error.get("type") == "OSError"
+        and error.get("errno") == 61
+        and "iio_metadata.py" in traceback_text
+        and ".refill()" in traceback_text
+    )
+
+
+def capture(command):
+    retries = int(os.environ.get("SMATEWAY_METADATA_RETRIES", "0"))
+    if not 0 <= retries <= 2:
+        raise ValueError("Metadata retries must be within 0–2")
+    if not retries:
+        return capture_once(command)
+    if "--output-root" not in command:
+        raise ValueError("Retry policy requires a persistent evidence root")
+    directory = Path(command[command.index("--output-root") + 1]) / "transport-attempts"
+    directory.mkdir(parents=True, exist_ok=True)
+    log = directory / datetime.now(UTC).strftime("attempts-%Y%m%dT%H%M%S%fZ.json")
+    record = {
+        "policy": "Whole-record metadata ENODATA retries only; no quality-based selection",
+        "maximum_attempts": retries + 1,
+        "status": "running",
+        "command": command,
+        "attempts": [],
+        "source_sha256": sha256(Path(__file__)),
+    }
+    save(log, record)
+    try:
+        for attempt in range(retries + 1):
+            path, run = capture_once(command)  # Already verifies mute and all cleanup errors.
+            record["attempts"].append(
+                {
+                    "run_json": str(path),
+                    "sha256": sha256(path),
+                    "status": run["status"],
+                    "error": run.get("error"),
+                }
+            )
+            retry = retryable_metadata_error(run) and attempt < retries
+            if not retry:
+                record.update(status=run["status"], selected_run_json=str(path))
+            save(log, record)
+            if not retry:
+                sidecar = path.parent / "capture-attempts.json"
+                save(sidecar, record)
+                run["transport_attempts"] = {"path": str(sidecar), "sha256": sha256(sidecar)}
+                return path, run
+            print(f"[metadata retry {attempt + 1}/{retries}] retained {path}", flush=True)
+    except BaseException as error:
+        record.update(status="failed", error={"type": type(error).__name__, "message": str(error)})
+        save(log, record)
+        raise
+    raise AssertionError("Bounded retry loop returned no capture")
 
 
 def main():

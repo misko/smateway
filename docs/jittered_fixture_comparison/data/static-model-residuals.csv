@@ -1,0 +1,49 @@
+epoch,frequency_hz,port,phase_residual_deg,bearing_deg,valid,reasons
+before,915000000.0,ANT1,-31.998215131303496,151.0,False,score_below_gate ambiguous_peak phase_residual_above_gate
+before,915000000.0,ANT2,-56.80824065715565,151.0,False,score_below_gate ambiguous_peak phase_residual_above_gate
+before,915000000.0,ANT4,119.91006654761244,151.0,False,score_below_gate ambiguous_peak phase_residual_above_gate
+before,915000000.0,ANT8,26.505161128791755,151.0,False,score_below_gate ambiguous_peak phase_residual_above_gate
+before,915000000.0,ANT7,32.18007688263551,151.0,False,score_below_gate ambiguous_peak phase_residual_above_gate
+before,915000000.0,ANT5,-35.587851701257605,151.0,False,score_below_gate ambiguous_peak phase_residual_above_gate
+after,915000000.0,ANT1,-11.771645332240391,161.75,False,ambiguous_peak
+after,915000000.0,ANT2,26.528441104736764,161.75,False,ambiguous_peak
+after,915000000.0,ANT4,-3.7197304874522943,161.75,False,ambiguous_peak
+after,915000000.0,ANT8,15.753713490025357,161.75,False,ambiguous_peak
+after,915000000.0,ANT7,64.86594464067883,161.75,False,ambiguous_peak
+after,915000000.0,ANT5,-14.162807536125804,161.75,False,ambiguous_peak
+before,2475000000.0,ANT1,44.01448864193085,46.5,False,score_below_gate ambiguous_peak phase_residual_above_gate
+before,2475000000.0,ANT2,-20.238020961077048,46.5,False,score_below_gate ambiguous_peak phase_residual_above_gate
+before,2475000000.0,ANT4,25.469992352029667,46.5,False,score_below_gate ambiguous_peak phase_residual_above_gate
+before,2475000000.0,ANT8,-0.7278676899416233,46.5,False,score_below_gate ambiguous_peak phase_residual_above_gate
+before,2475000000.0,ANT7,-90.61788980878698,46.5,False,score_below_gate ambiguous_peak phase_residual_above_gate
+before,2475000000.0,ANT5,-46.05836792851128,46.5,False,score_below_gate ambiguous_peak phase_residual_above_gate
+after,2475000000.0,ANT1,46.15104551270514,38.25,False,score_below_gate ambiguous_peak phase_residual_above_gate
+after,2475000000.0,ANT2,-30.195342693945904,38.25,False,score_below_gate ambiguous_peak phase_residual_above_gate
+after,2475000000.0,ANT4,15.494764815058021,38.25,False,score_below_gate ambiguous_peak phase_residual_above_gate
+after,2475000000.0,ANT8,29.22346127983132,38.25,False,score_below_gate ambiguous_peak phase_residual_above_gate
+after,2475000000.0,ANT7,-173.69940388907094,38.25,False,score_below_gate ambiguous_peak phase_residual_above_gate
+after,2475000000.0,ANT5,-9.270552836256224,38.25,False,score_below_gate ambiguous_peak phase_residual_above_gate
+before,5800000000.0,ANT1,-100.78680975252541,86.25,True,
+before,5800000000.0,ANT2,-2.547264857600011,86.25,True,
+before,5800000000.0,ANT4,24.56703785331598,86.25,True,
+before,5800000000.0,ANT8,-7.737931955654699,86.25,True,
+before,5800000000.0,ANT7,-18.849144722885395,86.25,True,
+before,5800000000.0,ANT5,17.64011747061018,86.25,True,
+after,5800000000.0,ANT1,-9.270336797537583,262.0,False,score_below_gate ambiguous_peak phase_residual_above_gate
+after,5800000000.0,ANT2,-5.518029505830589,262.0,False,score_below_gate ambiguous_peak phase_residual_above_gate
+after,5800000000.0,ANT4,1.8179065065604822,262.0,False,score_below_gate ambiguous_peak phase_residual_above_gate
+after,5800000000.0,ANT8,-3.384373938902997,262.0,False,score_below_gate ambiguous_peak phase_residual_above_gate
+after,5800000000.0,ANT7,-4.9983888232545075,262.0,False,score_below_gate ambiguous_peak phase_residual_above_gate
+after,5800000000.0,ANT5,147.48348451735552,262.0,False,score_below_gate ambiguous_peak phase_residual_above_gate
+before,5811000000.0,ANT1,47.11447575424848,82.75,True,
+before,5811000000.0,ANT2,-17.517832707951307,82.75,True,
+before,5811000000.0,ANT4,45.383473731241445,82.75,True,
+before,5811000000.0,ANT8,-2.6261229524201264,82.75,True,
+before,5811000000.0,ANT7,-23.36847711411253,82.75,True,
+before,5811000000.0,ANT5,18.3800577810131,82.75,True,
+after,5811000000.0,ANT1,-1.1505398037724668,333.75,False,score_below_gate ambiguous_peak phase_residual_above_gate
+after,5811000000.0,ANT2,27.942528622837006,333.75,False,score_below_gate ambiguous_peak phase_residual_above_gate
+after,5811000000.0,ANT4,-145.41734433701043,333.75,False,score_below_gate ambiguous_peak phase_residual_above_gate
+after,5811000000.0,ANT8,21.505140761249855,333.75,False,score_below_gate ambiguous_peak phase_residual_above_gate
+after,5811000000.0,ANT7,3.420646405058888,333.75,False,score_below_gate ambiguous_peak phase_residual_above_gate
+after,5811000000.0,ANT5,-16.981240811138683,333.75,False,score_below_gate ambiguous_peak phase_residual_above_gate

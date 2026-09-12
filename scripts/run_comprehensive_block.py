@@ -184,6 +184,11 @@ def main():
             "sha256": sha256(result_path),
             "status": run["status"],
             "error": run.get("error"),
+            **(
+                {"transport_attempts": run["transport_attempts"]}
+                if "transport_attempts" in run
+                else {}
+            ),
         }
         return result
 

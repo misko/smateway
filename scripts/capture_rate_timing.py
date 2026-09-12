@@ -11,6 +11,7 @@ import signal
 import sys
 import threading
 import time
+import traceback
 from contextlib import ExitStack
 from datetime import UTC, datetime
 from pathlib import Path
@@ -153,6 +154,32 @@ def source_enabled(mode):
     return mode in ("static", "fast")
 
 
+def allocate_iq_stage(samples, mode):
+    setting = os.environ.get("SMATEWAY_STAGE_IQ_IN_RAM", "0")
+    if setting not in ("0", "1"):
+        raise ValueError("SMATEWAY_STAGE_IQ_IN_RAM must be 0 or 1")
+    if setting == "0" or mode == "muted":
+        return None
+    if samples * 2 * np.dtype(np.complex64).itemsize > 512 * 1024 * 1024:
+        raise ValueError("Host IQ staging exceeds the 512 MiB per-capture bound")
+    return np.empty((2, samples), dtype=np.complex64)
+
+
+def persist_iq_stage(paths, staged, count):
+    """Fill this attempt's empty files, preserving any failed partial write as evidence."""
+    expected_bytes = count * np.dtype(np.complex64).itemsize
+    for path, values in zip(paths, staged, strict=True):
+        size = path.stat().st_size
+        if size == expected_bytes:
+            continue
+        if size:
+            raise RuntimeError(f"Partial staged IQ write retained without overwrite: {path}")
+        with path.open("ab") as stream:
+            values[:count].tofile(stream)
+            stream.flush()
+            os.fsync(stream.fileno())
+
+
 def main() -> int:
     interrupt_events = []
     for signum in (signal.SIGTERM, signal.SIGINT):
@@ -252,6 +279,11 @@ def main() -> int:
     component_peak = [0.0, 0.0]
     clips = [0, 0]
     chunk_times = []
+    staged = allocate_iq_stage(frames * frame_samples, args.mode)
+    staged_count = 0
+    staged_persisted = False
+    paths = []
+    record["host_iq_storage"] = "ram-staged" if staged is not None else "streaming-to-disk"
     try:
         with _lock(args.output_root / ".hardware.lock"):
             source, facts = open_source(args.source_uri)
@@ -362,7 +394,9 @@ def main() -> int:
                     block_clips = []
                     for channel in (0, 1):
                         values = block.samples[channel]
-                        if streams:
+                        if staged is not None:
+                            staged[channel, staged_count : staged_count + frame_samples] = values
+                        elif streams:
                             np.asarray(values, dtype=np.complex64).tofile(streams[channel])
                         block_peaks.append(
                             float(max(np.max(np.abs(values.real)), np.max(np.abs(values.imag))))
@@ -376,6 +410,8 @@ def main() -> int:
                         )
                         component_peak[channel] = max(component_peak[channel], block_peaks[-1])
                         clips[channel] += block_clips[-1]
+                    if staged is not None:
+                        staged_count += frame_samples
                     timeline.append(
                         {
                             "buffer_sequence": block.buffer_sequence,
@@ -391,6 +427,12 @@ def main() -> int:
                         }
                     )
                     previous = block
+                receive_elapsed = time.monotonic() - started
+                if staged is not None:
+                    # Storage latency must not delay live sample consumption or extend RF time.
+                    record["safety"]["source_after_capture_mute"] = _mute_readback(source)
+                    persist_iq_stage(paths, staged, staged_count)
+                    staged_persisted = True
                 for stream in streams:
                     stream.flush()
                     os.fsync(stream.fileno())
@@ -414,6 +456,7 @@ def main() -> int:
                 "samples_per_channel": frames * frame_samples,
                 "timeline": timeline,
                 "wall_time_s": elapsed,
+                "sample_receive_wall_time_s": receive_elapsed,
                 "acquired_duration_s": args.duration_s,
                 "effective_samples_per_second": frames * frame_samples / elapsed,
                 "read_block_p50_s": float(np.median(chunk_times)),
@@ -435,6 +478,9 @@ def main() -> int:
     except BaseException as error:
         record["status"] = "failed"
         record["error"] = {"type": type(error).__name__, "message": str(error)}
+        if isinstance(error, OSError):
+            record["error"]["errno"] = error.errno
+        record["error_traceback"] = traceback.format_exc()
     finally:
         lease_stop.set()
         if lease_thread:
@@ -456,6 +502,15 @@ def main() -> int:
             except Exception as error:
                 record["status"] = "failed"
                 record["safety"][f"{name}_cleanup_error"] = str(error)
+        if staged is not None and staged_count and not staged_persisted:
+            try:
+                # Cleanup/mute precedes potentially slow failure-artifact writes.
+                persist_iq_stage(paths, staged, staged_count)
+                record["partial_raw"] = [
+                    {"path": str(p), "sha256": sha256(p), "bytes": p.stat().st_size} for p in paths
+                ]
+            except Exception as error:
+                record["partial_iq_write_error"] = str(error)
         record["completed_at"] = datetime.now(UTC).isoformat()
         if not record["capture"]:
             record["partial_timeline"] = timeline

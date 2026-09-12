@@ -72,7 +72,7 @@ def label(block):
     return f"{block['frequency_hz'] / 1e6:g} MHz / {block['configuration']} / {block['started_at'][11:19]}"
 
 
-def collect(campaign, audit, *, allow_partial=False):
+def collect(campaign, audit, *, allow_partial=False, block_paths=None):
     blocks, fixed, drift_rows, rolling, conditions, traces, inputs = [], [], [], [], [], {}, []
     audited = {r["run_json"]: r for r in audit["rows"]}
     lut = BoardCalibrationLut.load(
@@ -80,7 +80,8 @@ def collect(campaign, audit, *, allow_partial=False):
     )
     geometry = ArrayGeometry.circular("confirmed-C6-51mm", PORTS, radius_mm=25.5)
     grid = np.arange(0, 360, 0.25)
-    for path in sorted(campaign.glob("block-*.json")):
+    paths = campaign.glob("block-*.json") if block_paths is None else block_paths
+    for path in sorted(paths):
         if len(path.stem.split("-")) != 2:
             continue
         block = checked(path)

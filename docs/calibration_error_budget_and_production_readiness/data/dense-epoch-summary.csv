@@ -1,0 +1,7 @@
+epoch,tx_port,records,phase_admissions_variable_budget,spatial_model_admissions,spatial_phase_residual_p10_deg,spatial_phase_residual_median_deg,spatial_phase_residual_p90_deg,surveyed_angular_accuracy
+Original / 2 MS/s,TX1,149,147,73,24.42104427902291,40.540213585895884,68.08042941517849,not measured
+Original / 2 MS/s,TX2,149,144,66,19.253643601514185,34.73156912806805,78.12676919548791,not measured
+Jittered / 2 MS/s,TX1,149,147,0,41.71932546437152,53.564871640636376,63.83673485667719,not measured
+Jittered / 2 MS/s,TX2,149,147,72,18.465411945549192,28.270019073452765,60.67078503869904,not measured
+Latest / 5 MS/s,TX1,149,149,0,41.690513938405914,52.77919684305302,67.81408704596944,not measured
+Latest / 5 MS/s,TX2,149,147,64,23.111079038515598,28.827925645303967,56.34284977371766,not measured

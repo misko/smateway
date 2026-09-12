@@ -1,0 +1,25 @@
+frequency_mhz,range_m,true_bearing_deg,fit_bearing_deg,plane_wave_phase_residual_deg,scope
+915,0.2,90,90.0,0.6270638460521355,ideal isotropic C6 simulation; not measured range or error
+915,0.3,90,90.0,0.41968033565539614,ideal isotropic C6 simulation; not measured range or error
+915,0.5,90,90.0,0.25231590521294534,ideal isotropic C6 simulation; not measured range or error
+915,1.0,90,90.0,0.12626551346579049,ideal isotropic C6 simulation; not measured range or error
+915,1.5,90,90.0,0.08419030841351645,ideal isotropic C6 simulation; not measured range or error
+915,3.0,90,90.0,0.04209914556263218,ideal isotropic C6 simulation; not measured range or error
+2475,0.2,90,90.0,1.6961567123552548,ideal isotropic C6 simulation; not measured range or error
+2475,0.3,90,90.0,1.1352009648937906,ideal isotropic C6 simulation; not measured range or error
+2475,0.5,90,90.0,0.6824938465335454,ideal isotropic C6 simulation; not measured range or error
+2475,1.0,90,90.0,0.3415378644371127,ideal isotropic C6 simulation; not measured range or error
+2475,1.5,90,90.0,0.22772788343267,ideal isotropic C6 simulation; not measured range or error
+2475,3.0,90,90.0,0.11387473799788311,ideal isotropic C6 simulation; not measured range or error
+5800,0.2,90,90.0,3.974837366407408,ideal isotropic C6 simulation; not measured range or error
+5800,0.3,90,90.0,2.6602696908403423,ideal isotropic C6 simulation; not measured range or error
+5800,0.5,90,90.0,1.5993795801730781,ideal isotropic C6 simulation; not measured range or error
+5800,1.0,90,90.0,0.8003715630345651,ideal isotropic C6 simulation; not measured range or error
+5800,1.5,90,90.0,0.5336653432483537,ideal isotropic C6 simulation; not measured range or error
+5800,3.0,90,90.0,0.26685797188179766,ideal isotropic C6 simulation; not measured range or error
+5811,0.2,90,90.0,3.98237587852355,ideal isotropic C6 simulation; not measured range or error
+5811,0.3,90,90.0,2.665315033726112,ideal isotropic C6 simulation; not measured range or error
+5811,0.5,90,90.0,1.6024128865782892,ideal isotropic C6 simulation; not measured range or error
+5811,1.0,90,90.0,0.8018895091120233,ideal isotropic C6 simulation; not measured range or error
+5811,1.5,90,90.0,0.5346774671764805,ideal isotropic C6 simulation; not measured range or error
+5811,3.0,90,90.0,0.2673640818285029,ideal isotropic C6 simulation; not measured range or error

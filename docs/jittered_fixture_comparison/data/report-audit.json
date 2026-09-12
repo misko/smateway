@@ -1,0 +1,190 @@
+{
+  "schema": 1,
+  "status": "complete",
+  "stages": {
+    "screens": "complete",
+    "blocks": "complete",
+    "dense": "complete"
+  },
+  "raw_audit": {
+    "unique_raw_verified_runs": 237,
+    "block_count": 7,
+    "at": "2026-09-11T04:17:12.784647+00:00"
+  },
+  "dense_rows": 298,
+  "final_safety": {
+    "restore_json": "/srv/bulk/samteway/lab-data/tracking-jitter-20260911-resume-v1/restores/restore-bench-20260911T041507.244204Z/restore.json",
+    "sha256": "69eb70673f8a2b86d291ac783662d20508499bfadb49abdb0851b8223dc606fa",
+    "verified_at": "2026-09-11T04:15:26.123626+00:00",
+    "initial_image_sha256": "4eddf1e07cda11b78800a80a2935790f554913e6d2b70e024e46c68c263c888f",
+    "both_pinned_radios_muted": true,
+    "selector_all_off": true
+  },
+  "campaign_root": "/srv/bulk/samteway/lab-data/tracking-jitter-20260911-resume-v1",
+  "continuation": {
+    "parent": "/srv/bulk/samteway/lab-data/tracking-jitter-20260910-v1",
+    "parent_blocks_sha256": "18535266ebf72aaed6a3618573b875455331996c7576c1f54c191499cd7c5028",
+    "confirmation": "User replied to the status and readiness prompt: why did it stop early? lease continue. Continuation of the unchanged jittered fixture and bounded tests.",
+    "confirmed_at": "2026-09-11T02:55:23+00:00",
+    "inherited_complete_blocks": [
+      {
+        "frequency_hz": 5800000000,
+        "configuration": "A",
+        "gain_db": 60,
+        "dwell_us": [
+          200,
+          1000
+        ],
+        "returncode": 0,
+        "log": "/srv/bulk/samteway/lab-data/tracking-jitter-20260910-v1/block-1-5800000000-A.log",
+        "block_json": "/srv/bulk/samteway/lab-data/tracking-jitter-20260910-v1/block-20260910T043304238564Z.json",
+        "sha256": "b49744a3269847f86425e8446dcd026a70dec4052c32b293dfeecdf11376499b",
+        "status": "diagnostic-complete"
+      },
+      {
+        "frequency_hz": 2475000000,
+        "configuration": "A",
+        "gain_db": 40,
+        "dwell_us": [
+          25,
+          50,
+          100,
+          200,
+          1000
+        ],
+        "returncode": 0,
+        "log": "/srv/bulk/samteway/lab-data/tracking-jitter-20260910-v1/block-2-2475000000-A.log",
+        "block_json": "/srv/bulk/samteway/lab-data/tracking-jitter-20260910-v1/block-20260910T043733496539Z.json",
+        "sha256": "d2ef4335f54f37beb3ee39cd84b987e6f12091b8ba572bd9206b3960643b26f9",
+        "status": "diagnostic-complete"
+      },
+      {
+        "frequency_hz": 2475000000,
+        "configuration": "B",
+        "gain_db": 40,
+        "dwell_us": [
+          25,
+          50,
+          100,
+          200,
+          1000
+        ],
+        "returncode": 0,
+        "log": "/srv/bulk/samteway/lab-data/tracking-jitter-20260910-v1/block-3-2475000000-B.log",
+        "block_json": "/srv/bulk/samteway/lab-data/tracking-jitter-20260910-v1/block-20260910T044450635209Z.json",
+        "sha256": "85c730644cba7a91dc4b7bb202c8446edda1127f8c1b3090fa65e7c828eb9eee",
+        "status": "diagnostic-complete"
+      },
+      {
+        "frequency_hz": 915000000,
+        "configuration": "A",
+        "gain_db": 50,
+        "dwell_us": [
+          200,
+          1000
+        ],
+        "returncode": 0,
+        "log": "/srv/bulk/samteway/lab-data/tracking-jitter-20260910-v1/block-4-915000000-A.log",
+        "block_json": "/srv/bulk/samteway/lab-data/tracking-jitter-20260910-v1/block-20260910T045514538927Z.json",
+        "sha256": "307471eb764f0466871b390a047a0453882ecb9c43bb2702194fc82590ef250c",
+        "status": "diagnostic-complete"
+      }
+    ],
+    "retained_failed_blocks": [
+      {
+        "frequency_hz": 5811000000,
+        "configuration": "A",
+        "gain_db": 60,
+        "dwell_us": [
+          25,
+          50,
+          100,
+          200,
+          1000
+        ],
+        "returncode": 1,
+        "log": "/srv/bulk/samteway/lab-data/tracking-jitter-20260910-v1/block-5-5811000000-A.log",
+        "block_json": "/srv/bulk/samteway/lab-data/tracking-jitter-20260910-v1/block-20260910T045940402599Z.json",
+        "sha256": "b444ead2312e94e5c7c4e2bebb8d344529c539b28d6dc8465ef2a297979214c2",
+        "status": "failed"
+      }
+    ],
+    "inherited_screen_sha256": "0103b182a2b379bbe6cfb4f1316138966efee18705dda01df18e9d29efa5dff4",
+    "scope": "September 11 continuation; September 10 screens retained for static comparison; fresh 5811 MHz screen required.",
+    "updated_at": "2026-09-11T02:58:39.096110+00:00"
+  },
+  "continuation_sha256": "41a169f2bdcbd0a20462175bb96865485698ca7ab935b7e4f2a9bd6eca2741f4",
+  "analysis_inputs": [
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-jitter-20260910-v1/block-20260910T043304238564Z.json",
+      "sha256": "b49744a3269847f86425e8446dcd026a70dec4052c32b293dfeecdf11376499b"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-jitter-20260910-v1/block-20260910T043304238564Z-reference-timing.json",
+      "sha256": "a5c57f2e97e774f1871653d2be3f3d7e2215fc934b3c209457b31e9f84ab4b4f"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-jitter-20260910-v1/block-20260910T043733496539Z.json",
+      "sha256": "d2ef4335f54f37beb3ee39cd84b987e6f12091b8ba572bd9206b3960643b26f9"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-jitter-20260910-v1/block-20260910T043733496539Z-reference-timing.json",
+      "sha256": "fba4ecaec75ee34079cc70ee0d6da52a3156ca098fb87921404508fa17ea8ba4"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-jitter-20260910-v1/block-20260910T044450635209Z.json",
+      "sha256": "85c730644cba7a91dc4b7bb202c8446edda1127f8c1b3090fa65e7c828eb9eee"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-jitter-20260910-v1/block-20260910T044450635209Z-reference-timing.json",
+      "sha256": "48f54293c8687afedcec81452319fec6b534d02704931b1247781b3af8b67b7b"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-jitter-20260910-v1/block-20260910T045514538927Z.json",
+      "sha256": "307471eb764f0466871b390a047a0453882ecb9c43bb2702194fc82590ef250c"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-jitter-20260910-v1/block-20260910T045514538927Z-reference-timing.json",
+      "sha256": "63e7b27f88693c59141e8747ef033e537bf551841fe98092502d996468bcb8ba"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-jitter-20260911-resume-v1/block-20260911T030034179397Z.json",
+      "sha256": "b28d2552b87c676a38774728d92ad513d527e79bbb8329aec9f92293f1fe6298"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-jitter-20260911-resume-v1/block-20260911T030034179397Z-reference-timing.json",
+      "sha256": "e221c58f7e7e06ae89dcd0d7a33fa4a81057ad9055f9ec13987c4fe8de749774"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-jitter-20260911-resume-v1/block-20260911T030757473520Z.json",
+      "sha256": "0df8cbba60009543386c266afbdb7c6d0b21ad9b1b009ec1ebf9e25ed95d0d4c"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-jitter-20260911-resume-v1/block-20260911T030757473520Z-reference-timing.json",
+      "sha256": "e6b1fe627981f0fcbd5c43422a9504d1a7d07d00955d6302a6c4a0b21f6c1e82"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-jitter-20260911-resume-v1/block-20260911T031816349144Z.json",
+      "sha256": "24392d8d20294e359b8384fbb4e07e0158738efabfa04f80535e3009ddb0a00f"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-jitter-20260911-resume-v1/block-20260911T031816349144Z-reference-timing.json",
+      "sha256": "50ea1b61b0f3c91b4f08a3083c161521f71f5bdc02cfeb308100cba9495f3cd2"
+    }
+  ],
+  "sources": {
+    "/srv/bulk/samteway/repository/scripts/render_jitter_report.py": "c777ceab021a5184d49d2f533b23d2d5734f76985601d449fb89eacf8e063f87",
+    "/srv/bulk/samteway/repository/scripts/render_completed_switching_analysis.py": "0aa50ce080123f6bd7aa547483eac5a96564f492fce875c7090a9604785ac629",
+    "/srv/bulk/samteway/repository/docs/cross_band_tracking_analysis/data/trials.csv": "add9eb79696267d16d7212cebd231d78ed4302bf7ad8d050577e650c16f8603c",
+    "/srv/bulk/samteway/repository/docs/cross_band_tracking_analysis/data/conditions.csv": "ae5a8da06ecc101fcc09d580beae62cdef9bccbb562e8a9b27a46b3d70500dbf",
+    "/srv/bulk/samteway/repository/docs/fast_tracking_timing_campaign/data/dense_frequency_conditions.csv": "19089c82cb9e8fd71b2b3eb199b00da8b35659b074b0813d3b537bfd6adcb31f"
+  },
+  "figures": {
+    "fig01_static_before_after.png": "e134cafb24e2db0ea7cb67d2e80c43963fdc4ba727fd62793111de9dbf1b257a",
+    "fig02_dwell_matrix.png": "3ee9ac238055f14c614ecfa7943d2afb5696efb2533f3394b51756ae3fb32240",
+    "fig03_phase_and_gain.png": "db53e66caf2b55132f253458398d62f97b6e46328b5b1cf5689e31d102117835",
+    "fig04_bearing_repeatability.png": "cf1cfc3fb29ebc631b38df4af83d399623597e57e00e0f12e8cbc734862aec4a",
+    "fig05_dense_before_after.png": "430c325c619cd82d31ec8edd9a1c434e6fd05b47e77475bf7417fbfe72f81bf4",
+    "fig06_static_model_residuals.png": "61dcefceee6e98bdec71b1a8f65b2b5b5c300fb871dc9ec8ae416e1b9c583e1d"
+  }
+}

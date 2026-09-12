@@ -43,7 +43,19 @@ belong outside Git under `~/.local/state/smateway/boards/<board-id>/`.
 
 ## Current calibration and direction-finding status
 
-Start with the [consolidated cross-band theory and results report, September 10](docs/cross_band_tracking_analysis/README.md).
+For hands-on use, see the [C6 tracking guide for 2.4 and 5.8 GHz](docs/c6_dual_band_tracking_guide/README.md):
+exact firmware/profile settings, reference wiring, ten PNGs, a synthetic IQ tutorial,
+and a tested offline replay script for retained hardware captures. It is an engineering
+guide, not a production tracking release.
+
+Start with the [comprehensive calibration, error-source and production-readiness report](docs/calibration_error_budget_and_production_readiness/README.md),
+covering evidence through September 11 with 16 new PNGs, explicit campaign boundaries,
+PCB holdout accuracy, three-epoch OTA comparisons, the completed native 5 MS/s results,
+ideal bearing-gate diagnostics, timing/runtime limits and a staged ground-truth experiment plan.
+The PCB LUT is an engineering candidate; no frequency is yet production-qualified for direction finding.
+
+The earlier [consolidated cross-band theory and results report, September 10](docs/cross_band_tracking_analysis/README.md)
+remains useful historical context.
 It brings the 915 MHz, 2.4 GHz and 5.8 GHz evidence together with eight new figures,
 phase-versus-bearing distinctions, the complex estimator, dwell/filter/runtime
 budgets, PCB-versus-installed-array calibration, and an ordered next campaign.

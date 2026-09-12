@@ -1,0 +1,2202 @@
+{
+  "status": "complete",
+  "rolling_analysis_coverage": {
+    "records": 150,
+    "rejected_records": 3,
+    "expected_windows": 9000,
+    "analyzed_windows": 8750,
+    "failed_windows": 70,
+    "unattempted_windows": 180,
+    "inputs": [
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T182124128635Z-reference-timing.json",
+        "sha256": "5bff0964a74c510b168091f1eb81b46826af1c29d6fea6ff073e3d4fbbc88154"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T182851799643Z-reference-timing.json",
+        "sha256": "0cc59cf7aced89984e0c844b0fa62ff521c98b154850e4abe7b9fa26217d1a3e"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T183613359169Z-reference-timing.json",
+        "sha256": "fa51c5ea52ea711d2249f6b363265ee0c956c5ec3465798c78b6898f8b233ab1"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T184646814791Z-reference-timing.json",
+        "sha256": "7d49d060f653c1b42ee600d8723a4dd8ad4c3a1576f0342f3233294c2cd02ccd"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v2/block-20260911T211805001077Z-reference-timing.json",
+        "sha256": "f2c2ca16d7b71b01ecf60079bec8a57d708664d024c63416dff0002a935f4bea"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v2/block-20260911T212846818552Z-reference-timing.json",
+        "sha256": "009703176cb2ebd02188d75e125e85bb518b6ebe7b5cad996b39caadcc6dc4fa"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/block-20260911T215918963889Z-reference-timing.json",
+        "sha256": "6377643de0c7c13eacddf3aadfb506715139ed8b143820724ab995f1f8bd3cba"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/block-20260911T220948222664Z-reference-timing.json",
+        "sha256": "2d7d6a7e8e91ae71d85647f83fc0358bf47702e3a9f42dff55b9c7501cb358ff"
+      }
+    ]
+  },
+  "stages": {
+    "screens": "complete",
+    "blocks": "complete",
+    "dense": "complete"
+  },
+  "updated_at": "2026-09-11T23:14:42.765341+00:00",
+  "campaign_root": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3",
+  "raw_audit": {
+    "unique_raw_verified_runs": 342,
+    "block_count": 8,
+    "at": "2026-09-11T23:14:31.909804+00:00"
+  },
+  "blocks": 8,
+  "rolling_records": 150,
+  "dense_records": 298,
+  "dense_analysis_successes": 298,
+  "dense_analysis_failures": 0,
+  "transport": {
+    "scope": "Latest continuation only; includes recovery/screens, references and main captures",
+    "complete_requests": 448,
+    "failed_requests": 0,
+    "running_requests": 0,
+    "recovered_requests": 10,
+    "recorded_attempts": 458,
+    "failed_attempts": 10,
+    "inputs": [
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T214722482092Z.json",
+        "sha256": "5d46e22cccfd0d07a373d72a50d3fd7005078e0995c1ddeee68888019a8ef55e"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T214730305084Z.json",
+        "sha256": "5c87b92261cdaa8b29f59a69b583cfb1bd204114de654a6d8106c85c0dcfe4e1"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T214738822216Z.json",
+        "sha256": "80a78be7bd50ac3748edfff16f6352c2a7aee9a09c63675d421a28e9f99dd5b4"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T214747254659Z.json",
+        "sha256": "5ab0c91d090deded0c168a00a98a08fd4dee2b712d9b1a30a65d5656738ca0b2"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T214755692622Z.json",
+        "sha256": "9e1d05dff6f6cbbfdef969d6f9bbafcd7e57bc17362c129ec59c23f4892c6a25"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T214803861700Z.json",
+        "sha256": "beca3d2d5cdd1bdf228b31540360cb7dd37f59851f17f4cf31081e0509358aab"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T214813153542Z.json",
+        "sha256": "9a33fe99af45fbd88da4746b4fdd4199bac2b299be29d810936fce2ded1e31d8"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T214823134793Z.json",
+        "sha256": "b0b2f062250b6c8300d6a513b427f20a3a3cbc9c5ae7a85a1a6e034a9f1fb471"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T214832894991Z.json",
+        "sha256": "3d8d9a2d48828c9b715d535773062b5c50772953f499365d09ef59d2fa9e7c5f"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T214842664244Z.json",
+        "sha256": "f064528a51ce7ab4f20ba72c597646a4071415c599a4c98f9068100a1f5fefef"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T214852392851Z.json",
+        "sha256": "0ecb7e77b11d842756bfe05a17df88f640dee07ed056fb03311ec9e5e77c103f"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T214902123796Z.json",
+        "sha256": "d33c1d22fa7c8fd1c6b23aa4c71d3469de5f55f9f6fed37fe4a8dde1104e09ac"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T214913859334Z.json",
+        "sha256": "273dcfca8d5a04ad408c661d9c7952be0e3295c953dae4d623aaab156f57fb32"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T214925536140Z.json",
+        "sha256": "67edf1d09a5cf2d691296b96ef363ad054bddfa2d690aa2f054f6ae636063d4f"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T214936548969Z.json",
+        "sha256": "d6a7e3e9d28c9c85524aae2a983b417685974ea93bf93d7971bb98fd1f945b8d"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T214949417505Z.json",
+        "sha256": "a770209f16548baeea63f2b5c723a1d7ab55297487d3e62549cd02383d4b7f45"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215000533010Z.json",
+        "sha256": "a5764368b2c8d10363e734a9a4939112a0face909f7a6e643ac5f361ba57a0e0"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215011564020Z.json",
+        "sha256": "178464e51b7918076840eacf98b06348a5c148b3943e1e9c381b001b6c2c2a71"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215023533326Z.json",
+        "sha256": "01fc44d53d582d65f77e5f16d3b05871542bc9f2af59687a9b0b01866f555ecd"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215036687358Z.json",
+        "sha256": "c9b98e8eca857b2c0c6efbb780852988d6e16e36683b90041396d882c987ccc4"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215049914732Z.json",
+        "sha256": "d59e683cafa32030b323e047991ad4c03eda62ae3532001646b8394ecba62bea"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215102990647Z.json",
+        "sha256": "6e3f4f221390d13bcc0b1ba202b0b2403599b4a02f7e07eb643d8df076d106eb"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215116105401Z.json",
+        "sha256": "26234a2289f8e9255e92e7a324615243e3b203ad753aa264b6c41bd47d5eeb48"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215129213474Z.json",
+        "sha256": "90d17605bb379bca686d4be1d24e911b6df9d635752df8b6aa22ce0badb08a50"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215142686608Z.json",
+        "sha256": "b2e442748a78d108083b2454a6b867387ebaa1b5b9cb42f82d6e8df1795a6163"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215153990627Z.json",
+        "sha256": "606c28576ddbc286a0a68645220e370c96093d33e23ea5095459b27c9494c041"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215205190930Z.json",
+        "sha256": "754d4f11653a2441243c3998a896750676339fffe61d146b9d5880149f5b764d"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215216514710Z.json",
+        "sha256": "53aaf6c51fd926397d5a4136b6921e047b81382122aaeef13b9d7cbbad680f5e"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215228106171Z.json",
+        "sha256": "a287f584433e8a7bfa0ea3a3e786363909d7249d0b1a9425c758595020b9ddbd"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215239966879Z.json",
+        "sha256": "3973cd21717550807ef8d191d011d5757d64f60d90e1afbfdc54d7130b2fea21"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215251411092Z.json",
+        "sha256": "6f4af66e51a6c10ba2ce6f9423aed19a2f200405fd9f7a505a5b4f610775d8e2"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215304703821Z.json",
+        "sha256": "65d0107aad929c9b2770eb57413eb0ce215cf06aca6a7d88c4eab26c8fbfe7a5"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215318097639Z.json",
+        "sha256": "1957cecc973857b7a0b2de1117295e58494be6ee4e0d6e36310d993932ad64cb"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215331611734Z.json",
+        "sha256": "2120508d6fa00c220b39444da04012dd3f969aa4a9dcfe1d7beef743cde339dd"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215344900742Z.json",
+        "sha256": "8d36536306da3d0643d781f2c773c70c01253d23e24fb758fe42e44538ba2715"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215358892437Z.json",
+        "sha256": "bd5267a5a7acde50c3f1eaa4c3205c17447fb3c0d0d93448324c02aba84ad41e"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215412587580Z.json",
+        "sha256": "114c4989521d76a364ca061ef2acf2f3754d056c32b33b2ab4812a524117739c"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215424521861Z.json",
+        "sha256": "06e28475fd2521572db955a0dbc594d5524885a5f2aa1d478b27e9219460fb56"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215436417155Z.json",
+        "sha256": "0e4640184827281f679e35ef818760acb7315c228d1ec6fdd190f3e7d644bec9"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215448021037Z.json",
+        "sha256": "ead329afbf074c8ec9ad01f624b2d891d8d1260a31568d3e838efb122192b4bd"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215459994956Z.json",
+        "sha256": "e47f202b6c700fe3a8ddb99aa793fb494e998d0baf399e89fe443e36260fee7f"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215511442262Z.json",
+        "sha256": "f827eec3db8ba49d98e3026bfb388535a8c020b620f4af0744cbe41cb7f0e6a1"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215523181851Z.json",
+        "sha256": "80fc084895a9eafa1a534303fb6259f9494d724aaa828b9805ae7f58af21e0ab"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215536576314Z.json",
+        "sha256": "66105d8fe442472bd9a218544087ec1c45233c9f6af9a35e83d25dae5bbe20ea"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215550444840Z.json",
+        "sha256": "a3fee3d189f9a351e1f5219ca9e08a71516ca194eeccc57130cf0be51f6a476e"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215605410942Z.json",
+        "sha256": "c5674519576fa3ac020964e4e5c6cbdd0957c35c7d120c931aec36de9d47909e"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215619491768Z.json",
+        "sha256": "5fed2ef6b4e26795c749756df4ef273e0463bd8668f5c7a51e45c8ba51c7b4d8"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215633489556Z.json",
+        "sha256": "5d81fd4246da95dcf309aa7dc2d8c19dfe01a9a3bde78a7f005a80130ee37543"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215646514488Z.json",
+        "sha256": "1684cb59b3cf60e50e99ebd74b1c4e8dbc5de58f006ec02e1f474e3292b3981d"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215658592955Z.json",
+        "sha256": "20ff6fd0794ab96577b70a40ee89091c772026a8d71deffab3c13cadd7233b07"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215710153033Z.json",
+        "sha256": "ab860e1b1c8a615025e1aa4ea4f7e5bec458b739911d3310a2fdf5e60b931af3"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215722209934Z.json",
+        "sha256": "c239b133e89dbab230e5f6ccf01a81bf033441fdfee0667deebb30cd3312f8d7"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215733734113Z.json",
+        "sha256": "cee78ed437e8657308e8b86f26d34d8686e2bade44afe5cc9c4739bb53786520"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215746935312Z.json",
+        "sha256": "28c20b73bb2de4286025852fd1a342cb1d5dd2ce16756d26b9e06b12fec3a344"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215758956047Z.json",
+        "sha256": "5b87c802fbd93eafa2f6a6cf83911d12de8a81b6fd0a8ad9234171346e1f4608"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215812165444Z.json",
+        "sha256": "3e06409e51dcec677708293293e5c907806917f8f02f44f4713a1f632e8d3373"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215825228115Z.json",
+        "sha256": "65459aa6f821e8ad80bcd1b749f99e40e357334ff4606eba73eed00a239b7e41"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215838887136Z.json",
+        "sha256": "537470f63a79897e16e014fbf9f6dd91e7c78ba6362b9c520d2c9486dacbb636"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215852592362Z.json",
+        "sha256": "fbb893b7edb25e3c8f28759579e4c6ea22d545b0ebea5ebaf77f3e25668298a9"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215905755049Z.json",
+        "sha256": "6e5485db0bbeda0c186174c5e6461b3a947d05d738bb0c58c1a4896519a2e584"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215919039608Z.json",
+        "sha256": "6d33d0cbde115dd02ebe4bdcbc27ed8d36ce806382713f34b78a2ed262f5d50a"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215929084104Z.json",
+        "sha256": "3e7163fcdfd3bb3d35dfe9eec9712965f22e882aae8e34976cbf6e1520e74b5a"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215939019677Z.json",
+        "sha256": "69679dc931e10b1f8b34d419ba7c7bb40bb07a5606688847625914dc508adab6"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215949052065Z.json",
+        "sha256": "b43d40406aa29574e192e8c07a6e6611a7d6f07165b5dc84d14313fff88564de"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T215959454194Z.json",
+        "sha256": "2768bfc2b83c7d721cf78554ee8cedcd2ce8ec1701d212657a21b540a347b1e5"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220009175290Z.json",
+        "sha256": "0039cfeec43c4b7108d90354af1689edce2dac1123d71f7b469e775b206129a6"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220018980077Z.json",
+        "sha256": "b81891e677a6eb6dfb1fb4fa703cd3c4d51833fdf66671e10aa96f1b49f9bee6"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220030343386Z.json",
+        "sha256": "20f14e8008b9d5471ea5243d087b8a557141198b8bea4d9b5ab8bee864a43977"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220041429659Z.json",
+        "sha256": "fe1c99cd56fd96a75d627a09a5a97f05071d6ba375ec7e4272e92c83da448299"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220051579316Z.json",
+        "sha256": "c358629c04300e178eb8feb36c39e321a0355f718449c24bf6b03a050cbd7c9e"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220101983032Z.json",
+        "sha256": "99bbc9b43cd7be48917372ebf8e7cfbd9fdc3a86fa06528f9b364780638da704"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220112253214Z.json",
+        "sha256": "d357ffbe515efecfcb4946846d4fa69ee1356d459bb95b6688be8de880a1bd11"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220128461755Z.json",
+        "sha256": "cdf2f4b16668d95920d1010c310bb3b6ab67c7160494bb48f05a983be77f5bbd"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220143118293Z.json",
+        "sha256": "ebcb2933f1a21ee00953c6e4a3d43146f0f0ee38ba1b5ef4032b47c35dae350d"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220159285753Z.json",
+        "sha256": "7df2fc265d85a8a05b5be7c24c82345c53416575b355721de62b8638b49bfeb5"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220215359853Z.json",
+        "sha256": "fb2388e4960a611c9fffb121377ca9ae951ed030fd5c20931dab1d5d21088f1b"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220231463560Z.json",
+        "sha256": "913c6d11b5a4d3b833b99a8c7c7dcbad7b4382002a3c73e794c77d6f070e6eb9"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220240794615Z.json",
+        "sha256": "c2aa5627a29d7b7b5573d78fd7be52f19d9918439d316ab84642484f2d9b69e3"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220256886596Z.json",
+        "sha256": "4ab67285f77d7521458ae0918fff5531a1d604441a5f781e5bebdda33ae29055"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220313417933Z.json",
+        "sha256": "7bd559a7987ad7dbdeb4819a9f415bf9a60a994b1a09c38f2bffa0d033327d76"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220330909610Z.json",
+        "sha256": "9a19953c8545e79b3686be467742fc7a06adefeb3d57005c64a3405d28e2878b"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220346401672Z.json",
+        "sha256": "4de8e191ca1d4826b7d67b558c52e506f7e15d7f3676a028bb3641f2bcd8657a"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220402010358Z.json",
+        "sha256": "f4096c12c918172780903b46a40865d60b8a25bd0268730e169773856384163d"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220417695629Z.json",
+        "sha256": "2ae0a13f89f630401b053a1507a12640aaac2f110d0d54164800899876aeaa90"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220427439558Z.json",
+        "sha256": "7e58395a43831abf6c6bbe8adef836f721191a9969c9b0ccee3a3d7e3a8a5001"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220441814322Z.json",
+        "sha256": "2d1992f7632609ed115a7657834bdf7f180d9da4de5694acbb08a98c547f90eb"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220456499805Z.json",
+        "sha256": "5a34115425501ee8c5c73f2f62c4d640ab2a902111a12e2e0493e840ca197a60"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220505824265Z.json",
+        "sha256": "18fa71d2f29b4672bfc7cdc74521cf740ffee556fb95306bd39696f89a0a47e4"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220521571886Z.json",
+        "sha256": "447cc065874a08267e12b030f6e60195fc18fbafd3a4f6a9410caef88c4fff22"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220536808028Z.json",
+        "sha256": "789a8412957a67f2018e860455db1bb6096147bf04a34eabe395b0e0803891ca"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220552287730Z.json",
+        "sha256": "ca4ca9918d892d4ad899e649a788a4df3829bffa7a7c5eb73095444a8c960bc3"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220606797221Z.json",
+        "sha256": "7f28f5cd46d2835681669a7a51336a166dfc641d9bd8797f5d6673d81aea7b6d"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220622709648Z.json",
+        "sha256": "cd30e77bf49233e103ffbb7edf3e989efa337e97ae7ac2c015ef92c10516c04f"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220651682593Z.json",
+        "sha256": "c05fe88b0410e62f2669bc5c137bfd94f759a837c2e4beb4eeec3b26ee2a53bc"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220702837378Z.json",
+        "sha256": "efaad60116ebdb14d04c502f80d6f8a534f39e8804c4a5d480bdc55d8aa91b09"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220713051783Z.json",
+        "sha256": "e84e433c8be36e0ed8e320c8dab4e7419f57065372cd8b781e165f49759ca265"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220723111492Z.json",
+        "sha256": "c789966f9676fa28bede237cd3baea6ac96dd8d7e06dbedc756f3ee3ba275d06"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220734183528Z.json",
+        "sha256": "bb79d292f444d2569b6ded323131b8f2df47b3b8a0b3a388db2a01486e0db240"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220745296816Z.json",
+        "sha256": "4c98f33cc311da6085b2d9c2e13d2a0bbb1cc9996ab1e8f35fb5d2c532a8000a"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220755373693Z.json",
+        "sha256": "309b062807f39d2512e0ac2fec015cb0acc6aa1911ef58dc0f2a2992e7f934ba"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220804940426Z.json",
+        "sha256": "558b66c2f7f8e3ab0631749af0c01400b2207e2c5fc68b3082bd68bf276bae06"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220814982867Z.json",
+        "sha256": "01e3610ea1ab852ccaf5eba9ce10590c537498f7b20d93825703d1e9c2dac5ff"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220824890526Z.json",
+        "sha256": "3e7bb29432138cab85deb5c352c9d4eb34611b49d9b373b1abf7b15756669849"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220835010868Z.json",
+        "sha256": "348d6571cf5f19bddc288e778a2bc723b3519567758573d6b2247c1fab913b9a"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220844711879Z.json",
+        "sha256": "72e0f1c0259ea28531921198760252edf31ce98e2a74ac3a9681d9518d35f57c"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220948311562Z.json",
+        "sha256": "ed0451ece2115330780825a8443e82c77d9a5c8082cd325de42aec2ad7f4a45a"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T220958364214Z.json",
+        "sha256": "91a184e113f67d89bed523b956f7c849814514cc16afb27e117733db91d29eb2"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221008480459Z.json",
+        "sha256": "a0d142e12848031f734f3cdb15f9c299885047222a6423bc89fd3a5ebc631c77"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221018731555Z.json",
+        "sha256": "23f38b9e0de7cae459fcd6503618a32dba46205f30d279b41d304aeac9f21e65"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221028805578Z.json",
+        "sha256": "0c3f4e2d4caa1dbe5181e222cf35a855f4533c5707e0bdbeb17bb050a02367d5"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221038878679Z.json",
+        "sha256": "b95f47f0d05be1e727dc967033f977044ad3e06c29fe5945f1345f8e1d754e19"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221048973165Z.json",
+        "sha256": "b358085dca8bf49ec7248b8aea21000fa46611424a1618430f07b02edd94f380"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221100449806Z.json",
+        "sha256": "c37abc7f39a48c5df6ddaf9c67acab5f1ef02c765c4696749b56ac3e68ba9fe0"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221110572391Z.json",
+        "sha256": "46b06d608f85071bd1d4101e48cd2f3f8b8999ddbdd3287e5e68aaeb7e6b453d"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221120550057Z.json",
+        "sha256": "e79d5ddd2190bfa4855be27a2961e804938080792649f23ff6fc4fd888534c40"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221130403694Z.json",
+        "sha256": "1cf2343813a25a28a3bc810c1c02a402ce318f402dcc41edf594e7f540f61a0a"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221140570400Z.json",
+        "sha256": "5e43c11242edd9b4cd98711c0ced5557d1ce1fe5880d3a9597d843bbc18717af"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221157155769Z.json",
+        "sha256": "93cec45c5ef38b1d2b4f48b5de1a12397cdc0cef9f4810b91435bd7f45822cbb"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221211735977Z.json",
+        "sha256": "c16d47eae3597efe1c68e9cc8247c35a778ef64295865180b5e9769591f3e8d6"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221227362150Z.json",
+        "sha256": "757ffbdd44aff7efe634a765109f2cf660d9a191fc63b36ac4d6b40a702c4354"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221242847607Z.json",
+        "sha256": "6d09f0955d46f8a76dee959cc4426779f1add71d1be0d41de6f37f528dd6bdfd"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221258129890Z.json",
+        "sha256": "20ec112ed5526172e5a024dc1e260478beb162b0c441e2970468db39999b39e8"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221307114849Z.json",
+        "sha256": "24e0a57eab872f77c772fe6c4463486145205cb30113bd162ddb662b5e487f75"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221323106518Z.json",
+        "sha256": "d50c7b0e29bcf2c4d24d4a41e89f70904b0c07a1c1740d244fc39879a51fa58b"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221339125367Z.json",
+        "sha256": "3e8828bb3b2739a1498051a999a2754d1ebea92ca8422e0cf334dc87333a9c40"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221354744466Z.json",
+        "sha256": "513483ac4f75acdd3c929f50f2c7ec7fcf22a2203b879d06126a7bd356281e16"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221410421231Z.json",
+        "sha256": "bac2ea0cbdd5126338297b5f4e31552c93f3d604fa36d0c70a4522f420bea350"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221425748969Z.json",
+        "sha256": "51ada7b8830f3638ccd2c667ee6a8156e1feaa5f93b3435fc35fb81863081e90"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221441079719Z.json",
+        "sha256": "919d843555786d5409730e466de0ca2e51cfc95258dfa8e25de28c37eaf2981c"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221451036090Z.json",
+        "sha256": "1f760e32494a3a46c34e3be3359b43ce3eb81ce94bb0b66fe788ff49a7fc425e"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221505797610Z.json",
+        "sha256": "5dfea789e04e49b2c31368b098d37d776b5abcd091242153325782969327ce55"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221520824013Z.json",
+        "sha256": "28b5ba5712697938bf7a1c1319b640d77c9b6ee3e5d9c048456ea5e652e5e3af"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221530430600Z.json",
+        "sha256": "0a20f2a0fe7282f4c73f52b763d8592daf775f44b651be6aa71403fdd630ef1a"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221545800191Z.json",
+        "sha256": "cf00189f1294a3ed674b6fa7ea2c950a4f6cd250c11a340d1945010ca5f8cee9"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221600961126Z.json",
+        "sha256": "a741449d14ef488b69d6edd2aa18a5cd208efc385e1cb9a507e7ea65c07e143c"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221616084726Z.json",
+        "sha256": "b116578e4825f508ae1fb22da0b31f68c83869d56497fc7d00b03511abd5c9d5"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221631606903Z.json",
+        "sha256": "57db614f86f0512c33991cbe73df353d7b66fb914065230d7ea1a9b1428ca0a9"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221647143184Z.json",
+        "sha256": "8a60c3dd695f3442a6057a16f14298036c9b94a76ed223b9fa087696cc3f581f"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221715819456Z.json",
+        "sha256": "613b4a25e55f9cd8b6c1fa7df8f9c6c99139cd2495b4731a175d63d9213a5460"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221725854035Z.json",
+        "sha256": "cb68c6cf8afd7be6515aa25521eba5fa95c85bd410ff44c0ad8d33b97ad645f2"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221735873874Z.json",
+        "sha256": "28e36c2a2c4e6c08de94f74d3c81ac84e62370cefe49b97136b2f33fe7ac23de"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221746145203Z.json",
+        "sha256": "64c900d77d086ed9153f2e6c4e701d7457783c847975c949889b70cba2bc5520"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221756204723Z.json",
+        "sha256": "694df48b86c98ab7c68bcbacabd562183ab66a43f449c6544fda450db8728779"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221806306418Z.json",
+        "sha256": "033ff3e32fd85749d9b6f9bd2c449bc565af1021a11e25b8a633007b3e20cd32"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221817417337Z.json",
+        "sha256": "bf3ef0aa251a4d3caf9bc14872ed28a0526ee64d693b94f6a4d5d267dd89b9d3"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221826905979Z.json",
+        "sha256": "3fd09f1e78c7f738dbc616168f304b69f685dd9ff4fb72b4f1618ef05b475dad"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221836725179Z.json",
+        "sha256": "d78adab7e396daace25b96979358a227b3639513436af7dea1d82413c87ad82c"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221846557040Z.json",
+        "sha256": "ac3ce9442d65b711823997b8d6574bae1db4e814c03e41c7ed33bfb80c1dc21f"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221856309203Z.json",
+        "sha256": "348b380d4b6e63dc226e181b5fc468e49fd150c9e24eb71132abebcd6813637c"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T221906299393Z.json",
+        "sha256": "94e065608d0d2f19ca980863c422df55518e1253da781ff72bf6e577d2769afe"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222017151974Z.json",
+        "sha256": "87cff58210b1b35233a9ce4a6fee83f2b44bbc81424ce830be66dba346c29dfd"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222027907074Z.json",
+        "sha256": "ffd06874af26a235c1596b0a2ae28680442a4e173d142220ddf85c995a8671e4"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222038587350Z.json",
+        "sha256": "83d211dfee7099f018c3c2249ff8de44b654610dcf98a964f4feacd5d29473d7"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222049353283Z.json",
+        "sha256": "29b1b6a262b0a0d172f775c0a35ee719992e9539f90a0d385c3f55503ea6c050"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222100170879Z.json",
+        "sha256": "21f0fd7770d3a99584f1cc9a5ca9b1ec19a6a5755ebdc33539a1e517b6969884"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222111148385Z.json",
+        "sha256": "ee37ec206c9c1a38f46b080519282f9cc45f4387e3dedfee160b42cce944d85f"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222122090811Z.json",
+        "sha256": "ee25d156cdd5757e013027a7b14bc2e0452e8bab4428996331c01d9256f21180"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222133143407Z.json",
+        "sha256": "df2ba63130f5e98704d69d2fea90fd8f8a252308c8260154e5f03417123b7c2c"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222143179988Z.json",
+        "sha256": "0ee8bf389c23f610c6e983ebaac986c860416c7f197405c7f88e4ab67d48c87b"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222153224822Z.json",
+        "sha256": "23e450b89af47c13ca3240a9ad3bbf52eec6c9975a25dd439cc4fcd7135110ff"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222203344308Z.json",
+        "sha256": "4b1d072ff708d261735b16ec6d7e3eecab84701a3f1838e767165b577cb07dbd"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222212874990Z.json",
+        "sha256": "4e813b851d7b7043a3d91ba5ef0b82c854a2c7f13520c9eb9e1b28f84ffda0f6"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222222595105Z.json",
+        "sha256": "977cdf2105b2faa92ad0a29c5e5e7327a7cce6609de9a4195cb2d83f90aa4690"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222232336389Z.json",
+        "sha256": "c675bd77a26229c64cb11c4e6bc8efacff62a886e9b1571b43ee08a53a521b04"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222242500209Z.json",
+        "sha256": "51d3670b7d3675fc1bb514dee853c7590a3b3e80053f8ae6ca2f6e2143effa17"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222252429215Z.json",
+        "sha256": "32b8cffc31d6eb0cf3af2c793af5a79330630f83eabd6a45dfa6366bdb8d363a"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222302556403Z.json",
+        "sha256": "fd2923a6979b0bf4726e542e3d70cdcad496a6d4e2b1eecb212faae4a5333c1e"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222312468021Z.json",
+        "sha256": "934f3b68c0acf47cbcce73112739d50d6e990588f18d7d93dc0e92c76af124ba"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222322499653Z.json",
+        "sha256": "72c938a209ae58d0973d5db23ab15020b111190e0ad531230cb0f9204179c9cb"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222332260852Z.json",
+        "sha256": "7e11747b6c14b4cba457487a6f45f26fef88b0749df33e63f8d1ae2b5b4af7fa"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222342382679Z.json",
+        "sha256": "9d1ad0d54c6251c4dc760dacdb42f42a8cfa768671487343de4a91d9c30145a4"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222352630299Z.json",
+        "sha256": "9c6da8f9afdebda34ea2ead7cc2d7972007165b98b591cbff2cb194af70127f5"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222402399328Z.json",
+        "sha256": "604cd4fd8a4f2f035332d458e88257211af1c9a191bd7bafaf479e85e4b94736"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222413007271Z.json",
+        "sha256": "5d9985700956bb6c771216717326c79e8caa5915c0924427748dcda5c6eacbc5"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222423039532Z.json",
+        "sha256": "9d51d1c2a817ca1ead6525e1231ce56ef672a6617456f43f0839f623755ce3ad"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222433651248Z.json",
+        "sha256": "883e8bc56ee92696bd1aec89bdae7620c553d6290ba9fd619c44cdee9dd96612"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222445033045Z.json",
+        "sha256": "9b64f0d0d2c0345f040857d143a920b08c136b8e7793064a97ce310163a3d95f"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222456675482Z.json",
+        "sha256": "c452dac71209caa6d69ac0725d7d44806bd101f4fe9775bc7b592d4ae91b6d59"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222506724584Z.json",
+        "sha256": "1d9738876be8406132f324a5c467a5de46ce768af7690fa63270f0c511b7fb30"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222518008974Z.json",
+        "sha256": "0a0b557ac3956268c4733d2169a5087dd08f738260dd06a9e17a264dde486fde"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222528102938Z.json",
+        "sha256": "391c7d1893e1ec3319e845a70c4d7c7b4a2e90feaef6ffe905170955a2bfd673"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222539572167Z.json",
+        "sha256": "4603bfca660796652400dfa91efe2a3368500523a0134722bd33426364bf2b21"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222550560922Z.json",
+        "sha256": "7ac53b5aa1f83c4040e3cb24748650c01fe86db9df0076a511714786c7743b97"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222602676989Z.json",
+        "sha256": "9f34c8ef500d49ae8a986174ebec770299ad093f09a30e82bce3705a996cbc73"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222613279035Z.json",
+        "sha256": "6d481bdc5249881dd856632ef9c89ce26f56191a375bec16d20f2a27d743bad6"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222630002600Z.json",
+        "sha256": "a2245c09683ea33c6ec607efc30ac910b6a8db6e6e7fffdda636febda02908a8"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222641549746Z.json",
+        "sha256": "55feb679fad87c3f45925d8d57c4a4098932c93b8b6aadedd29064f2d59a44fa"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222659908684Z.json",
+        "sha256": "c7d2bc8aeec83e379a22ed4c708ff24dc62a3d1eae54c4b08bf5c584e3b3888b"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222711810490Z.json",
+        "sha256": "253465d27d0f26ceb3a518ac6896330674672f8076ad4ee0c3807baf705b5b5a"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222722356700Z.json",
+        "sha256": "ee4705179c9b4ba9d4b03282925c3be6dbbb2837f6b1792dc47ce79bd782315c"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222733179645Z.json",
+        "sha256": "1f74b2b2939dac640c17fa6260464dec84a5a12fbc2bd32eb88ed0b16bddf605"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222743895673Z.json",
+        "sha256": "82f07abd22892b7d49c9f017607d2abf2f4d8c14e7072e8c5ae0c00a68484a81"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222754708287Z.json",
+        "sha256": "c725d959de7fffd0429623122202e8f47707a1c01f10d859552b1c0776c5cfa1"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222805231146Z.json",
+        "sha256": "296a3455b6ffbc39779cf8468c4bed0ed746aadbdce6c73fedd7150df6a4f840"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222815820197Z.json",
+        "sha256": "15abbbed14519085989e49911140f7d40b7c7724f4c2d6d32acb8b33787762ca"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222825584583Z.json",
+        "sha256": "540b7b5bba5f9d6848fdefecbceb2ace0dd4c68b79f94102bb16ebd4d758a2a6"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222835381765Z.json",
+        "sha256": "f0d159b457b12890ed141b7bbceadeedc6c75f13b9f0b0da7ac4ff4f8092b0a5"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222845337116Z.json",
+        "sha256": "c3cf2597e42b7fa7803fb8723183b9f71aee65992ef78ebb1a749134595d792a"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222855243171Z.json",
+        "sha256": "279a21280a30d06935cf74918e0b7a3ed8d99124f35835d7264b8190e89cada1"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222904759864Z.json",
+        "sha256": "721317047edfdb24372b513fc6999592074311f3d968673ae0534a256d287bf5"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222914448461Z.json",
+        "sha256": "f1948f8d1ec8ee5239cdf48e131c0dfb81950b66b26c33508363803f9e102fa0"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222924331939Z.json",
+        "sha256": "02eff2c7b93137f62b157e41c305d399543adc68ff4a86c54869c06730a64386"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222935109704Z.json",
+        "sha256": "9dba4d775b079c53e667c4cc1b651e494c0fb73e5d2d417d401436b93f1b0c89"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222945153452Z.json",
+        "sha256": "6ef5af909f2fd3e597ca0aeb46029ddc63712ae9314b1d71f317102c7dd2b101"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T222954972397Z.json",
+        "sha256": "0d60015e24b3874e41184757b1b9f5a7153c01c87da53902cc1c95e25d92244e"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223005879226Z.json",
+        "sha256": "4902dd7700198ff4193ef2fbe4add4b4df09c1f4fccbfb4dfa537ee37d9f1ac6"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223015865065Z.json",
+        "sha256": "e4e847253242f8354474dafdb8d9e271b28ee02c877b73882334df45d9a6d974"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223026539098Z.json",
+        "sha256": "4ba444ef5172970120e29222152b55b404cb9159ee83947fe6cc1f01f37167b1"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223036703574Z.json",
+        "sha256": "f62b05ca9690cfbd36fde1149ef948b6a5ea6c8d0d4269a802286316f6868d33"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223047065700Z.json",
+        "sha256": "66f8bb17b9dce782cef04d9fb5436fdcff34e88ca671c40c4b7b6fe196be9a73"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223057428054Z.json",
+        "sha256": "8b44d02171609ce716ce5a47ec860b6274c28e61375649e8c52b0cd2066fd1a8"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223107651010Z.json",
+        "sha256": "518cbac68a05dc6e1c1aa18d036c49b32f9f69ba71780ec2d01a05e1c9dfe8e2"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223118139962Z.json",
+        "sha256": "5e91e00c7d03b3a18f484e40f18fdb9b41b2525f4d8bfcf1ab83c6c6ea52937f"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223128355259Z.json",
+        "sha256": "99113b55b9e33357345394cb25e760c4551cf29c750a05b1871f6107e3c1c5af"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223139827986Z.json",
+        "sha256": "7b0246161738591594b705a1873f8ef2cee75ba2855e34f509482b45ca9d5044"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223150411928Z.json",
+        "sha256": "03f92948f3a311670a9bad42f5db8eb9714e9bb4c74d7c741415b767a20c1198"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223200541735Z.json",
+        "sha256": "9eec208ffba95765d82db5c4813b8b08002384c529ab1be3dda2c5c1f889102d"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223212807282Z.json",
+        "sha256": "d97843d4087c77cfca2d58c76dbc351565777c0d7f59043b283033cb54fe33a3"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223223393178Z.json",
+        "sha256": "6bbcd0674083645a72e84fc1d21bced5156b38d31b64f02d988b989feeb6066a"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223233522357Z.json",
+        "sha256": "72309ada134a6a830bf522b8dce23a12b38e2abd3de6d9482d02bad19cbf2d89"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223245351407Z.json",
+        "sha256": "b9f3165294cee29c04850e23af4bd57bcadac316ee433caf4b414b4b9895cbdb"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223256330346Z.json",
+        "sha256": "08c26e04fe37a527a2a201f1c4390bcf0997e3d13e141d794dc603aac298d165"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223306685398Z.json",
+        "sha256": "86c1a5edf634e4df05761777e03430c3a94debda6dfb69875c599b479551d266"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223319205618Z.json",
+        "sha256": "94416f433867e9a8bcb8978ed588063ddf9d3ddb3c7cd0dc06e16993ca25faa7"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223330476973Z.json",
+        "sha256": "b56ce0db184bdec86033f761fca48e9768f3c71d13e9f7b2033138eedead8643"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223353973141Z.json",
+        "sha256": "96018865aa6178bcc955c9b36cbc83c7bc6c4bef8dd2dd7408138e2daf4db793"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223405223418Z.json",
+        "sha256": "8a6b57314a688fed5142578a9879e025f8a3e10a25c9af253acc61d0c4db04a0"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223415585109Z.json",
+        "sha256": "07d641660cd3f517f338bff9e6d7f8185f7e190f6e9284891cfbaa1261317559"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223426538552Z.json",
+        "sha256": "f1badc03a3f700e5ffaf1cd5a119f6f018903fdbc1c60db8ca2ecc58ea1fcd3a"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223437590645Z.json",
+        "sha256": "24642a96ec2219c6e5dc2c08a340775b4a66f50e76ff62649425edd858e77873"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223448891096Z.json",
+        "sha256": "35ad9f73c200d048498e684d99673f3f4b2b06c7236abdf6396d6a63ac53c024"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223459364625Z.json",
+        "sha256": "e8ab921cfe83e34180f347eb10a44e269ab1a72ea3922424cf9105ff143065fc"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223509891283Z.json",
+        "sha256": "ae38e42c1825dfd67b13ceb5e0bc865d6cba568d9a0a1e43ad447dd745492eb4"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223520376201Z.json",
+        "sha256": "ec8a6dda8f3dfa9022c9bb4afabf0e81ec4b567272538a2a27c0cd121d82feba"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223530202194Z.json",
+        "sha256": "8f0096e96ad09174a098986273661d36b94f75545792db8cc453a8d534e2a034"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223541177217Z.json",
+        "sha256": "5538ad6eb670400e17f99f05534e19ec25741092f7e370d7537b48a0bb1d35e6"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223551795004Z.json",
+        "sha256": "ef4e971d1a127df6e5e79849e034be121c88aadd06fbebf49728d57ad8e1ca5d"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223601860438Z.json",
+        "sha256": "b0ecab8a26d477f5c5f1585e528f88628b051cf7cea4b7980a5967016033c3d5"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223612835133Z.json",
+        "sha256": "42330e881345100d8bd12c6029681499fc1865b307326a94e6147e3573513815"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223623547091Z.json",
+        "sha256": "8557f680d022f349dbfb21a8987b19aad6d8c637f9506dc59d1fa698002694d6"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223634657561Z.json",
+        "sha256": "d52e8e25c77161d1e95b59324fa72ced8d80f03349a8fc3f7db35561a375affc"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223645120367Z.json",
+        "sha256": "aeca60bd4d52f83587d541405cc5b4fd8c39c2ccb5a91bf42a02694622222358"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223655553337Z.json",
+        "sha256": "e8d1fe40829c0b61253bf147bbdadc8b4fd0b7678cc4731b9c79e956dcd517a1"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223706363424Z.json",
+        "sha256": "8501e14d649d952cdf80ad83caf0cc6414098698cd483baa72e9de65d63b7741"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223716454719Z.json",
+        "sha256": "7604e6a869f403bafdfc227f22ef7f65cc873f1a2cc5e3848222acb07303a560"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223726091532Z.json",
+        "sha256": "a319be03ba9caadb73a1ad2f79a5c6d615ac833463c65dc1799f584b43b4b782"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223737460655Z.json",
+        "sha256": "e65cae9bf5a20e65fc25391feb18591c81511ab37d860bcc1edb618c178147cd"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223747412438Z.json",
+        "sha256": "10fb13cd9f06ab4f8c819579be9721c3f9c3d6862ecab88f1fc5415d2d0b6f57"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223757268832Z.json",
+        "sha256": "8ee49515562e8705337e21b42c502e008a52527814fa893f08bf51bda2fb03cb"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223814351139Z.json",
+        "sha256": "9472c5540d4f443dcbc1b5deea93a1c096fca2641cd5407e92982fa48d4da162"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223824214320Z.json",
+        "sha256": "40212b12d1a99addb77ba19fb9f5a1b05fa7aac0679fd380051cd524ee2a0e2c"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223834614499Z.json",
+        "sha256": "f119fefcb02270ea8cf3e162934468de031c34025411d4bdeac411a6542700ff"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223845486251Z.json",
+        "sha256": "e70ec82cf1a204d04732d228d86198588a04c9da6f761aa37d13f325b76d7011"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223855313563Z.json",
+        "sha256": "709521890290013f634fb2c24c6fa71dcb135fd2e46391dad1d464ec59144591"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223905907742Z.json",
+        "sha256": "0f99a5bb6bf65a010c72282cebdac6cec7bfbac19de945c3ffc295fd559ffab1"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223915634979Z.json",
+        "sha256": "fefcc3b935e13d3da57ef5d1fd6d02944bc4f77e6e84dfbd40c189b498e889c8"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223925538824Z.json",
+        "sha256": "901919241014d1f7ebe3b5bf55b7aa116c3ab52989e81c542ab6ea7fa17d2437"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223935659268Z.json",
+        "sha256": "84d011ac44b185db0078774f612b076d74e4c2bda80997762243af7380f3801b"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223945559676Z.json",
+        "sha256": "64651617c5df30e0c40308221afb1b50d7f2a61325b7e6443a54526c0632f9e9"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T223955607766Z.json",
+        "sha256": "bf94113ac8f719dafe695fe229aebd613337f5b3111d1f85ad8bbec101975475"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224005463276Z.json",
+        "sha256": "7097ef0692e2ffde3f690fc815b24cb30e6b26b233ecaf99a704abdc7d0a5dc6"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224022275112Z.json",
+        "sha256": "7caaf266932adfd385a0e6be3b46c1451dae562c95403b7dac80a359c3abcb3c"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224032654145Z.json",
+        "sha256": "ddfccc8fc93c96f1f316cc4dc2166fa7bea9053df28c481543cad544f46863b3"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224043711351Z.json",
+        "sha256": "5dddd1e9310905e483d74fda0f55dea08c7850ccaaf2b3aa8d2c5adc30ec811a"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224054416405Z.json",
+        "sha256": "439091269c1999691786dbf2888c046ee909cc9be46336f3dc3f1494de1aec79"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224105368502Z.json",
+        "sha256": "db32853399893fdcec524f89a29c76c261a7951a25d07490bfed169a8840b8b2"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224116046794Z.json",
+        "sha256": "fef11718dc53a26a6d0b09d23892c7417e548254ae9510f74716981e1eee689b"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224127400439Z.json",
+        "sha256": "3e5817b198fa30b11c85fe4b3e8b85fcc8964f7a90e1094835bdff8baed57694"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224139075656Z.json",
+        "sha256": "41c437ad315685ff8934342fe790110c6e3f80c2f5751adcedf5f99fef096f87"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224149498461Z.json",
+        "sha256": "04e9b45c7afd0ceb85daab242f7453057e1615dd72dcd6b270527833f1925176"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224200347578Z.json",
+        "sha256": "2cf38ea569e082a59bb1dc7d534aa9efb54712f58d7c809443df2832c1e1098f"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224210108125Z.json",
+        "sha256": "2a9e27e71a06f6fc626cb18736acdb8ae183a1f9d025e3ce04c2bb9cfa09c9f4"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224220010543Z.json",
+        "sha256": "ad3349c168b2b6020758f9502e611da68a3912d5ef7628bf2d20ca26bdcadaf9"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224229762478Z.json",
+        "sha256": "f2c2f2d51d42939842c74818bb327bc8c0364653a8063fda68c66b9163e9a68c"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224239923053Z.json",
+        "sha256": "0d47c3dfe7d21d5c5ee7142009b91c602e93b68ddd364c067eb98676d762d013"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224249747686Z.json",
+        "sha256": "4dc01f2b498b197ad201c0c5f1915a42a9141fb33bd41b752761073dbb9283f5"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224300055121Z.json",
+        "sha256": "9530cbcab334076944e070eef10b0b83d7fd05862b2bbc7fd6af37551348f42c"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224311605284Z.json",
+        "sha256": "512453b06011d116ad4b314b62f539d5edac51ad4cbaa6c9881faabbdfc11500"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224322685847Z.json",
+        "sha256": "cda3644ac30328fe441052e69ca8bc6a6067f3f37ece58322a12e6c03edff6ec"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224333622425Z.json",
+        "sha256": "96da9ade3fda5cbe76a2afbb18b1bf22672aefe1989f4d5ee4b5a5df5df8ab2d"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224346082729Z.json",
+        "sha256": "7b9b796e2073df761140f79e7f6d048f325d94d161134cf85972aa37e39f3a56"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224356150675Z.json",
+        "sha256": "7833771b85bd1c8f293f7b188ed9855f03d598d6ff7943bccefaa421ccf17128"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224406038573Z.json",
+        "sha256": "9542ed2060d6305b57c6e4d0a402afece15d17da2bdc2f7506897cc854cdea1c"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224416769462Z.json",
+        "sha256": "c7630704226a4a4c68174f735c0f3a1c9871fe460c66f163f2feeae9619acf45"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224427331176Z.json",
+        "sha256": "806335cfdbcd6eb6bd224cbc8e624302df69296ec1207e9960766c1b4aff17fa"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224437768713Z.json",
+        "sha256": "5dc2eae4153b8695a2a72bad463abc693c9c64f3461e04aaf60b5d7dbf616fe0"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224449041546Z.json",
+        "sha256": "227ea52462e21f1221eebeeba16351f39e7218172cf8edbea34b3ca14b5e42d1"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224459284055Z.json",
+        "sha256": "23dacb9555c7c09b2068baf5c7dcf2109c06f67500938845d088b539737c33df"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224509245163Z.json",
+        "sha256": "d4ab58e77494a5d963159017661ba8c79476d0628141094e776bb4fcd1964854"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224519254582Z.json",
+        "sha256": "03116739536af4df486df411380e767d4a95fa8d42a25154b13637264c8f6751"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224529154366Z.json",
+        "sha256": "0f12f67ef47f1c9c6e94c2eb40e703e17e5b5429388440847ad24e0d2d9ce870"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224539479067Z.json",
+        "sha256": "1be2401ec35b53e6e60527c70e635a5b985d3e6abb4528600150f611ffa2e3af"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224550045308Z.json",
+        "sha256": "313b813572ff04b9e5d047894dd42ebce66fe7bee59cf3ada2a64ae22b403bf1"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224600091819Z.json",
+        "sha256": "0e393b65dced14586ed3532951cd8fc4352c256643258a0bfda26c17bf39167f"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224610418819Z.json",
+        "sha256": "fc9d36f7440a6cf0a3c6dd0359ba0676370e9533283e1fb5599925d870e74cb1"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224620502317Z.json",
+        "sha256": "9817ac0b67b0f1ddebf45ce728bad262a058336070f911b86e051a1f5f1fdcd7"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224631017486Z.json",
+        "sha256": "74131853bd5c9b7415f20c6db84d2200ee029182848bf9969a7142793cebc275"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224641538429Z.json",
+        "sha256": "b44b39f005868bc644fc20896e6031a311a29a9ac2cbd3cec597abcd53faa8a7"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224652226238Z.json",
+        "sha256": "6aff95385e7b6ed46f1b09f72ed376a76a92b1da0c421399f8a6dcca32714340"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224702511776Z.json",
+        "sha256": "ee79eba5168f42937181f22d70ca139865fa6069d38aa9a38167c8921773db2a"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224713074399Z.json",
+        "sha256": "29d1e09ce4c901b304974d021cbf3dea6067885ebf2c850f3b330c230fd644b2"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224723224576Z.json",
+        "sha256": "264499730977e301da5ed895723e3a9b58d5e4530bc25561f4cf3b73c7b6855f"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224733246084Z.json",
+        "sha256": "a77b83ab7640457dbd01110cd0e3cd83a929a0490c37f5ffc80b4495968a4f6f"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224743801221Z.json",
+        "sha256": "8fdae9a7079f81ce3a58e6fec742da852770a7806113a9d41ac66fc597dfe2f7"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224753891419Z.json",
+        "sha256": "8cfb8b93946b621c7f99ca6ade8a6a83bf24dfae4455a75fd66f37a3c2695650"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224804673062Z.json",
+        "sha256": "2277392f3e4046256823f4dd50d3f62170dcc84186b46b79c6c95d8458c0ce04"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224815344528Z.json",
+        "sha256": "9690b63e0367f77076811fc7331c16d947283dc45b9b3708c1cbef5e21ccd4a0"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224825572712Z.json",
+        "sha256": "1b2507d9cb23e54fd5e47521a3511a30d3c9af97dd8d3f974a1bf44a8385256e"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224836439704Z.json",
+        "sha256": "ee75dcc44e6d66a2ef63406ca48f0593d898c79447a91b9f20547960869bb1e3"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224847593253Z.json",
+        "sha256": "dc4e845f0eeafaf0fe18cf0a089285041d9511768681062a4ff487969ea4cdd8"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224858528152Z.json",
+        "sha256": "70c5888a2a668c99d399ca0b054c62459bdd4fb4a27de2bca50633cd1ae99e6c"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224909412079Z.json",
+        "sha256": "83300503ff0860adfe6e6b5b81f85b4c0ba882fbc8d3cada4c599b4aa35f0110"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224920280400Z.json",
+        "sha256": "eb96e793cb6e4960b0a15460b8f9300fb890beb85e7366b94b4c49121b129d7e"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224931772812Z.json",
+        "sha256": "c64f8848d82e4322758a393117d1409411087a623f03a7b4afa8fdf959f429e3"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224943050418Z.json",
+        "sha256": "2ca40bd7bcae771477af664f8a8386b791c9dfdc72027ee3af218c0dc609abe0"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T224953752320Z.json",
+        "sha256": "d56988c21752db8170b6ef6ff990eac69aee6d5d1d2b130f3e5c93416b3f6a35"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225004057139Z.json",
+        "sha256": "596738721b16c3d51ece9f511b0de5a8fbd8a58a190a82cc6c3cfac4a2787053"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225013927919Z.json",
+        "sha256": "1d9b5944da71e6b19f0a2547c9c2564c718040dade0b629a15ef3622a0306500"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225023811049Z.json",
+        "sha256": "3bbbf94d6c7488a05ebf0938f44153d4fed0c523f98cbb99c8e795a66c6a0e51"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225033666177Z.json",
+        "sha256": "f6d8080186f304be8d7c2d16f88f59ea7f2a81e2882adb70e8a02013cb481ff7"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225043655062Z.json",
+        "sha256": "907b9dd3a277641cdb9c0b4dfa5ef89f9d4a8912a071aa8b9373d36165b8dd72"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225053435869Z.json",
+        "sha256": "dc2a6fa4185c9d9cdc31d095af8d034a7f2fe91005af4374c55912790c348567"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225103111450Z.json",
+        "sha256": "595997c4287f31058c3e374161529e6b00af72f6dddd3c9af78b7d6d358f8cdc"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225113097642Z.json",
+        "sha256": "56af231aa3c41b59007aa075e13b0116b0eb15eb37eb501d76fd00c43d3abb70"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225133581867Z.json",
+        "sha256": "3dd039c0f3161863caab76b8fa48b5ab90a4b5f8bcb6b22c154512609376d8d6"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225143897627Z.json",
+        "sha256": "00123703eb1c04bea9ffefe02364656c00efd3240efbd243a3d8b80c7a3d822a"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225153486920Z.json",
+        "sha256": "9d4fd86cf96978512b33920e602400e98479acabe316c8a7a2582afad6b35b50"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225203402684Z.json",
+        "sha256": "3ab9995c89d2b1cd991139ae580893d852857922c362c7194c41fa814d1eb3f1"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225213820108Z.json",
+        "sha256": "c6fced62b083f1c8df0d351a007341a3128021602aa64015435810fdf1e43a10"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225224004411Z.json",
+        "sha256": "c108b0471f23636e986d9af89a940bb75d7742572d7c3f414468e0ae38566d67"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225233815355Z.json",
+        "sha256": "30fb3e8db13c9689e754e63570e1fb5208d54ac6dec8210d4d34f90c347d1bc3"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225243766788Z.json",
+        "sha256": "a38eb28c9a1de2da554aa19b6931faf622ea7d20e576482826326c5e1f1f3569"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225254517947Z.json",
+        "sha256": "462cfcc4d7f935f6ecc1ffc2853bd402c764ad07df2a01237b8f1272be12765d"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225304631074Z.json",
+        "sha256": "99c77c72d155ff9ad5cfaebd2fe6145dc183b9c0a57041f7d545b4d416c5a844"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225315191283Z.json",
+        "sha256": "5e4208e20641a8c1df64cc8d45b3b79e41d65e5f5d703ab9732c6cdd68fc52e8"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225325519322Z.json",
+        "sha256": "dc1416bcb213e98472b9638a34a96ceb082788df5d78331095afcac724e35c69"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225335979686Z.json",
+        "sha256": "633ed25cdb2a0859d134052c0c5c08b1acd52336d105dba3654e80c67e3d3d56"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225346372627Z.json",
+        "sha256": "c3ebe32a894f9e248c0282e19a7d8abac1c869b6a2417799c60608cf76122390"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225356310785Z.json",
+        "sha256": "09af4aab3e11a697de996a97417629b29f6c1d2a452480246e9d44200e09d44c"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225406116961Z.json",
+        "sha256": "5c282d9c6b905421b8849be693bb6b7fc0cfcf3ff26a5a1dab83cf5b9bb6a07d"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225416654328Z.json",
+        "sha256": "87bff92b7eab0d84cf86230c403d20c2f2b2239db5e8b7151e1436f44c6fbac8"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225426565677Z.json",
+        "sha256": "f84556386ae1dce914aae3a064b5f090863cdfa4dee44ec424a88a3a2bbb16a9"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225436823868Z.json",
+        "sha256": "2f0b0311ce6cac2d6a9a9b61232fc5dfbd2b88e462478323799708dc9422e754"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225447195392Z.json",
+        "sha256": "df9329860504bc4d8fc0496358c41af85a9e69155d5f1bc2e63983c7212ca666"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225457771394Z.json",
+        "sha256": "8968e43ccbc13d175fd8075cb52bc90e413dcbf6db3c28e3b6f5f30a29aec26c"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225507805059Z.json",
+        "sha256": "e624714efc72a2d6e044aa7aacd82b06a45b806dc38f5bbcf78ed31246034efb"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225522760604Z.json",
+        "sha256": "76e4f7d81fcf467873a775d1c862ea0df89b19813696ace6f6b06186bb06e2a8"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225532647813Z.json",
+        "sha256": "0c97533070519df20abf797ebb8446be1e04a82e443504750b95f39ffadf82eb"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225542760564Z.json",
+        "sha256": "c9c548dd74e160a694650305480a202e86064bc0778a3d486486e2ada58dfbfb"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225552619432Z.json",
+        "sha256": "508619ac334fedde5db10eb3e4fec1bd35119bb0a11eb1321a322f562179592a"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225602672929Z.json",
+        "sha256": "128666de695710c17d90c059be54569b057826c63e9ca82b9810288e9474eaa0"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225613190719Z.json",
+        "sha256": "536d330f96350bfa66ddeb2ff4b94022f0bfab139ae3d38a3db62e067659852b"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225623485296Z.json",
+        "sha256": "7b6d73597489a62f452392f8f453ef02d217c206f8af82b6647d5f464ca6c2d3"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225634445585Z.json",
+        "sha256": "99b92eb285ecf31e230ade59b3c6b7c52b2da9882caa38996b585d33718ccccf"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225644793427Z.json",
+        "sha256": "7d3498d5501671b4ac8ea486538dace85866046103b1743c91e3d70bf0cf1baa"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225655305028Z.json",
+        "sha256": "099f80b6f2d3dc480c0a65d25bb5101391df333aaf1a3e7139a09b07915896da"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225705669653Z.json",
+        "sha256": "fc94a2159c557b5be6011ff9a52fca6ef57a6afbdcf54af6790a08f9af501b63"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225716091616Z.json",
+        "sha256": "77da4f8d806f55b1fd970646abbd791534fc2753359e86d52904c74f645a6279"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225726492939Z.json",
+        "sha256": "02bd803eceb199e7686bbc55c8ec41bad64683589f610fcfedd31e76809c5bdf"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225737086393Z.json",
+        "sha256": "093385a378b1997cbdb497e414c6864890a7e4459a97f438974af3869f8f8b4a"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225747804425Z.json",
+        "sha256": "49c7f4c2d8458a84b08ae767346b3c06eed0cc14c6f004282183f111a7ce1658"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225758399376Z.json",
+        "sha256": "9493a8f787a806915194507c2877068cdb94f1314d95c7876cdc54a7ec16b35a"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225808453915Z.json",
+        "sha256": "ba391f69c64b7e2751a29b8ee353c20305fba21c9aa7ca7365fd963791c8f0e9"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225818166495Z.json",
+        "sha256": "0a11abe2fe2b7ac3f02049c40648f21d00c847099d9d8cedc7f4f6330d2d41b8"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225828279681Z.json",
+        "sha256": "c894ea25656fbfe055c6406ec318dfb866b192c06fdd3bc906e19c1d1b3ddd55"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225838035377Z.json",
+        "sha256": "5eea6ed6905e424b8806ba7317587f5b2708d8d94defd0438f5cba8547a7504b"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225847792766Z.json",
+        "sha256": "2a3b816ac56234ad4e898208f371ffaf75755cb5c17cc71d0062f0c63017d18a"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225857764254Z.json",
+        "sha256": "20f7f7fb647706b7d1c6d5740a406e678f6a2121ca23d5e761b9c6f05d0a1c10"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225908718094Z.json",
+        "sha256": "28c3581f87caf59a050a01c70b4c501dac5c29d4ce5dff6aed7493b12cf166d9"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225918756511Z.json",
+        "sha256": "5959d2b6254143a9c70450a7296bdcfdf64d3907ad6f93c705b03db5c5bebd36"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225928687460Z.json",
+        "sha256": "71404769f912b7010d687275907d2461330bacc5c992a5dcf732113e83eef7c8"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225938778276Z.json",
+        "sha256": "cf8ea5514180fa1fbc35a174106996a5d81be3bd08d2dc73fcf38120fe80b098"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225949013812Z.json",
+        "sha256": "975f5dd4fb286f4fd786436667ed08727a7a23ae480bf6be87ff7d841d807183"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T225958737926Z.json",
+        "sha256": "7d93b3f81a48ad92492e26d87d4ddd392acfad7f50270baad645b414f6f4020b"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230008373973Z.json",
+        "sha256": "a126643c8515b94b9ee4b1e20eb2512d395fc9c87b4f2c716a1bebfeac46cf73"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230018179075Z.json",
+        "sha256": "0522de6883aac86937caeab90bfacd1fbe7293f7dc6ea3dc7652fcf0aed2e1cd"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230027884008Z.json",
+        "sha256": "d4137b7378effbc45c149dd8f7f9f71021ad97d853d1fdd15bc1c660d13dad68"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230038282666Z.json",
+        "sha256": "ad881d3da32fb98019b1a384b72e9b1d902b1248e0aa5fe64ad43429e6e64805"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230048070873Z.json",
+        "sha256": "f4b2a1b1e42f296039e82ec0233dbee9ef1f557c2aee0d9696d0597078688061"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230058407088Z.json",
+        "sha256": "e29432ac48821bcc48986214f726220862f6aae42df0ce04148bfd67ec66d1ba"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230109388198Z.json",
+        "sha256": "439e593b6cf72ef2842a4335e37278b451f8b75b96f027f6624bc18474bedec5"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230120714369Z.json",
+        "sha256": "2c374949a2f3bdf49f06f3c24c43640724e28076e818228e0fe86278f5ec4346"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230131778772Z.json",
+        "sha256": "2b43458cb60270a0a3bcacbaca4a52e2de67e968f2a7f2b513bb52bb2e3a0694"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230142592133Z.json",
+        "sha256": "6e1434839d2fbfb18230c86355bc9cc4035880ecdbc559d081895fb7cfba6cab"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230155440016Z.json",
+        "sha256": "6529811370c043de90a4b4b1a61a14c7775a890c9c1b0e58ceed8d08ab1d813d"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230205607691Z.json",
+        "sha256": "b55d04c53731f064230288f0718d1be465a6ab14823572082da1b8b15640a823"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230216044199Z.json",
+        "sha256": "558cca8cbae285c90a044f5f612d4f150e7068fdfce51101fed4db7adef27329"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230226839923Z.json",
+        "sha256": "e1efeb57e176de22a1b99f07181b788d0c50638aeb32aac49f74ee238189e268"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230237032984Z.json",
+        "sha256": "f0c6c4297387071bf878b000ea232ae33d0b5193bc571f9f204ae65e630c837b"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230247427446Z.json",
+        "sha256": "b7b031f4867b7b624f0176857f98afb19a3194494b54d7dc20b77b4e5d63c9d6"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230258484402Z.json",
+        "sha256": "b0044434fa60959c92e0d427dc25b751bf9ed4f788104e021cddae8d7d9ea338"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230309017629Z.json",
+        "sha256": "4aa3e12bc8228d55419c5863549cf42d72e2d33daa40b9c541008bf7d872b93f"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230319204126Z.json",
+        "sha256": "5525069c36f2cc7412152ed0a255d0afcad07599990ca37494c54198ec0acb10"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230330157866Z.json",
+        "sha256": "382703185631fdc28b84923ea28c3614779b7eb612b6a5ee61b0e3b085ef43ff"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230350755700Z.json",
+        "sha256": "b3bcc6223ff5b661e604b94527be360c8480238183b4fc02abc163bfc0da04b0"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230400432166Z.json",
+        "sha256": "9764059a812230819e8dde7bc8c64a3a45da8f2914a99cadbf148fe75a1b7a99"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230410452344Z.json",
+        "sha256": "9c039965bced605f34e3496211058cdb4c9e5fa78dfc4f7c21fe85e687c14d1f"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230420360675Z.json",
+        "sha256": "fbcf5401395d07104de737fea34a86b1ee3b644accbaade0036e4f0ad8625a3b"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230430299600Z.json",
+        "sha256": "d7131f79b440b6eb5e4f508495c5cb913e7309f3d99da3017ff9952e8327fb30"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230441684770Z.json",
+        "sha256": "0f0810903b1774603d9648747fec98cdb4176d67f41747af3b3e407b233ef6d9"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230451692829Z.json",
+        "sha256": "52b3222d074a68463da908563521074c1aa49e89554a2766712614a0e7f649fa"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230502444686Z.json",
+        "sha256": "a6c88686fd039201538b709d5cbb06850ab88ed8ff31e454a083267ab3a8dea0"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230512364515Z.json",
+        "sha256": "a00034678af71621a9b3e63191434d98ed64bbcdff4f88fbffeb0a1842bef332"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230530770864Z.json",
+        "sha256": "5c49763dcc6d76553ffe320ac67d9944512198fd600730e3832a79e14d18cd0f"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230541340648Z.json",
+        "sha256": "03780a6f72350ec3aa2524946ffcbca012bb4b2c863185bd22b1122e1360592c"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230552201804Z.json",
+        "sha256": "94543bd23731b47cd4b9e950e01240012b9e94982bb2de0dccf1b703b27118fc"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230603396244Z.json",
+        "sha256": "6b0e014c91ba75d407ceed19c5236e3ce928354057c944caef99f33ca83fb4aa"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230614378115Z.json",
+        "sha256": "def7369cf4e2a9e95c590937aec77a11f82e8032d9d27a9624a245ff2afad262"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230624633242Z.json",
+        "sha256": "c0a9c9cf0345852fc735654f7c9d5850d26f77820010ed1ea650e0aeffb8a11b"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230635044082Z.json",
+        "sha256": "5b705a9fb26981e8ad31db05cae1d4b1578496a576e6e467cba49f11d308cd3b"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230646309488Z.json",
+        "sha256": "c67ab81200eb2f71a4376bfcf3fe906189b2a4fcc424273c05aace2119be8657"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230657291059Z.json",
+        "sha256": "9a494bd029452c08c2e549eb8e1cb222ce9df2008fb246e5b8adcb2f037e73e2"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230706876268Z.json",
+        "sha256": "82022bd3306fb53f030e75981c6674850a6fe0872b34a65aa63ac49831f925c5"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230716515994Z.json",
+        "sha256": "9f4396ff47cbaf64c77f143af27d709a04feead3d7ffee8a3a46fbc69b82a4af"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230727078436Z.json",
+        "sha256": "0810dcec6840a8abe8e7d322fef4d5345f3e9c346cf4ce9c53f83478204e120c"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230736869401Z.json",
+        "sha256": "2e4a523809ab4f4399ce45936126c74fab24023462c7ab692231a0be160a138b"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230746994917Z.json",
+        "sha256": "b61b4f3c9f6fdb25d8a0d4afd95b4b9622183f8b8d6218c0b800e66b5243df0c"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230757383579Z.json",
+        "sha256": "a1df662d064a856143ff599d6bc91f6532bc323e8515e7bae782985f7234094b"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230807254395Z.json",
+        "sha256": "edb813f67b421ec8818473110fc0aefe7a60f978c30d711fa43621440fe50d4b"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230817079409Z.json",
+        "sha256": "c4153cfeca9fc20c2458526fa5f4a6f8f1630aa29138849678698784ed7f31e0"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230827713417Z.json",
+        "sha256": "86738fe42abea072afd9c064800ebcf09c073542eea36980a49be37c67ac8aad"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230837631921Z.json",
+        "sha256": "dae88dcdc5cdd81e1d633effb159b1a0dc6f35cf1463834b3463ebd6c2a2bbf5"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230847488426Z.json",
+        "sha256": "176e972710a6f1b1cc263c4fe3ca014d05b44cc9e006eb3648f192eabc3fa0ab"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230858016819Z.json",
+        "sha256": "3b83227dca68c9a6cfd28502cb019e1744e12c5af7ba58a5724534320812aa18"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230908052199Z.json",
+        "sha256": "31b6db704005709456dc0deff107ee9a121a821cb6c7b51f383874dba7883dac"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230917813095Z.json",
+        "sha256": "96fdf3d9a448db0214352182317798fc538fe9bd4103645ac778aa07e229601c"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230928231554Z.json",
+        "sha256": "2c7cc6883fbb982810f8721aaf6bbd6363edaaf43091f0b37847fe02da8bf59b"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230938271631Z.json",
+        "sha256": "8c6380076c6e96597e69fac1ad9333155270d2cf05ae43f8b5c11ae5e093cd66"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230948304361Z.json",
+        "sha256": "26012054ebea9e4563a6731176cc1c38883392ab0c652980db5c4867e7363834"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T230958905719Z.json",
+        "sha256": "27adb181eeec9229e3937182055e13b013442450aa8d09d2cbb7f30062ae89ca"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T231008854349Z.json",
+        "sha256": "e9a00bdcc0040945adc4b28eff7ff719a20beddc794481dca574fb15114560b9"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T231027583038Z.json",
+        "sha256": "f082b78444ed398b2654c078934655c3f3a49501d1b3da4b584faeb85db6793d"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T231038211582Z.json",
+        "sha256": "8e072efdde861e857e2b5dd9aa80c5384c00666671b37a7b58809186774a351f"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T231048451038Z.json",
+        "sha256": "5dbd8219b2f581b4448804d085281d8d5333d60746b1a23048a0cd967dba8d9a"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T231059581093Z.json",
+        "sha256": "34405d252ffe04b15a5ae7f368815be7757e39031a6223a7edd27280ee7c4272"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T231109983755Z.json",
+        "sha256": "e8fdffb7c5a2678eb359f4b5e5c5f79108a4faa5e16168996139a83e9084a6cb"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T231120346749Z.json",
+        "sha256": "d193b22ce92bcbca00f6dffa94745a284ed739a580ad8eb891745eeaed9eddcd"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T231131939541Z.json",
+        "sha256": "b4e305d8ea7235ea4af5d90f52bd610345bfa994a43cbc31bb50c9da629df2b4"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T231141655325Z.json",
+        "sha256": "773077403a5d98ae29d785148056bf25da76d17cd44037a0811e8c9b7cdf47e7"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T231151389731Z.json",
+        "sha256": "caf7c39a0386b8dfe601789b824380ecf65ff8e49b3708e3dadc8132db1678d8"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T231201082580Z.json",
+        "sha256": "9df4a8a41181c0cb9e0dddbf86c2c1cc7f9b7119fb5bcc44feeaaf9b5c848bb7"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T231210840204Z.json",
+        "sha256": "ed58801816d1d5e523c8b5d82c2e955e5c300aa1209d0f97fc59b556ebc04fa7"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T231220569969Z.json",
+        "sha256": "ffd4a1eba990d42b432d0beda972bc15c504bf67c32c4a96f8b2f8fb45a1d5a3"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T231230802462Z.json",
+        "sha256": "12567eb0bd4143053a87509aab6e6d4ad4e4c0a626dbd6f1ff4d743aa0aef4bf"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T231240463349Z.json",
+        "sha256": "1d181d0a81c3192dcb576369d3a416f0b0d47c7f2db9aab8a13ff9fdaa10486c"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T231250825215Z.json",
+        "sha256": "a2e2ae23052c17accaed4c6b372c30c754ff4542361fdc1171ef82a0083e6298"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T231300485278Z.json",
+        "sha256": "c32d12d4371085d0ab823e9ee43ae7c6e9be5c5d6cfd1042f9dc9ea145ae9910"
+      },
+      {
+        "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/transport-attempts/attempts-20260911T231310466425Z.json",
+        "sha256": "c0daf6f16f5ee28fd389c31650284cf8e7e074b91ea8c30d747e21a0c3f1ac4d"
+      }
+    ]
+  },
+  "phase_gain_passes": 66,
+  "final_safety": {
+    "restore_json": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/restores/restore-bench-20260911T231320.301617Z/restore.json",
+    "sha256": "8812ebf62e24a47078ad609825854adc826d9966ec32e649b354b2a8738d35b2",
+    "verified_at": "2026-09-11T23:13:39.489963+00:00",
+    "initial_image_sha256": "4eddf1e07cda11b78800a80a2935790f554913e6d2b70e024e46c68c263c888f",
+    "both_pinned_radios_muted": true,
+    "selector_all_off": true
+  },
+  "continuation": {
+    "parent": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v2",
+    "parent_blocks_sha256": "b8a0b99311b6ab129920e50d9f4461cc7b1c7c25ac70929cd35ed9f29401e4ba",
+    "parent_plan_sha256": "b221ae71a1831eb6f903bcfb8d4d345d01e56211de6bef5997e3599f35bb8c52",
+    "inherited_complete_blocks": [
+      {
+        "frequency_hz": 915000000,
+        "configuration": "D",
+        "log": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-1-915000000-D.log",
+        "returncode": 0,
+        "block_json": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T182124128635Z.json",
+        "sha256": "3c7d35af064a5d4e52e681438a896743749621d800e7cf0f2f22b0bd3f180a2e",
+        "status": "diagnostic-complete"
+      },
+      {
+        "frequency_hz": 915000000,
+        "configuration": "B",
+        "log": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-2-915000000-B.log",
+        "returncode": 0,
+        "block_json": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T182851799643Z.json",
+        "sha256": "4ed2a90757bde19219090357d0cfce76be880d724c5016e6e90a5916c11feb90",
+        "status": "diagnostic-complete"
+      },
+      {
+        "frequency_hz": 2475000000,
+        "configuration": "D",
+        "log": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-3-2475000000-D.log",
+        "returncode": 0,
+        "block_json": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T183613359169Z.json",
+        "sha256": "ff0a1c526345cc5522212ca15d4b789412a69e15a48a4adb34b6806d3a45b2c8",
+        "status": "diagnostic-complete"
+      },
+      {
+        "frequency_hz": 2475000000,
+        "configuration": "B",
+        "log": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-4-2475000000-B.log",
+        "returncode": 0,
+        "block_json": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T184646814791Z.json",
+        "sha256": "5434757174abb65c81a99b1118a4bec9982a44f8150d2ad5ab229170b59499b4",
+        "status": "diagnostic-complete"
+      },
+      {
+        "frequency_hz": 5800000000,
+        "configuration": "D",
+        "log": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v2/block-1-5800000000-D.log",
+        "returncode": 0,
+        "block_json": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v2/block-20260911T211805001077Z.json",
+        "sha256": "708943e969b33382f97d0557ef9ec4f87bf0e94171c0f0831de83a63b10a1b0c",
+        "status": "diagnostic-complete"
+      },
+      {
+        "frequency_hz": 5800000000,
+        "configuration": "B",
+        "log": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v2/block-2-5800000000-B.log",
+        "returncode": 0,
+        "block_json": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v2/block-20260911T212846818552Z.json",
+        "sha256": "6b5c485916f689dc8ac2abc7a7117e24bdafd5eb335a896c5f6ef24feac187e4",
+        "status": "diagnostic-complete"
+      }
+    ],
+    "retained_incomplete_blocks": [
+      {
+        "frequency_hz": 5800000000,
+        "configuration": "D",
+        "log": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-5-5800000000-D.log",
+        "returncode": 1,
+        "block_json": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T185745321643Z.json",
+        "sha256": "b71d87ab4d96971efdc7e987fee74c51c0d397776e903cbefb2d707296838183",
+        "status": "failed"
+      },
+      {
+        "frequency_hz": 5800000000,
+        "configuration": "D",
+        "log": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v1/block-1-5800000000-D.log",
+        "returncode": 1,
+        "block_json": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v1/block-20260911T205639083175Z.json",
+        "sha256": "9926978ddd557e7304681988e2604f86da02c199ad2cb998358df33868b1244f",
+        "status": "failed"
+      },
+      {
+        "frequency_hz": 5811000000,
+        "configuration": "D",
+        "log": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v2/block-3-5811000000-D.log",
+        "returncode": 1,
+        "block_json": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v2/block-20260911T213926505611Z.json",
+        "sha256": "a3fcaf7e03ef7d051df3821a10ceadc723e7ab0f36c12df41d2510de3e27729a",
+        "status": "failed"
+      }
+    ],
+    "receiver_gain_change_db": -10,
+    "reason": "Previous peak 1878 exceeded 1600-count headroom; fresh g50 high-band brackets required.",
+    "supervisor_timeout_s": 90,
+    "timeout_reason": "Four-second recording took 23.92 s to transfer; 45 s process limit interrupted supervisor. No frame/gate thresholds relaxed.",
+    "static_figures_scope": "Original screens inherited; fresh g50 recovery screens separate.",
+    "host_iq_staging": {
+      "enabled": true,
+      "maximum_bytes_per_capture": 536870912,
+      "reason": "Metadata refill returned ENODATA after 15/80 frames. Transport diagnostics passed afterward; root cause remains unproven. Remove live-loop disk writes as a possible source of backpressure; mute before persistence, retain partial IQ, keep all continuity gates."
+    },
+    "previous_continuation": {
+      "parent": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v1",
+      "parent_blocks_sha256": "dd0c413195fc5dc5355ea3f36bfdda0b54dddf75ff5358243a5c78f7b5edab26",
+      "parent_plan_sha256": "908d11fc29ef35909d97c5b15a58e469ed836047250f63b8f83062343f4066d2",
+      "inherited_complete_blocks": [
+        {
+          "frequency_hz": 915000000,
+          "configuration": "D",
+          "log": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-1-915000000-D.log",
+          "returncode": 0,
+          "block_json": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T182124128635Z.json",
+          "sha256": "3c7d35af064a5d4e52e681438a896743749621d800e7cf0f2f22b0bd3f180a2e",
+          "status": "diagnostic-complete"
+        },
+        {
+          "frequency_hz": 915000000,
+          "configuration": "B",
+          "log": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-2-915000000-B.log",
+          "returncode": 0,
+          "block_json": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T182851799643Z.json",
+          "sha256": "4ed2a90757bde19219090357d0cfce76be880d724c5016e6e90a5916c11feb90",
+          "status": "diagnostic-complete"
+        },
+        {
+          "frequency_hz": 2475000000,
+          "configuration": "D",
+          "log": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-3-2475000000-D.log",
+          "returncode": 0,
+          "block_json": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T183613359169Z.json",
+          "sha256": "ff0a1c526345cc5522212ca15d4b789412a69e15a48a4adb34b6806d3a45b2c8",
+          "status": "diagnostic-complete"
+        },
+        {
+          "frequency_hz": 2475000000,
+          "configuration": "B",
+          "log": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-4-2475000000-B.log",
+          "returncode": 0,
+          "block_json": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T184646814791Z.json",
+          "sha256": "5434757174abb65c81a99b1118a4bec9982a44f8150d2ad5ab229170b59499b4",
+          "status": "diagnostic-complete"
+        }
+      ],
+      "retained_incomplete_blocks": [
+        {
+          "frequency_hz": 5800000000,
+          "configuration": "D",
+          "log": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-5-5800000000-D.log",
+          "returncode": 1,
+          "block_json": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T185745321643Z.json",
+          "sha256": "b71d87ab4d96971efdc7e987fee74c51c0d397776e903cbefb2d707296838183",
+          "status": "failed"
+        },
+        {
+          "frequency_hz": 5800000000,
+          "configuration": "D",
+          "log": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v1/block-1-5800000000-D.log",
+          "returncode": 1,
+          "block_json": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v1/block-20260911T205639083175Z.json",
+          "sha256": "9926978ddd557e7304681988e2604f86da02c199ad2cb998358df33868b1244f",
+          "status": "failed"
+        }
+      ],
+      "receiver_gain_change_db": -10,
+      "reason": "Previous peak 1878 exceeded 1600-count headroom; fresh g50 high-band brackets required.",
+      "supervisor_timeout_s": 90,
+      "timeout_reason": "Four-second recording took 23.92 s to transfer; 45 s process limit interrupted supervisor. No frame/gate thresholds relaxed.",
+      "static_figures_scope": "Original screens inherited; fresh g50 recovery screens separate.",
+      "host_iq_staging": {
+        "enabled": true,
+        "maximum_bytes_per_capture": 536870912,
+        "reason": "Metadata refill returned ENODATA after 15/80 frames. Transport diagnostics passed afterward; root cause remains unproven. Remove live-loop disk writes as a possible source of backpressure; mute before persistence, retain partial IQ, keep all continuity gates."
+      },
+      "previous_continuation": {
+        "parent": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1",
+        "parent_blocks_sha256": "c92c9d626b9000ceedddc28828a8366a468bc5dc8ce58bd9132c92d3f7e90875",
+        "parent_plan_sha256": "2c6373a621b6102a97bcd4b0fbef6753092b83414d049f719d6322bd9fdbeb29",
+        "inherited_complete_blocks": [
+          {
+            "frequency_hz": 915000000,
+            "configuration": "D",
+            "log": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-1-915000000-D.log",
+            "returncode": 0,
+            "block_json": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T182124128635Z.json",
+            "sha256": "3c7d35af064a5d4e52e681438a896743749621d800e7cf0f2f22b0bd3f180a2e",
+            "status": "diagnostic-complete"
+          },
+          {
+            "frequency_hz": 915000000,
+            "configuration": "B",
+            "log": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-2-915000000-B.log",
+            "returncode": 0,
+            "block_json": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T182851799643Z.json",
+            "sha256": "4ed2a90757bde19219090357d0cfce76be880d724c5016e6e90a5916c11feb90",
+            "status": "diagnostic-complete"
+          },
+          {
+            "frequency_hz": 2475000000,
+            "configuration": "D",
+            "log": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-3-2475000000-D.log",
+            "returncode": 0,
+            "block_json": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T183613359169Z.json",
+            "sha256": "ff0a1c526345cc5522212ca15d4b789412a69e15a48a4adb34b6806d3a45b2c8",
+            "status": "diagnostic-complete"
+          },
+          {
+            "frequency_hz": 2475000000,
+            "configuration": "B",
+            "log": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-4-2475000000-B.log",
+            "returncode": 0,
+            "block_json": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T184646814791Z.json",
+            "sha256": "5434757174abb65c81a99b1118a4bec9982a44f8150d2ad5ab229170b59499b4",
+            "status": "diagnostic-complete"
+          }
+        ],
+        "retained_incomplete_blocks": [
+          {
+            "frequency_hz": 5800000000,
+            "configuration": "D",
+            "log": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-5-5800000000-D.log",
+            "returncode": 1,
+            "block_json": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T185745321643Z.json",
+            "sha256": "b71d87ab4d96971efdc7e987fee74c51c0d397776e903cbefb2d707296838183",
+            "status": "failed"
+          }
+        ],
+        "receiver_gain_change_db": -10,
+        "reason": "Previous peak 1878 exceeded 1600-count headroom; fresh g50 high-band brackets required.",
+        "supervisor_timeout_s": 90,
+        "timeout_reason": "Four-second recording took 23.92 s to transfer; 45 s process limit interrupted supervisor. No frame/gate thresholds relaxed.",
+        "static_figures_scope": "Original screens inherited; fresh g50 recovery screens separate."
+      }
+    },
+    "transport_retry_policy": {
+      "maximum_attempts_per_scheduled_capture": 3,
+      "retry_only": "OSError errno 61 from metadata refill after verified cleanup",
+      "scope": "New whole contiguous records; never splice or accept missing samples",
+      "not_retried": "Phase/gain/bearing failures, clipping, timeouts, cleanup or other errors",
+      "evidence": "Every attempt remains hash-linked; all original failed blocks retained",
+      "reason": "ENODATA recurred with RAM staging after 39/40 frames in a static reference"
+    }
+  },
+  "screen_sources": {
+    "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/screens.json": "15c93b82adfd2d549e6ffec14cc4277890f5680a51459e95f1efe9e6d60a3970",
+    "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/remaining-headroom.json": "e73d9f2f781c631cdedf163e9e9b939365a03375692428710ca21017a6b4e98f"
+  },
+  "inputs": [
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v2/block-20260911T211805001077Z.json",
+      "sha256": "708943e969b33382f97d0557ef9ec4f87bf0e94171c0f0831de83a63b10a1b0c"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v2/block-20260911T211805001077Z-reference-timing.json",
+      "sha256": "f2c2ca16d7b71b01ecf60079bec8a57d708664d024c63416dff0002a935f4bea"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v2/block-20260911T212846818552Z.json",
+      "sha256": "6b5c485916f689dc8ac2abc7a7117e24bdafd5eb335a896c5f6ef24feac187e4"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v2/block-20260911T212846818552Z-reference-timing.json",
+      "sha256": "009703176cb2ebd02188d75e125e85bb518b6ebe7b5cad996b39caadcc6dc4fa"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/block-20260911T215918963889Z.json",
+      "sha256": "1ade2a0c5ae6fd774a3c3764a906cc4b5f19bf493d5afde0be85bd3eb4ab86ad"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/block-20260911T215918963889Z-reference-timing.json",
+      "sha256": "6377643de0c7c13eacddf3aadfb506715139ed8b143820724ab995f1f8bd3cba"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/block-20260911T220948222664Z.json",
+      "sha256": "49d5e102645c40e26bee8dee50dbb16243b7a1927a3e4c399695a9aebc62af78"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/block-20260911T220948222664Z-reference-timing.json",
+      "sha256": "2d7d6a7e8e91ae71d85647f83fc0358bf47702e3a9f42dff55b9c7501cb358ff"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T182124128635Z.json",
+      "sha256": "3c7d35af064a5d4e52e681438a896743749621d800e7cf0f2f22b0bd3f180a2e"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T182124128635Z-reference-timing.json",
+      "sha256": "5bff0964a74c510b168091f1eb81b46826af1c29d6fea6ff073e3d4fbbc88154"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T182851799643Z.json",
+      "sha256": "4ed2a90757bde19219090357d0cfce76be880d724c5016e6e90a5916c11feb90"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T182851799643Z-reference-timing.json",
+      "sha256": "0cc59cf7aced89984e0c844b0fa62ff521c98b154850e4abe7b9fa26217d1a3e"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T183613359169Z.json",
+      "sha256": "ff0a1c526345cc5522212ca15d4b789412a69e15a48a4adb34b6806d3a45b2c8"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T183613359169Z-reference-timing.json",
+      "sha256": "fa51c5ea52ea711d2249f6b363265ee0c956c5ec3465798c78b6898f8b233ab1"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T184646814791Z.json",
+      "sha256": "5434757174abb65c81a99b1118a4bec9982a44f8150d2ad5ab229170b59499b4"
+    },
+    {
+      "path": "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-v1/block-20260911T184646814791Z-reference-timing.json",
+      "sha256": "7d49d060f653c1b42ee600d8723a4dd8ad4c3a1576f0342f3233294c2cd02ccd"
+    }
+  ],
+  "sources": {
+    "/srv/bulk/samteway/repository/scripts/report_full_5ms_campaign.py": "c7861576e3d7d4a95b7112c97388433243402c46186488af908c7c8d3c47a50e",
+    "/srv/bulk/samteway/lab-data/tracking-5ms-full-20260911-resume-v3/plan.json": "b9b3f090270f1983c504aae89d6134de8acb3c68491ef2743d62353cbff25ea8",
+    "/srv/bulk/samteway/repository/scripts/analyze_full_5ms_dense.py": "24b459a12230d8cb259e4d73aabe6544519c7d8c0629cf5e77b5eb5d73116f57",
+    "/srv/bulk/samteway/repository/scripts/render_completed_switching_analysis.py": "0aa50ce080123f6bd7aa547483eac5a96564f492fce875c7090a9604785ac629",
+    "/srv/bulk/samteway/repository/scripts/render_jitter_report.py": "c777ceab021a5184d49d2f533b23d2d5734f76985601d449fb89eacf8e063f87",
+    "/srv/bulk/samteway/repository/docs/jittered_fixture_comparison/data/after-rolling.csv": "a478ba876bd824311e656d05fe1354dd9e02a866e60a843be6a7ce608b488939",
+    "/srv/bulk/samteway/repository/docs/jittered_fixture_comparison/data/dense-after.csv": "afbd16cfb6c757df2ba5185b95f98a77a4914e73e7f7db59de44c486315abcd9"
+  },
+  "figures": {
+    "fig01_dwell_pass_matrix.png": "ace9233c3ab532f349ec02ce8a13223b9cf87f332cc5648777ea084eb0aa1f43",
+    "fig02_phase_gain.png": "b678939be415215c9451a88697e2afc3a572e96c237a500f161d88d87e20b32e",
+    "fig03_bearing.png": "bea0351035d52dd44bbdd88feccda556efd156cd4b143085f8332c06a8763ef1",
+    "fig04_static_antennas.png": "c249724979ecbe81ade5dbfeaf2997763c16732f620df1b4611c3d366bda641d",
+    "fig05_dense_comparison.png": "57335f25bdb1b21f74902c73388bc41f37216b4cfd4943b53612d1293545c5d9",
+    "fig06_compute_budget.png": "f38b0ab0ec0073728ecc3f7b7a3a6e9d2c27100d0a9e55f64355a5e0ddcbe48b",
+    "fig07_same_session_controls.png": "01f1092b4bd1d865b7bec38e78eba5267a05033910739112a2a3e81b13d7aff1"
+  }
+}

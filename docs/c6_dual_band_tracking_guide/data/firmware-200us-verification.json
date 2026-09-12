@@ -1,0 +1,51 @@
+{
+  "binary": {
+    "path": "/srv/bulk/samteway/repository/build/STM32C011F4P6/tracking-c6-200us/pluto_tracking_c6.bin",
+    "sha256": "505ddd97abee775f65dd5766a3c124787a26d379122a22740df9a468b6a1ddbb",
+    "size_bytes": 1156
+  },
+  "control_schedule": {
+    "address": 134218792,
+    "bytes_hex": "0000c8000400c8000600c8000700c8000300c8000100c800",
+    "size_bytes": 24
+  },
+  "cycle_us": 1500,
+  "dwell_us": 200,
+  "elf": {
+    "path": "/srv/bulk/samteway/repository/build/STM32C011F4P6/tracking-c6-200us/pluto_tracking_c6.elf",
+    "sha256": "63a20174c147b4b21528ca757ef3593a386c8228014cf09f69b332be6098c60d"
+  },
+  "evidence_kind": "experimental_tracking_c6_build_verification",
+  "guard_us": 20,
+  "memory": {
+    "bss_bytes": 0,
+    "data_bytes": 4,
+    "flash_limit_bytes": 16384,
+    "ram_limit_bytes": 6144,
+    "text_bytes": 1152
+  },
+  "ports": [
+    "ANT1",
+    "ANT2",
+    "ANT4",
+    "ANT8",
+    "ANT7",
+    "ANT5"
+  ],
+  "profile": {
+    "path": "/srv/bulk/samteway/repository/profiles/tracking-c6-200us-v1/control_profile.json",
+    "sha256": "a94213db8e67191c67c466fd7d4cfeb15b595bfc50ba043a02748c1c6352fd75"
+  },
+  "schema": 1,
+  "scope": "profile/schedule/memory/symbol/static-safety verification; not the released exact-ELF or 5 ms transition-guard qualification",
+  "source_sha256": {
+    "firmware/stm32c011/apps/hexcal/main.c": "447ae83f671144cbab40166cd4a9e1642d8512b7f2e024abd179349a1107a889",
+    "firmware/stm32c011/apps/hexcal/startup_stm32c011xx.S": "b92bf645761c6f39a1daae5d63b36265cb11f1b4932f1db0511a2752076881c0",
+    "firmware/stm32c011/apps/safe_hold/safe_runtime.c": "f82a10e2602f8795ffc46e400255600ad324918d870769f4796e2abfa4140c1c",
+    "firmware/stm32c011/core/high_rate_autonomous_core.c": "c01c2926eb6db255c702cda102e84de83ce52cc4946ec57bbbd22eafa6c432fa",
+    "firmware/stm32c011/core/high_rate_autonomous_core.h": "227cc8bbc9eefbcb427a5cc3dc6bed0418755529af0d111bda4e822183bba85f",
+    "firmware/stm32c011/linker/stm32c011f4p6.ld": "47606d4828d5cc7c7c56cacca48eec90231157abfcf4bd689390e71b03fc8510"
+  },
+  "status": "passed",
+  "verified_at": "2026-09-12T16:32:06.997305+00:00"
+}

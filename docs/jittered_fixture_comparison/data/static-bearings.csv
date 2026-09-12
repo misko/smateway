@@ -1,0 +1,9 @@
+epoch,frequency_hz,bearing_deg,valid,score,phase_residual_deg,ambiguity_margin_db,scope
+before,5800000000,86.25,True,0.6848458217971951,43.76899305700386,1.746209630360446,"same 51 mm model, equal weights; not surveyed accuracy"
+after,5800000000,262.0,False,0.47664085358628727,60.42558600074613,0.5751232829681221,"same 51 mm model, equal weights; not surveyed accuracy"
+before,2475000000,46.5,False,0.4960356996777258,47.13292941998149,0.5694569724562846,"same 51 mm model, equal weights; not surveyed accuracy"
+after,2475000000,38.25,False,0.492106384103918,75.71129617333288,0.2497664583558043,"same 51 mm model, equal weights; not surveyed accuracy"
+before,5811000000,82.75,True,0.6469034209102732,30.213453804343317,1.921245096900366,"same 51 mm model, equal weights; not surveyed accuracy"
+after,5811000000,333.75,False,0.45846539459686764,61.49640520954902,0.32582565042855444,"same 51 mm model, equal weights; not surveyed accuracy"
+before,915000000,151.0,False,0.2461340745032374,60.04728989298015,0.2035960927128112,"same 51 mm model, equal weights; not surveyed accuracy"
+after,915000000,161.75,False,0.730200179865425,30.31094850691629,0.07245185457930235,"same 51 mm model, equal weights; not surveyed accuracy"

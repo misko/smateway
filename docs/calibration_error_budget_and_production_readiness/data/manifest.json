@@ -1,0 +1,364 @@
+{
+  "schema": "smateway.calibration-synthesis/v1",
+  "data_through": "2026-09-11",
+  "scope": "Offline synthesis of normalized results; no new raw-IQ replay or RF work",
+  "inputs": {
+    "pcb": {
+      "path": "docs/pcb_direct_injection_calibration/data/campaign-results.json",
+      "sha256": "06615901310dcf47535b0d7b33de4b92264c0b60807b6a1d53752c3b17c43c96"
+    },
+    "lut": {
+      "path": "docs/pcb_direct_injection_calibration/data/calibration-lut.csv",
+      "sha256": "81f0cb198b898982739a8ce93f75abfc665acd8ffa8d7757c73929035a8a8b60"
+    },
+    "midpoints": {
+      "path": "docs/broadband_midpoint_campaign/data/campaign-results.json",
+      "sha256": "b58b1930a5b175bc7ae920d768d1b863d6537312e9b4d6490330c93f27c9ad02"
+    },
+    "conducted_dense": {
+      "path": "docs/dense_1mhz_campaign/data/campaign-results.json",
+      "sha256": "a2cf290dad0b9556226159ff65f816ecb0cda14fe51864527fdc41d5b61bb381"
+    },
+    "ota_original": {
+      "path": "docs/fast_tracking_timing_campaign/data/dense_frequency_conditions.csv",
+      "sha256": "19089c82cb9e8fd71b2b3eb199b00da8b35659b074b0813d3b537bfd6adcb31f"
+    },
+    "ota_jittered": {
+      "path": "docs/jittered_fixture_comparison/data/dense-after.csv",
+      "sha256": "afbd16cfb6c757df2ba5185b95f98a77a4914e73e7f7db59de44c486315abcd9"
+    },
+    "ota_latest": {
+      "path": "docs/full_5ms_campaign/data/dense.csv",
+      "sha256": "c2cd11f90293d2c3f78e8338cd9de0e17011365ac0ffd4d180cba352fe614bf1"
+    },
+    "conditions": {
+      "path": "docs/full_5ms_campaign/data/condition-details.csv",
+      "sha256": "cf1a6c4671b1a39207bb0e04e7c18d90ba50488cb86149a0959920f010f6e5bc"
+    },
+    "rolling": {
+      "path": "docs/full_5ms_campaign/data/rolling.csv",
+      "sha256": "916899cb8595ad58c892f6206034af2478f165dd4655b6d6f362b25385292779"
+    },
+    "audit": {
+      "path": "docs/full_5ms_campaign/data/audit.json",
+      "sha256": "aa97d1f6b855a27f4cf5cb0aec3dce7188dae695bdcb2bf9efb13317dc5d8d44"
+    },
+    "static": {
+      "path": "docs/jittered_fixture_comparison/data/static-before-after.csv",
+      "sha256": "02bd3e4022f28b178bd6ebf7c9ddf6bcb83f255401373449de27055ebe2651d4"
+    },
+    "static_bearings": {
+      "path": "docs/jittered_fixture_comparison/data/static-bearings.csv",
+      "sha256": "5fa74255864aa4fddfa7867663c2b399fe102f466fdc90f4caec3284fdbe21e7"
+    },
+    "bearing_code": {
+      "path": "src/smateway/tracking/bearing.py",
+      "sha256": "da32e493f821a05a8fba818445c472896a25a83dee3e01fa383a7066b2ab991a"
+    },
+    "manifold_code": {
+      "path": "src/smateway/tracking/manifold.py",
+      "sha256": "f53ea8f5344a9eae1d65d74bf9774573bd3c62f3ce88a02e73325f498aabc82d"
+    },
+    "geometry_code": {
+      "path": "src/smateway/tracking/schedule.py",
+      "sha256": "ff99956dde0da938514b2875e120238f50dc287379fe8d8797d837e87d0601d7"
+    },
+    "higher_rate_findings": {
+      "path": "docs/higher_sample_rate_timing_campaign/FINDINGS.md",
+      "sha256": "8b1f2ae01a6e19e032b487e729ab6940800706162aa3df4697caf2ceac1fd138"
+    },
+    "frozen_timing_recipe": {
+      "path": "docs/comprehensive_fast_switching/REFERENCE-TIMING-VALIDATION-v1.md",
+      "sha256": "d90471028aadf0f0a7d366d084c369f07d4dd3796b475a7b8fdb91107c27132c"
+    },
+    "report:5g8_root_cause_analysis": {
+      "path": "docs/5g8_root_cause_analysis/README.md",
+      "sha256": "96afb5495de67ec96c97bd633e0fd319a51294d2292eba8bb3deb8cab83fc39c"
+    },
+    "report:5g8_external_fixture_campaign": {
+      "path": "docs/5g8_external_fixture_campaign/README.md",
+      "sha256": "82e96abbf015965257e4b7fad423d62a3b8d5073429292f5be55bc5320c2ce38"
+    },
+    "report:broadband_external_fixture_campaign": {
+      "path": "docs/broadband_external_fixture_campaign/README.md",
+      "sha256": "857d74a14bfc25ef31674cb360312cdd2b378bde3406a4b860ab81ca8bb21adb"
+    },
+    "report:broadband_future_sweep_comparison": {
+      "path": "docs/broadband_future_sweep_comparison/README.md",
+      "sha256": "5ad70f236da686cb9cbf855b28f76c8a22d3e1468bee05f91fb40b07cda3da88"
+    },
+    "report:broadband_midpoint_campaign": {
+      "path": "docs/broadband_midpoint_campaign/README.md",
+      "sha256": "5a40e705bf50077cc40e724043ad84b9db5f52e7c62b55ed780904afe33d69d2"
+    },
+    "report:dense_1mhz_campaign": {
+      "path": "docs/dense_1mhz_campaign/README.md",
+      "sha256": "cd49f2a258dbf29230d98f5eadd4ab4736c7144ff2891d89d0900eaefa2b3047"
+    },
+    "report:pcb_direct_injection_calibration": {
+      "path": "docs/pcb_direct_injection_calibration/README.md",
+      "sha256": "f68f95b0cad55ddfe8bcc792ff509c62966f4b9692c1461e1e345be9015f97fa"
+    },
+    "report:hexray_tx_in_middle_calibration": {
+      "path": "docs/hexray_tx_in_middle_calibration/README.md",
+      "sha256": "c5632f536385e32dfbaa341a24a77a587d54352cbc90e56b8fa227ff780e7a0c"
+    },
+    "report:tracking_verification_campaign": {
+      "path": "docs/tracking_verification_campaign/README.md",
+      "sha256": "2a51a356be7787f48bad4a571970b4aa5e4f1baccca02f4e3c1953b8c3e8f0c4"
+    },
+    "report:fast_tracking_timing_campaign": {
+      "path": "docs/fast_tracking_timing_campaign/README.md",
+      "sha256": "fd6e59a32bd7519e05bc90ec9f5a480b98b1eb04a8cef0a9c1c28094001e17f3"
+    },
+    "report:higher_sample_rate_timing_campaign": {
+      "path": "docs/higher_sample_rate_timing_campaign/README.md",
+      "sha256": "95c9bd1971d3dd5015f2220aa297847260559bf7d70261f0f76dce0c02b7eac6"
+    },
+    "report:comprehensive_fast_switching": {
+      "path": "docs/comprehensive_fast_switching/README.md",
+      "sha256": "5e60b79336ad525e335bdddec654d75f24b5e8b374b667b39e477380184ab7c1"
+    },
+    "report:completed_switching_analysis": {
+      "path": "docs/completed_switching_analysis/README.md",
+      "sha256": "45abb46a2975f8a23b00d96856d7f70df49edbb73c2f799f72060c05dcc1215d"
+    },
+    "report:subghz_915_diagnostic": {
+      "path": "docs/subghz_915_diagnostic/README.md",
+      "sha256": "35c16908ea1d12846d7b7893e0366c0a3cc106000f1930f1c9d75cc44a62c5dc"
+    },
+    "report:cross_band_tracking_analysis": {
+      "path": "docs/cross_band_tracking_analysis/README.md",
+      "sha256": "b59e17606a4f36336356372b34514d85b3a70ea1d0f3fdf42c54bd2384cdc3cb"
+    },
+    "report:jittered_fixture_comparison": {
+      "path": "docs/jittered_fixture_comparison/README.md",
+      "sha256": "ea100be37fc9e25b8ac23bb8893c909bb2833b8e3f6be5bb3f6a7714b8ad7253"
+    },
+    "report:full_5ms_campaign": {
+      "path": "docs/full_5ms_campaign/README.md",
+      "sha256": "70c9deb09c3874954bd3113b7797d3d35c528111c97fc903775e91f5aab0db0c"
+    },
+    "report:tracking_development_plan": {
+      "path": "docs/tracking_development_plan/README.md",
+      "sha256": "d728513632ecd47e4ebba8b1c25a50d71450094c822ab76a46afd5b681fef1c4"
+    }
+  },
+  "renderer": {
+    "path": "scripts/render_calibration_synthesis.py",
+    "sha256": "0c439f90e25708cd130a600f17ca1e1299d6e4a2e213e4f309c00668914cd42b"
+  },
+  "figures": [
+    {
+      "path": "png/fig01_evidence_coverage.png",
+      "sha256": "cc3330ac4039ae12af7a16306acc301938320c73521df4422a9cd849f8c61d65",
+      "title": "Coverage is not qualification",
+      "evidence_kind": "measured",
+      "source_keys": [
+        "lut",
+        "pcb",
+        "conducted_dense",
+        "midpoints",
+        "ota_latest",
+        "conditions"
+      ],
+      "scope_note": "Distinct calibration planes and validation roles. No production angular band is qualified; intervals are not permission to transmit."
+    },
+    {
+      "path": "png/fig02_fixture_and_ports.png",
+      "sha256": "d3bbe502afaef3c1fef0f4964e635334133758ea2072f90df8e105fcfd1977d7",
+      "title": "The board calibration stops before the antennas",
+      "evidence_kind": "documented fixture / schematic",
+      "source_keys": [
+        "report:full_5ms_campaign",
+        "report:pcb_direct_injection_calibration"
+      ],
+      "scope_note": "PCB direct injection excluded deployed antennas/cables. Geometry shown is nominal, not surveyed. ANT3/ANT6 are omitted from C6."
+    },
+    {
+      "path": "png/fig03_pcb_response.png",
+      "sha256": "675f23b59a6dfaaf52ee185ed23387668a11d574ecf3d39c7bc27fe3bbc4e04c",
+      "title": "Measured PCB paths contain repeatable frequency structure",
+      "evidence_kind": "measured",
+      "source_keys": [
+        "lut"
+      ],
+      "scope_note": "Relative to ANT1; inverse correction LUT converted back to transfer. Includes calibration fixture uncertainty, not antenna response."
+    },
+    {
+      "path": "png/fig04_pcb_holdout_and_isolation.png",
+      "sha256": "9c08112f41a307eaa14caf7ba6815f2d0bf6611f563e6372295fefa82af22cd0",
+      "title": "LUT holdout accuracy and leakage are separate limits",
+      "evidence_kind": "measured",
+      "source_keys": [
+        "pcb"
+      ],
+      "scope_note": "Left: raw per-port holdouts, not detrended. Spatial common-mode-removed PCHIP RMS = 1.12\u00b0. Right: one-frequency fixture matrix."
+    },
+    {
+      "path": "png/fig05_frequency_models.png",
+      "sha256": "3abbabacec864a895fabe17e15b903bb8dc87f10a44a4c2e8d8b78bca7460374",
+      "title": "Dense LUTs outperform a compact ripple explanation",
+      "evidence_kind": "measured",
+      "source_keys": [
+        "midpoints",
+        "conducted_dense"
+      ],
+      "scope_note": "Older splitter-fixture evidence, NOT PCB-only calibration. Left and right have different cohorts and aggregations; do not pool."
+    },
+    {
+      "path": "png/fig06_phase_vs_spatial_admission.png",
+      "sha256": "6ce3eb5128c318e8c46ed55e7d157780c1ce8e20bb717928605a40c9265dde7f",
+      "title": "Stable phase does not establish a correct direction",
+      "evidence_kind": "measured",
+      "source_keys": [
+        "ota_original",
+        "ota_jittered",
+        "ota_latest"
+      ],
+      "scope_note": "Dense whole-record diagnostics use variable integration. Spatial admissions are legacy model gates, NOT surveyed bearing accuracy."
+    },
+    {
+      "path": "png/fig07_ota_frequency_and_epoch.png",
+      "sha256": "ee4146cd4474b350a9ded91d8019781eb3eb45c1f08e632274409c589990ff99",
+      "title": "The installed scene changes far more than the PCB holdout error",
+      "evidence_kind": "measured",
+      "source_keys": [
+        "ota_original",
+        "ota_jittered",
+        "ota_latest"
+      ],
+      "scope_note": "Angles are diagnostic model peaks, not ground truth. Legacy dense geometry is 49.9654 mm. Rate, bandwidth, gain and epoch are confounded."
+    },
+    {
+      "path": "png/fig08_static_port_imbalance.png",
+      "sha256": "360d5ab5b01602ecb4a0e9d32d389c876a67e201c998482bdc818ea330bdc4a5",
+      "title": "Weak-port behavior is fixture- and frequency-dependent",
+      "evidence_kind": "measured",
+      "source_keys": [
+        "static"
+      ],
+      "scope_note": "Before/after static references from the jitter comparison, NOT latest 5 MS/s screens. Transfer magnitude is not antenna efficiency or calibrated RF power."
+    },
+    {
+      "path": "png/fig09_latest_dwell_qualification.png",
+      "sha256": "f8e2640be00edf9f8199c63c9876c7d1d75f220f89845cd20dd725aa512051d8",
+      "title": "Low phase RMS alone is not a qualification pass",
+      "evidence_kind": "measured",
+      "source_keys": [
+        "conditions"
+      ],
+      "scope_note": "B = 5 MS/s / 1.6 MHz; D = 5 MS/s / 4 MHz. 50 ms prediction windows. Missing metrics remain missing; none is a qualified bearing condition."
+    },
+    {
+      "path": "png/fig10_ideal_bearing_gate.png",
+      "sha256": "faed17ba96987c5db4021065049aa0eb176b3d58cd34653222a783697bbe6050",
+      "title": "A broad main lobe is not a competing emitter direction",
+      "evidence_kind": "ideal simulation",
+      "source_keys": [
+        "bearing_code",
+        "manifold_code",
+        "geometry_code"
+      ],
+      "scope_note": "SIMULATION: nominal 51 mm C6, equal weights, isotropic antennas. Zero residual and exact angle at all four frequencies; no hardware data."
+    },
+    {
+      "path": "png/fig11_aperture_and_range.png",
+      "sha256": "2431966318f07664ce16c37795a9990f60715df011972e820deac24ad7071667",
+      "title": "Neither close range nor small aperture is a complete error diagnosis",
+      "evidence_kind": "ideal simulation",
+      "source_keys": [
+        "bearing_code",
+        "manifold_code",
+        "geometry_code"
+      ],
+      "scope_note": "SIMULATION / GEOMETRY: ideal point antennas, no coupling or reflections. Not a prediction of actual antenna phase centres or production accuracy."
+    },
+    {
+      "path": "png/fig12_dwell_and_compute.png",
+      "sha256": "9ae8bdc3f244236778f1e7df5974e3d8280cae018b176ddfdb7194cf5fbb507b",
+      "title": "More revisits do not guarantee more useful information or faster output",
+      "evidence_kind": "schedule calculation / measured replay",
+      "source_keys": [
+        "rolling",
+        "report:completed_switching_analysis"
+      ],
+      "scope_note": "Left: schedule arithmetic, not measured latency. Right: shared-host replay, not isolated live throughput; A is 2 MS/s control, B/D are 5 MS/s."
+    },
+    {
+      "path": "png/fig13_failure_accounting.png",
+      "sha256": "c9b8ed40c0e5f38dfd0091ff013d201e82455c7103d4c26a57e6c034556ff526",
+      "title": "Successful analysis and reliable delivery are different claims",
+      "evidence_kind": "measured",
+      "source_keys": [
+        "audit"
+      ],
+      "scope_note": "Analyzed does not mean phase/bearing passed. Transport: 458 attempts for 448 requests, 10 failures retained. Earlier interruptions are separate."
+    },
+    {
+      "path": "png/fig14_calibratable_vs_dynamic.png",
+      "sha256": "58f8fe4117a886ba55c44fe043d9e8dc7b0f6570aaf783d5ac94efda575eb6b4",
+      "title": "Fix deterministic response; measure the changing environment",
+      "evidence_kind": "engineering synthesis",
+      "source_keys": [
+        "report:pcb_direct_injection_calibration",
+        "report:completed_switching_analysis",
+        "report:full_5ms_campaign"
+      ],
+      "scope_note": "SYNTHESIS / PROPOSED ACTIONS: ranked priorities, not measured percentages of a common error budget."
+    },
+    {
+      "path": "png/fig15_experiment_roadmap.png",
+      "sha256": "1a9edd69e6a7b33e7ebef455ec840e81468c9774cd4d160fbb99bf5d86380f83",
+      "title": "Next experiments should isolate causes before increasing data volume",
+      "evidence_kind": "proposed experiments",
+      "source_keys": [
+        "report:tracking_development_plan",
+        "report:full_5ms_campaign"
+      ],
+      "scope_note": "PROPOSED, not executed. New RF work requires a confirmed fixture and bounded acquisition plan. No PCB redesign is justified by current attribution."
+    },
+    {
+      "path": "png/fig16_frequency_readiness.png",
+      "sha256": "011cd2750d46dff327707980e843f7aad2fe404092481b920f9d95531bb3d2d5",
+      "title": "Laboratory operating points are not a production tracking release",
+      "evidence_kind": "evidence-based readiness assessment",
+      "source_keys": [
+        "conditions",
+        "pcb",
+        "ota_latest"
+      ],
+      "scope_note": "Phase RMS is NOT bearing error. B = 5 MS/s / 1.6 MHz; D = 5 MS/s / 4 MHz. No surveyed-angle, unknown-emitter, live operating envelope is qualified."
+    }
+  ],
+  "tables": [
+    {
+      "path": "data/dense-epoch-summary.csv",
+      "sha256": "9b5dbbcacbb2dada1300c3abc0dd076acf9eaad1fa2cba59e06ab993f18575fa"
+    },
+    {
+      "path": "data/ideal-bearing-gate.csv",
+      "sha256": "c7d257b205138d937a87624f0462762592145111aca66ded80b3929e4d3c5a07"
+    },
+    {
+      "path": "data/ideal-spherical-source.csv",
+      "sha256": "15aedf65b84f0f32694d17667f97f81057a77eabfb8dd51fbda653d066c31bde"
+    },
+    {
+      "path": "data/latest-conditions.csv",
+      "sha256": "9b94bccb5a58b7642fb63c32399cf3e6ecdd5d60fe1d29948e79b0f7d5ddfce5"
+    },
+    {
+      "path": "data/schedule-theory.csv",
+      "sha256": "b43842ec8751b853ca08eb55d048d5fa0109f571d8963cd19842de20b07ab979"
+    },
+    {
+      "path": "data/summary.json",
+      "sha256": "6bfefb4917549d952e6cc3050013e8cdb731b65251999f4ef58d14f0baa5dd0d"
+    }
+  ],
+  "report": {
+    "path": "README.md",
+    "sha256": "ea3e17594fcb4b38b40a33c0cd8af3b2010a6794e5c6e5d57638cbd3515ab422"
+  }
+}
